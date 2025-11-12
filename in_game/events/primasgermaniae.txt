@@ -1,0 +1,221 @@
+﻿namespace = primasgermaniae
+primasgermaniae.1 = {
+	type = country_event
+	title = primasgermaniae.1.title
+	desc = primasgermaniae.1.desc
+	fire_only_once = yes
+	
+	dynamic_historical_event = {
+		tag = MAI
+		from = 1337.1.1
+		to = 1400.1.1
+		monthly_chance = 100
+	}
+	
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		is_elector = yes
+		religion = religion:catholic
+		government_type = government_type:theocracy
+		has_ruler = yes 
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+		set_variable = { name = mai_primas_germaniae value = 1 }
+		save_scope_as = target_country
+		ruler ?= { save_scope_as = home_ruler }
+	}
+
+	option = {
+		name = primasgermaniae.1.a
+		add_prestige = prestige_mild_bonus
+		add_reform = government_reform:primas_germaniae
+	}
+}
+
+primasgermaniae.2 = {
+	hide_portraits = yes
+	type = country_event
+	title = primasgermaniae.2.title
+	desc = primasgermaniae.2.desc
+	
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+	
+	trigger = {
+		has_reform = government_reform:primas_germaniae
+		
+		country_exists = c:PAP
+		prestige < 20
+		c:PAP = {
+			opinion = { target = root value < 0 }
+		}
+
+		has_ruler = yes 
+
+		international_organization:hre = {
+			any_country_with_special_status_of_type = {
+				type = elector
+				this != root
+				government_type = government_type:theocracy
+			}
+		}
+	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+		save_scope_as = target_country
+		ruler ?= { save_scope_as = home_ruler }
+		international_organization:hre = {
+			random_country_with_special_status_of_type = {
+				type = elector
+				limit = {
+					this != root
+					government_type = government_type:theocracy
+				}
+				save_scope_as = other_elector
+			}
+		}
+	}
+	
+	option = {
+		name = primasgermaniae.2.a
+		save_scope_as = original_prime
+		
+		add_prestige = prestige_mild_penalty
+		
+		scope:other_elector = {
+			trigger_event_non_silently = {
+				id = primasgermaniae.3
+			}
+		}
+	}
+}
+
+primasgermaniae.3 = {
+	hide_portraits = yes
+	type = country_event
+	title = primasgermaniae.3.title
+	desc = primasgermaniae.3.desc
+	
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+		save_scope_as = new_primae
+		ruler ?= { save_scope_as = home_ruler }
+	}
+
+	option = {
+		name = primasgermaniae.3.a
+		scope:original_prime =
+		{
+			add_opinion = { target = root modifier = opinion_accepted_primas_germaniae }
+			trigger_event_non_silently = {
+				id = primasgermaniae.4
+			}
+		}
+		add_reform = government_reform:primas_germaniae
+	}
+	
+	option = {
+		name = primasgermaniae.3.b
+		add_prestige = prestige_mild_bonus
+	}
+}
+
+primasgermaniae.4 = {
+	type = country_event
+	title = primasgermaniae.4.title
+	desc = primasgermaniae.4.desc
+
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+	}
+
+	option = {
+		name = primasgermaniae.4.a
+		remove_reform = government_reform:primas_germaniae
+
+		scope:other_elector = {
+			add_opinion = { target = root modifier = opinion_congratulated_new_primas_germaniae }
+		}
+
+	}
+	option = {
+		name = primasgermaniae.4.b
+		remove_reform = government_reform:primas_germaniae
+		scope:other_elector = {
+			add_opinion = { target = root modifier = opinion_lost_primas_germaniae }
+		}
+	}
+}
+
+primasgermaniae.6 = {
+	hide_portraits = yes
+	type = country_event
+	title = primasgermaniae.6.title
+	desc = primasgermaniae.6.desc
+
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		is_elector = yes
+		government_type = government_type:theocracy
+		religion = religion:catholic
+		
+		NOT = {
+			international_organization:hre = {
+				any_country_with_special_status_of_type = {
+					type = elector
+					has_reform = government_reform:primas_germaniae
+				}
+			}
+		}
+		country_exists = c:PAP
+		c:PAP = { 
+			opinion = { target = prev value > 20 }
+			has_ruler = yes
+		}
+		prestige > 10
+		has_ruler = yes
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+		ruler ?= { save_scope_as = home_ruler }
+		c:PAP ?= { 
+			save_scope_as = pope_country
+			ruler ?= { save_scope_as = pope_ruler }
+		}
+	}
+
+	option = {
+		name = primasgermaniae.6.a
+		add_prestige = prestige_mild_bonus
+		add_reform = government_reform:primas_germaniae
+	}
+	option = {
+		name = primasgermaniae.6.b
+		reverse_add_opinion = { target = c:PAP modifier = opinion_declined_primas_germaniae }
+	}
+}
+

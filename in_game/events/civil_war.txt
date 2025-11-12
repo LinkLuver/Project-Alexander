@@ -1,0 +1,63 @@
+﻿namespace = civil_war
+
+civil_war.1 = {
+	type = country_event	
+
+	title = civil_war.1.title
+	desc = civil_war.1.desc
+	
+	
+	trigger = {
+		is_human = yes
+		NOT = {
+			any_active_disaster = {
+				disaster_type = disaster_type:horde_civil_war
+			}
+		}
+	}
+	
+	
+	option = {
+		name = civil_war.1.a
+
+		if = {
+			limit = { any_active_disaster = { disaster_type = disaster_type:english_civil_war } }
+			hidden_effect = {
+				set_variable = english_civil_war_lost_variable
+			}
+			if = {
+				limit = { has_variable = chosen_royalist_country_variable }
+				custom_tooltip = {
+					text = complete_the_ecw_and_lose_tt
+					scope:winner = {
+						trigger_event_non_silently = {
+							id = english_civil_war.252
+							days = 30
+						}
+					}
+				}
+			}
+		}
+
+		change_player = scope:winner
+		scope:winner ?= {	
+			add_stability = stability_ultimate_penalty
+			add_prestige = prestige_ultimate_penalty
+			add_legitimacy = legitimacy_ultimate_penalty
+		}
+	}
+
+	option = {
+		name = civil_war.1.b
+		custom_tooltip = civil_war_game_over
+	}
+
+	after = {
+		hidden_effect = {
+			if = {
+				limit = { scope:winner = { is_revolutionary = yes } }
+				scope:winner = { trigger_event_silently = revolution_disaster.4 }
+			}
+		}
+	}
+}

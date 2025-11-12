@@ -1,0 +1,146 @@
+﻿namespace = rebel
+
+#Rome - Cola di Rienzo
+rebel.1 = {
+	hide_portraits = yes
+	type = country_event
+	fire_only_once = yes
+	title = rebel.1.title
+	desc = rebel.1.desc
+
+	illustration_tags = {
+ 		10 = angry
+ 		10 = exterior
+ 	}
+	
+	trigger = {
+		owns = location:rome #Trigger to whoever owns Rome
+		capital != location:rome #The capital is not Rome
+		current_year > 1344 #Aprox the plausible lifetime of Cola
+		current_year < 1370
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		location:rome = {
+			save_scope_as = target_location
+		}
+		create_character = {
+			first_name = name_nicholas
+			last_name = Gabrini
+			nickname = di_Rienzo
+			adm = 68
+			dip = 71
+			mil = 75
+			culture = culture:median
+			birth_location = location:rome
+			script = cola_di_rienzo
+			estate = estate_type:burghers_estate
+			save_scope_as = target_character
+			script = cola_di_rienzo
+		}
+		create_rebel = {
+			category = estate
+			rebel_gov_type = republic
+			estate = burghers_estate
+			name = cola_rebels
+			save_scope_as = cola_rebels_scope
+		}
+	}
+
+	option = {
+		name = rebel.1.a
+		historical_option = yes
+		change_societal_value = { type = serfdom_vs_free_subjects value = societal_value_minor_move_to_right }
+		add_stability = stability_mild_bonus
+		location:rome = {
+			every_pop = {
+				limit = {
+					owner = root
+					OR = {
+						pop_type = pop_type:peasants
+						pop_type = pop_type:burghers
+					}
+				}
+				add_pop_satisfaction = pop_satisfaction_ultimate_bonus
+			}
+			every_pop = {
+				limit = {
+					owner = root
+					pop_type = pop_type:nobles
+				}
+				add_pop_satisfaction = pop_satisfaction_ultimate_penalty
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_weak_bonus }
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_weak_bonus }
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_severe_penalty }
+		destroy_rebel = scope:cola_rebels_scope
+	}
+
+	option = {
+		name = rebel.1.b
+		change_societal_value = { type = serfdom_vs_free_subjects value = societal_value_move_to_right }
+		add_stability = stability_severe_bonus
+		scope:target_location = {
+			change_prosperity = prosperity_very_weak_bonus
+			create_country_from_location = {
+				set_new_ruler = scope:target_character
+				change_government_type = government_type:republic
+				change_heir_selection = heir_selection:oligarchic_elective
+				add_reform = government_reform:peasant_republic_reform
+				make_subject_of = { target = root type = subject_type:vassal }
+				change_country_name = RME
+				change_country_adjective = RME_ADJ
+				change_country_color = map_rome
+				change_country_flag = RME
+				save_scope_as = rome_country_scope
+			}
+			add_core = scope:rome_country_scope
+		}
+
+		add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_mild_bonus }
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_extreme_bonus }
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_severe_penalty }
+
+		change_gold_effect = { scale = -2 }
+		destroy_rebel = scope:cola_rebels_scope
+	}
+
+	option = {
+		name = rebel.1.c
+		add_prestige = prestige_weak_bonus
+		add_stability = stability_weak_penalty
+		change_societal_value = { type = serfdom_vs_free_subjects value = societal_value_minor_move_to_left }
+		scope:target_character = {
+			change_character_allegiance = scope:cola_rebels_scope
+		}
+		
+		location:rome = {
+			every_pop = {
+				limit = {
+					owner = root
+					OR = {
+						pop_type = pop_type:peasants
+						pop_type = pop_type:burghers
+					}
+				}
+				add_pop_satisfaction = pop_satisfaction_radical_penalty
+				change_pop_allegiance = scope:cola_rebels_scope
+			}
+			every_pop = {
+				limit = {
+					owner = root
+					pop_type = pop_type:nobles
+				}
+				add_pop_satisfaction = pop_satisfaction_ultimate_bonus
+			}
+		}
+		scope:cola_rebels_scope = {
+			add_rebel_progress = 1.5
+		}
+		add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_weak_bonus }
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_weak_bonus }
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_severe_penalty }
+	}
+}

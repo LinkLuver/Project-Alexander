@@ -1,0 +1,1114 @@
+﻿namespace = free_cities
+
+# Free City status gained
+free_cities.1 = {
+	type = country_event
+	title = free_cities.1.title
+	desc = free_cities.1.desc
+
+	image = "gfx/interface/illustrations/event/backgrounds/exterior/burghers/north_german_burghers_exterior.dds"
+
+	trigger = {
+		international_organization:hre ?= {
+			exists = leader_country
+			leader_country = {
+				has_ruler = yes
+			}
+		}
+	}
+
+	immediate = {
+        if = {
+            limit = {
+                NOT = {
+                    government_type = government_type:republic
+                }
+            }
+            change_government_type = government_type:republic
+        }
+		international_organization:hre = {
+			leader_country.ruler = { save_scope_as = target_ruler }
+		}
+
+		ruler ?= { save_scope_as = home_ruler }
+	}
+
+	option = {
+		name = free_cities.1.a
+		show_as_tooltip = {
+            if = {
+                limit = {
+                    NOT = {
+                        government_type = government_type:republic
+                    }
+                }
+                change_government_type = government_type:republic
+            }
+		}
+	}
+}
+
+# Free City status lost
+free_cities.2 = {
+	type = country_event
+	title = free_cities.2.title
+	desc = free_cities.2.desc
+
+	image = "gfx/interface/illustrations/event/backgrounds/exterior/burghers/north_german_burghers_exterior.dds"
+
+	immediate = {
+		hidden_effect = {
+			remove_country_modifier = fc_hre_privileges
+			remove_country_modifier = fc_city_league
+			remove_variable = fc_city_league_flag
+		}
+
+		international_organization:hre = {
+			leader_country.ruler ?= { save_scope_as = target_ruler }
+		}
+	}
+
+	option = {
+		name = free_cities.2.a
+	}
+}
+
+#- Riots begin among lower class residents, you ask HRE intervention (gold, manpower), he gets to decide if he wants to do it for a relations and authority boost.
+free_cities.3 = {
+	type = country_event
+	title = free_cities.3.title
+	desc = free_cities.3.desc
+
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		has_ruler = yes
+        international_organization:hre = {
+            country_has_special_status = {
+                type = special_status:free_city
+                country = prev
+            }
+            leader_country ?= {
+                NOT = {
+                    root = {
+                        has_opinion = {
+                            target = prev
+                            modifier = opinion_sent_help
+                        }
+                    }
+                    root = {
+                        has_opinion = {
+                            target = prev
+                            modifier = opinion_refused_send_help
+                        }
+                    }
+                }
+				NOT = { is_at_war_with = root }
+				has_ruler = yes
+            }
+        }
+        any_owned_location = {
+			average_satisfaction < 0.3
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		save_scope_as = riots_source
+		ruler = { save_scope_as = home_ruler }
+		international_organization:hre = {
+			leader_country.ruler = { save_scope_as = hre_ruler }
+		}
+	}
+
+	option = {
+		name = free_cities.3.a
+		add_prestige = prestige_weak_penalty
+        international_organization:hre = {
+            leader_country = {
+			    trigger_event_silently = {
+                    id = free_cities.4
+                }
+		    }
+        }
+	}
+	option = {
+		name = free_cities.3.b
+		add_army_tradition = army_tradition_weak_penalty
+        add_navy_tradition = navy_tradition_weak_penalty
+	}
+
+}
+
+# To Destroy Rebels, Or Not
+free_cities.4 = {
+	type = country_event
+	title = free_cities.4.title
+	desc = free_cities.4.desc
+	
+	illustration_tags = {
+        10 = armed
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		save_scope_as = hre_leader
+	}
+	
+	option = {
+		name = free_cities.4.a
+		if = {
+			limit = { monthly_manpower > 0 }
+			add_manpower = { value = root.monthly_manpower multiply = -6 }
+			add_gold = {
+				value = root.monthly_income_trade_and_tax
+				multiply = -1.20
+			}
+		}
+		else = {
+			add_gold = {
+				value = root.monthly_income_trade_and_tax
+				multiply = -3.5
+			}
+		}
+        change_imperial_authority = { value = imperial_authority_weak_bonus }
+		scope:riots_source = {
+			set_variable = {
+                name = fc_help_flag
+                value = 1
+            }
+			trigger_event_silently = {
+                id = free_cities.5
+            }
+			show_as_tooltip = {
+				add_manpower = { value = scope:hre_leader.monthly_manpower multiply = 6 }
+				add_gold = {
+                    value = scope:hre_leader.monthly_income_trade_and_tax
+                    multiply = 1.20
+                }
+			}
+			add_opinion = {
+                target = root
+                modifier = opinion_sent_help
+            }
+		}
+	}
+	option = {
+		name = free_cities.4.b
+		scope:riots_source = {
+			set_variable = {
+                name = fc_nohelp_flag
+                value = 1
+            }
+			trigger_event_silently = {
+                id = free_cities.5
+            }
+			add_opinion = {
+                target = root
+                modifier = opinion_refused_send_help
+            }
+		}
+	}
+}
+
+# Help to Crush Rebels, or Not?
+free_cities.5 = {
+	type = country_event
+	title = free_cities.5.title
+	desc = free_cities.5.desc
+
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+	}
+
+	option = {
+		name = free_cities.5.a
+		trigger = {
+            has_variable = fc_help_flag
+		}
+		if = {
+			limit = { scope:hre_leader.monthly_manpower > 0 }
+			add_manpower = { value = scope:hre_leader.monthly_manpower multiply = -6 }
+			add_gold = {
+				value = scope:hre_leader.monthly_income_trade_and_tax
+				multiply = -1.20
+			}
+		}
+		else = {
+			add_gold = {
+				value = scope:hre_leader.monthly_income_trade_and_tax
+				multiply = -3.5
+			}
+		}
+		show_as_tooltip = {
+			add_opinion = { 
+                target = scope:hre_leader 
+                modifier = opinion_sent_help
+            }
+		}
+		remove_variable = fc_help_flag
+	}
+	option = {
+		name = free_cities.5.b
+		trigger = {
+            has_variable = fc_nohelp_flag
+		}
+		show_as_tooltip = {
+			add_opinion = {
+                target = scope:hre_leader
+                modifier = opinion_refused_send_help
+            }
+		}
+		add_army_tradition = army_tradition_weak_penalty
+        add_navy_tradition = navy_tradition_weak_penalty
+		remove_variable = fc_nohelp_flag
+	}
+}
+
+#- Picked as place of coronation by the new HRE.
+free_cities.6 = {
+	type = country_event
+	title = free_cities.6.title
+	desc = free_cities.6.desc
+
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+		c:PAP.ruler_or_regent = {
+			save_scope_as = pope_ruler
+		}
+		international_organization:hre = {
+			leader_country.ruler = { save_scope_as = target_ruler }
+		}
+	}
+
+	option = {
+		name = free_cities.6.a
+		add_prestige = prestige_weak_bonus
+		add_country_modifier = {
+            modifier = fc_imperial_coronation
+            months = 121
+            mode = add_and_extend
+        }
+	}
+}
+
+# The Treaty Conference
+free_cities.7 = {
+	type = country_event
+	title = free_cities.7.title
+	desc = free_cities.7.desc
+
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+        international_organization:hre = {
+            country_has_special_status = {
+                type = special_status:free_city
+                country = prev
+            }
+        }
+		OR = {
+			has_ruler = yes
+			has_regent = yes
+		}
+		has_country_modifier = fc_treatyconference_timer
+		NOT = {
+			prestige >= 40.00
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+		ruler_or_regent = { save_scope_as = home_ruler }
+	}
+
+	option = {
+		name = free_cities.7.a
+		add_prestige = prestige_mild_bonus
+	}
+}
+
+# Custom and tax privileges 
+free_cities.8 = {
+	type = country_event
+	title = free_cities.8.title
+	desc = free_cities.8.desc
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	trigger = {
+		is_leader_of_international_organization = international_organization:hre
+		has_ruler = yes
+		any_known_country = {
+            international_organization:hre = {
+                country_has_special_status = {
+                    type = special_status:free_city
+                    country = prev
+                }
+            }
+            root = {
+                opinion = {
+                    target = prev
+                    value >= 0
+                }
+            }
+			num_loans >= 3
+			has_ruler = yes
+			NOT = {
+				gold >= 25.00
+			}
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+		hidden_effect = {
+			random_known_country = {
+				limit = {
+                    international_organization:hre = {
+                        country_has_special_status = {
+                            type = special_status:free_city
+                            country = prev
+                        }
+                    }
+                    root = {
+                        opinion = {
+                            target = prev
+                            value >= 0
+                        }
+                    }
+					num_loans >= 3
+					NOT = {
+						gold >= 25.00
+					}
+				}
+				save_scope_as = free_city_in_debt_target
+				ruler = { save_scope_as = target_ruler }
+			}
+		}
+	}
+
+	option = {
+		name = free_cities.8.a
+		change_gold_effect = { scale = -2.40 }
+        save_scope_as = hre_leader
+		scope:free_city_in_debt_target = {
+			add_opinion = {
+                target = root
+                modifier = opinion_special_privileges
+            }
+			trigger_event_silently = {
+                id = free_cities.9
+            }
+			show_as_tooltip = {
+				add_country_modifier = {
+                    modifier = fc_hre_privileges
+                    months = -1
+                    mode = add_and_extend
+                }
+			}
+		}
+	}
+	option = {
+		name = free_cities.8.b
+		change_imperial_authority = { value = imperial_authority_very_weak_penalty }
+	}
+}
+
+# Custom and Tax Privileges Given
+free_cities.9 = {
+	type = country_event
+	title = free_cities.9.title
+	desc = free_cities.9.desc
+
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+		international_organization:hre = {
+			leader_country.ruler = { save_scope_as = target_ruler }
+		}		
+	}
+
+	option = {
+		name = free_cities.9.a
+		add_gold = 100.00
+		add_country_modifier = {
+            modifier = fc_hre_privileges
+            months = -1
+            mode = add_and_extend
+        }  
+		show_as_tooltip = {
+			add_opinion = {
+                target = scope:hre_leader
+                modifier = opinion_special_privileges
+            }
+		}
+	}
+}
+
+# Wellborns with Weapons (Too Large A Conflict)
+free_cities.10 = {
+	type = country_event
+	title = free_cities.10.title
+	desc = free_cities.10.desc
+
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+        international_organization:hre = {
+            country_has_special_status = {
+                type = special_status:free_city
+                country = prev
+            }
+            leader_country ?= {
+				has_ruler = yes
+                NOT = {
+                    root = {
+                        has_opinion = {
+                            target = prev
+                            modifier = opinion_sent_help
+                        }
+                    }
+                    root = {
+                        has_opinion = {
+                            target = prev
+                            modifier = opinion_refused_send_help
+                        }
+                    }
+                }
+				NOT = { has_cooldown = hre_emperor_had_free_city_event }
+            }
+        }
+		stability < -10
+		estate_satisfaction = { estate_type = estate_type:nobles_estate value < 0.45 }
+		NOT = {
+			has_country_modifier = aristocratic_privileges
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		save_scope_as = free_city_source
+	}
+	option = {
+		name = free_cities.10.a
+		add_prestige = prestige_weak_penalty
+        international_organization:hre = {
+            leader_country = {
+                trigger_event_silently = {
+                    id = free_cities.11
+                }
+            }
+        }
+	}
+	option = {
+		name = free_cities.10.b
+		add_country_modifier = {
+            modifier = concessions_to_the_nobility
+            months = 120
+        }  
+	}
+}
+
+# Plea for Help with Rebellious Nobles
+free_cities.11 = {
+	type = country_event
+	title = free_cities.11.title
+	desc = free_cities.11.desc
+	
+	illustration_tags = {
+		10 = angry
+		10 = interior
+	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        save_scope_as = hre_leader
+		ruler = { save_scope_as = home_ruler }
+		add_cooldown = {
+			type = hre_emperor_had_free_city_event
+			years = 4
+		}
+	}
+
+	option = {
+		name = free_cities.11.a
+		add_prestige = prestige_weak_penalty
+		scope:free_city_source = {
+			set_variable = {
+                name = fc_hre_yeshan_flag
+                value = 1
+            }
+			trigger_event_silently = {
+                id = free_cities.12
+            }
+			add_opinion = {
+                target = root
+                modifier = opinion_sent_help
+            }
+		}
+	}
+	option = {
+		name = free_cities.11.b
+
+		change_imperial_authority = { value = imperial_authority_very_weak_penalty }
+		scope:free_city_source = {
+			set_variable = {
+                name = fc_hre_nohan_flag
+                value = 1
+            }
+			add_country_modifier = {
+                modifier = aristocratic_privileges
+                months = 120
+            }  
+			add_opinion = {
+                target = root
+                modifier = opinion_refused_send_help
+            }
+			trigger_event_silently = {
+                id = free_cities.12
+            }
+		}
+	}
+}
+
+# Helped or Hindered?
+free_cities.12 = {
+	type = country_event
+	title = free_cities.12.title
+	desc = free_cities.12.desc
+
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = free_cities.12.a
+		trigger = {
+			has_variable = fc_hre_yeshan_flag
+		}
+		show_as_tooltip = {
+			add_opinion = {
+                target = scope:hre_leader
+                modifier = opinion_sent_help
+            }
+		}
+		remove_variable = fc_hre_yeshan_flag
+	}
+
+	option = {
+		name = free_cities.12.b
+		trigger = {
+			has_variable = fc_hre_nohan_flag
+		}
+		show_as_tooltip = {
+			add_opinion = {
+                target = scope:hre_leader
+                modifier = opinion_refused_send_help
+            }
+			add_country_modifier = {
+                modifier = aristocratic_privileges
+                months = 243
+                mode = add_and_extend
+            }  
+		}
+		remove_variable = fc_hre_nohan_flag
+	}
+}
+
+# City League
+free_cities.13 = {
+	type = country_event
+	title = free_cities.13.title
+	desc = free_cities.13.desc
+
+	image = "gfx/interface/illustrations/event/backgrounds/exterior/burghers/north_german_burghers_exterior.dds"
+
+	trigger = {
+        international_organization:hre = {
+            country_has_special_status = {
+                type = special_status:free_city
+                country = prev
+            }
+        }
+		at_war = no
+		has_ruler = yes
+		NOT = {
+			has_country_modifier = fc_city_league
+		}
+		any_known_country = {
+            international_organization:hre = {
+                country_has_special_status = {
+                    type = special_status:free_city
+                    country = prev
+                }
+            }
+            at_war = no
+			opinion = {
+                target = root
+                value >= 25
+            }
+			NOT = {
+				is_enemy_of = root
+			}
+			NOT = {
+				has_opinion = {
+                    target = root
+                    modifier = opinion_refused_league
+                }
+			}
+			root = {
+				opinion = {
+                    target = prev
+                    value >= 25
+                }
+			}
+			NOT = {
+				has_country_modifier = fc_city_league
+			}
+			NOT = {
+				is_rival_of = root
+			}
+		}
+	}
+
+
+	immediate = {
+		ruler = { save_scope_as = home_ruler }
+		save_scope_as = fc_league_invitation_source
+		hidden_effect = {
+			random_country = {
+				limit = {
+                    international_organization:hre = {
+                        country_has_special_status = {
+                            type = special_status:free_city
+                            country = prev
+                        }
+                    }
+                    at_war = no
+					opinion = {
+                        target = root
+                        value >= 25
+                    }
+					NOT = {
+						is_enemy_of = root
+					}
+					NOT = {
+						has_opinion = {
+                            target = root
+                            modifier = opinion_refused_league
+                        }
+					}
+					root = {
+						opinion = {
+                            target = prev
+                            value >= 25
+                        }
+					}
+					NOT = {
+						has_country_modifier = fc_city_league
+					}
+					NOT = {
+						is_rival_of = root
+					}
+				}
+				save_scope_as = fc_league_invitation_target
+			}
+		}
+	}
+
+	option = {
+		name = free_cities.13.a
+		add_prestige = prestige_mild_penalty
+		scope:fc_league_invitation_target = {
+			trigger_event_silently = {
+                id = free_cities.14
+            }
+		}
+	}
+	option = {
+		name = free_cities.13.b
+		add_country_modifier = {
+            modifier = fc_mercenary_contracts
+            months = 121
+            mode = add_and_extend
+        }  
+	}
+}
+
+# City League
+free_cities.14 = {
+	type = country_event
+	title = free_cities.14.title
+	desc = free_cities.14.desc
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+	}
+
+	option = {
+		name = free_cities.14.a
+		add_prestige = prestige_mild_penalty
+		scope:fc_league_invitation_source = {
+			trigger_event_silently = {
+                id = free_cities.15
+            }
+			if = {
+				limit = {
+					root != scope:fc_league_invitation_source
+				}
+				add_opinion = {
+					target = root
+					modifier = opinion_agreed_league
+				}
+			}
+			
+		}
+		add_country_modifier = {
+            modifier = fc_city_league
+            months = -1
+            mode = add_and_extend
+        }  
+		add_manpower = { value = root.monthly_manpower multiply = 6 }
+		set_variable = {
+            name = fc_city_league_flag
+            value = 1
+        }
+	}
+	option = {
+		name = free_cities.14.b
+		add_prestige = prestige_mild_bonus
+		hidden_effect = {
+			add_country_modifier = {
+                modifier = fc_league_timer
+                months = 121
+                mode = add_and_extend
+            }  
+		}
+		scope:fc_league_invitation_source = {
+			trigger_event_silently = {
+                id = free_cities.16
+            }
+			if = {
+				limit = {
+					root != scope:fc_league_invitation_source
+				}
+				add_opinion = {
+          		    target = root
+          		    modifier = opinion_refused_league
+          		}
+			}
+		}
+	}
+}
+
+# Members of the City League
+free_cities.15 = {
+	type = country_event
+	title = free_cities.15.title
+	desc = free_cities.15.desc
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+	}
+	
+	option = {
+		name = free_cities.15.a
+		show_as_tooltip = {
+			add_opinion = {
+                target = scope:fc_league_invitation_target
+                modifier = opinion_agreed_league
+            }
+		}
+		add_country_modifier = {
+            modifier = fc_city_league
+            months = -1
+            mode = add_and_extend
+        }  
+		add_manpower = { value = root.monthly_manpower multiply = 6 }
+		set_variable = {
+            name = fc_city_league_flag
+            value = 1
+        }
+	}
+}
+
+# Declined the City League
+free_cities.16 = {
+	type = country_event
+	title = free_cities.16.title
+	desc = free_cities.16.desc
+
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+	}
+
+	option = {
+		name = free_cities.16.a
+		show_as_tooltip = {
+			add_opinion = {
+                target = scope:fc_league_invitation_target
+                modifier = opinion_refused_league
+            }
+		}
+	}
+}
+
+# The Free City League Membership
+free_cities.17 = {
+	type = country_event
+	title = free_cities.17.title
+	desc = free_cities.17.desc
+	
+	trigger = {
+        international_organization:hre = {
+            country_has_special_status = {
+                type = special_status:free_city
+                country = prev
+            }
+        }
+		at_war = no
+		NOT = {
+			has_country_modifier = fc_city_league
+			has_country_modifier = fc_league_timer
+		}
+		any_known_country = {
+            international_organization:hre = {
+                country_has_special_status = {
+                    type = special_status:free_city
+                    country = prev
+                }
+            }
+            at_war = no
+			has_country_modifier = fc_city_league
+			opinion = {
+                target = root
+                value >= 25
+            }
+			NOT = {
+				is_enemy_of = root
+			}
+			NOT = {
+				has_opinion = {
+                    target = root
+                    modifier = opinion_refused_league
+                }
+			}
+			root = {
+				opinion = {
+                    target = prev
+                    value >= 25
+                }
+			}
+			NOT = {
+				is_rival_of = root
+			}
+		}
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+	}
+	
+	option = {
+		name = free_cities.17.a
+		add_prestige = prestige_weak_penalty
+        save_scope_as = free_city_source
+		random_known_country = {
+			limit = {
+                international_organization:hre = {
+                    country_has_special_status = {
+                        type = special_status:free_city
+                        country = prev
+                    }
+                }
+                at_war = no
+				has_country_modifier = fc_city_league
+				opinion = {
+                    target = root
+                    value >= 25
+                }
+				NOT = {
+					is_enemy_of = root
+				}
+				NOT = {
+					has_opinion = {
+                        target = root
+                        modifier = opinion_refused_league
+                    }
+				}
+				root = {
+					opinion = {
+                        target = prev
+                        value >= 25
+                    }
+				}
+				NOT = {
+					is_rival_of = root
+				}
+			}
+			trigger_event_silently = {
+                id = free_cities.18
+            }
+		}
+	}
+	option = {
+		name = free_cities.17.b
+		add_prestige = prestige_weak_bonus
+	}
+}
+
+# Potential City League Member
+free_cities.18 = {
+	type = country_event
+	title = free_cities.18.title
+	desc = free_cities.18.desc
+
+	illustration_tags = {
+		10 = happy
+		10 = interior
+	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+	}
+
+	option = {
+		name = free_cities.18.a
+		add_prestige = prestige_weak_penalty
+		scope:free_city_source = {
+			trigger_event_silently = {
+                id = free_cities.15
+            }
+			add_opinion = {
+                target = root
+                modifier = opinion_agreed_league
+            }
+		}
+	}
+	option = {
+		name = free_cities.18.b
+		scope:free_city_source = {
+			trigger_event_silently = {
+                id = free_cities.16
+            }
+			add_opinion = {
+                target = root
+                modifier = opinion_refused_league
+            }
+		}
+	}
+}
+
+# Cooperative Reforms
+free_cities.19 = {
+	type = country_event
+	title = free_cities.19.title
+	desc = free_cities.19.desc
+
+	illustration_tags = {
+		10 = happy
+		10 = interior
+	}
+
+	trigger = {
+        international_organization:hre = {
+            country_has_special_status = {
+                type = special_status:free_city
+                country = prev
+            }
+        }
+		has_country_modifier = fc_city_league
+        not = {
+            has_variable = fc_city_league_flag
+        }
+		any_known_country = {
+            international_organization:hre = {
+                country_has_special_status = {
+                    type = special_status:free_city
+                    country = prev
+                }
+            }
+            has_variable = fc_city_league_flag
+			has_country_modifier = fc_city_league
+		}
+		NOT = {
+			has_country_modifier = fc_league_reforms_timer
+			any_known_country = {
+				has_country_modifier = fc_league_reforms_timer
+			}
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+		hidden_effect = {
+			add_country_modifier = {
+                modifier = fc_league_reforms_timer
+                months = 121
+                mode = add_and_extend
+            }  
+		}
+	}
+
+	option = {
+		name = free_cities.19.a
+		add_government_power = government_power_mild_bonus
+		add_prestige = prestige_weak_bonus
+		add_army_tradition = army_tradition_weak_bonus
+        add_navy_tradition = navy_tradition_weak_bonus
+	}
+}
+

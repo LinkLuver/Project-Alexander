@@ -1,0 +1,123 @@
+﻿namespace = colonial_federation_events
+
+colonial_federation_events.1000 = {
+	type = country_event
+	title = colonial_federation_events.1000.title
+	desc = colonial_federation_events.1000.desc
+	major = yes
+	major_trigger = {
+		is_neighbor_of = root
+	}
+
+	illustration_tags = {
+		10 = happy
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		save_scope_as = target_country
+		ruler_or_regent ?= {
+			save_scope_as = target_character
+		}
+		random_international_organization = {
+			limit = {
+				international_organization_type = international_organization_type:colonial_federation
+				leader_country = root
+			}
+			save_scope_as = target_io
+		}
+	}
+	option = {
+		name = colonial_federation_events.1000.a
+
+		switch = {
+			trigger = has_variable
+			colonial_federation_picked_gov_type_monarchy = {
+				if = {
+					limit = {
+						NOT = { government_type = government_type:monarchy }
+					}
+					change_government_type = government_type:monarchy
+					change_heir_selection = heir_selection:cognatic_primogeniture
+				}
+				remove_variable = colonial_federation_picked_gov_type_monarchy
+			}
+			colonial_federation_picked_gov_type_republic = {
+				if = {
+					limit = {
+						NOT = { government_type = government_type:republic }
+					}
+					change_government_type = government_type:republic
+					change_heir_selection = heir_selection:republic_4_year_terms
+				}
+				remove_variable = colonial_federation_picked_gov_type_republic
+			}
+			colonial_federation_picked_gov_type_theocracy = {
+				if = {
+					limit = {
+						NOT = { government_type = government_type:theocracy }
+					}
+					change_government_type = government_type:theocracy
+					change_heir_selection = heir_selection:bishopric_elective
+				}
+				remove_variable = colonial_federation_picked_gov_type_theocracy
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:target_io
+			}
+			custom_tooltip = {
+				text = colonial_federation_unify_the_io_tt
+				scope:target_io = {
+					every_international_organization_member = {
+						limit = { NOT = { this = root } }
+						trigger_event_silently = { id = colonial_federation_events.1001 }
+					}
+				}
+			}
+			destroy_international_organization = { target = scope:target_io }
+		}
+	}
+}
+
+# ...and for member states
+colonial_federation_events.1001 = {
+	type = country_event
+	title = colonial_federation_events.1001.title
+	desc = colonial_federation_events.1001.desc
+
+	illustration_tags = {
+		10 = happy
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+	}
+		
+	option = {
+		name = colonial_federation_events.1001.a
+		if = {
+			limit = { exists = scope:target_country }
+			scope:target_country = {
+				annex_country = { country = root }
+			}
+		}
+	}
+	option = {
+		name = colonial_federation_events.1001.b
+		trigger = { is_ai = no }
+		custom_tooltip = {
+			text = colonial_federation_break_away_tt
+			if = {
+				limit = { exists = scope:target_country }
+				every_owned_location = {
+					limit = { is_core_of = scope:target_country }
+					change_location_owner = scope:target_country
+				}
+			}
+		}
+	}
+}

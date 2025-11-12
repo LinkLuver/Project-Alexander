@@ -1,0 +1,1058 @@
+﻿namespace = jurchen_confederation_events
+
+
+scripted_trigger has_any_sinicized_policy = {
+	OR = {
+		international_organization_has_policy = policy:sinicized_administration_policy
+		international_organization_has_policy = policy:extensive_tax_obligations_policy
+		international_organization_has_policy = policy:sinicized_court_etiquette_policy
+		international_organization_has_policy = policy:sinicized_script_policy
+		international_organization_has_policy = policy:sinicized_legal_framework_policy
+		international_organization_has_policy = policy:financed_rgo_policy
+		international_organization_has_policy = policy:chinese_embassies_policy
+		international_organization_has_policy = policy:allow_foreign_exchanges_policy
+	}
+}
+
+scripted_trigger jc_has_leader = {
+	any_international_organizations_member_of = {
+		international_organization_type = international_organization_type:jurchen_confederation
+		international_organization_has_leader = yes
+	}
+}
+
+scripted_trigger jc_member_decentralized = {
+	any_international_organizations_member_of = {
+		international_organization_type = international_organization_type:jurchen_confederation
+		has_any_sinicized_policy = yes
+		NOT = { leader_country = root }
+	}
+	societal_value:centralization_vs_decentralization > 0
+}
+
+scripted_trigger is_jc_member = {
+	any_international_organizations_member_of = {
+		international_organization_type = international_organization_type:jurchen_confederation
+		NOT = { leader_country = root }
+	}
+}
+
+scripted_trigger is_our_jc_leader = {
+	any_international_organizations_member_of = {
+		international_organization_type = international_organization_type:jurchen_confederation
+		leader_country = root
+	}
+}
+
+scripted_effect jc_leader = {
+	every_international_organizations_member_of = {
+		limit = {
+			international_organization_type = international_organization_type:jurchen_confederation 
+		}
+		leader_country ?= { save_scope_as = target_jc_leader }
+	}
+}
+
+jurchen_confederation_events.1 = {
+	type = country_event
+	title = jurchen_confederation_events.1.title
+	desc = jurchen_confederation_events.1.desc
+	
+	trigger = {
+		jc_has_leader = yes
+		jc_member_decentralized = yes
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		jc_leader = yes
+	}
+
+	option = {
+		name = jurchen_confederation_events.1.a
+		
+		change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_left }
+		add_stability = stability_weak_penalty 
+		add_tribal_cohesion = tribal_cohesion_weak_penalty
+	}
+	
+	option = {
+		name = jurchen_confederation_events.1.b
+		
+		add_tribal_cohesion = tribal_cohesion_weak_bonus
+		scope:target_jc_leader = {
+			add_opinion = { target = root modifier = opinion_resisted_sinicization }
+		}
+		add_opinion = { target = scope:target_jc_leader modifier = opinion_resisted_sinicization }
+	}
+}
+
+jurchen_confederation_events.2 = {
+	hide_portraits = yes
+	type = country_event
+	title = jurchen_confederation_events.2.title
+	desc = jurchen_confederation_events.2.desc
+	
+	trigger = {
+		is_jc_member = yes
+		jc_has_leader = yes
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		random_list = {
+			10 = {
+				trigger = {
+					ruler ?= { has_dynasty = yes }
+				}
+				create_character = {
+					estate = estate_type:nobles_estate
+					dynasty = root.ruler.dynasty
+					culture = root.culture
+					religion = root.religion
+					save_scope_as = target_character
+				}
+			}
+			10 = {
+				create_character = {
+					estate = estate_type:burghers_estate
+					culture = root.culture
+					religion = root.religion
+					save_scope_as = target_character
+				}
+			}
+			10 = {
+				create_character = {
+					estate = estate_type:clergy_estate
+					culture = root.culture
+					religion = root.religion
+					save_scope_as = target_character
+				}
+			}
+			20 = {
+				create_character = {
+					estate = estate_type:peasants_estate
+					culture = root.culture
+					religion = root.religion
+					save_scope_as = target_character
+				}
+			}
+		}
+		scope:target_character = {
+			set_to_limited_random_stats = {
+				max_adm = 60
+				min_adm = 5
+				max_dip = 60
+				min_dip = 5
+				max_mil = 95
+				min_mil = 50
+			}
+		}
+		jc_leader = yes
+		root = {
+			save_scope_as = target_member
+		}
+	}
+
+	option = {
+		name = jurchen_confederation_events.2.a
+		
+		add_tribal_cohesion = tribal_cohesion_mild_bonus
+		add_stability = stability_weak_bonus
+	}
+	
+	option = {
+		name = jurchen_confederation_events.2.b
+		
+		scope:target_jc_leader = {
+			trigger_event_non_silently = jurchen_confederation_events.3
+		}
+	}
+}
+
+jurchen_confederation_events.3 = {
+	type = country_event
+	title = jurchen_confederation_events.3.title
+	desc = jurchen_confederation_events.3.desc
+
+	illustration_tags = {
+        10 = happy
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+	
+	option = {
+		name = jurchen_confederation_events.3.a
+		
+		scope:target_character = { move_country = ROOT }
+	}
+
+	option = {
+		name = jurchen_confederation_events.3.b
+		
+		add_tribal_cohesion = tribal_cohesion_weak_bonus
+		scope:target_member = {
+			add_prestige = prestige_weak_penalty
+		}
+	}
+}
+
+jurchen_confederation_events.4 = {
+	type = country_event
+	title = jurchen_confederation_events.4.title
+	desc = jurchen_confederation_events.4.desc
+	
+	trigger = {
+		is_jc_member = yes
+		any_rival = {
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:jurchen_confederation
+				NOT = { leader_country = prev }
+			}
+			at_war = no
+		}
+		at_war = no
+		jc_has_leader = yes
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		jc_leader = yes
+		random_rival = {
+			limit = {
+				this != scope:target_jc_leader
+			}
+			save_scope_as = target_jurchen_country_2
+		}
+		save_scope_as = target_jurchen_country_1
+	}
+
+	option = {
+		name = jurchen_confederation_events.4.a
+
+		add_tribal_cohesion = tribal_cohesion_weak_penalty
+		add_opinion = { target = scope:target_jurchen_country_2 modifier = opinion_jurchen_friction }
+	}
+	
+	option = {
+		name = jurchen_confederation_events.4.b
+		
+		scope:target_jc_leader = {
+			trigger_event_non_silently = jurchen_confederation_events.5
+		}
+	}
+}
+
+jurchen_confederation_events.5 = {
+	type = country_event
+	title = jurchen_confederation_events.5.title
+	desc = jurchen_confederation_events.5.desc
+
+	illustration_tags = {
+        10 = angry
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+	
+	option = {
+		name = jurchen_confederation_events.5.a
+		
+		scope:target_jurchen_country_1 = {
+			add_tribal_cohesion = tribal_cohesion_weak_bonus
+			add_prestige = prestige_weak_bonus
+			add_opinion = { target = root modifier = opinion_favorable_judgement }
+			change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_right }
+		}
+		scope:target_jurchen_country_2 = {
+			add_tribal_cohesion = tribal_cohesion_weak_penalty
+			add_opinion = { target = root modifier = opinion_unfavorable_judgement }
+		}
+	}
+	
+	option = {
+		name = jurchen_confederation_events.5.b
+		
+		scope:target_jurchen_country_2 = {
+			add_tribal_cohesion = tribal_cohesion_weak_bonus
+			add_prestige = prestige_weak_bonus
+			add_opinion = { target = root modifier = opinion_favorable_judgement }
+			change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_right }
+		}
+		scope:target_jurchen_country_1 = {
+			add_tribal_cohesion = tribal_cohesion_weak_penalty
+			add_opinion = { target = root modifier = opinion_unfavorable_judgement }
+		}
+	}
+
+	option = {
+		name = jurchen_confederation_events.5.c
+		
+		add_tribal_cohesion = tribal_cohesion_weak_penalty
+		scope:target_jurchen_country_2 = {
+			add_tribal_cohesion = tribal_cohesion_weak_penalty
+			add_prestige = prestige_weak_penalty
+			add_opinion = { target = root modifier = opinion_unfavorable_judgement }
+			change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_left }
+		}
+		scope:target_jurchen_country_1 = {
+			add_tribal_cohesion = tribal_cohesion_weak_penalty
+			add_prestige = prestige_weak_penalty
+			add_opinion = { target = root modifier = opinion_unfavorable_judgement }
+			change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_left }
+		}
+	}
+}
+
+jurchen_confederation_events.6 = {
+	type = country_event
+	title = jurchen_confederation_events.6.title
+	desc = jurchen_confederation_events.6.desc
+	
+	trigger = {
+		any_international_organizations_member_of = {
+			international_organization_type = international_organization_type:jurchen_confederation
+		}
+		jc_has_leader = yes
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		jc_leader = yes
+	}
+
+	option = {
+		name = jurchen_confederation_events.6.a
+		
+		change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_left }
+		add_estate_satisfaction = { type = estate_type:nobles_estate 
+			value = {
+				value = scope:target_jc_leader.societal_value:sinicized_vs_unsinicized
+				divide = 100
+				if = {
+					limit = {
+						scope:target_jc_leader.societal_value:sinicized_vs_unsinicized > 0
+					}
+					multiply = -1
+				}
+				max = -0.1
+				min = -0.5
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:clergy_estate 
+			value = {
+				value = scope:target_jc_leader.societal_value:sinicized_vs_unsinicized
+				divide = 100
+				if = {
+					limit = {
+						scope:target_jc_leader.societal_value:sinicized_vs_unsinicized > 0
+					}
+					multiply = -1
+				}
+				max = -0.1
+				min = -0.5
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate
+			value = {
+				value = scope:target_jc_leader.societal_value:sinicized_vs_unsinicized
+				divide = 100
+				if = {
+					limit = {
+						scope:target_jc_leader.societal_value:sinicized_vs_unsinicized > 0
+					}
+					multiply = -1
+				}
+				max = -0.1
+				min = -0.5
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:peasants_estate
+			value = {
+				value = scope:target_jc_leader.societal_value:sinicized_vs_unsinicized
+				divide = 100
+				if = {
+					limit = {
+						scope:target_jc_leader.societal_value:sinicized_vs_unsinicized > 0
+					}
+					multiply = -1
+				}
+				max = -0.1
+				min = -0.5
+			}
+		}
+	}
+	
+	option = {
+		name = jurchen_confederation_events.6.b
+		
+		change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_right }
+		add_stability = stability_weak_bonus
+		add_tribal_cohesion = tribal_cohesion_weak_bonus
+	}
+}
+
+jurchen_confederation_events.7 = {
+	hide_portraits = yes
+	type = country_event
+	title = jurchen_confederation_events.7.title
+	desc = jurchen_confederation_events.7.desc
+	
+	trigger = {
+		any_international_organizations_member_of = { international_organization_type = international_organization_type:jurchen_confederation }
+		jc_has_leader = yes
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		ruler ?= {
+			save_scope_as = target_character
+		}
+		jc_leader = yes
+	}
+
+	option = {
+		name = jurchen_confederation_events.7.a
+		if = {
+			limit = {
+				any_owned_location = {
+					NOT = { has_building = building_type:jurchen_barracks }
+				}
+			}
+			random_owned_location = {
+				limit = {
+					NOT = { has_building = building_type:jurchen_barracks }
+				}
+				construct_building = { 
+					building_type = building_type:jurchen_barracks
+					cost_multiplier = 0
+					cost_multiplier_reason = confederation_funding_key
+				}
+			}
+		}
+		else = {
+			add_army_tradition = army_tradition_weak_bonus
+		}
+		change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_right }
+	}
+	
+	option = {
+		name = jurchen_confederation_events.7.b
+		
+		change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_left }
+		add_estate_satisfaction = { type = estate_type:nobles_estate 
+			value = {
+				value = scope:target_jc_leader.societal_value:sinicized_vs_unsinicized
+				divide = 100
+				if = {
+					limit = {
+						scope:target_jc_leader.societal_value:sinicized_vs_unsinicized > 0
+					}
+					multiply = -1
+				}
+				max = -0.1
+				min = -0.5
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:clergy_estate 
+			value = {
+				value = scope:target_jc_leader.societal_value:sinicized_vs_unsinicized
+				divide = 100
+				if = {
+					limit = {
+						scope:target_jc_leader.societal_value:sinicized_vs_unsinicized > 0
+					}
+					multiply = -1
+				}
+				max = -0.1
+				min = -0.5
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate
+			value = {
+				value = scope:target_jc_leader.societal_value:sinicized_vs_unsinicized
+				divide = 100
+				if = {
+					limit = {
+						scope:target_jc_leader.societal_value:sinicized_vs_unsinicized > 0
+					}
+					multiply = -1
+				}
+				max = -0.1
+				min = -0.5
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:peasants_estate
+			value = {
+				value = scope:target_jc_leader.societal_value:sinicized_vs_unsinicized
+				divide = 100
+				if = {
+					limit = {
+						scope:target_jc_leader.societal_value:sinicized_vs_unsinicized > 0
+					}
+					multiply = -1
+				}
+				max = -0.1
+				min = -0.5
+			}
+		}
+		add_stability = stability_weak_penalty
+	}
+}
+
+jurchen_confederation_events.8 = {
+	type = country_event
+	title = jurchen_confederation_events.8.title
+	desc = jurchen_confederation_events.8.desc
+	
+	image = "gfx/interface/icons/trade_goods/illustrations/icon_goods_horses.dds"
+
+	trigger = {
+		any_international_organizations_member_of = { international_organization_type = international_organization_type:jurchen_confederation }
+		jc_has_leader = yes
+	}
+
+	immediate = {
+		jc_leader = yes
+	}
+
+	option = {
+		name = jurchen_confederation_events.8.a
+		
+		capital.market = {
+			add_goods_supply = {
+				goods = goods:horses
+				amount = {
+					value = market_goods_weak_gain
+					add = root.societal_value:centralization_vs_decentralization
+					min = 15
+					max = 50
+				}
+			}
+			add_goods_supply = {
+				goods = goods:books
+				amount = {
+					value = market_goods_weak_gain
+					add = root.societal_value:centralization_vs_decentralization
+					min = 15
+					max = 50
+				}
+			}
+		}
+
+		change_societal_value = {
+			type = traditionalist_vs_innovative
+			value = {
+				value = scope:target_jc_leader.societal_value:sinicized_vs_unsinicized
+				divide = 10
+				if = {
+					limit = {
+						scope:target_jc_leader.societal_value:sinicized_vs_unsinicized > 0
+					}
+					multiply = -1
+				}
+				max = -2.5
+			}
+		}
+	}
+	
+	option = {
+		name = jurchen_confederation_events.8.b
+		
+		capital.market = {
+			add_goods_supply = {
+				goods = goods:books
+				amount = {
+					value = market_goods_weak_gain
+					add = root.societal_value:centralization_vs_decentralization
+					multiply = -1
+					min = 15
+					max = 50
+				}
+			}
+			add_goods_supply = {
+				goods = goods:paper
+				amount = {
+					value = market_goods_weak_gain
+					add = root.societal_value:centralization_vs_decentralization
+					multiply = -1
+					min = 15
+					max = 50
+				}
+			}
+		}
+
+		change_societal_value = {
+			type = traditionalist_vs_innovative
+			value = {
+				value = scope:target_jc_leader.societal_value:sinicized_vs_unsinicized
+				divide = 10
+				if = {
+					limit = {
+						scope:target_jc_leader.societal_value:sinicized_vs_unsinicized < 0
+					}
+					multiply = -1
+				}
+				max = 2.5
+			}
+		}
+	}
+}
+
+jurchen_confederation_events.9 = {
+	type = country_event
+	title = jurchen_confederation_events.9.title
+	desc = jurchen_confederation_events.9.desc
+	
+	trigger = {
+		any_international_organizations_member_of = { international_organization_type = international_organization_type:jurchen_confederation }
+		heir ?= {
+			age_in_years > 8
+			age_in_years < 30
+			mil <= 75
+		}
+		jc_has_leader = yes
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		jc_leader = yes heir ?= { save_scope_as = target_heir } 
+	}
+
+	option = {
+		name = jurchen_confederation_events.9.a
+		
+		heir ?= {
+			add_mil = 3
+		}
+		add_tribal_cohesion = tribal_cohesion_weak_penalty
+	}
+
+	option = {
+		name = jurchen_confederation_events.9.b
+
+		add_tribal_cohesion = tribal_cohesion_weak_bonus
+	}
+}
+
+jurchen_confederation_events.10 = {
+	type = country_event
+	title = jurchen_confederation_events.10.title
+	desc = jurchen_confederation_events.10.desc
+	
+	trigger = {
+		any_international_organizations_member_of = { international_organization_type = international_organization_type:jurchen_confederation }
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		capital = {
+			save_scope_as = target_capital
+		}
+	}
+
+	option = {
+		name = jurchen_confederation_events.10.a
+		
+		add_stability = stability_weak_penalty
+		add_tribal_cohesion = tribal_cohesion_weak_penalty
+		capital = { 
+			change_prosperity = prosperity_severe_penalty 
+			random_pop = {
+				limit = { pop_type = pop_type:peasants }
+				add_pop_size = {
+					value = pop_size
+					multiply = -0.0125
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = jurchen_confederation_events.10.b
+		
+		change_gold_effect = { scale = -4 }
+		add_prestige = prestige_weak_penalty
+		capital = { 
+			change_prosperity = prosperity_severe_penalty 
+			random_pop = {
+				limit = { pop_type = pop_type:peasants }
+				add_pop_size = {
+					value = pop_size
+					multiply = -0.01
+				}
+			}
+		}
+	}
+}
+
+jurchen_confederation_events.11 = {
+	type = country_event
+	title = jurchen_confederation_events.11.title
+	desc = jurchen_confederation_events.11.desc
+	
+	trigger = {
+		any_international_organizations_member_of = { international_organization_type = international_organization_type:jurchen_confederation }
+		jc_has_leader = yes
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = { 
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		jc_leader = yes 
+	}
+
+	option = {
+		name = jurchen_confederation_events.11.a
+		
+		culture = {
+			add_cultural_tradition = cultural_tradition_weak_bonus
+			add_cultural_influence = cultural_influence_weak_bonus
+		}
+		capital = {
+			change_prosperity  = prosperity_very_weak_bonus
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate 
+			value = estate_satisfaction_weak_bonus
+		}
+	}
+
+	option = {
+		name = jurchen_confederation_events.11.b
+
+		add_army_tradition = army_tradition_weak_bonus
+		ruler ?= {
+			add_mil = 2
+		}
+		add_estate_satisfaction = { type = estate_type:nobles_estate 
+			value = estate_satisfaction_weak_bonus
+		}
+	}
+}
+
+jurchen_confederation_events.12 = {
+	hide_portraits = yes
+	type = country_event
+	title = jurchen_confederation_events.12.title
+	desc = jurchen_confederation_events.12.desc
+	
+	trigger = {
+		is_our_jc_leader = yes
+		any_international_organizations_member_of = {
+			international_organization_type = international_organization_type:jurchen_confederation
+			has_any_sinicized_policy = yes
+		}
+		has_ruler = yes
+		ruler = {
+			is_alive = yes
+			NOT = { has_variable = difficult_sinicization_variable }
+			NOT = { has_variable = proceeded_sinicization_variable }
+		}
+	}
+	
+	illustration_tags = {
+        10 = angry
+        10 = interior
+    }
+
+	#Revert a sinicized law
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		ruler = {
+			save_scope_as = target_ruler
+		}
+	}
+
+	option = {
+		name = jurchen_confederation_events.12.a
+		
+		custom_tooltip = jurchen_sinicization_tt
+		ruler = {
+			set_variable = {
+				name = difficult_sinicization_variable
+				value = yes
+			}
+		}
+
+		add_tribal_cohesion = tribal_cohesion_mild_bonus
+		add_stability = stability_mild_bonus
+	}
+
+	option = {
+		name = jurchen_confederation_events.12.b
+
+		add_stability = stability_severe_penalty 
+		ruler = {
+			set_variable = {
+				name = proceeded_sinicization_variable
+				value = yes
+			}
+		}
+	}
+}
+
+jurchen_confederation_events.13 = {
+	type = country_event
+	title = jurchen_confederation_events.13.title
+	desc = jurchen_confederation_events.13.desc
+	
+	trigger = {
+		any_international_organizations_member_of = { international_organization_type = international_organization_type:jurchen_confederation }
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = { 
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+	
+	option = {
+		name = jurchen_confederation_events.13.a
+		
+		add_research_progress = research_progress_mild_bonus
+		add_tribal_cohesion = tribal_cohesion_mild_penalty
+		add_stability = stability_weak_penalty
+		change_societal_value = { type = traditionalist_vs_innovative value = societal_value_minor_move_to_right }
+	}
+
+	option = {
+		name = jurchen_confederation_events.13.b
+
+		add_tribal_cohesion = tribal_cohesion_mild_bonus
+	}
+}
+
+jurchen_confederation_events.14 = {
+	type = country_event
+	title = jurchen_confederation_events.14.title
+	desc = jurchen_confederation_events.14.desc
+	
+	trigger = {
+		any_international_organizations_member_of = { international_organization_type = international_organization_type:jurchen_confederation }
+		NOR = {
+			has_country_modifier = kept_spoils_modifier
+			has_country_modifier = kept_spoils_modifier
+		}
+	}
+
+	illustration_tags = {
+        10 = happy
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+	
+	option = {
+		name = jurchen_confederation_events.14.a
+		
+		add_country_modifier = {
+			modifier = promised_spoils_modifier 
+			years = 5 
+			mode = add_and_extend 
+		}
+	}
+
+	option = {
+		name = jurchen_confederation_events.14.b
+
+		add_country_modifier = {
+			modifier = kept_spoils_modifier 
+			years = 5 
+			mode = add_and_extend 
+		}
+	}
+}
+
+jurchen_confederation_events.15 = {
+	type = country_event
+	title = jurchen_confederation_events.15.title
+	desc = jurchen_confederation_events.15.desc
+	
+	trigger = {
+		any_international_organizations_member_of = { international_organization_type = international_organization_type:jurchen_confederation }
+		any_owned_location = {
+			raw_material = goods:wild_game
+		}
+	}
+
+	illustration_tags = {
+        10 = happy
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		random_owned_location = {
+			limit = { raw_material = goods:wild_game }
+			save_scope_as = target_location
+		}
+	}
+
+	option = {
+		name = jurchen_confederation_events.15.a
+		
+		capital.market = {
+			add_goods_supply = {
+				goods = goods:wild_game
+				amount = {
+					value = root.tribal_cohesion
+					divide = 5
+				}
+			}
+		}
+		add_prestige = prestige_weak_bonus
+		change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_right }
+	}
+
+	option = {
+		name = jurchen_confederation_events.15.b
+
+		change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_left }
+		add_tribal_cohesion = tribal_cohesion_weak_penalty
+	}
+}
+
+jurchen_confederation_events.16 = {
+	type = country_event
+	title = jurchen_confederation_events.16.title
+	desc = jurchen_confederation_events.16.desc
+
+	illustration_tags = {
+        10 = angry
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		jc_leader = yes
+		random_international_organizations_member_of = {
+			limit = { 
+				international_organization_type = international_organization_type:jurchen_confederation 
+				NOT = { leader_country = root }
+			}
+			save_scope_as = doomed_jc_io_scope
+		}
+	}
+
+	option = {
+		name = jurchen_confederation_events.16.a
+		
+		make_subject_of = {
+			target = scope:target_jc_leader
+			type = subject_type:vassal
+		}
+	}
+
+	option = {
+		name = jurchen_confederation_events.16.b
+
+		scope:target_jc_leader = {
+			add_casus_belli =  { 
+				target = root
+				type = casus_belli:cb_subject_broke_free	
+			}
+		}
+	}
+
+	after = {
+		if = {
+			limit = { exists = scope:doomed_jc_io_scope }
+			hidden_effect = {
+				destroy_international_organization = { target = scope:doomed_jc_io_scope }
+			}	
+		}
+	}
+}
+
+jurchen_confederation_events.17 = {
+	type = country_event
+	title = jurchen_confederation_events.17.title
+	desc = jurchen_confederation_events.17.desc
+
+	illustration_tags = {
+        10 = happy
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		jc_leader = yes
+		random_international_organization = {
+			limit = {
+				international_organization_type = international_organization_type:jurchen_confederation
+				leader_country = root
+			}
+			save_scope_as = target_io
+		}
+	}
+
+	option = {
+		name = jurchen_confederation_events.17.a
+		
+		custom_tooltip = jurchen_confederation_unification_effort_tt
+		random_international_organization = {
+			limit = {
+				international_organization_type = international_organization_type:jurchen_confederation
+				leader_country = root
+			}
+			every_international_organization_member = {
+				limit = {
+					not = { this = scope:target_jc_leader }
+					not = { is_subject_of = scope:target_jc_leader }
+				}
+				trigger_event_non_silently = jurchen_confederation_events.16
+			}
+		}
+		
+	}
+}
+

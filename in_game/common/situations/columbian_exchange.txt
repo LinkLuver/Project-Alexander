@@ -1,0 +1,225 @@
+﻿columbian_exchange = {
+	monthly_spawn_chance = monthly_spawn_chance_unique
+	
+	can_start = {
+		#At least absolutism
+		current_age = age_5_absolutism
+				
+		#Any location in america has an owner of the old world
+		continent:america = {
+			any_location_in_continent = {
+				population > 0
+				owner_from_old_world = yes
+			}
+		}		
+	}
+	
+	can_end = {
+		columbian_exchange_end_trigger = yes
+	}
+	
+	visible = {
+		#Is the country from the New World?
+		trigger_if = {
+			limit = {
+				culture = { is_culture_native_american = yes }
+			}
+			any_market_present_in_country = {
+				save_temporary_scope_as = temp_market
+				any_in_global_list = {
+					variable = old_world_goods
+					save_temporary_scope_as = temp_goods
+					scope:temp_market = {
+						OR = {
+							is_produced_in_market = scope:temp_goods
+							is_traded_in_market = scope:temp_goods
+						}
+					}
+				}
+			}
+		}
+		#or the Old World?
+		trigger_else = {
+			any_market_present_in_country = {
+				save_temporary_scope_as = temp_market
+				any_in_global_list = {
+					variable = new_world_goods
+					save_temporary_scope_as = temp_goods
+					scope:temp_market = {
+						OR = {
+							is_produced_in_market = scope:temp_goods
+							is_traded_in_market = scope:temp_goods
+						}
+					}
+				}
+			}
+		}
+	}
+	
+
+	on_start = {
+		every_goods = {
+			limit = { has_tag = old_world_goods }
+			add_to_global_variable_list = { name = old_world_goods target = this } 
+		}
+		every_goods = {
+			limit = { has_tag = new_world_goods }
+			add_to_global_variable_list = { name = new_world_goods target = this } 
+		}
+		every_country = {	
+			limit = {				
+				NOT = { has_variable = is_in_columbian_exchange }
+				any_owned_location = {
+					continent = continent:america
+					population > 0
+				}
+			}		
+			#Is the country from the New World?
+			if = {
+				limit = {
+					culture = { is_culture_native_american = yes }
+					any_market_present_in_country = {
+						save_temporary_scope_as = temp_market
+						any_in_global_list = {
+							variable = old_world_goods
+							save_temporary_scope_as = temp_goods
+							scope:temp_market = {
+								OR = {
+									is_produced_in_market = scope:temp_goods
+									is_traded_in_market = scope:temp_goods
+								}
+							}
+						}
+					}
+				}
+				set_variable = { name = is_in_columbian_exchange value = yes }
+				trigger_event_non_silently = columbian_exchange.1
+			}
+			#or the Old World?
+			else_if = {
+				limit = {
+					NOT = { culture = { is_culture_native_american = yes } }
+					any_market_present_in_country = {
+						save_temporary_scope_as = temp_market
+						any_in_global_list = {
+							variable = new_world_goods
+							save_temporary_scope_as = temp_goods
+							scope:temp_market = {
+								OR = {
+									is_produced_in_market = scope:temp_goods
+									is_traded_in_market = scope:temp_goods
+								}
+							}
+						}
+					}
+
+				}
+				set_variable = { name = is_in_columbian_exchange value = yes }
+				trigger_event_non_silently = columbian_exchange.1
+			}	
+		}	
+	}
+
+	on_monthly = {
+		every_country = {	
+			limit = {				
+				NOT = { has_variable = is_in_columbian_exchange}
+				any_owned_location = {
+					continent = continent:america
+					population > 0
+				}
+			}		
+			#Is the country from the New World?
+			if = {
+				limit = {
+					culture = { is_culture_native_american = yes }
+					any_market_present_in_country = {
+						save_temporary_scope_as = temp_market
+						any_in_global_list = {
+							variable = old_world_goods
+							save_temporary_scope_as = temp_goods
+							scope:temp_market = {
+								OR = {
+									is_produced_in_market = scope:temp_goods
+									is_traded_in_market = scope:temp_goods
+								}
+							}
+						}
+					}
+				}
+				set_variable = { name = is_in_columbian_exchange value = yes }
+				trigger_event_non_silently = columbian_exchange.1
+			}
+			#or the Old World?
+			else_if = {
+				limit = {
+					NOT = {culture = { is_culture_native_american = yes }}
+					any_market_present_in_country = {
+						save_temporary_scope_as = temp_market
+						any_in_global_list = {
+							variable = new_world_goods
+							save_temporary_scope_as = temp_goods
+							scope:temp_market = {
+								OR = {
+									is_produced_in_market = scope:temp_goods
+									is_traded_in_market = scope:temp_goods
+								}
+							}
+						}
+					}
+
+				}
+				set_variable = { name = is_in_columbian_exchange value = yes }
+				trigger_event_non_silently = columbian_exchange.1
+			}	
+		}	
+	}
+
+	tooltip = {
+	}
+
+
+	on_ended = {
+		every_country = {	
+			limit = {				
+				has_variable = is_in_columbian_exchange
+			}	
+			remove_variable = is_in_columbian_exchange
+		}	
+	}
+	
+	map_color = {
+		if = {
+			limit = {
+				owner ?= { 
+					has_variable = is_in_columbian_exchange
+					culture = { is_culture_native_american = yes }
+				}
+			}
+			value = color_nw_country
+		}
+		else_if = {
+			limit = {
+				owner ?= { 
+					has_variable = is_in_columbian_exchange
+					NOT = {culture = { is_culture_native_american = yes }}
+				}
+			}
+			value = color_ow_country
+		}
+		#Neutral
+		else = {
+			value = define:NMapColors|DEFAULT_COLOR
+		}
+	}
+	
+	legend_key = { 
+		desc = "new_world_goods"
+		color = color_nw_country
+	}
+	
+	legend_key = { 
+		desc = "old_world_goods"
+		color = color_ow_country
+	}
+}

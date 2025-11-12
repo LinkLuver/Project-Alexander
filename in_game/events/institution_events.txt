@@ -1,0 +1,3504 @@
+﻿namespace = institution_events
+
+#################################
+# Feudalism Events				#
+#################################
+#Demand for the Vassal Contract
+institution_events.1 = {
+	type = country_event
+	title = institution_events.1.title
+	desc = institution_events.1.desc
+	trigger = {
+		NOT = {	has_embraced_institution = institution:feudalism }
+		knows_about_institution = institution:feudalism
+		has_ruler = yes
+		any_owned_non_rural_location = {
+			institution_progress:feudalism <= 50
+		}
+		country_has_estate = estate_type:nobles_estate
+	}
+
+	image = "gfx/interface/illustrations/institutions/feudalism.dds"
+
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = {
+				institution_progress:feudalism <= 50
+			}
+			save_scope_as = feudal_province
+		}
+		ruler = { save_scope_as = target_ruler }
+	}
+
+	option = {
+		name = institution_events.1.a
+		scope:feudal_province = {
+			change_institution_progress = { type = institution:feudalism value = institution_progress_extreme_bonus }
+		}
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_minor_move_to_right
+		}
+	}
+	option = {
+		name = institution_events.1.b
+		add_estate_satisfaction = { type = estate_type:nobles_estate	value = estate_satisfaction_mild_penalty }
+		add_estate_satisfaction = { type = estate_type:peasants_estate	value = estate_satisfaction_weak_bonus }
+	}
+}
+
+#Challenging the Warrior Elites
+institution_events.2 = {
+	type = country_event
+	title = institution_events.2.title
+	desc = institution_events.2.desc
+	
+	trigger = {
+		NOT = {	has_embraced_institution = institution:feudalism }
+		knows_about_institution = institution:feudalism
+		any_owned_location = {
+			institution_progress:feudalism < 66
+		}
+		has_ruler = yes
+	}
+
+	image = "gfx/interface/illustrations/institutions/feudalism.dds"
+	immediate = {
+
+		random_owned_location = {
+			limit = { institution_progress:feudalism < 66 }
+			save_scope_as = feudalism_location
+		}
+		
+		ruler = { save_scope_as = target_character }
+	}
+
+	option = {
+		name = institution_events.2.a
+		scope:feudalism_location = {
+			change_institution_progress = { type = institution:feudalism value = institution_progress_extreme_bonus }
+		}
+		
+		add_estate_satisfaction = { type = estate_type:nobles_estate	value = estate_satisfaction_mild_penalty }
+	}
+	option = {
+		name = institution_events.2.b
+		scope:feudalism_location = {
+			change_institution_progress = { type = institution:feudalism value = institution_progress_severe_penalty }
+		}
+	}
+}
+
+#Growing Influence of the Urban Gentry
+institution_events.3 = {
+	type = country_event
+	title = institution_events.3.title
+	desc = institution_events.3.desc
+	trigger = {
+		NOT = {	has_embraced_institution = institution:feudalism }
+		knows_about_institution = institution:feudalism
+		any_owned_non_rural_location = {
+			institution_progress:feudalism <= 50
+		}
+		country_has_estate = estate_type:burghers_estate
+	}
+	image = "gfx/interface/illustrations/institutions/feudalism.dds"
+	
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = {
+				institution_progress:feudalism <= 50
+			}
+			save_scope_as = urban_location
+		}
+	}
+
+	option = {
+		name = institution_events.3.a
+		scope:urban_location = {
+			change_institution_progress = { type = institution:feudalism value = institution_progress_extreme_bonus }
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate	value = estate_satisfaction_mild_penalty }
+	}
+	option = {
+		name = institution_events.3.b
+		add_estate_satisfaction = { type = estate_type:burghers_estate	value = estate_satisfaction_weak_bonus }
+	}
+}
+
+#################################
+# Legalism Events				#
+#################################
+scripted_trigger legalism_events_10_trigger = {
+	owner ?= root
+	institution_progress:legalism <= 50
+	any_neighbor_location = {
+		owner ?= { has_embraced_institution = institution:legalism }
+	}
+}
+
+#Foreign Concept of Legalism
+institution_events.10 = {
+	type = country_event
+	title = institution_events.10.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				desc = institution_events.10.desc.christians	#Legalism from the Christians
+				trigger = {
+					scope:legalism_country = {
+						religion.group = religion_group:christian
+					}
+					country_has_estate = estate_type:nobles_estate
+					country_has_estate = estate_type:peasants_estate
+				}
+			}
+			triggered_desc = {
+				desc = institution_events.10.desc.muslims	#Legalism from the Muslim
+				trigger = {
+					scope:legalism_country = {
+						religion.group = religion_group:muslim
+					}
+					country_has_estate = estate_type:peasants_estate
+				}
+			}
+			triggered_desc = {
+				desc = institution_events.10.desc.eastern	#Legalism from the Chinese
+				trigger = {
+					scope:legalism_country = {
+						religion.group = religion_group:buddhist
+					}
+					country_has_estate = estate_type:clergy_estate
+				}
+			}
+			triggered_desc = {
+				desc = institution_events.10.desc.dharmic	#Legalism from the Hindu
+				trigger = {
+					scope:legalism_country = {
+						religion.group = religion_group:dharmic
+					}
+				}
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = institution_events.10.desc.fallback	#Legalism Fallback
+			}
+		}
+	}
+	trigger = {
+		NOT = {	has_embraced_institution = institution:legalism }
+		knows_about_institution = institution:legalism
+		exists = capital
+		capital.area = {
+			any_location_in_area = {
+				legalism_events_10_trigger = yes
+			}			
+		}
+	}
+	
+	image = "gfx/interface/illustrations/institutions/legalism.dds"
+	immediate = {
+		capital.area = {
+			random_location_in_area = {
+				limit = {
+					legalism_events_10_trigger = yes
+				}
+				save_scope_as = legalism_location
+			}
+		}
+		scope:legalism_location = {
+			random_neighbor_location = {
+				limit = {
+					owner ?= { has_embraced_institution = institution:legalism }
+				}
+				owner = {
+					save_scope_as = legalism_country
+					religion = { save_scope_as = legalism_religion }
+				}
+			}
+		}
+	}
+
+	option = {
+		name = institution_events.10.a
+		scope:legalism_location = {
+			change_institution_progress = { type = institution:legalism value = institution_progress_extreme_bonus }
+		}
+		if = {	#If from Christians
+			limit = { scope:legalism_country = { religion.group = religion_group:christian } }
+			add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_weak_bonus }
+		}
+		if = {	#If from Muslims
+			limit = { scope:legalism_country = { religion.group = religion_group:muslim } }
+			add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_weak_bonus }
+			random = {
+				chance = 15
+				scope:legalism_location = {
+					every_pop = {
+						limit = {
+							religion = root.religion
+							pop_type = pop_type:peasants
+						}
+						split_pop = {
+							fraction = 0.8
+							religion = scope:legalism_religion
+						}
+					}
+				}
+			}
+		}
+		if = {	#If from Eastern
+			limit = { scope:legalism_country = { religion.group = religion_group:buddhist } }
+			add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_weak_bonus }
+			add_stability = stability_weak_bonus
+		}
+		if = {	#If from Dharmic
+			limit = { scope:legalism_country = { religion.group = religion_group:dharmic } }
+			add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_weak_bonus }
+			add_legitimacy = legitimacy_mild_bonus
+		}
+		culture = {
+			add_cultural_tradition = cultural_tradition_mild_penalty
+		}
+	}
+	option = {
+		name = institution_events.10.b
+		culture = {
+			add_cultural_tradition = cultural_tradition_weak_bonus
+		}
+	}
+}
+
+#Lack of Bureaucracy
+institution_events.11 = {
+	type = country_event
+	title = institution_events.11.title
+	desc = institution_events.11.desc
+	trigger = {
+		NOT = {	has_embraced_institution = institution:legalism }
+		knows_about_institution = institution:legalism			
+		any_owned_rural_location = {
+			has_institution = institution:legalism
+		}
+		exists = capital
+		capital = {
+			institution_progress:legalism < 50
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/legalism.dds"
+
+	option = {
+		name = institution_events.11.a
+		ordered_owned_location = {
+			limit = {
+				NOT = { has_institution = institution:legalism }
+			}
+			order_by = population
+			max = {
+				value = 1
+				add = {
+					value = num_of_non_rural
+					divide = 4
+				}
+			}
+			change_institution_progress = { type = institution:legalism value = institution_progress_extreme_bonus }
+		}
+
+		add_stability = stability_weak_penalty
+	}
+	option = {
+		name = institution_events.11.b
+		add_stability = stability_weak_bonus
+	}
+}
+
+#Informal Power Waning
+institution_events.12 = {
+	type = country_event
+	title = institution_events.12.title
+	desc = institution_events.12.desc
+	trigger = {
+		NOT = {	has_embraced_institution = institution:legalism }
+		knows_about_institution = institution:legalism
+		exists = capital
+		NOT = {
+			capital = { has_institution = institution:legalism }
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/legalism.dds"
+
+	option = {
+		name = institution_events.12.a
+
+		capital = {
+			change_institution_progress = { type = institution:legalism value = institution_progress_severe_bonus }
+		}
+		add_legitimacy = legitimacy_mild_bonus
+	}
+}
+
+#################################
+# Meritocracy Events			#
+#################################
+#Spread of Meritocratic Ideas
+institution_events.20 = {
+	type = country_event
+	title = institution_events.20.title
+	desc = institution_events.20.desc
+	trigger = {
+		NOT = {	has_embraced_institution = institution:meritocracy }
+		has_embraced_institution = institution:legalism
+		knows_about_institution = institution:meritocracy
+		any_owned_non_rural_location = {
+			institution_progress:meritocracy <= 80
+		}
+		any_neighbor_country = {
+			has_embraced_institution = institution:meritocracy
+		}
+		country_has_estate = estate_type:nobles_estate
+	}
+
+
+	image = "gfx/interface/illustrations/institutions/meritocracy.dds"
+
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = {
+				institution_progress:meritocracy <= 80
+			}
+			save_scope_as = meritocracy_location
+		}
+		random_neighbor_country = {
+			limit = {
+				has_embraced_institution = institution:meritocracy
+			}
+			save_scope_as = meritocracy_country
+		}
+	}
+
+	option = {
+		name = institution_events.20.a
+		scope:meritocracy_location = {
+			change_institution_progress = { type = institution:meritocracy value = institution_progress_mild_bonus }	#Meritocracy shouldn't spread fast through events
+		}
+		add_estate_satisfaction = { type = estate_type:nobles_estate	value = estate_satisfaction_weak_penalty }
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				estate_satisfaction:nobles_estate < 0.6
+			}
+		}
+	}
+	option = {
+		name = institution_events.20.b
+		add_estate_satisfaction = { type = estate_type:nobles_estate	value = estate_satisfaction_weak_bonus }
+		if = {
+			limit = {
+				scope:meritocracy_location = {
+					institution_progress:meritocracy >= institution_progress_mild_bonus
+				}
+			}
+			scope:meritocracy_location = {
+				change_institution_progress = { type = institution:meritocracy value = institution_progress_mild_penalty }
+			}
+		}
+		if = {
+			limit = {
+				scope:meritocracy_location = {
+					institution_progress:meritocracy < institution_progress_mild_bonus
+					institution_progress:meritocracy >= institution_progress_weak_bonus
+				}
+			}
+			scope:meritocracy_location = {
+				change_institution_progress = { type = institution:meritocracy value = institution_progress_weak_penalty }
+			}
+		}
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				estate_satisfaction:nobles_estate >= 0.6
+			}
+		}
+	}
+}
+
+#Examination of Local Governors
+institution_events.21 = {
+	type = country_event
+	title = institution_events.21.title
+	desc = institution_events.21.desc
+	trigger = {
+		NOT = {	has_embraced_institution = institution:meritocracy }
+		knows_about_institution = institution:meritocracy
+		has_embraced_institution = institution:legalism
+		exists = capital
+		root.capital.region = {
+			any_location_in_region = {
+				is_city = yes
+				owner ?= root
+				institution_progress:meritocracy <= 80
+			}
+		}
+		any_neighbor_country = {
+			has_embraced_institution = institution:meritocracy
+		}
+	}
+
+
+	image = "gfx/interface/illustrations/institutions/meritocracy.dds"
+
+	immediate = {
+		root.capital.region = {
+			random_location_in_region = {
+				limit = {
+					is_city = yes
+					owner ?= root
+					institution_progress:meritocracy <= 80
+				}
+				save_scope_as = meritocracy_location
+			}
+		}
+		random_neighbor_country = {
+			limit = { has_embraced_institution = institution:meritocracy }
+			save_scope_as = meritocracy_country
+		}
+	}
+
+	option = {
+		name = institution_events.21.a
+		scope:meritocracy_location = {
+			change_institution_progress = { type = institution:meritocracy value = institution_progress_extreme_bonus }
+			change_control = control_mild_bonus
+		}
+		change_gold_effect = { scale = -0.5 }
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				gold > root.monthly_income_trade_and_tax
+			}
+		}
+	}
+	option = {
+		name = institution_events.21.b
+		scope:meritocracy_location = {
+			change_control = control_weak_penalty
+			if = {
+				limit = {
+					institution_progress:meritocracy >= 10
+				}
+				change_institution_progress = { type = institution:meritocracy value = institution_progress_mild_penalty }
+			}
+		}
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				gold <= root.monthly_income_trade_and_tax
+			}
+		}
+	}
+}
+
+#################################
+# Renaissance Events			#
+#################################
+#Mirrors for Princes
+institution_events.30 = {
+	type = country_event
+	title = institution_events.30.title
+	desc = institution_events.30.desc
+	trigger = {
+		knows_about_institution = institution:renaissance
+		has_embraced_institution = institution:feudalism
+		NOT = {	has_embraced_institution = institution:renaissance }
+		has_heir = yes
+		has_ruler = yes
+		government_type = government_type:monarchy
+		heir = { 
+			age_in_years > 5 
+			age_in_years < 25
+		}
+
+		any_neighbor_country = {
+			has_embraced_institution = institution:renaissance
+		}
+		exists = capital
+		NOT = {
+			capital = { has_institution = institution:renaissance }
+		}
+	}
+	
+	image = "gfx/interface/illustrations/institutions/renaissance.dds"
+
+	immediate = {
+		ruler = { save_scope_as = target_character }
+		heir = { save_scope_as = target_heir }
+	}
+	option = {
+		name = institution_events.30.a
+		add_legitimacy = legitimacy_mild_penalty
+		capital = {
+			change_institution_progress = { type = institution:renaissance value = institution_progress_extreme_bonus }
+		}
+		add_gold = {
+			value = root.monthly_income_trade_and_tax 
+			multiply = -2
+		}
+	}
+	option = {
+		name = institution_events.30.b
+		add_prestige = prestige_weak_bonus
+	}
+}
+
+#Influence of the Renaissance
+institution_events.31 = {
+	type = country_event
+	title = institution_events.31.title
+	desc = institution_events.31.desc
+	trigger = {
+		knows_about_institution = institution:renaissance
+		has_embraced_institution = institution:feudalism
+		NOT = {	has_embraced_institution = institution:renaissance }
+		any_neighbor_country = {
+			has_embraced_institution = institution:renaissance
+		}
+		num_of_non_rural >= 1
+		exists = capital
+		NOT = { capital = { has_institution = institution:renaissance } }
+	}
+	image = "gfx/interface/illustrations/institutions/renaissance.dds"
+	option = {
+		name = institution_events.31.a
+		capital = { change_institution_progress = { type = institution:renaissance value = institution_progress_severe_bonus } }
+		culture = { add_cultural_tradition = cultural_tradition_weak_bonus }
+	}
+	option = {
+		name = institution_events.31.b
+		capital = { change_institution_progress = { type = institution:renaissance value = institution_progress_severe_bonus } }
+		culture = { add_cultural_influence = cultural_influence_weak_bonus }
+	}
+}
+
+#################################
+# Banking Events				#
+#################################
+#Spread of Usury
+institution_events.40 = {
+	type = country_event
+	title = institution_events.40.title
+	desc = institution_events.40.desc
+	trigger = {
+		knows_about_institution = institution:banking
+		NOT = { has_embraced_institution = institution:banking }
+		OR = {
+			religion.group = religion_group:christian
+			religion.group = religion_group:muslim
+		}
+		any_owned_non_rural_location = {
+			institution_progress:banking <= 50
+		}
+	}
+	
+	image = "gfx/interface/illustrations/institutions/banking.dds"
+
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = {
+				institution_progress:banking <= 50
+			}
+			save_scope_as = banking_location
+		}
+	}
+
+	option = {
+		name = institution_events.40.a
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_weak_bonus }
+		scope:banking_location = {
+			change_institution_progress = { type = institution:banking value = institution_progress_severe_bonus }
+		}
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				estate_satisfaction:clergy_estate >= 0.6
+			}
+		}
+	}
+	option = {
+		name = institution_events.40.b
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_weak_bonus }
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_penalty }
+		add_religious_influence_if_valid = { VALUE = religious_influence_weak_bonus }
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				estate_satisfaction:burghers_estate < 0.6
+			}
+		}
+	}
+}
+
+#The Banking Family of [banking_location.GetName]
+institution_events.41 = {
+	type = country_event
+	title = institution_events.41.title
+	desc = institution_events.41.desc
+	trigger = {
+		knows_about_institution = institution:banking
+		NOT = { has_embraced_institution = institution:banking }
+		any_neighbor_country = { has_embraced_institution = institution:banking }
+		any_owned_non_rural_location = {
+			institution_progress:banking <= 50
+			is_capital = no
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/banking.dds"
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = {
+				institution_progress:banking <= 50
+				is_capital = no
+			}
+			save_scope_as = banking_location
+		}
+	}
+
+	option = {
+		name = institution_events.41.a
+		scope:banking_location = {
+			change_institution_progress = { type = institution:banking value = institution_progress_mild_bonus }
+			every_pop = {
+				limit = {
+					owner ?= root
+					pop_type = pop_type:burghers
+				}
+				add_pop_satisfaction = pop_satisfaction_extreme_bonus
+			}
+			change_control = control_mild_penalty
+		}
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				average_control_in_home_region < 0.5	#AI should NOT give control away unless they can spare it
+			}
+		}
+	}
+	option = {
+		name = institution_events.41.b
+		scope:banking_location = {
+			change_institution_progress = { type = institution:banking value = institution_progress_weak_bonus }
+		}
+		ai_chance = {
+			factor = 10	#Default Option
+		}
+	}
+	option = {
+		name = institution_events.41.c
+		scope:banking_location = {
+			every_pop = {
+				limit = {
+					owner ?= root
+					pop_type = pop_type:burghers
+				}
+				add_pop_satisfaction = pop_satisfaction_extreme_penalty
+			}
+			change_control = control_mild_bonus
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_weak_penalty
+		}
+		add_gold_to_estate = {
+			estate_type = estate_type:burghers_estate
+			value = { value = root.monthly_income_trade_and_tax multiply = -1 }
+		}
+		change_gold_effect = { scale = 1 }
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				monthly_balance > 0
+				num_loans = 0
+			}
+		}
+	}
+}
+
+#################################
+# Professional Armies Events	#
+#################################
+#[ROOT.GetCountry.GetGovernment.GetEstateName('nobles_estate')] Position Threatened
+institution_events.50 = {
+	type = country_event
+	title = institution_events.50.title
+	desc = institution_events.50.desc
+	trigger = {
+		knows_about_institution = institution:professional_armies
+		NOT = { has_embraced_institution = institution:professional_armies }
+		any_neighbor_country = {
+			has_embraced_institution = institution:professional_armies
+		}
+		capital ?= { institution_progress:professional_armies < 50 }
+		country_has_estate = estate_type:nobles_estate
+		country_has_estate = estate_type:peasants_estate
+	}
+	
+	image = "gfx/interface/illustrations/institutions/professional_armies.dds"
+
+	immediate = {
+		random_neighbor_country = {
+			limit = {
+				has_embraced_institution = institution:professional_armies
+			}
+			save_scope_as = professional_armies_country
+		}
+	}
+
+	option = {
+		name = institution_events.50.a
+		capital ?= { change_institution_progress = { type = institution:professional_armies value = institution_progress_severe_bonus } }
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_mild_penalty }
+		add_army_tradition = army_tradition_mild_bonus
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				estate_satisfaction:nobles_estate < 0.6
+			}
+		}
+	}
+	option = {
+		name = institution_events.50.b
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_severe_bonus }
+		add_army_tradition = army_tradition_extreme_penalty
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				estate_satisfaction:nobles_estate >= 0.6
+			}
+		}
+	}
+}
+
+#Demands of a Professional Army
+scripted_trigger professional_armies_event_51_trigger = {
+	has_embraced_institution = institution:professional_armies
+	exists = ruler_or_regent
+	OR = {
+		army_size > 0.5
+		max_manpower >= 5
+	}
+}
+institution_events.51 = {
+	type = country_event
+	title = institution_events.51.title
+	desc = institution_events.51.desc
+	trigger = {
+		knows_about_institution = institution:professional_armies
+		NOT = { has_embraced_institution = institution:professional_armies }
+		any_market_present_in_country = {
+			NOT = { has_temporary_demand = demand:demands_of_weapons }
+			any_location_in_market = {
+				owner ?= root
+				any_neighbor_location = {
+					owner ?= {
+						professional_armies_event_51_trigger = yes
+					}
+				}
+			}			
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/professional_armies.dds"
+	immediate = {
+		random_market_present_in_country = {
+			limit = { NOT = { has_temporary_demand = demand:demands_of_weapons } }			
+			random_location_in_market = {
+				limit = { 
+					owner ?= root 
+					any_neighbor_location = {
+						owner ?= { professional_armies_event_51_trigger = yes }
+					}
+				}
+				random_neighbor_location = {
+					limit = {
+						owner ?= { professional_armies_event_51_trigger = yes }
+					}
+					owner ?= { save_scope_as = professional_armies_country }
+				}
+				save_scope_as = professional_armies_location
+			}	
+			save_scope_as = professional_armies_market		
+		}
+	}
+
+	option = {
+		name = institution_events.51.a
+		if = {
+			limit = { exists = scope:professional_armies_location }
+			scope:professional_armies_location = { 
+				change_institution_progress = { type = institution:professional_armies value = institution_progress_extreme_bonus } 
+			}
+		}
+		if = {
+			limit = { exists = scope:professional_armies_market }
+			scope:professional_armies_market = {
+				add_temporary_demand = { type = demand:demands_of_weapons years = 5 scale_with_pop = 0.01 }
+			}
+		}
+		ai_chance = {
+			factor = 10
+		}
+	}
+	option = {
+		name = institution_events.51.b
+		add_opinion = { modifier = opinion_rejects_army_support  target = scope:professional_armies_country }
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+
+#################################
+# New World Events				#
+#################################
+#Diffusion of New World Crops
+institution_events.60 = {
+	type = country_event
+	title = institution_events.60.title
+	desc = institution_events.60.desc
+	trigger = {
+		knows_about_institution = institution:new_world
+		NOT = { has_embraced_institution = institution:new_world }
+		exists = capital
+		capital.continent = continent:europe
+		has_markets = yes
+		any_market_present_in_country = {
+			NOT = { has_temporary_demand = demand:introduction_of_new_world_crops }
+		}
+		discovered_any_in_americas_trigger = yes
+	}
+	image = "gfx/interface/illustrations/institutions/new_world.dds"
+	option = {
+		name = institution_events.60.a
+		ordered_owned_location = {
+			limit = {
+				NOT = { has_institution = institution:new_world }
+			}
+			order_by = population
+			max = {
+				value = 1
+				add = {
+					value = num_of_non_rural
+					divide = 4
+				}
+			}
+			change_institution_progress = { type = institution:new_world value = institution_progress_mild_bonus }
+		}
+		every_market_present_in_country = {
+			limit = {
+				NOT = { has_temporary_demand = demand:introduction_of_new_world_crops }
+			}
+			add_temporary_demand = { type = demand:introduction_of_new_world_crops months = 240 scale_with_pop = 0.01 }
+		}
+
+	}
+	option = {
+		name = institution_events.60.b
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_penalty }
+	}
+}
+
+#Expansion of Naval Demands
+scripted_trigger new_world_event_61_trigger = {
+	is_port = yes
+	NOT = { has_institution = institution:new_world }
+	market = {
+		NOT = { has_temporary_demand = demand:demands_of_ships }
+	}
+}
+institution_events.61 = {
+	type = country_event
+	title = institution_events.61.title
+	desc = institution_events.61.desc
+	trigger = {
+		exists = capital
+		knows_about_institution = institution:new_world
+		country_has_estate = estate_type:burghers_estate
+		NOT = { has_embraced_institution = institution:new_world }
+		NOT = { capital.continent = continent:america }
+		OR = {
+			any_neighbor_country = { has_embraced_institution = institution:new_world }
+			has_colonial_charters = yes
+			any_subject = {
+				is_colonial_subject = yes
+			}
+		}
+		any_owned_non_rural_location = {
+			new_world_event_61_trigger = yes
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/new_world.dds"
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = {
+				new_world_event_61_trigger = yes
+			}
+			save_scope_as = new_world_location
+			market = {
+				save_scope_as = new_world_market
+			}
+		}
+	}
+
+	option = {
+		name = institution_events.61.a
+		scope:new_world_location = {
+			change_institution_progress = { type = institution:new_world value = institution_progress_severe_bonus }
+		}
+		scope:new_world_market = {
+			add_temporary_demand = { type = demand:demands_of_ships months = 240 scale_with_pop = 0.002 }
+		}
+		ai_chance = {
+			factor = 1
+		}
+	}
+	option = {
+		name = institution_events.61.b
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_penalty }
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 0
+				estate_satisfaction:burghers_estate < 0.6
+			}
+		}
+	}
+}
+
+#################################
+# Printing Press Events			#
+#################################
+#Circulation of Hostile Publications
+institution_events.70 = {
+	type = country_event
+	title = institution_events.70.title
+	desc = institution_events.70.desc
+	trigger = {
+		knows_about_institution = institution:printing_press
+		NOT = {	has_embraced_institution = institution:printing_press }
+		any_owned_location = {
+			NOT = { has_institution = institution:printing_press }
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/printing_press.dds"
+	immediate = {
+
+		random_owned_location = {
+			limit = {
+				NOT = { has_institution = institution:printing_press }
+			}
+			save_scope_as = target_location
+			province = {
+				save_scope_as = target_province
+			}
+		}
+	}
+
+	option = {
+		name = institution_events.70.a
+		add_estate_satisfaction = { type = estate_type:burghers_estate	value = estate_satisfaction_mild_penalty }
+		add_stability = stability_extreme_bonus
+
+	}
+	option = {
+		name = institution_events.70.b
+		custom_tooltip = {
+			text = institution_events.70.b.tt
+			scope:target_province = {				
+				every_location_in_province = {
+					limit = { 
+						owner ?= root
+						NOT = { has_institution = institution:printing_press }
+					}
+					change_institution_progress = { type = institution:printing_press value = institution_progress_extreme_bonus }
+				}				
+			}
+		}
+		add_legitimacy = legitimacy_weak_penalty
+	}
+}
+
+#Amibitious Printing Press in [printing_press_location.GetName]
+institution_events.71 = {
+	type = country_event
+	title = institution_events.71.title
+	desc = institution_events.71.desc
+	trigger = {
+		knows_about_institution = institution:printing_press
+		NOT = {	has_embraced_institution = institution:printing_press }
+		any_neighbor_country = {
+			has_embraced_institution = institution:printing_press
+		}
+		any_owned_non_rural_location = {
+			NOT = { has_institution = institution:printing_press }
+			market = { NOT = { has_temporary_demand = demand:ambitious_print_pressing } }
+		}
+		country_has_estate = estate_type:burghers_estate
+	}
+	image = "gfx/interface/illustrations/institutions/printing_press.dds"
+	immediate = {
+
+		random_owned_non_rural_location = {
+			limit = {
+				NOT = { has_institution = institution:printing_press }
+				market = { NOT = { has_temporary_demand = demand:ambitious_print_pressing } }
+			}
+			save_scope_as = printing_press_location
+			market = { save_scope_as = printing_press_market }
+		}
+	}
+
+	option = {
+		name = institution_events.71.a
+		scope:printing_press_location = {
+			change_institution_progress = { type = institution:printing_press value = institution_progress_extreme_bonus }
+			change_building_level_in_location = {
+				building = building_type:printing_press_shop
+				value = 2
+			}
+		}
+		scope:printing_press_market = {
+			add_temporary_demand = {
+				type = demand:ambitious_print_pressing
+				months = 240
+				scale_with_pop = 0.002
+			}
+		}
+		ai_chance = {
+			factor = 0
+		}
+	}
+	option = {
+		name = institution_events.71.b
+		scope:printing_press_location = {
+			change_institution_progress = { type = institution:printing_press value = institution_progress_severe_bonus }
+			change_building_level_in_location = {
+				building = building_type:printing_press_shop
+				value = 1
+			}
+		}
+		ai_chance = {
+			factor = 10
+		}
+	}
+	option = {
+		name = institution_events.71.c
+		trigger = {
+			stability < 0
+		}
+		add_stability = stability_extreme_bonus		
+		add_estate_satisfaction = { type = estate_type:burghers_estate	value = estate_satisfaction_weak_penalty }
+	}
+	option = {
+		name = institution_events.71.d
+		trigger = {
+			ruler ?= {
+				OR = {
+					has_trait = greedy
+					has_trait = cruel
+					has_trait = malevolent
+					has_trait = charismatic_negotiator
+				}
+			}
+		}
+		add_gold = {
+			value = root.monthly_income_trade_and_tax 
+			multiply = 2
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate	value = estate_satisfaction_weak_penalty }
+		scope:printing_press_location = {
+			change_institution_progress = { type = institution:printing_press value = institution_progress_mild_bonus }
+			change_building_level_in_location = {
+				building = building_type:printing_press_shop
+				value = 1
+			}
+		}
+	}
+}
+
+#################################
+# Pike & Shot Events			#
+#################################
+
+#The New Tactics on the Battlefield
+scripted_trigger pike_and_shot_event_trigger = {
+	has_land_military_building = yes
+	institution_progress:pike_and_shot <= 75
+	controller = root
+}
+institution_events.80 = {
+	type = country_event
+	title = institution_events.80.title
+	desc = institution_events.80.desc
+	trigger = {
+		knows_about_institution = institution:pike_and_shot
+		NOT = {	has_embraced_institution = institution:pike_and_shot }
+		at_war = yes
+		any_current_war = {
+			any_war_participant = {
+				has_embraced_institution = institution:pike_and_shot
+			}
+		}
+		any_owned_location = {
+			pike_and_shot_event_trigger = yes
+		}
+		country_has_estate = estate_type:nobles_estate
+	}
+	
+	image = "gfx/interface/illustrations/institutions/pike_and_shot.dds"
+
+	immediate = {
+		random_owned_location = {
+			limit = {
+				pike_and_shot_event_trigger = yes
+			}
+			save_scope_as = target_location
+		}
+	}
+	#We should research these tactics
+	option = {
+		name = institution_events.80.a
+		scope:target_location = {			
+			change_institution_progress = { type = institution:pike_and_shot value = institution_progress_severe_bonus }
+		}
+		add_army_tradition = army_tradition_weak_bonus
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_mild_penalty }
+	}
+	#Our current strategy is good enough
+	option = {
+		name = institution_events.80.b
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_mild_bonus }
+		add_army_tradition = army_tradition_weak_penalty
+	}
+	#This will help swing the war into our favor
+	option = {
+		name = institution_events.80.c
+		trigger = {
+			ruler ?= { 
+				OR = {
+					has_traits_of_type = { type = tactical }
+					has_traits_of_type = { type = diplomatic }
+				}
+			}
+		}
+		scope:target_location = {			
+			change_institution_progress = { type = institution:pike_and_shot value = institution_progress_extreme_bonus }
+		}
+		add_army_tradition = army_tradition_mild_bonus
+	}
+}
+
+#Mercenaries bring new Tactics
+institution_events.81 = {
+	hide_portraits = yes
+	type = country_event
+	title = institution_events.81.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					exists = scope:rented_mercs
+					NOT = { exists = scope:hired_mercs }
+				}
+				desc = institution_events.81.desc.our_mercs
+			}
+			triggered_desc = {
+				trigger = {
+					exists = scope:hired_mercs
+					NOT = { exists = scope:rented_mercs }
+				}
+				desc = institution_events.81.desc.their_mercs
+			}
+			triggered_desc = {
+				trigger = {
+					exists = scope:rented_mercs
+					exists = scope:hired_mercs
+				}
+				desc = institution_events.81.desc.combined_mercs
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = institution_events.81.desc
+			}
+		}
+	}
+	trigger = {
+		knows_about_institution = institution:pike_and_shot
+		NOT = {	has_embraced_institution = institution:pike_and_shot }
+		OR = {
+			any_rented_out_mercenary = {
+				has_customer = yes
+				customer = { has_embraced_institution = institution:pike_and_shot }
+			}
+			any_hired_mercenary = {
+				mercenary_home = { owner = { has_embraced_institution = institution:pike_and_shot } }
+			}
+		}
+		any_owned_location = { pike_and_shot_event_trigger = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/pike_and_shot.dds"
+	immediate = {
+
+		random_rented_out_mercenary = {
+			limit = {
+				has_customer = yes
+				customer = { has_embraced_institution = institution:pike_and_shot }
+			}
+			save_scope_as = rented_mercs
+			customer = { save_scope_as = own_merc_customer }
+		}
+		random_hired_mercenary = {
+			limit = {
+				mercenary_home = { owner = { has_embraced_institution = institution:pike_and_shot } }
+			}
+			save_scope_as = hired_mercs
+			mercenary_home = { save_scope_as = foreign_merc_country }
+		}
+		random_owned_location = {
+			limit = { pike_and_shot_event_trigger = yes }
+			save_scope_as = target_location
+		}
+	}
+	option = {
+		name = institution_events.81.a
+		trigger = {
+			exists = scope:rented_mercs
+			NOT = { exists = scope:hired_mercs }
+		}
+		add_army_tradition = army_tradition_weak_bonus
+		scope:target_location = {
+			change_institution_progress = { type = institution:pike_and_shot value = institution_progress_severe_bonus }
+			scope:rented_mercs = {
+				every_sub_unit = {
+					add_subunit_experience = 10
+				}
+			}
+		}
+	}
+	option = {
+		name = institution_events.81.a
+		trigger = {
+			exists = scope:hired_mercs
+			NOT = { exists = scope:rented_mercs }
+		}
+		add_army_tradition = army_tradition_weak_bonus
+		scope:target_location = {
+			change_institution_progress = { type = institution:pike_and_shot value = institution_progress_severe_bonus }
+			scope:hired_mercs = {
+				every_sub_unit = {
+					add_subunit_experience = 10
+				}
+			}
+		}
+	}
+	option = {
+		name = institution_events.81.a
+		trigger = {
+			exists = scope:rented_mercs
+			exists = scope:hired_mercs
+		}
+		add_army_tradition = army_tradition_mild_bonus
+		scope:target_location = {
+			change_institution_progress = { type = institution:pike_and_shot value = institution_progress_extreme_bonus }
+			scope:rented_mercs = {
+				every_sub_unit = {
+					add_subunit_experience = 10
+				}
+			}
+			scope:hired_mercs = {
+				every_sub_unit = {
+					add_subunit_experience = 10
+				}
+			}
+		}
+	}
+	option = {
+		name = institution_events.81.d
+		trigger = {
+			NOR = {
+				exists = scope:rented_mercs
+				exists = scope:hired_mercs
+			}
+		}
+		scope:target_location = {
+			change_institution_progress = { type = institution:pike_and_shot value = institution_progress_mild_bonus }
+		}
+	}
+}
+
+#################################
+# Confessionalism Events		#
+#################################
+
+#The Heresy of our <Religion Group>
+scripted_trigger is_confessionalism_location_target = {
+	average_satisfaction < 0.5
+	local_religious_unity < 0.5
+	local_control >= 0.5
+	institution_progress:confessionalism <= 75
+}
+scripted_effect first_option_location_effect = {
+	change_control = control_mild_penalty
+	change_institution_progress = { type = institution:confessionalism value = institution_progress_mild_bonus }
+
+	custom_tooltip = {
+		text = institution_events.$type$.a.tt
+		every_pop = {
+			limit = {
+				owner ?= root
+				is_$type$ = {
+					religion = root.religion
+				}
+			}
+			add_pop_satisfaction = pop_satisfaction_weak_bonus
+		}
+	}
+}
+scripted_effect second_option_location_effect = {
+	change_control = control_mild_bonus
+	change_institution_progress = { type = institution:confessionalism value = institution_progress_weak_bonus }
+
+	custom_tooltip = {
+		text = institution_events.$type$.b.tt
+		every_pop = {
+			limit = {
+				owner ?= root
+				is_$type$ = {
+					religion = root.religion
+				}
+			}
+			add_pop_satisfaction = pop_satisfaction_extreme_penalty
+		}
+	}
+}
+scripted_effect third_option_location_effect = {
+	change_control = control_severe_penalty
+	change_institution_progress = { type = institution:confessionalism value = institution_progress_severe_bonus }
+
+	custom_tooltip = {
+		text = institution_events.$type$.c.tt
+		every_pop = {
+			limit = {
+				owner ?= root
+				is_$type$ = {
+					religion = root.religion
+				}
+			}
+			add_pop_satisfaction = pop_satisfaction_extreme_bonus
+		}
+	}
+}
+scripted_effect fourth_option_location_effect = {
+	change_control = control_severe_bonus
+	change_institution_progress = { type = institution:confessionalism value = institution_progress_mild_bonus }
+
+	custom_tooltip = {
+		text = institution_events.$type$.d.tt
+		every_pop = {
+			limit = {
+				owner ?= root
+				is_$type$ = {
+					religion = root.religion
+				}
+			}
+			add_pop_size = { 
+				value = pop_size 
+				multiply = -0.02
+			}
+			split_pop = {
+				fraction = 0.1
+				religion = root.religion
+			}
+			add_pop_satisfaction = pop_satisfaction_extreme_penalty
+		}
+	}
+}
+institution_events.90 = {
+	type = country_event
+	title = institution_events.90.title
+	desc = institution_events.90.desc
+	trigger = {
+		knows_about_institution = institution:confessionalism
+		NOT = {	has_embraced_institution = institution:confessionalism }
+		any_heretic_location = { is_confessionalism_location_target = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/confessionalism.dds"
+	immediate = {
+		random_heretic_location = { 
+			limit = { is_confessionalism_location_target = yes } 
+			save_scope_as = target_location 
+		}
+	}
+	#Give the location the autonomy to handle things on their own
+	option = {
+		name = institution_events.90.a
+		scope:target_location = { first_option_location_effect = { type = heretic } }
+	}
+	#Keep control over the location
+	option = {
+		name = institution_events.90.b	
+		scope:target_location = { second_option_location_effect = { type = heretic } }	
+	}
+	#Mediate between the Religions
+	option = {
+		name = institution_events.90.c
+		trigger = { ruler ?= { has_traits_of_type = { type = tolerant } } }
+		scope:target_location = { third_option_location_effect = { type = heretic } }
+	}
+	#Force convert the location
+	option = {
+		name = institution_events.90.d
+		trigger = { ruler ?= { has_traits_of_type = { type = religious } } }
+		scope:target_location = { fourth_option_location_effect = { type = heretic } }
+	}
+}
+
+#The Heathens of <location>
+institution_events.91 = {
+	type = country_event
+	title = institution_events.91.title
+	desc = institution_events.91.desc
+	trigger = {
+		knows_about_institution = institution:confessionalism
+		NOT = {	has_embraced_institution = institution:confessionalism }
+		any_heathen_location = { is_confessionalism_location_target = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/confessionalism.dds"
+	immediate = {
+		random_heathen_location = { 
+			limit = { is_confessionalism_location_target = yes } 
+			save_scope_as = target_location 
+		}
+	}
+	#Give the location the autonomy to handle things on their own
+	option = {
+		name = institution_events.91.a
+		scope:target_location = { first_option_location_effect = { type = heathen } }
+	}
+	#Keep control over the location
+	option = {
+		name = institution_events.91.b
+		scope:target_location = { second_option_location_effect = { type = heathen } }
+	}
+	#Mediate between the Religions
+	option = {
+		name = institution_events.91.c
+		trigger = { ruler ?= { has_traits_of_type = { type = tolerant } } }
+		scope:target_location = { third_option_location_effect = { type = heathen } }
+	}
+	#Force convert the location
+	option = {
+		name = institution_events.91.d
+		trigger = { ruler ?= { has_traits_of_type = { type = religious } } }
+		scope:target_location = { fourth_option_location_effect = { type = heathen } }
+	}
+}
+
+#Theological Arguments
+institution_events.92 = {
+	type = country_event
+	title = institution_events.92.title
+	desc = institution_events.92.desc
+	trigger = {
+		knows_about_institution = institution:confessionalism
+		NOT = {	has_embraced_institution = institution:confessionalism }
+		any_cabinet_character = { religion = root.religion }
+		any_cabinet_character = { religion != root.religion religion.group = root.religion.group }
+		has_ruler = yes
+		exists = capital
+		capital = { institution_progress:confessionalism <= 90 }
+	}
+	image = "gfx/interface/illustrations/institutions/confessionalism.dds"
+	immediate = {
+
+		capital = { save_scope_as = target_location }
+		ruler = { save_scope_as = target_ruler }
+		random_cabinet_character = { limit = { religion = root.religion } save_scope_as = true_faith_advisor }
+		random_cabinet_character = { limit = { religion != root.religion religion.group = root.religion.group } save_scope_as = false_faith_advisor }
+	}
+	#Side with the True Faith Advisor
+	option = {
+		name = institution_events.92.a
+		scope:target_location = { change_institution_progress = { type = institution:confessionalism value = institution_progress_mild_bonus } }
+		scope:true_faith_advisor = { add_adm = 25 }
+		remove_from_cabinet = scope:false_faith_advisor
+		scope:false_faith_advisor = { add_character_modifier = { modifier = refuses_to_serve_in_cabinet years = 20 mode = add_and_extend } }
+		add_stability = stability_mild_penalty
+	}
+	#Side with the False Religious Advisor
+	option = {
+		name = institution_events.92.b
+		scope:target_location = { change_institution_progress = { type = institution:confessionalism value = institution_progress_mild_bonus } }
+		remove_from_cabinet = scope:true_faith_advisor
+		scope:true_faith_advisor = { add_character_modifier = { modifier = refuses_to_serve_in_cabinet years = 20 mode = add_and_extend } }
+		scope:false_faith_advisor = { add_adm = 25 }
+		add_stability = stability_mild_penalty
+	}
+	#Try to find a compromise
+	option = {
+		name = institution_events.92.c
+		scope:target_location = { change_institution_progress = { type = institution:confessionalism value = institution_progress_severe_bonus } }
+		random_list = {
+			10 = { add_stability = stability_severe_bonus }
+			40 = {
+				remove_from_cabinet = scope:true_faith_advisor
+				scope:true_faith_advisor = { add_character_modifier = { modifier = refuses_to_serve_in_cabinet years = 20 mode = add_and_extend } }
+				scope:false_faith_advisor = { add_adm = 25 }
+			}
+			40 = {
+				remove_from_cabinet = scope:false_faith_advisor
+				scope:true_faith_advisor = { add_adm = 25 }
+				scope:false_faith_advisor = { add_character_modifier = { modifier = refuses_to_serve_in_cabinet years = 20 mode = add_and_extend } }
+			}
+			10 = {
+				add_stability = stability_extreme_penalty
+			}
+		}
+	}
+	#Kick both out of the court
+	option = {
+		name = institution_events.92.d
+		scope:target_location = { change_institution_progress = { type = institution:confessionalism value = institution_progress_severe_bonus } }
+		remove_from_cabinet = scope:true_faith_advisor
+		remove_from_cabinet = scope:false_faith_advisor
+		scope:true_faith_advisor = { add_character_modifier = { modifier = refuses_to_serve_in_cabinet years = 20 mode = add_and_extend } }
+		scope:false_faith_advisor = { add_character_modifier = { modifier = refuses_to_serve_in_cabinet years = 20 mode = add_and_extend } }
+		add_legitimacy = legitimacy_severe_bonus
+	}
+}
+
+#################################
+# Global Trade Events			#
+#################################
+#The Grand Tour
+institution_events.100 = {
+	type = country_event
+	title = institution_events.100.title
+	desc = institution_events.100.desc
+	trigger = {
+		knows_about_institution = institution:global_trade
+		capital ?= {
+			continent = continent:europe
+			NOT = { has_institution = institution:global_trade }
+		}
+		NOT = {
+			has_embraced_institution = institution:global_trade
+		}
+		has_ruler = yes
+		has_heir = yes
+		NOT = { heir = { has_variable = heir_went_on_grand_tour} }
+		heir = { 
+			age_in_years > 13
+			age_in_years < 30
+		}
+		any_neighbor_country = {
+			religion.group = root.religion.group
+			has_embraced_institution = institution:global_trade
+			exists = capital
+		}
+	}
+	
+	image = "gfx/interface/illustrations/institutions/global_trade.dds"
+
+	immediate = {
+		heir = { save_scope_as = target_character }
+	}
+	option = {
+		name = institution_events.100.a
+		heir = { set_variable = { name = heir_went_on_grand_tour value = 1 } }
+		change_gold_effect = { scale = -3.00 }
+		capital ?= {
+			change_institution_progress = { type = institution:global_trade value = institution_progress_extreme_bonus }
+		}
+		hidden_effect = {
+			save_scope_as = institution_country
+			random_neighbor_country = {
+				limit = {
+					religion.group = root.religion.group
+					has_embraced_institution = institution:global_trade
+					exists = capital
+				}
+				trigger_event_silently = { id = institution_events.101 days = 350 }
+			}
+		}
+		
+	}
+	option = {
+		name = institution_events.100.b
+		add_prestige = prestige_weak_bonus
+	}
+}
+
+#The Grand Tour
+institution_events.101 = {
+	type = country_event
+	title = institution_events.101.title
+	desc = institution_events.101.desc
+
+	trigger = {
+		scope:target_character = {
+			is_alive = yes
+		}
+	}
+
+	image = "gfx/interface/illustrations/institutions/global_trade.dds"
+
+
+	immediate = {
+
+		if = {
+			limit = {
+				scope:target_character = {
+					is_female = no
+					is_adult = yes
+					age_in_years < 30
+					is_married = no
+				}
+			}
+			ruler.dynasty = {
+				random_character_in_dynasty = {
+					limit = {
+						is_female = yes
+						is_adult = yes
+						age_in_years < 30
+						is_married = no
+						is_heir = no
+						location = root.capital
+					}
+					add_character_modifier = {
+						modifier = block_marriage
+						years = -1
+						mode = add_and_extend
+						recalculate_immediately = yes #only because it will be used immediately
+					}
+					save_scope_as = marriage_target
+				}
+			}
+			scope:target_character = {
+				add_character_modifier = {
+					modifier = block_marriage
+					years = -1
+					mode = add_and_extend
+					recalculate_immediately = yes #only because it will be used immediately
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:target_character = {
+					is_female = yes
+					is_adult = yes
+					age_in_years < 30
+					is_married = no
+				}
+			}
+			ruler.dynasty = {
+				random_character_in_dynasty = {
+					limit = {
+						is_female = no
+						is_adult = yes
+						age_in_years < 30
+						is_married = no
+						is_heir = no
+						location = root.capital
+					}
+					add_character_modifier = {
+						modifier = block_marriage
+						years = -1
+						mode = add_and_extend
+						recalculate_immediately = yes #only because it will be used immediately
+					}
+					save_scope_as = marriage_target
+				}
+			}
+			scope:target_character = {
+				add_character_modifier = {
+					modifier = block_marriage
+					years = -1
+					mode = add_and_extend
+					recalculate_immediately = yes #only because it will be used immediately
+				}
+			}
+		}
+		capital = { save_scope_as = toured_capital }
+	}
+	option = {
+		name = institution_events.101.a
+		ordered_owned_location = {
+			limit = { NOT = { has_institution = institution:global_trade } }
+			order_by = population
+			max = {
+				value = 1
+				add = {
+					value = num_of_non_rural
+					divide = 4
+				}
+			}
+			change_institution_progress = { type = institution:global_trade value = institution_progress_severe_bonus }
+		}
+		scope:institution_country = {
+			add_opinion = { target = root modifier = opinion_went_on_grand_tour }
+		}
+	}
+	option = {
+		name = institution_events.101.b
+		trigger = {
+			exists = scope:marriage_target
+		}
+		ordered_owned_location = {
+			limit = { NOT = { has_institution = institution:global_trade } }
+			order_by = population
+			max = {
+				value = 1
+				add = {
+					value = num_of_non_rural
+					divide = 4
+				}
+			}
+			change_institution_progress = { type = institution:global_trade value = institution_progress_severe_bonus }
+		}
+		scope:institution_country = {
+			add_opinion = { target = root modifier = opinion_went_on_grand_tour }
+		}
+		custom_tooltip = {
+			text = institution_events.101.b.tt
+			save_scope_as = toured_country
+			scope:institution_country = {
+				trigger_event_silently = { id = institution_events.105 days = 10 }
+			}
+		}
+	}
+}
+
+#An Unexpected Request
+institution_events.105 = {
+	type = country_event
+	title = institution_events.105.title
+	desc = institution_events.105.desc
+	image = "gfx/interface/illustrations/institutions/global_trade.dds"
+
+	trigger = {
+		scope:target_character = {
+			is_alive = yes
+		}
+		scope:marriage_target = {
+			is_alive = yes
+		}
+	}
+
+	option = {
+		name = institution_events.105.a
+		hidden_effect = {
+			scope:target_character = { remove_character_modifier = block_marriage }
+			scope:marriage_target = { remove_character_modifier = block_marriage }
+		}
+		scope:target_character = { marry_character = scope:marriage_target }
+		scope:marriage_target = { move_country = root }
+	}
+	option = {
+		name = institution_events.105.b
+		add_prestige = prestige_mild_bonus
+	}
+}
+
+#Expansion of a Trade Factory
+institution_events.102 = {
+	type = country_event
+	title = institution_events.102.title
+	desc = institution_events.102.desc
+	trigger = {
+		knows_about_institution = institution:global_trade
+		NOT = { has_embraced_institution = institution:global_trade	}
+		any_port_in_country = {
+			num_foreign_buildings > 0
+			NOT = { has_institution = institution:global_trade }
+			
+			any_foreign_building_countries_in_location = {
+				is_subject_type = trade_company
+				NOT = {	is_at_war_with = root }
+			}
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/global_trade.dds"
+	immediate = {
+		random_port_in_country = {
+			limit = {
+				num_foreign_buildings > 0
+				NOT = { has_institution = institution:global_trade }
+			}		
+			
+			random_foreign_building_countries_in_location = {
+				limit = {
+					is_subject_type = trade_company
+					NOT = {	is_at_war_with = root }
+				}
+				save_scope_as = trade_company_country
+			}
+			save_scope_as = trade_company_province
+		}	
+		save_scope_as = target_country	
+	}
+
+	option = {
+		name = institution_events.102.a
+		change_gold_effect = { scale = 1.20 }
+		add_prestige = prestige_mild_penalty
+		scope:trade_company_country = {
+			add_opinion = { target = root modifier = opinion_traders_in_x }
+			trigger_event_silently = { id = institution_events.103 }
+			scope:trade_company_province = {
+				change_institution_progress = { type = institution:global_trade value = institution_progress_extreme_bonus }
+			}
+		}
+	}
+	option = {
+		name = institution_events.102.b
+		add_prestige = prestige_mild_bonus
+		scope:trade_company_country = {
+			add_opinion = { target = root modifier = opinion_refused_traders_in_x }
+			trigger_event_silently = { id = institution_events.104 }
+		}
+	}
+}
+
+#Trading Concessions
+institution_events.103 = {
+	type = country_event
+	title = institution_events.103.title
+	desc = institution_events.103.desc
+	image = "gfx/interface/illustrations/institutions/global_trade.dds"
+	immediate = {
+		ruler = { save_scope_as = target_character }
+	}
+	option = {
+		name = institution_events.103.a
+		add_prestige = prestige_weak_bonus
+	}
+}
+
+#Traders Complain
+institution_events.104 = {
+	type = country_event
+	title = institution_events.104.title
+	desc = institution_events.104.desc
+	image = "gfx/interface/illustrations/institutions/global_trade.dds"
+
+	option = {
+		name = institution_events.104.a
+		add_opinion = { target = scope:target_country modifier = opinion_refused_traders_in_x }
+	}
+}
+
+#################################
+# Artillery Events				#
+#################################
+
+#New Artillery Models Spread
+scripted_trigger artillery_event_trigger = {
+	has_military_producing_building = yes
+	institution_progress:artillery_institution <= 75
+	controller = root
+}
+institution_events.110 = {
+	type = country_event
+	title = institution_events.110.title
+	desc = institution_events.110.desc
+	trigger = {
+		knows_about_institution = institution:artillery_institution
+		NOT = {	has_embraced_institution = institution:artillery_institution }
+			can_build_units_of_category = sub_unit_category:army_artillery
+		at_war = yes
+		any_current_war = {
+			any_war_participant = {
+				has_embraced_institution = institution:artillery_institution
+			}
+		}
+		any_owned_location = {
+			artillery_event_trigger = yes
+		}
+	}
+	
+	image = "gfx/interface/illustrations/institutions/artillery_institution.dds"
+
+	immediate = {
+		random_current_war = {
+			limit = {
+				any_war_participant = {
+					has_embraced_institution = institution:artillery_institution
+				}
+			}
+			save_scope_as = target_war
+		}
+		random_owned_location = {
+			limit = { artillery_event_trigger = yes }
+			save_scope_as = target_location
+		}
+	}
+	#We should use these new models. Expand the weapon smiths there
+	option = {
+		name = institution_events.110.a
+		scope:target_location = {			
+			change_institution_progress = { type = institution:artillery_institution value = institution_progress_severe_bonus }
+		}
+		add_army_tradition = army_tradition_weak_bonus
+		change_gold_effect = { scale = -0.6 }
+	}
+	#We can't afford it
+	option = {
+		name = institution_events.110.b
+		add_army_tradition = army_tradition_weak_penalty
+	}
+	#This will help swing the war into our favor
+	option = {
+		name = institution_events.110.c
+		trigger = {
+			ruler ?= { has_traits_of_type = { type = tactical } }
+		}
+		scope:target_location = {			
+			change_institution_progress = { type = institution:artillery_institution value = institution_progress_extreme_bonus }
+		}
+		add_army_tradition = army_tradition_severe_bonus
+		change_gold_effect = { scale = -0.8 }
+	}
+}
+
+#Development of the Artillery
+institution_events.111 = {
+	type = country_event
+	title = institution_events.111.title
+	desc = institution_events.111.desc
+	trigger = {
+		knows_about_institution = institution:artillery_institution
+		NOT = {	has_embraced_institution = institution:artillery_institution }
+			can_build_units_of_category = sub_unit_category:army_artillery
+		NOT = { has_variable = had_artillery_mechanics_enabler_event }
+	}
+	image = "gfx/interface/illustrations/institutions/artillery_institution.dds"
+	immediate = {
+
+		set_variable = { name = had_artillery_mechanics_enabler_event value = yes }
+	}
+	option = {
+		name = institution_events.111.a
+		add_army_tradition = army_tradition_weak_bonus
+		add_country_modifier = {
+			modifier = development_of_the_artillery
+			years = -1
+			mode = add_and_extend
+			desc = until_artillery_institution_embraced
+		}
+	}
+	#Not worth the money
+	option = {
+		name = institution_events.111.b
+		add_army_tradition = army_tradition_weak_penalty
+	}
+}
+
+#Mobility Improvements
+institution_events.112 = {
+	type = country_event
+	title = institution_events.112.title
+	desc = institution_events.112.desc
+	trigger = {
+		knows_about_institution = institution:artillery_institution
+		NOT = {	has_embraced_institution = institution:artillery_institution }
+		has_country_modifier = development_of_the_artillery
+			can_build_units_of_category = sub_unit_category:army_artillery
+		any_owned_location = {
+			artillery_event_trigger = yes
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/artillery_institution.dds"
+	immediate = {
+		random_owned_location = {
+			limit = { artillery_event_trigger = yes }
+			save_scope_as = target_location
+		}
+	}
+	option = {
+		name = institution_events.112.a
+		scope:target_location = {
+			change_institution_progress = { type = institution:artillery_institution value = institution_progress_severe_bonus }
+		}
+	}
+}
+
+#Cannons Breakthrough Improvements
+institution_events.113 = {
+	type = country_event
+	title = institution_events.113.title
+	desc = institution_events.113.desc
+	trigger = {
+		knows_about_institution = institution:artillery_institution
+		NOT = {	has_embraced_institution = institution:artillery_institution }
+			can_build_units_of_category = sub_unit_category:army_artillery
+		has_country_modifier = development_of_the_artillery
+		any_market_present_in_country = {
+			NOT = { has_temporary_demand = demand:demands_of_artillery }
+			any_location_in_market = {
+				owner ?= root
+				artillery_event_trigger = yes
+			}
+		}
+		NOR = {
+			has_country_modifier = siege_artillery_model
+			has_country_modifier = battle_artillery_model
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/artillery_institution.dds"
+	immediate = {
+		random_market_present_in_country = {
+			limit = { NOT = { has_temporary_demand = demand:demands_of_artillery } }
+			random_location_in_market = {
+				limit = {
+					owner ?= root
+					artillery_event_trigger = yes
+				}	
+				save_scope_as = target_location			
+			}
+			save_scope_as = artillery_market
+		}
+	}
+	#For combat
+	option = {
+		name = institution_events.113.a
+		scope:target_location = {
+			change_institution_progress = { type = institution:artillery_institution value = institution_progress_mild_bonus }
+		}
+		scope:artillery_market = {
+			add_temporary_demand = { type = demand:demands_of_artillery months = 240 scale_with_pop = 0.02 }
+		}
+		add_country_modifier = {
+			modifier = battle_artillery_model
+			years = 10
+			mode = add_and_extend
+		}
+		change_gold_effect = { scale = -3 }
+	}
+	#For sieges
+	option = {
+		name = institution_events.113.b
+		scope:target_location = {
+			change_institution_progress = { type = institution:artillery_institution value = institution_progress_mild_bonus }
+		}
+		scope:artillery_market = {
+			add_temporary_demand = { type = demand:demands_of_artillery months = 240 scale_with_pop = 0.02 }
+		}
+		add_country_modifier = {
+			modifier = siege_artillery_model
+			years = 10
+			mode = add_and_extend
+		}
+		change_gold_effect = { scale = -3 }
+	}
+	#For both
+	option = {
+		name = institution_events.113.c
+		scope:target_location = {
+			change_institution_progress = { type = institution:artillery_institution value = institution_progress_extreme_bonus }
+		}
+		scope:artillery_market = {
+			add_temporary_demand = { type = demand:demands_of_artillery months = 240 scale_with_pop = 0.02 }
+		}
+		add_country_modifier = {
+			modifier = battle_artillery_model
+			years = 10
+			mode = add_and_extend
+		}
+		add_country_modifier = {
+			modifier = siege_artillery_model
+			years = 10
+			mode = add_and_extend
+		}
+		change_gold_effect = { scale = -7 }
+	}
+	#We cannot afford it
+	option = {
+		name = institution_events.113.d
+		add_army_tradition = army_tradition_mild_penalty
+	}
+}
+
+#Artillery as Siege and Defensive Weaponry
+scripted_trigger artillery_fort_location = {
+	controller = root
+	root = { exists = capital }
+	is_connected_to = root.capital
+	institution_progress:artillery_institution <= 75
+	NOT = { has_location_modifier = artillery_defenses }
+	NOT = { has_location_modifier = artillery_experiments }
+}
+institution_events.114 = {
+	type = country_event
+	title = institution_events.114.title
+	desc = institution_events.114.desc
+	trigger = {
+		knows_about_institution = institution:artillery_institution
+		NOT = {	has_embraced_institution = institution:artillery_institution }
+		has_country_modifier = development_of_the_artillery
+			can_build_units_of_category = sub_unit_category:army_artillery
+		any_fort_in_country = {
+			artillery_fort_location = yes
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/artillery_institution.dds"
+	immediate = {
+
+		random_fort_in_country = {
+			limit = { artillery_fort_location = yes }
+			save_scope_as = target_location
+		}
+	}
+	#Invest greatly in the new defenses
+	option = {
+		name = institution_events.114.a
+		scope:target_location = {
+			change_institution_progress = { type = institution:artillery_institution value = institution_progress_mild_bonus }
+			add_location_modifier = {
+				modifier = artillery_defenses
+				years = 5
+				mode = add_and_extend
+			}
+		}
+		change_gold_effect = { scale = -0.1 }
+	}
+	#Field experiments with the cannons
+	option = {
+		name = institution_events.114.b
+		scope:target_location = {
+			change_institution_progress = { type = institution:artillery_institution value = institution_progress_extreme_bonus }
+			add_location_modifier = {
+				modifier = artillery_experiments
+				years = 5
+				mode = add_and_extend
+			}
+		}
+		change_gold_effect = { scale = -0.1 }
+	}
+	#Not worth the investment
+	option = {
+		name = institution_events.114.c
+		add_army_tradition = army_tradition_weak_penalty
+	}
+}
+
+#End of the Development of the Artillery
+institution_events.115 = {
+	type = country_event
+	title = institution_events.115.title
+	desc = institution_events.115.desc
+	trigger = {
+		has_embraced_institution = institution:artillery_institution
+		has_country_modifier = development_of_the_artillery
+	}
+	image = "gfx/interface/illustrations/institutions/artillery_institution.dds"
+	option = {
+		name = institution_events.115.a
+		remove_country_modifier = development_of_the_artillery
+		remove_variable = had_artillery_mechanics_enabler_event
+		add_army_tradition = army_tradition_severe_bonus
+		add_country_modifier = {
+			modifier = artillery_advantage
+			years = 20
+		}
+	}
+}
+
+#################################
+# Manufactories Events			#
+#################################
+#Proto-Industrialization
+institution_events.120 = {
+	type = country_event
+	title = institution_events.120.title
+	desc = institution_events.120.desc
+	trigger = {
+		knows_about_institution = institution:manufactories
+		NOT = { has_embraced_institution = institution:manufactories }
+		produced_in_country:iron > 0
+	}
+	
+	image = "gfx/interface/illustrations/institutions/manufactories.dds"
+
+	option = {
+		name = institution_events.120.a
+		change_gold_effect = { scale = -6.00 }
+		
+		ordered_owned_location = {
+			limit = {
+				NOT = { has_institution = institution:manufactories }
+			}
+			order_by = population
+			max = {
+				value = 1
+				add = {
+					value = num_of_non_rural
+					divide = 4
+				}
+			}
+			change_institution_progress = { type = institution:manufactories value = institution_progress_severe_bonus }
+		}
+	}
+	option = {
+		name = institution_events.120.b
+		add_prestige = prestige_mild_penalty
+	}
+}
+
+#Transition of Guilds to Manufactories
+scripted_trigger is_manufactory_valid_location = {
+	has_midgame_manufactory_building = no
+	has_any_guild_building = yes
+	controller = root
+	root = { exists = capital }
+	is_connected_to = root.capital
+	institution_progress:manufactories <= 75
+}
+institution_events.121 = {
+	type = country_event
+	title = institution_events.121.title
+	desc = institution_events.121.desc
+	trigger = {
+		knows_about_institution = institution:manufactories
+		NOT = {	has_embraced_institution = institution:manufactories }
+		any_owned_location = {
+			is_manufactory_valid_location = yes
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/manufactories.dds"
+	immediate = {
+
+		random_owned_location = {
+			limit = { is_manufactory_valid_location = yes }
+			save_scope_as = target_location
+		}
+	}
+	#Invest in the transition
+	option = {
+		name = institution_events.121.a
+		scope:target_location = {
+			change_institution_progress = { type = institution:manufactories value = institution_progress_extreme_bonus }
+			change_development = development_weak_bonus
+		}
+		change_gold_effect = { scale = -6 }
+	}
+	#Support this transition
+	option = {
+		name = institution_events.121.b
+		scope:target_location = {
+			change_institution_progress = { type = institution:manufactories value = institution_progress_severe_bonus }
+		}
+	}
+	#Tax the Guilds who transition
+	option = {
+		name = institution_events.121.c
+		scope:target_location = {
+			change_institution_progress = { type = institution:manufactories value = institution_progress_mild_bonus }
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_penalty }
+		change_gold_effect = { scale = 2 }
+	}
+}
+
+#Guilds oppose Manufactories
+institution_events.122 = {
+	type = country_event
+	title = institution_events.122.title
+	desc = institution_events.122.desc
+	trigger = {
+		knows_about_institution = institution:manufactories
+		NOT = {	has_embraced_institution = institution:manufactories }
+		any_owned_location = {
+			is_manufactory_valid_location = yes
+			institution_progress:manufactories > 20
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/manufactories.dds"
+	immediate = {
+		
+		random_owned_location = {
+			limit = { is_manufactory_valid_location = yes institution_progress:manufactories > 20 }
+			save_scope_as = target_location
+		}
+	}
+	#Give in to the guilds
+	option = {
+		name = institution_events.122.a
+		scope:target_location = {
+			change_institution_progress = { type = institution:manufactories value = institution_progress_severe_penalty }
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+	}
+	option = {
+		name = institution_events.122.b
+		scope:target_location = {
+			change_institution_progress = { type = institution:manufactories value = institution_progress_ultimate_bonus }
+			every_pop = {
+				limit = {
+					owner ?= root
+					pop_type = pop_type:burghers
+				}
+				add_pop_satisfaction = pop_satisfaction_extreme_penalty
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_penalty }
+	}
+}
+
+#################################
+# Scientific Revolution Events	#
+#################################
+scripted_trigger invests_or_has_contact_with_scientific_breakthrough = {
+	NOT = { has_variable = made_breakthroughs_in_$type$ }
+	OR = {
+		AND = {
+			has_country_modifier = investing_in_the_science
+			$trigger$
+		}
+		any_related_country = {
+			type = alliance
+			has_variable = made_breakthroughs_in_$type$
+		}
+		any_current_war = {
+			OR = {
+				any_attacker = { has_variable = made_breakthroughs_in_$type$ }
+				any_defender = { has_variable = made_breakthroughs_in_$type$ }
+			}
+		}
+	}
+}
+scripted_trigger is_valid_for_scientific_rev_location = {
+	controller = root
+	root = { exists = capital }
+	is_connected_to = root.capital
+	NOT = { has_institution = institution:scientific_revolution }
+}
+scripted_effect add_scientific_breakthrough = {
+	custom_tooltip = {
+		text = add_scientific_breakthrough_of_type_$type$
+		set_variable = { name = made_breakthroughs_in_$type$ value = yes }
+		change_variable = { name = num_of_scientific_breakthroughs add = 1 }
+	}
+}
+scripted_effect add_scientific_breakthrough_reward = {
+	#Reward when you make the scientific breakthrough independently from somebody else
+	if = {
+		limit = {
+			has_country_modifier = investing_in_the_science
+			$trigger$
+			NOT = { 
+				any_related_country = {
+					type = alliance
+					has_variable = made_breakthroughs_in_$type$
+				}
+			}
+			NOT = {
+				any_current_war = {
+					OR = {
+						any_attacker = { has_variable = made_breakthroughs_in_$type$ }
+						any_defender = { has_variable = made_breakthroughs_in_$type$ }
+					}
+				}
+			}
+		}
+		$location$ = { change_institution_progress = { type = institution:scientific_revolution value = institution_progress_ultimate_bonus } }
+		add_research_progress = research_progress_extreme_bonus
+		add_prestige = prestige_severe_bonus
+	}
+	else = {
+		$location$ = { change_institution_progress = { type = institution:scientific_revolution value = institution_progress_extreme_bonus } }
+		add_research_progress = research_progress_severe_bonus
+		add_prestige = prestige_mild_bonus
+	}
+}
+scripted_effect determine_scientific_revolution_rewards = {
+	set_variable = { name = advance_progress_reward value = var:num_of_scientific_breakthroughs }
+	change_variable = { name = advance_progress_reward multiply = 3 }
+	set_variable = { name = prestige_reward value = var:num_of_scientific_breakthroughs }
+	change_variable = { name = prestige_reward multiply = 5 }
+}
+scripted_effect add_scientific_revolution_rewards = {
+	if = {
+		limit = { var:advance_progress_reward > 0 }
+		add_research_progress = var:advance_progress_reward
+	}
+	if = {
+		limit = { var:prestige_reward > 0 }
+		add_prestige = var:prestige_reward
+	}
+	if = {
+		limit = { var:num_of_scientific_breakthroughs >= 4 }
+		ruler ?= { add_trait = trait:scholar }
+	}
+	add_country_modifier = {
+		modifier = aftermath_of_the_scientific_revolution
+		years = 15
+		mode = add_and_extend
+		#effect scales with the amount of breakthroughs you had
+		size = {
+			value = root.var:num_of_scientific_breakthroughs
+			min = 1
+			max = 5
+		}
+	}
+	hidden_effect = {
+		remove_variable = advance_progress_reward
+		remove_variable = prestige_reward
+		remove_variable = num_of_scientific_breakthroughs
+		remove_variable = made_breakthroughs_in_general_science
+		remove_variable = made_breakthroughs_in_astronomy
+		remove_variable = made_breakthroughs_in_biology
+		remove_variable = made_breakthroughs_in_chemistry
+		remove_variable = made_breakthroughs_in_math
+		remove_variable = made_breakthroughs_in_gravity
+		remove_variable = made_breakthroughs_in_optics
+	}
+}
+
+#Start of the Scientific Revolution
+institution_events.130 = {
+	type = country_event
+	title = institution_events.130.title
+	desc = institution_events.130.desc
+	trigger = {
+		knows_about_institution = institution:scientific_revolution
+		NOT = {	has_embraced_institution = institution:scientific_revolution }
+		NOT = { has_variable = had_scientific_revolution_start_event }
+		num_of_advances_researched >= tech_level_to_advances_17	#You should have *some* scientific discoveries before as a base for further research
+		has_ruler = yes
+	}
+	
+	image = "gfx/interface/illustrations/institutions/scientific_revolution.dds"
+
+	immediate = {
+
+		set_variable = { 
+			name = had_scientific_revolution_start_event 
+			value = yes 
+		} 
+		ruler = { save_scope_as = ruler_scope }
+	}
+	#Invest in the Scientific Revolution
+	option = {
+		name = institution_events.130.a
+		custom_tooltip = {
+			text = institution_events.130.a.tt
+			set_variable = { name = num_of_scientific_breakthroughs value = 0 }
+		}
+		add_country_modifier = {
+			modifier = investing_in_the_science
+			years = -1
+			mode = add
+			desc = investing_in_the_science_desc
+		}
+		change_gold_effect = { scale = -2	 }
+	}
+	#Observe the Scientific advancement
+	option = {
+		name = institution_events.130.b
+		add_prestige = prestige_weak_penalty
+	}
+}
+
+#Introduction of Scientific Methods (general_science)
+institution_events.131 = {
+	type = country_event
+	title = institution_events.131.title
+	desc = institution_events.131.desc
+	trigger = {
+		knows_about_institution = institution:scientific_revolution
+		NOT = {	has_embraced_institution = institution:scientific_revolution }
+		invests_or_has_contact_with_scientific_breakthrough = {
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_18"
+			type = general_science
+		}
+		any_owned_non_rural_location = { is_valid_for_scientific_rev_location = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/scientific_revolution.dds"
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = { is_valid_for_scientific_rev_location = yes }
+			save_scope_as = target_location
+		}
+	}
+	option = {
+		name = institution_events.131.a
+		add_scientific_breakthrough = { type = general_science }
+		add_scientific_breakthrough_reward = {
+			type = general_science
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_18"
+			location = scope:target_location
+		}
+	}
+}
+
+#Heliocentric World Views introduced (astronomy)
+institution_events.132 = {
+	type = country_event
+	title = institution_events.132.title
+	desc = institution_events.132.desc
+	trigger = {
+		knows_about_institution = institution:scientific_revolution
+		NOT = {	has_embraced_institution = institution:scientific_revolution }
+		invests_or_has_contact_with_scientific_breakthrough = {
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_19"
+			type = astronomy
+		}
+		any_owned_non_rural_location = { is_valid_for_scientific_rev_location = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/scientific_revolution.dds"
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = { is_valid_for_scientific_rev_location = yes }
+			save_scope_as = target_location
+		}
+	}
+	#Heresy!!
+	option = {
+		name = institution_events.132.a
+		trigger = {
+			is_abrahamic = yes
+		}
+		add_scientific_breakthrough = { type = astronomy }
+		add_scientific_breakthrough_reward = {
+			type = astronomy
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_19"
+			location = scope:target_location
+		}
+	}
+	#Well, of course it goes around the sun, duh.
+	option = {
+		name = institution_events.132.b
+		trigger = {
+			is_abrahamic = no
+		}
+		add_scientific_breakthrough = { type = astronomy }
+		add_scientific_breakthrough_reward = {
+			type = astronomy
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_19"
+			location = scope:target_location
+		}
+	}
+	historical_info = institution_events.132.historical_info
+}
+
+#De Humani Corporis Fabrica Libri Septem (biology)
+institution_events.134 = {
+	type = country_event
+	title = institution_events.134.title
+	desc = institution_events.134.desc
+	trigger = {
+		knows_about_institution = institution:scientific_revolution
+		NOT = {	has_embraced_institution = institution:scientific_revolution }
+		invests_or_has_contact_with_scientific_breakthrough = {
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_19"
+			type = biology
+		}
+		any_owned_non_rural_location = { is_valid_for_scientific_rev_location = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/scientific_revolution.dds"
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = { is_valid_for_scientific_rev_location = yes }
+			save_scope_as = target_location
+		}
+	}
+	option = {
+		name = institution_events.134.a
+		add_scientific_breakthrough = { type = biology }
+		add_scientific_breakthrough_reward = {
+			type = biology
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_19"
+			location = scope:target_location
+		}
+	}
+	historical_info = institution_events.134.historical_info
+}
+
+#De re metallica (chemistry)
+institution_events.135 = {
+	type = country_event
+	title = institution_events.135.title
+	desc = institution_events.135.desc
+	trigger = {
+		knows_about_institution = institution:scientific_revolution
+		NOT = {	has_embraced_institution = institution:scientific_revolution }
+		invests_or_has_contact_with_scientific_breakthrough = {
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_20"
+			type = chemistry
+		}
+		any_owned_non_rural_location = { is_valid_for_scientific_rev_location = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/scientific_revolution.dds"
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = { is_valid_for_scientific_rev_location = yes }
+			save_scope_as = target_location
+		}
+	}
+	option = {
+		name = institution_events.135.a
+		add_scientific_breakthrough = { type = chemistry }
+		add_scientific_breakthrough_reward = {
+			type = chemistry
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_20"
+			location = scope:target_location
+		}
+	}
+	historical_info = institution_events.135.historical_info
+}
+
+#Mathematization (math)
+institution_events.136 = {
+	type = country_event
+	title = institution_events.136.title
+	desc = institution_events.136.desc
+	trigger = {
+		knows_about_institution = institution:scientific_revolution
+		NOT = {	has_embraced_institution = institution:scientific_revolution }
+		invests_or_has_contact_with_scientific_breakthrough = {
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_18"
+			type = math
+		}
+		any_owned_non_rural_location = { is_valid_for_scientific_rev_location = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/scientific_revolution.dds"
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = { is_valid_for_scientific_rev_location = yes }
+			save_scope_as = target_location
+		}
+	}
+	option = {
+		name = institution_events.136.a
+		add_scientific_breakthrough = { type = math }
+		add_scientific_breakthrough_reward = {
+			type = math
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_18"
+			location = scope:target_location
+		}
+	}
+}
+
+#De motu corporum in gyrum (gravity)
+institution_events.137 = {
+	type = country_event
+	title = institution_events.137.title
+	desc = institution_events.137.desc
+	trigger = {
+		knows_about_institution = institution:scientific_revolution
+		NOT = {	has_embraced_institution = institution:scientific_revolution }
+		invests_or_has_contact_with_scientific_breakthrough = {
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_19"
+			type = gravity
+		}
+		any_owned_non_rural_location = { is_valid_for_scientific_rev_location = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/scientific_revolution.dds"
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = { is_valid_for_scientific_rev_location = yes }
+			save_scope_as = target_location
+		}
+	}
+	option = {
+		name = institution_events.137.a
+		add_scientific_breakthrough = { type = gravity }
+		add_scientific_breakthrough_reward = {
+			type = gravity
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_19"
+			location = scope:target_location
+		}
+	}
+	historical_info = institution_events.137.historical_info
+}
+
+#Treatise on Light (optics)
+institution_events.138 = {
+	type = country_event
+	title = institution_events.138.title
+	desc = institution_events.138.desc
+	trigger = {
+		knows_about_institution = institution:scientific_revolution
+		NOT = {	has_embraced_institution = institution:scientific_revolution }
+		invests_or_has_contact_with_scientific_breakthrough = {
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_20"
+			type = optics
+		}
+		any_owned_non_rural_location = { is_valid_for_scientific_rev_location = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/scientific_revolution.dds"
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = { is_valid_for_scientific_rev_location = yes }
+			save_scope_as = target_location
+		}
+	}
+	option = {
+		name = institution_events.138.a
+		add_scientific_breakthrough = { type = optics }
+		add_scientific_breakthrough_reward = {
+			type = optics
+			trigger = "any_cabinet_character = { adm >= 60 } num_of_advances_researched >= tech_level_to_advances_20"
+			location = scope:target_location
+		}
+	}
+	historical_info = institution_events.138.historical_info
+}
+
+#End of the Scientific Revolution
+institution_events.139 = {
+	type = country_event
+	title = institution_events.139.title
+	desc = institution_events.139.desc
+	trigger = {
+		knows_about_institution = institution:scientific_revolution
+		has_embraced_institution = institution:scientific_revolution
+		has_country_modifier = investing_in_the_science
+	}
+	image = "gfx/interface/illustrations/institutions/scientific_revolution.dds"
+	immediate = {
+		determine_scientific_revolution_rewards = yes
+	}
+	#End of the Revolution for now
+	option = {
+		name = institution_events.139.a
+		remove_country_modifier = investing_in_the_science
+		add_scientific_revolution_rewards = yes
+	}
+}
+
+#################################
+# Military Revolution Events	#
+#################################
+scripted_trigger military_revolution_event_trigger = {
+	has_land_military_building = yes
+	institution_progress:military_revolution <= 75
+	controller = root
+	integration_level = core
+}
+#Mass Demands for Flintlock Muskets
+institution_events.140 = {
+	type = country_event
+	title = institution_events.140.title
+	desc = institution_events.140.desc
+	trigger = {
+		knows_about_institution = institution:military_revolution
+		NOT = {	has_embraced_institution = institution:military_revolution }
+		any_market_present_in_country = {
+			NOT = { has_temporary_demand =  demand:demands_of_muskets }
+			any_location_in_market = {
+				owner ?= root
+				military_revolution_event_trigger = yes
+			}
+		}
+	}
+	
+	image = "gfx/interface/illustrations/institutions/military_revolution.dds"
+
+	immediate = {
+		random_market_present_in_country = {
+			limit = {
+				NOT = { has_temporary_demand =  demand:demands_of_muskets }
+			}			
+			random_location_in_market = {
+				limit = {
+					owner ?= root
+					military_revolution_event_trigger = yes
+				}
+				save_scope_as = target_location
+			}
+			save_scope_as = target_market
+		}
+	}
+	option = {
+		name = institution_events.140.a
+		scope:target_location = {
+			change_institution_progress = { type = institution:military_revolution value = institution_progress_ultimate_bonus }
+		}
+		scope:target_market = {
+			add_temporary_demand = { type = demand:demands_of_muskets months = 240 scale_with_pop = 0.01 }
+		}
+	}
+}
+
+#Military Theory of our General
+scripted_trigger is_competent_general = {
+	is_general = yes
+	is_ruler = no
+	OR = {
+		adm > 90
+		dip > 90
+		mil > 90
+		AND = {
+			adm >= 50
+			dip >= 50
+			mil >= 50
+		}
+	}
+}
+institution_events.141 = {
+	type = country_event
+	title = institution_events.141.title
+	desc = institution_events.141.desc
+	trigger = {
+		knows_about_institution = institution:military_revolution
+		NOT = {	has_embraced_institution = institution:military_revolution }
+		any_owned_location = { military_revolution_event_trigger = yes }
+		any_character = { is_competent_general = yes }
+		at_war = no
+		country_has_estate = estate_type:nobles_estate
+	}
+	image = "gfx/interface/illustrations/institutions/military_revolution.dds"
+	immediate = {
+		random_owned_location = {
+			limit = { military_revolution_event_trigger = yes }
+			save_scope_as = target_location
+		}
+		random_character = {
+			limit = { is_competent_general = yes }
+			save_scope_as = target_character
+		}
+	}
+	#Follow his plan
+	option = {
+		name = institution_events.141.a
+		scope:target_location = {
+			change_institution_progress = { type = institution:military_revolution value = institution_progress_ultimate_bonus }
+		}
+		add_army_tradition = army_tradition_extreme_bonus
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_extreme_penalty }
+	}
+	#Better stick to the old ways
+	option = {
+		name = institution_events.141.b
+		add_legitimacy = legitimacy_mild_bonus
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_severe_bonus }
+	}
+}
+
+#Expansion of the Military Administration
+institution_events.142 = {
+	type = country_event
+	title = institution_events.142.title
+	desc = institution_events.142.desc
+	trigger = {
+		knows_about_institution = institution:military_revolution
+		NOT = {	has_embraced_institution = institution:military_revolution }
+		any_owned_location = { military_revolution_event_trigger = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/military_revolution.dds"
+	immediate = {
+		random_owned_location = {
+			limit = { military_revolution_event_trigger = yes }
+			save_scope_as = target_location
+		}
+	}
+	#Invest in the location
+	option = {
+		name = institution_events.142.a
+		scope:target_location = {
+			change_institution_progress = { type = institution:military_revolution value = institution_progress_severe_bonus }
+			change_development = development_weak_bonus
+		}
+		add_army_tradition = army_tradition_weak_bonus
+		change_gold_effect = { scale = -2 }
+	}
+	#No need
+	option = {
+		name = institution_events.142.b
+		scope:target_location = {
+			change_institution_progress = { type = institution:military_revolution value = institution_progress_mild_bonus }
+		}
+	}
+	#Let the Military handle it
+	option = {
+		name = institution_events.142.c
+		trigger = {
+			ruler ?= { has_traits_of_type = { type = economical } }
+		}
+		scope:target_location = {
+			change_institution_progress = { type = institution:military_revolution value = institution_progress_extreme_bonus }
+		}
+		add_army_tradition = army_tradition_mild_bonus
+	}
+}
+
+#################################
+# Enlightenment Events			#
+#################################
+#[target_artist]'s Philosophy
+institution_events.150 = {
+	type = country_event
+	title = institution_events.150.title
+	desc = institution_events.150.desc
+	trigger = {
+		knows_about_institution = institution:enlightenment
+		NOT = { has_embraced_institution = institution:enlightenment }
+		NOT = { has_variable = had_random_enlightenment_philosopher_event }
+		exists = capital
+	}
+	
+	image = "gfx/interface/illustrations/institutions/enlightenment.dds"
+
+	immediate = {
+		set_variable = had_random_enlightenment_philosopher_event
+		capital = { save_scope_as = target_location }
+		create_character = {
+			birth_location = scope:target_location
+			random_estate_type_trigger = {
+				root = { estate_type_allowed_in_cabinet = { estate_type = prev } }
+			}
+			trait_category = artist
+			artist = philosopher
+			age = 35
+			artist_skill = { 0.5 0.9 }
+			save_scope_as = target_artist
+			set_variable = enlightened_philosopher
+			create_in_limbo = yes
+		}
+	}
+	option = {
+		name = institution_events.150.a
+		scope:target_artist = { move_country = root }
+		add_research_progress = research_progress_severe_bonus
+		scope:target_location = {
+			change_institution_progress = { type = institution:enlightenment value = institution_progress_mild_bonus }
+		}
+		set_variable = accepts_enlightened_philosopher
+	}
+	option = {
+		name = institution_events.150.b
+		scope:target_artist = {
+			banish_character = yes
+			remove_variable = enlightened_philosopher
+		}
+		add_prestige = prestige_mild_bonus
+	}
+}
+
+#Critique to the Government
+institution_events.151 = {
+	type = country_event
+	title = institution_events.151.title
+	desc = institution_events.151.desc
+	trigger = {
+		knows_about_institution = institution:enlightenment
+		NOT = { has_embraced_institution = institution:enlightenment }
+		has_variable = accepts_enlightened_philosopher
+		any_character = {
+			is_alive = yes
+			has_variable = enlightened_philosopher
+		}
+		exists = capital
+		country_has_estate = estate_type:nobles_estate
+		country_has_estate = estate_type:crown_estate
+	}
+	image = "gfx/interface/illustrations/institutions/enlightenment.dds"
+	immediate = {
+		random_artist = {
+			limit = {
+				is_alive = yes
+				has_variable = enlightened_philosopher
+			}
+			save_scope_as = target_artist
+		}
+		capital = {
+			area = {
+				save_scope_as = target_area
+			}
+		}
+		compare_and_get_highest_variable_from_4 = {
+			value_1 = societal_value:centralization_vs_decentralization
+			value_2 = societal_value:traditionalist_vs_innovative
+			value_3 = societal_value:aristocracy_vs_plutocracy
+			value_4 = societal_value:individualism_vs_communalism
+		}
+	}
+	option = {
+		name = institution_events.151.a
+		custom_tooltip = {
+			text = institution_events.151.tt
+			scope:target_area = {
+				every_location_in_area = {
+					change_institution_progress = { type = institution:enlightenment value = institution_progress_severe_bonus }
+				}
+			}
+		}
+		switch = {
+			trigger = has_variable
+			comperator_var_current_highest_value_1_comperator = {
+				if = {
+					limit = { societal_value:centralization_vs_decentralization > 0 }
+					add_effect_scaling_with_societal_value = { societal_value = centralization_vs_decentralization effect = stability operator = divide value = -5 }
+					change_societal_value = { type = centralization_vs_decentralization value = societal_value_large_move_to_right }
+				}
+				else = {
+					add_effect_scaling_with_societal_value = { societal_value = centralization_vs_decentralization effect = stability operator = divide value = 5 }
+					change_societal_value = { type = centralization_vs_decentralization value = societal_value_large_move_to_left }
+				}
+			}
+			comperator_var_current_highest_value_2_comperator = {
+				if = {
+					limit = { societal_value:traditionalist_vs_innovative > 0 }
+					add_effect_scaling_with_societal_value = { societal_value = traditionalist_vs_innovative effect = stability operator = divide value = -5 }
+					change_societal_value = { type = traditionalist_vs_innovative value = societal_value_large_move_to_right }
+				}
+				else = {
+					add_effect_scaling_with_societal_value = { societal_value = traditionalist_vs_innovative effect = stability operator = divide value = 5 }
+					change_societal_value = { type = traditionalist_vs_innovative value = societal_value_large_move_to_left }
+				}
+			}
+			comperator_var_current_highest_value_3_comperator = {
+				if = {
+					limit = { societal_value:aristocracy_vs_plutocracy > 0 }
+					add_effect_scaling_with_societal_value = { societal_value = aristocracy_vs_plutocracy effect = stability operator = divide value = -5 }
+					change_societal_value = { type = aristocracy_vs_plutocracy value = societal_value_large_move_to_right }
+				}
+				else = {
+					add_effect_scaling_with_societal_value = { societal_value = aristocracy_vs_plutocracy effect = stability operator = divide value = 5 }
+					change_societal_value = { type = aristocracy_vs_plutocracy value = societal_value_large_move_to_left }
+				}
+			}
+			comperator_var_current_highest_value_4_comperator = {
+				if = {
+					limit = { societal_value:individualism_vs_communalism > 0 }
+					add_effect_scaling_with_societal_value = { societal_value = individualism_vs_communalism effect = stability operator = divide value = -5 }
+					change_societal_value = { type = individualism_vs_communalism value = societal_value_large_move_to_right }
+				}
+				else = {
+					add_effect_scaling_with_societal_value = { societal_value = individualism_vs_communalism effect = stability operator = divide value = 5 }
+					change_societal_value = { type = individualism_vs_communalism value = societal_value_large_move_to_left }
+				}
+			}
+		}
+	}
+	option = {
+		name = institution_events.151.b
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_severe_bonus }
+		scope:target_artist = {
+			banish_character = yes
+			remove_variable = enlightened_philosopher
+		}
+	}
+}
+
+#Apostles of the Enlightenment
+institution_events.152 = {
+	hide_portraits = yes
+	type = country_event
+	title = institution_events.152.title
+	desc = institution_events.152.desc
+	trigger = {
+		exists = capital
+		knows_about_institution = institution:enlightenment
+		NOT = {	has_embraced_institution = institution:enlightenment }
+	
+		capital.market = {
+			any_merchant_in_market = {
+				has_embraced_institution = institution:enlightenment
+				NOT = { capital.continent = root.capital.continent }
+			}
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/enlightenment.dds"
+	immediate = {
+		capital.market = {
+			random_merchant_in_market = {
+				limit = {
+					has_embraced_institution = institution:enlightenment
+					NOT = { capital.continent = root.capital.continent }
+				}
+				save_scope_as = apostles_of_the_enlightenment
+			}
+		}
+	
+	}
+
+	option = {
+		name = institution_events.152.a
+		add_prestige = prestige_mild_penalty
+		
+		
+		ordered_owned_location = {
+			limit = {
+				NOT = { has_institution = institution:enlightenment }
+				market = root.capital.market
+			}
+			order_by = population
+			max = {
+				value = 1
+				add = {
+					value = num_of_non_rural
+					divide = 4
+				}
+			}
+			change_institution_progress = { type = institution:enlightenment value = institution_progress_severe_bonus }
+		}
+
+		
+	}
+	option = {
+		name = institution_events.152.b
+		add_prestige = prestige_mild_bonus
+	}
+}
+
+#Healthy Criticism?
+institution_events.153 = {
+	type = country_event
+	title = institution_events.153.title
+	desc = institution_events.153.desc
+	trigger = {
+		knows_about_institution = institution:enlightenment
+		NOT = {	has_embraced_institution = institution:enlightenment }
+		exists = capital
+		capital.market = {
+			OR = {
+				is_produced_in_market = goods:coffee
+				is_traded_in_market = goods:coffee
+			}
+		}
+	
+	}
+	image = "gfx/interface/illustrations/institutions/enlightenment.dds"
+	option = {
+		name = institution_events.153.a
+		ordered_owned_location = {
+			limit = {
+				NOT = { has_institution = institution:enlightenment }
+				market = root.capital.market
+			}
+			order_by = population
+			max = {
+				value = 1
+				add = {
+					value = num_of_non_rural
+					divide = 4
+				}
+			}
+			change_institution_progress = { type = institution:enlightenment value = institution_progress_severe_bonus }
+		}
+		add_stability = stability_mild_penalty
+		
+	}
+	option = {
+		name = institution_events.153.b
+		add_stability = stability_mild_bonus
+	}
+}
+
+#################################
+# Industrialization Events		#
+#################################
+#New Production Methods Adopted
+scripted_trigger is_industrial_revolution_valid = {
+	NOT = { has_institution = institution:industrialization }
+	integration_level = core
+	has_midgame_manufactory_building = yes
+	has_industrial_raw_material = yes
+	OR = {
+		location_rank = location_rank:city
+		location_rank = location_rank:town
+	}
+}
+institution_events.160 = {
+	type = country_event
+	title = institution_events.160.title
+	desc = institution_events.160.desc
+	trigger = {
+		knows_about_institution = institution:industrialization
+		NOT = {	has_embraced_institution = institution:industrialization }
+		any_owned_non_rural_location = {
+			is_industrial_revolution_valid = yes
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/industrialization.dds"
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = { is_industrial_revolution_valid = yes }
+			save_scope_as = industrialization_province
+		}
+	}
+	option = {
+		name = institution_events.160.a
+		scope:industrialization_province = {
+			change_development = development_weak_bonus
+			change_institution_progress = { type = institution:industrialization value = institution_progress_ultimate_bonus }
+		}
+	}
+}
+
+#Urbanization
+institution_events.161 = {
+	type = country_event
+	title = institution_events.161.title
+	desc = institution_events.161.desc
+	trigger = {
+		current_year > 1737
+		knows_about_institution = institution:industrialization
+		NOT = {	has_embraced_institution = institution:industrialization }
+		any_owned_non_rural_location = {
+			is_industrial_revolution_valid = yes
+			province_definition = {
+				any_neighbor_province_definition = {
+					any_location_in_province_definition = {
+						owner ?= root
+						location_rank = location_rank:rural_settlement
+					}
+				}
+			}
+		}
+	}
+	image = "gfx/interface/illustrations/institutions/industrialization.dds"
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = {
+				is_industrial_revolution_valid = yes
+				province_definition = {
+					any_neighbor_province_definition = {
+						any_location_in_province_definition = {
+							owner ?= root
+							location_rank = location_rank:rural_settlement
+						}
+					}
+				}
+			}
+			save_scope_as = target_location
+			province_definition = {
+				save_scope_as = urbanization_province
+				random_neighbor_province_definition = {
+					limit = {
+						any_location_in_province_definition = {
+							owner ?= root
+							location_rank = location_rank:rural_settlement
+						}
+					}
+					save_scope_as = rural_province
+				}
+			}
+		}
+	}
+	option = {
+		name = institution_events.161.a
+		scope:target_location = { change_institution_progress = { type = institution:industrialization value = institution_progress_extreme_bonus } }
+		scope:rural_province = {
+			every_location_in_province_definition = {
+				limit = {
+					owner ?= root
+					location_rank = location_rank:rural_settlement
+				}
+				change_institution_progress = { type = institution:industrialization value = institution_progress_severe_penalty }
+				change_development = development_weak_penalty
+			}
+		}
+		if = {
+			limit = { exists = scope:urbanization_province }
+			scope:urbanization_province = {
+				every_location_in_province_definition = {
+					limit = { owner ?= root }
+					change_institution_progress = { type = institution:industrialization value = institution_progress_severe_bonus }
+					change_development = development_very_weak_bonus
+				}
+			}
+			if = {
+				limit = { exists = scope:rural_province }
+				add_migration = {
+					owner = scope:target_country
+					from = scope:rural_province
+					to = scope:urbanization_province
+					amount = {
+						value = {
+							value = 5
+							multiply = {
+								value = current_year
+								subtract = 1737
+								min = 10
+								divide = 100
+							}
+							floor = yes
+							min = 0.5	#at bare minimum it should always move 500 pops at least...
+						}
+					}
+					months = 12
+				}
+			}
+		}
+		#The idea is that 50k pops of a province move to another province
+		#The actual number is 50k * (current year - 1737)/100, so the closer to 1837 the more people are moving to the new city
+	}
+	option = {
+		name = institution_events.161.b
+		scope:target_location = {
+			every_location_in_province = {
+				limit = { institution_progress:industrialization > 25 }
+				change_institution_progress = { type = institution:industrialization value = institution_progress_severe_penalty }
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_severe_penalty }
+	}
+}
+
+#################################
+# Levee en Masse Events			#
+#################################
+scripted_trigger is_levee_en_masse_valid = {
+	NOT = { has_institution = institution:levee_en_masse }
+	integration_level = core
+	controller = root
+}
+#Sense of Total Community
+institution_events.170 = {
+	type = country_event
+	title = institution_events.170.title
+	desc = institution_events.170.desc
+	trigger = {
+		knows_about_institution = institution:levee_en_masse
+		NOT = {	has_embraced_institution = institution:levee_en_masse }
+		at_war = no
+		any_owned_location = { is_levee_en_masse_valid = yes }
+		country_has_estate = estate_type:peasants_estate
+	}
+	image = "gfx/interface/illustrations/institutions/levee_en_masse.dds"
+
+	immediate = {
+
+		random_owned_location = {
+			limit = { is_levee_en_masse_valid = yes }
+			save_scope_as = target_location
+		}
+	}
+	#Use it to expand our military 
+	option = {
+		name = institution_events.170.a
+		scope:target_location = { change_institution_progress = { type = institution:levee_en_masse value = institution_progress_extreme_bonus } }
+		if = {
+			limit = { monthly_manpower > 0 }
+			add_manpower = { value = root.monthly_manpower multiply = 3 }
+		}
+	}
+	#Use it to feed our coffers
+	option = {
+		name = institution_events.170.b
+		scope:target_location = { change_institution_progress = { type = institution:levee_en_masse value = institution_progress_extreme_bonus } }
+		change_gold_effect = { scale = 3 }
+	}
+	#Use it to secure our stability
+	option = {
+		name = institution_events.170.c
+		scope:target_location = { change_institution_progress = { type = institution:levee_en_masse value = institution_progress_extreme_bonus } }
+		add_stability = stability_mild_bonus
+		add_war_exhaustion = war_exhaustion_mild_bonus
+	}
+}
+
+#Call to Defense for all
+institution_events.171 = {
+	type = country_event
+	title = institution_events.171.title
+	desc = institution_events.171.desc
+	trigger = {
+		knows_about_institution = institution:levee_en_masse
+		NOT = {	has_embraced_institution = institution:levee_en_masse }
+		at_war = yes
+		any_current_war = {
+			NOT = { is_an_attacker = root }
+		}
+		any_owned_location = { is_levee_en_masse_valid = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/levee_en_masse.dds"
+	immediate = {
+		random_owned_location = {
+			limit = { is_levee_en_masse_valid = yes }
+			save_scope_as = target_location
+			province_definition = { save_scope_as = target_province }
+		}
+	}
+	option = {
+		name = institution_events.171.a
+		scope:target_province = {
+			every_location_in_province_definition = {
+				limit = {
+					owner ?= root
+					controller = root
+				}
+				change_institution_progress = { type = institution:levee_en_masse value = institution_progress_ultimate_bonus }
+			}
+		}
+		if = {
+			limit = { monthly_manpower > 0 }
+			add_manpower = { value = root.monthly_manpower multiply = 3 }
+		}
+	}
+}
+
+#Desertion in <location>
+institution_events.172 = {
+	type = country_event
+	title = institution_events.172.title
+	desc = institution_events.172.desc
+	trigger = {
+		knows_about_institution = institution:levee_en_masse
+		NOT = {	has_embraced_institution = institution:levee_en_masse }
+		at_war = yes
+		any_owned_location = { is_levee_en_masse_valid = yes }
+	}
+	image = "gfx/interface/illustrations/institutions/levee_en_masse.dds"
+	immediate = {
+		random_owned_location = {
+			limit = { is_levee_en_masse_valid = yes }
+			save_scope_as = target_location
+		}
+	}
+	#Get these men into the army
+	option = {
+		name = institution_events.172.a
+		scope:target_location = {
+			change_control = control_severe_bonus
+			every_pop = {
+				limit = {
+					owner ?= root
+					pop_type = pop_type:peasants
+				}
+				add_pop_satisfaction = pop_satisfaction_extreme_penalty
+			}
+			change_institution_progress = { type = institution:levee_en_masse value = institution_progress_ultimate_bonus }
+		}
+		if = {
+			limit = { monthly_manpower > 0 }
+			add_manpower = { value = root.monthly_manpower multiply = 3 }
+		}
+	}
+	#Turn a blind eye to the matter
+	option = {
+		name = institution_events.172.b
+		scope:target_location = {
+			change_control = control_severe_penalty
+			every_pop = {
+				limit = {
+					owner ?= root
+					pop_type = pop_type:peasants
+				}
+				add_pop_satisfaction = pop_satisfaction_severe_bonus
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_weak_bonus }
+	}
+}

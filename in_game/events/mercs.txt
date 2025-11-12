@@ -1,0 +1,392 @@
+﻿namespace = mercs
+mercs.1 = {
+	hide_portraits = no
+	type = country_event
+	title = mercs.1.title
+	desc = mercs.1.desc
+	# image = city in ruins
+	trigger = {
+		any_hired_mercenary ?= {
+			count > 0
+			mercenary_home ?= {
+				has_owner = yes
+				NOT = { owner = root }
+				owner = { is_at_war_with = root }
+			}
+		}
+	}
+
+
+	immediate = {
+		hidden_effect = {
+		
+			random_hired_mercenary = {
+				limit = {
+					mercenary_home = {
+						NOT = { owner = root }
+						owner = { is_at_war_with = root }
+					}
+				}
+				save_scope_as = patriotic_mercs
+				mercenary_home = {
+					save_scope_as = merc_home_province
+					owner = {
+						save_scope_as = merc_home_country
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = mercs.1.a
+		scope:patriotic_mercs = {
+			every_mercenary_sub_unit = {
+				add_subunit_strength_percentage = -0.2
+			}
+		}
+	}
+	option = {
+		name = mercs.1.b
+		trigger = {
+			scope:patriotic_mercs = {
+				OR = {
+					culture = culture:highland
+					culture = culture:scottish
+				}
+			}
+		}
+		add_gold = {
+			value = scope:patriotic_mercs.monthly_cost
+			multiply = -10
+		}
+	}
+}
+
+mercs.2 = {
+	type = country_event
+	title = mercs.2.title
+	desc = mercs.2.desc
+	    illustration_tags = {
+        10 = armed
+        10 = exterior
+    }
+
+	trigger = {
+		any_hired_mercenary ?= {
+			count > 0
+			NOT = {	has_mercenary_modifier = bloodthirsty_mercs_modifier }
+			mercenary_home ?= {
+				has_owner = yes
+				NOT = { owner = root }
+				owner = {
+					any_rival = {
+						is_at_war_with = root
+					}
+				}
+			}
+		}
+	}
+
+
+	immediate = {
+		hidden_effect = {
+			random_hired_mercenary = {
+				limit = {
+					mercenary_home = {
+						NOT = { owner = root }
+						owner = {
+							any_rival = {
+								is_at_war_with = root
+							}
+						}
+					}
+				}
+			
+			
+				save_scope_as = bloodthirsty_mercs
+				
+				mercenary_home = {
+					save_scope_as = bloodthirsty_mercs_home_province
+					owner = {
+						save_scope_as = bloodthirsty_mercs_home
+						random_rival = {
+							limit = {
+								is_at_war_with = root
+							}
+							save_scope_as = bloodthirsty_mercs_enemy
+						}
+					}
+				}
+			}
+		}event_illustration_estate_effect = {
+    foreground = estate_type:burghers_estate
+    background = estate_type:peasants_estate
+	#background = estate_type:army_estate
+	}
+	}
+
+	option = {
+		name = mercs.2.a
+		scope:bloodthirsty_mercs = {
+			add_mercenary_modifier = { modifier = bloodthirsty_mercs_modifier years = 2 mode = add_and_extend }  
+		}
+	}
+
+}
+
+mercs.3 = {
+	type = country_event
+	title = mercs.3.title
+	desc = mercs.3.desc
+	    illustration_tags = {
+        10 = armed
+        10 = interior
+    }
+	
+	trigger = {
+		at_war = yes
+		any_hired_mercenary ?= {
+			count > 0
+			mercenary_home ?= {	NOT = { owner = root }	}
+			NOT = { has_mercenary_modifier = mercs_allowed_to_loot }
+		}
+		any_country = {
+			is_at_war_with = root
+			any_owned_non_rural_location = {
+				development >= 20
+			}
+		}
+	}
+
+
+	immediate = {
+		hidden_effect = {
+			random_hired_mercenary = {
+				limit = {
+					mercenary_home = {	NOT = { owner = root }	}
+					NOT = {		has_mercenary_modifier = mercs_allowed_to_loot	}
+				}
+				save_scope_as = loot_mercs
+			}
+		
+
+			random_country = {
+				limit = {
+					is_at_war_with = root
+					any_owned_location = {
+						development >= 20
+					}
+				}
+				random_owned_location = {
+					limit = {
+						development >= 20
+					}
+					save_scope_as = rich_enemy_province
+				}
+			}
+		}event_illustration_estate_effect = {
+    foreground = estate_type:burghers_estate
+    background = estate_type:burghers_estate
+	#background = estate_type:army_estate
+	}}
+
+	option = {
+		name = mercs.3.a
+		scope:loot_mercs = {
+			add_mercenary_modifier = { modifier = mercs_allowed_to_loot years = 2 mode = add_and_extend }  
+		}
+	}
+	option = {
+		name = mercs.3.b
+		add_gold = {
+			value = scope:loot_mercs.monthly_cost
+			multiply = -10
+		}
+	}
+}
+
+mercs.4 = {
+	type = country_event
+	title = mercs.4.title
+	desc = mercs.4.desc
+		    illustration_tags = {
+        10 = happy
+        10 = interior
+    }
+	
+	trigger = {
+		at_war = yes
+		any_hired_mercenary ?= {
+			count > 0
+			any_mercenary_sub_unit = {
+				subunit_strength_percentage < 0.7
+			}
+		}
+		
+		prestige >= 40.00
+	}
+
+
+	immediate = {
+		hidden_effect = {
+			random_hired_mercenary = {
+				limit = {
+					any_mercenary_sub_unit = {
+						subunit_strength_percentage < 0.7
+					}
+				}
+				save_scope_as = veteran_mercs
+			}
+		}event_illustration_government_estate_effect = yes
+	}
+
+	option = {
+		name = mercs.4.a
+		scope:veteran_mercs = {
+			ordered_mercenary_sub_unit = {
+				order_by = {
+					value = subunit_strength_percentage
+					multiply = -1
+				}
+				max = 10
+				check_range_bounds = no
+					
+				add_subunit_strength_percentage = 0.2
+			}
+		}
+	}
+}
+
+mercs.5 = {
+	type = country_event
+	
+	fire_only_once = yes
+	
+	
+	title = mercs.5.title
+	desc = mercs.5.desc
+	image = "gfx/interface/illustrations/units/army_cavalry_elephant_tag.dds"
+	trigger = {
+		capital = { continent = continent:europe }
+		
+		any_hired_mercenary ?= {
+			count > 0
+			any_mercenary_sub_unit ?= {
+				sub_unit_type = unit_type:a_indian_elephant_cavalry
+			}
+		}
+	}
+
+
+	immediate = {
+		random_hired_mercenary = {
+			limit = {
+				any_mercenary_sub_unit = {
+					sub_unit_type = unit_type:a_indian_elephant_cavalry
+				}
+			}
+			save_scope_as = elephant_mercs
+		}
+	}
+
+	option = {
+		name = mercs.5.a
+		add_prestige = prestige_mild_bonus
+	}
+
+}
+
+
+mercs.7 = {
+	type = country_event
+	title = mercs.7.title
+	desc = mercs.7.desc
+		 illustration_tags = {
+        10 = happy
+        10 = interior
+    }
+	
+	trigger = {
+	
+		any_rented_out_mercenary = {
+			count > 0
+		}
+	}
+
+
+	immediate = {
+		random_rented_out_mercenary = {
+			save_scope_as = popular_mercs
+			mercenary_home = {
+				save_scope_as = popular_mercs_origin
+			}
+		}event_illustration_government_estate_effect = yes
+	}
+
+	option = {
+		name = mercs.7.a
+		scope:popular_mercs_origin = {
+			change_development  = development_mild_bonus
+			change_prosperity  = prosperity_very_weak_bonus
+		}
+	}
+}
+
+
+mercs.10 = {
+	type = country_event
+	title = mercs.10.title
+	desc = mercs.10.desc
+		 illustration_tags = {
+        10 = armed
+        10 = interior
+    }
+	
+	trigger = {
+	
+		at_war = yes
+	
+		any_hired_mercenary ?= {
+			count > 0
+			mercenary_home ?= {
+				NOT = { owner = root }
+				dominant_religion = root.religion
+			}
+			NOT = {	has_mercenary_modifier = pious_mercenaries	}
+		}
+		
+		any_country_at_war_with = {
+			NOT = { religion = root.religion }
+		}
+	}
+
+
+	immediate = {
+		random_hired_mercenary = {
+			limit = {
+				mercenary_home = {
+					NOT = { owner = root }
+					dominant_religion = root.religion
+				}
+				NOT = {	has_mercenary_modifier = pious_mercenaries	}
+			}
+			save_scope_as = pious_mercs
+		}
+
+		random_country_at_war_with = {
+			limit = {
+				NOT = { religion = root.religion }
+			}
+			save_scope_as = pious_mercs_enemy
+		}
+		event_illustration_estate_effect = {
+    foreground = estate_type:clergy_estate
+    background = estate_type:clergy_estate
+	}}
+
+	option = {
+		name = mercs.10.a
+		scope:pious_mercs = { add_mercenary_modifier = { modifier = pious_mercenaries years = 2 mode = add_and_extend }  }
+	}
+}

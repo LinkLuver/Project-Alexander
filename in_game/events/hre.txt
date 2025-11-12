@@ -1,0 +1,1081 @@
+﻿namespace = hre
+
+#revoke the privilegia, emperor demands oath of loyalty
+hre.100 = {
+	type = country_event
+	title = hre.100.title
+	desc = hre.100.desc
+
+ 	illustration_tags = {
+ 		10 = regular
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		save_scope_as = target_country
+		save_ruler_regent_as_target_character = yes
+	}
+
+	option = {
+		name = hre.100.a
+		add_prestige = prestige_ultimate_bonus
+		custom_tooltip = {
+			text = hre.100.ctt
+			international_organization:hre = {
+				every_international_organization_member = {
+					limit = {
+						NOT = { root = this }
+						NOT = { is_subject_of = root }
+					}
+					trigger_event_non_silently = { 
+						id = hre.101
+					}
+				}
+			}
+		}
+	}
+}
+
+# ...and for member states
+hre.101 = {
+	type = country_event
+	title = hre.101.title
+	desc = hre.101.desc
+
+ 	illustration_tags = {
+ 		10 = angry
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		international_organization:hre = {
+			leader_country = {
+				ruler_or_regent = { save_scope_as = target_emperor }
+			}
+		}
+	}
+
+	option = {
+		name = hre.101.a
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				opinion = {
+					target = international_organization:hre.leader_country
+					value < 0
+				}
+			}
+		}
+
+	}
+	option = {
+		name = hre.101.b
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				opinion = {
+					target = international_organization:hre.leader_country
+					value >= 0
+				}
+			}
+		}
+		custom_tooltip = {
+			text = hre.101.b.tt
+			every_owned_location = {
+				limit = {
+					is_owned_by_international_organization = international_organization:hre
+				}
+				add_core = international_organization:hre.leader_country
+				remove_from_international_organization = international_organization:hre
+			}
+		}
+		international_organization:hre = {
+			leader_country = {
+				add_opinion = { 
+					target = root 
+					modifier = left_empire
+				}
+			}
+		}
+		add_opinion = {
+			target = international_organization:hre.leader_country
+			modifier = united_empire
+		}
+		international_organization:hre = {
+			international_organization_remove_special_status = {
+				type = special_status:elector
+				country = root
+			}
+		}
+	}
+}
+
+# Renovatio triggers for Emperor...
+hre.102 = {
+	type = country_event
+	title = hre.102.title
+	desc = hre.102.desc
+
+ 	illustration_tags = {
+ 		10 = happy
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		save_scope_as = target_country
+		save_ruler_regent_as_target_character = yes
+	}
+
+	option = {
+		name = hre.102.a
+		#For the tooltip
+		show_as_tooltip = {
+			change_country_tag = HRE
+		}
+		#The actual effect as we do not want the DHE to die
+		hidden_effect = {
+			change_tag_cosmetic = { tag = HRE }
+		}
+		add_country_modifier = {
+			modifier = rome_reborn
+			years = -1
+			mode = add_and_extend
+		}
+		unlock_government_reform_effect = { type = holy_imperial_monarchy_reform }
+		add_reform = government_reform:holy_imperial_monarchy_reform
+		if = {
+			limit = { exists = international_organization:hre }
+			custom_tooltip = {
+				text = hre_unify_the_empire_tt
+				if = {
+					limit = {
+						exists = scope:target_country
+					}
+					international_organization:hre = {
+						every_international_organization_owned_location = {
+							limit = {
+								has_owner = yes
+								OR = {
+									owner = root
+									owner = { is_neighbor_of = root }
+								}
+								NOT = { is_core_of = root }
+							}
+							add_core = scope:target_country
+						}
+						every_international_organization_member = {
+							limit = { NOT = { this = scope:target_country } }
+							trigger_event_silently = { id = hre.103 }
+						}	
+						set_variable = {
+							name = imperial_authority
+							value = 0
+						}		# doesn't matter, but this is just to suppress error log.
+					}
+				}
+			}
+			destroy_international_organization = { target = international_organization:hre }
+		}
+		set_country_rank = country_rank:rank_empire
+	}
+}
+
+# ...and for member states
+hre.103 = {
+	type = country_event
+	title = hre.103.title
+	desc = hre.103.desc
+
+ 	illustration_tags = {
+ 		10 = happy
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = hre.103.a
+		scope:target_country = {
+			annex_country_diplomatically = { country = root }
+		}
+	}
+}
+
+#subjugate Free Cities
+hre.104 = {
+	type = country_event
+	title = hre.104.title
+	desc = hre.104.desc
+
+ 	illustration_tags = {
+ 		10 = happy
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:nobles_estate }
+		save_scope_as = target_country
+		save_ruler_regent_as_target_character = yes
+	}
+
+	option = {
+		name = hre.104.a
+		custom_tooltip = {
+			text = hre_subjugate_every_free_city_tt
+			international_organization:hre = {
+				every_international_organization_member = {
+					limit = {
+						NOT = { root = this }
+						NOT = { is_subject_of = root }
+						has_special_status_in_international_organization = {
+							type = special_status:free_city
+							international_organization = prev
+						}
+					}
+					drop_antagonism_bomb = {
+						value = {
+							value = scope:recipient.great_power_score
+							divide = 200
+						}
+						modifier = antagonism_broke_subject_union
+						target = this.capital
+					}
+					trigger_event_silently = { 
+						id = hre.105
+					}
+				}
+			}
+		}
+	}
+}
+#...and for member states
+hre.105 = {
+	type = country_event
+	title = hre.105.title
+	desc = hre.105.desc
+
+ 	illustration_tags = {
+ 		10 = angry
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = hre.105.a
+		hidden_effect = {
+			hre_break_free_city_emperor_subject = yes
+		}
+		hre_convert_free_city_to_emperor_subject = {
+			international_organization = international_organization:hre
+			target = root
+			type = subject_type:imperial_free_city
+		}
+	}
+}
+#Free Cities to direct subjects
+hre.106 = {
+	type = country_event
+	title = hre.106.title
+	desc = hre.106.desc
+
+ 	illustration_tags = {
+ 		10 = regular
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:nobles_estate }
+		save_scope_as = target_country
+		save_ruler_regent_as_target_character = yes
+	}
+
+	option = {
+		name = hre.106.a
+		custom_tooltip = {
+			text = hre_subjugate_every_free_city_directly_tt
+			international_organization:hre = {
+				every_international_organization_member = {
+					limit = {
+						NOT = { root = this }
+						OR = {
+							NOT = { is_subject_of = root }
+							is_subject_type = imperial_free_city
+						}
+						has_special_status_in_international_organization = {
+							type = special_status:free_city
+							international_organization = prev
+						}
+					}
+					drop_antagonism_bomb = {
+						value = {
+							value = scope:recipient.great_power_score
+							divide = 200
+						}
+						modifier = antagonism_broke_subject_union
+						target = this.capital
+					}
+					trigger_event_silently = { 
+						id = hre.107
+					}
+				}
+			}
+		}
+	}
+}
+#...and for member states
+hre.107 = {
+	type = country_event
+	title = hre.107.title
+	desc = hre.107.desc
+
+ 	illustration_tags = {
+ 		10 = angry
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = hre.107.a
+		hidden_effect = {
+			hre_break_free_city_emperor_subject = yes
+		}
+		hre_convert_free_city_to_emperor_subject = {
+			international_organization = international_organization:hre
+			target = root
+			type = subject_type:direct_imperial_free_city
+		}
+	}
+}
+
+# On Action: Emperor moves the works of art to the new capital
+hre.800 = {
+	type = country_event
+	title = hre.800.title
+	desc = hre.800.desc
+
+	illustration_tags = {
+		10 = angry
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+
+		capital = {
+			save_scope_as = new_imperial_capital
+		}
+	}
+
+	option = {
+		name = hre.800.a
+		if = {
+			limit = { work_of_art_exists = { work_of_art = work_of_art:imperial_crown_hre } }
+			work_of_art:imperial_crown_hre = { move_art = scope:new_imperial_capital set_art_owner = root }
+		}
+		if = {
+			limit = { work_of_art_exists = { work_of_art = work_of_art:imperial_orb_hre } }
+			work_of_art:imperial_orb_hre = { move_art = scope:new_imperial_capital set_art_owner = root }
+		}
+		if = {
+			limit = { work_of_art_exists = { work_of_art = work_of_art:saint_stephans_purse } }
+			work_of_art:saint_stephans_purse = { move_art = scope:new_imperial_capital set_art_owner = root }
+		}
+		if = {
+			limit = { work_of_art_exists = { work_of_art = work_of_art:coronation_gospel_hre } }
+			work_of_art:coronation_gospel_hre = { move_art = scope:new_imperial_capital set_art_owner = root }
+		}
+	}
+}
+
+# On Action: Emperor Died Information Event for Princes
+hre.801 = {
+	type = country_event
+	title = hre.801.title
+	desc = hre.801.desc
+
+ 	illustration_tags = {
+ 		10 = regular
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+
+		scope:old_ruler ?= {
+			save_scope_as = previous_emperor
+		}
+	}
+
+	option = {
+		name = hre.801.a
+	}
+}
+
+# On Action: Emperor from same dynasty
+hre.900 = {
+	type = country_event
+	title = hre.900.title
+	desc = hre.900.desc
+
+ 	illustration_tags = {
+ 		10 = regular
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = hre.900.a
+        change_imperial_authority = { value = imperial_authority_weak_bonus }
+		random_country = {
+			limit = {
+				international_organization:hre = {
+					country_has_special_status = {
+						type = special_status:free_city
+						country = prev
+					}
+				}
+				religion = religion:catholic
+				at_war = no
+			}
+			trigger_event_silently = {
+				id = free_cities.6
+			}
+		}
+	}
+}
+
+
+# On Action: HRE Prince released by the emperor
+hre.901 = {
+	type = country_event
+	title = hre.901.title
+	desc = hre.901.desc
+
+ 	illustration_tags = {
+ 		10 = happy
+ 		10 = exterior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		hidden_effect = {
+			set_variable = {
+				name = imperial_authority_change
+				value = scope:released_country.total_population
+			}
+			if = {
+				limit = {
+					exists = international_organization:hre
+					international_organization:hre.international_organization_population > 0
+				}
+				change_variable = {
+					name = imperial_authority_change
+					divide = international_organization:hre.international_organization_population
+				}
+			}
+			else = {
+				change_variable = {
+					name = imperial_authority_change
+					divide = 1000
+				}
+			}
+			change_variable = {
+				name = imperial_authority_change
+				max = 0.2
+				min = 0.02
+				multiply = 10
+			}
+		}
+	}
+
+	option = {
+		name = hre.901.a
+		custom_tooltip = {
+			text = hre.imperial_authority_change.tt
+			international_organization:hre = {
+				change_variable = {
+					name = imperial_authority
+					add = { value = root.var:imperial_authority_change }
+				}
+			}
+		}
+	}
+	after = {
+		remove_variable = imperial_authority_change
+	}
+}
+
+# On Action: HRE Prince converts to non-Emperor religion
+hre.902 = {
+	type = country_event
+	title = hre.902.title
+	desc = hre.902.desc
+
+ 	illustration_tags = {
+ 		10 = angry
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:nobles_estate }
+		hidden_effect = {
+			set_variable = {
+				name = imperial_authority_change
+				value = scope:heretic_country.total_population
+			}
+			if = {
+				limit = {
+					exists = international_organization:hre
+					international_organization:hre.international_organization_population > 0
+				}
+				change_variable = {
+					name = imperial_authority_change
+					divide = international_organization:hre.international_organization_population
+				}
+			}
+			else = {
+				change_variable = {
+					name = imperial_authority_change
+					divide = 1000
+				}
+			}
+			change_variable = {
+				name = imperial_authority_change
+				max = 0.2
+				min = 0.01
+				multiply = -100
+			}
+		}
+	}
+
+	option = {
+		name = hre.902.a
+		custom_tooltip = {
+			text = hre.imperial_authority_change.tt
+			international_organization:hre = {
+				change_variable = {
+					name = imperial_authority
+					add = { value = root.var:imperial_authority_change }
+				}
+			}
+		}
+	}
+	
+	after = {
+		remove_variable = imperial_authority_change
+	}
+}
+
+# On Action: HRE Prince converts to Emperor's religion
+hre.903 = {
+	type = country_event
+	title = hre.903.title
+	desc = hre.903.desc
+	
+ 	illustration_tags = {
+ 		10 = happy
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:nobles_estate }
+		assert_if = {
+			limit = {
+				debug_only = yes
+				NOT = { exists = scope:true_faith_country }
+			}
+			text = "on_religion_changed did not save scope:true_faith_country for the event hre.903"
+		}
+		hidden_effect = {
+			if = {
+				limit = { exists = scope:true_faith_country }
+				set_variable = {
+					name = imperial_authority_change
+					value = scope:true_faith_country.total_population
+				}
+				if = {
+					limit = {
+						exists = international_organization:hre
+						international_organization:hre.international_organization_population > 0
+					}
+					change_variable = {
+						name = imperial_authority_change
+						divide = international_organization:hre.international_organization_population
+					}
+				}
+				else = {
+					change_variable = {
+						name = imperial_authority_change
+						divide = 1000
+					}
+				}
+				change_variable = {
+					name = imperial_authority_change
+					max = 0.2
+					min = 0.01
+					multiply = 100
+				}
+			}
+			else = { # Fallback
+				set_variable = {
+					name = imperial_authority_change
+					value = 0.1
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = hre.903.a
+		custom_tooltip = {
+			text = hre.imperial_authority_change.tt
+			international_organization:hre = {
+				change_variable = {
+					name = imperial_authority
+					add = { value = root.var:imperial_authority_change }
+				}
+			}
+		}
+	}
+	after = {
+		remove_variable = imperial_authority_change
+	}
+}
+
+# On Action: Emperor wins HRE defensive war
+hre.904 = {
+	type = country_event
+	title = hre.904.title
+	desc = hre.904.desc
+	
+ 	illustration_tags = {
+ 		10 = regular
+ 		10 = exterior
+ 	}
+	
+	immediate = {
+		event_illustration_poptype_effect = { foreground = pop_type:soldiers background = pop_type:soldiers }
+		assert_if = {
+			limit = {
+				debug_only = yes
+				NOT = { exists = scope:loser }
+			}
+			text = "on_winning_war did not save scope:loser for the event hre.904"
+		}
+		assert_if = {
+			limit = {
+				debug_only = yes
+				NOT = { exists = scope:winner }
+			}
+			text = "on_winning_war did not save scope:winner for the event hre.904"
+		}
+		international_organization:hre = {
+			leader_country.ruler ?= { save_scope_as = hre_ruler }
+		}
+	}
+
+	option = {
+		name = hre.904.a
+		international_organization:hre = {
+			if = {
+				limit = { 
+					exists = scope:winner 
+					exists = scope:loser 
+				}
+				change_variable = {
+					name = imperial_authority
+					add = { # If emperor wins and the attacker had 2 times of his strength ermperor gets 10 IA
+						value = scope:loser.total_population
+						divide = scope:winner.total_population
+						max = 2
+						min = 0.1
+						multiply = 5
+					}
+				}
+			}
+			else = {
+				#falllback
+				change_variable = {
+					name = imperial_authority
+					add = 0.25
+				}
+			}
+		}
+	}
+}
+
+# On Action: HRE member annexed by non-HRE country
+hre.905 = {
+	type = country_event
+	title = hre.905.title
+	desc = hre.905.desc
+
+	illustration_tags = {
+ 		10 = angry
+ 		10 = interior
+ 	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		international_organization:hre = {
+			leader_country.ruler ?= { save_scope_as = hre_ruler }
+		}
+
+		hidden_effect = {
+			international_organization:hre = {
+				change_variable = {
+					name = imperial_authority
+					add = {
+						value = scope:winner.total_population
+						divide = 200
+						max = 2
+						min = 0.1
+						multiply = -10
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = hre.905.a
+		show_as_tooltip = {
+			international_organization:hre = {
+				change_variable = {
+					name = imperial_authority
+					add = {
+						value = scope:winner.total_population
+						divide = 200
+						max = 2
+						min = 0.1
+						multiply = -10
+					}
+				}
+			}
+		}
+	}
+}
+
+# On Action: HRE member released from non-HRE vassalage
+hre.907 = {
+	type = country_event
+	title = hre.907.title
+	desc = hre.907.desc
+	
+	illustration_tags = {
+ 		10 = happy
+ 		10 = interior
+ 	}
+
+	immediate = {	
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		hidden_effect = {
+			international_organization:hre = {
+				leader_country.ruler ?= { save_scope_as = hre_ruler }
+			}
+			if = {
+				limit = { exists = scope:released_country }
+				set_variable = {
+					name = imperial_authority_change
+					value = scope:released_country.total_population
+				}
+				if = {
+					limit = {
+						exists = international_organization:hre
+						international_organization:hre.international_organization_population > 0
+					}
+					change_variable = {
+						name = imperial_authority_change
+						divide = international_organization:hre.international_organization_population
+					}
+				}
+				else = {
+					change_variable = {
+						name = imperial_authority_change
+						divide = 1000
+					}
+				}
+				change_variable = {
+					name = imperial_authority_change
+					max = 0.2
+					min = 0.01
+					multiply = 100
+				}
+			}
+			else = { # Fallback
+				set_variable = {
+					name = imperial_authority_change
+					value = 0.1
+				}
+			}
+		}
+	}
+
+	option = {
+		name = hre.907.a
+		custom_tooltip = {
+			text = hre.imperial_authority_change.tt
+			international_organization:hre = {
+				change_variable = {
+					name = imperial_authority
+					add = { value = root.var:imperial_authority_change }
+				}
+			}
+		}
+	}
+	after = {
+		remove_variable = imperial_authority_change
+	}
+}
+
+# On Action: Emperor coming to the defense of a HRE member
+hre.908 = {
+	type = country_event
+	title = hre.908.title
+	desc = hre.908.desc
+	
+	illustration_tags = {
+ 		10 = regular
+ 		10 = exterior
+ 	}
+
+	immediate = {
+		event_illustration_poptype_effect = { foreground = pop_type:soldiers background = pop_type:soldiers }
+		hidden_effect = {
+			international_organization:hre = {
+				leader_country.ruler ?= { save_scope_as = hre_ruler }
+				change_variable = {
+					name = imperial_authority_change
+					add = {
+						value = scope:recipient.total_population # Emperor
+						divide = scope:war.attacker_leader.total_population # attacking nation
+						max = 2
+						min = 0.1
+						multiply = 5
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = hre.908.a
+		custom_tooltip = {
+			text = hre.imperial_authority_change.tt
+			international_organization:hre = {
+				change_variable = {
+					name = imperial_authority
+					add = { value = root.var:imperial_authority_change }
+				}
+			}
+		}
+	}
+	after = {
+		remove_variable = imperial_authority_change
+	}
+}
+
+# On Action: Emperor NOT coming to the defense of a HRE member
+hre.909 = {
+	type = country_event
+	title = hre.909.title
+	desc = hre.909.desc
+
+	illustration_tags = {
+ 		10 = regular
+ 		10 = exterior
+ 	}
+
+	immediate = {
+		event_illustration_poptype_effect = { foreground = pop_type:soldiers background = pop_type:soldiers }
+		hidden_effect = {
+			change_imperial_authority = { value = imperial_authority_strong_penalty }
+		}
+	}
+
+	option = {
+		name = hre.909.a
+		show_as_tooltip = {
+			change_imperial_authority = { value = imperial_authority_strong_penalty }
+		}
+	}
+}
+
+# On Action: HRE Member takes a HRE province from an outside country in a peace
+hre.950 = {
+	type = country_event
+	title = hre.950.title
+	desc = hre.950.desc
+	
+	illustration_tags = {
+ 		10 = happy
+ 		10 = interior
+ 	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		international_organization:hre = {
+			leader_country.ruler ?= { save_scope_as = hre_ruler }
+		}
+		set_variable = {
+			name = hre_pop_percentage_addition
+			value = 0
+		}
+		ordered_in_global_list = {
+			variable = hre_conquered_province_list
+			order_by = population
+			position = 0
+			save_scope_as = conquered_location
+		}
+		every_in_global_list = {
+			variable = hre_conquered_province_list
+			root = {
+				change_variable = {
+					name = hre_pop_percentage_addition
+					add = prev.population
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = international_organization:hre
+				international_organization:hre.international_organization_population > 0
+			}
+			change_variable = {
+				name = hre_pop_percentage_addition
+				divide = international_organization:hre.international_organization_population
+			}
+		}
+		else = {
+			change_variable = {
+				name = hre_pop_percentage_addition
+				divide = 1000
+			}
+		}
+		change_variable = {
+			name = hre_pop_percentage_addition
+			add = 1
+		}
+		clear_global_variable_list = hre_conquered_province_list
+	}
+
+	option = {
+		name = hre.950.a
+		scope:conquered_location = {
+			change_integration_level = integrated
+		}
+		add_prestige = {
+			value = prestige_mild_bonus
+			multiply = var:hre_pop_percentage_addition
+		}
+		if = {
+			limit = { exists = international_organization:hre }
+			international_organization:hre = {
+				change_variable = {
+					name = imperial_authority
+					add = {
+						value = root.var:hre_pop_percentage_addition
+						max = 1
+					}
+				}
+			}
+		}
+	}
+
+	after = {
+		remove_variable = hre_pop_percentage_addition
+	}
+}
+
+# Perpetual Diet
+hre.6 = {
+	type = location_event
+	title = hre.6.title
+	desc = hre.6.desc
+
+	illustration_tags = {
+ 		10 = happy
+ 		10 = interior
+ 	}	
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		save_scope_as = diet_location
+		every_country = {
+			limit = {
+				is_member_of_international_organization = international_organization:hre
+				NOT = { tag = ROOT } # Dont make the target tag get an information event twice.
+			}
+			trigger_event_silently = {
+				id = hre.7
+			}
+		}
+	}
+
+	option = {
+		name = hre.6.a
+	}
+}
+
+# Perpetual Diet - For princes
+hre.7 = {
+	type = country_event
+	title = hre.7.title
+	desc = hre.7.desc
+
+	illustration_tags = {
+ 		10 = regular
+ 		10 = interior
+ 	}	
+		
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = hre.7.a
+	}
+}
+
+# Dismantling the Holy Roman Empire
+hre.15 = {
+	type = country_event
+	title = hre.15.title
+	desc = hre.15.desc
+
+	illustration_tags = {
+ 		10 = angry
+ 		10 = interior
+ 	}	
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		scope:old_emperor = {
+			ruler = { save_scope_as = old_emperor_ruler }
+		}
+		save_scope_as = hre_destroyer
+		ruler = { save_scope_as = hre_destroyer_ruler }
+	}
+
+	option = {
+		name = hre.15.a
+
+		add_prestige = prestige_extreme_bonus
+	}
+}
