@@ -1,0 +1,268 @@
+﻿namespace = king_in_prussia
+
+#A Prussian Crown
+king_in_prussia.1 = {
+	type = country_event
+	fire_only_once = yes
+	title = king_in_prussia.1.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { is_leader_of_international_organization = international_organization:hre }
+				desc = king_in_prussia.1.desc.emperor
+			}
+			triggered_desc = {
+				trigger = { NOT = { is_leader_of_international_organization = international_organization:hre } }
+				desc = king_in_prussia.1.desc
+			}
+		}
+	}
+	image = "gfx/interface/illustrations/international_organization_types/hre.dds"
+		
+	trigger = {
+		tag = PRU
+		government_type = government_type:monarchy
+		OR = {	
+			country_rank = country_rank:rank_county
+			country_rank = country_rank:rank_duchy
+		}
+		is_member_of_international_organization = international_organization:hre
+		has_ruler = yes
+	}
+	
+	immediate = {
+		save_scope_as = target_country
+		ruler_or_regent ?= { save_scope_as = target_character }
+		international_organization:hre.leader_country ?= {
+			save_scope_as = emperor_country
+			ruler_or_regent ?= {
+				save_scope_as = emperor_character
+			}
+		}
+	}
+
+	option = {
+		name = king_in_prussia.1.a
+		if = {
+			limit = {
+				is_leader_of_international_organization = international_organization:hre
+			}
+			set_country_rank_effect = { rank = country_rank:rank_kingdom }
+			add_prestige = prestige_extreme_bonus
+		}
+		else = {
+			custom_tooltip = king_in_prussia_request_tt
+			scope:emperor_country ?= {
+				trigger_event_silently = king_in_prussia.2
+			}
+		}
+	}
+}
+
+#The King in Prussia - Emperor
+king_in_prussia.2 = {
+	type = country_event
+	title = king_in_prussia.2.title
+	desc = king_in_prussia.2.desc
+	
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_government_estate_effect = yes
+	}
+
+	#Let them call King in Prussia
+	option = {
+		name = king_in_prussia.2.a
+		historical_option = yes
+		custom_tooltip = king_in_prussia_compromise_tt
+		reverse_add_opinion = { target = scope:target_country modifier = opinion_king_in_prussia }
+		international_organization:hre = {
+			international_organization_unlock_parliament_agenda_effect = {
+				type = pa_hre_elevate_prussia_to_kingdom
+			}
+		}
+		show_as_tooltip = {
+			scope:target_country = {
+				reverse_add_opinion = { target = scope:emperor_country modifier = opinion_king_in_prussia }
+			}
+		}
+		scope:target_country = {
+			trigger_event_silently = { 
+				id = king_in_prussia.4
+				days = 30
+			}
+		}
+	}
+	#Make them formally a Kingdom in the Empire
+	option = {
+		name = king_in_prussia.2.b
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				opinion = {
+					target = international_organization:hre.leader_country
+					value < 0
+				}
+			}
+			modifier = {
+				factor = 5
+				opinion = {
+					target = international_organization:hre.leader_country
+					value >= 100
+				}
+			}
+			modifier = {
+				factor = 5
+				opinion = {
+					target = international_organization:hre.leader_country
+					value >= 150
+				}
+			}
+		}
+		custom_tooltip = king_in_prussia_elevated_tt
+		change_imperial_authority = { value = imperial_authority_strong_penalty }
+		add_prestige = prestige_extreme_penalty
+		reverse_add_opinion = { target = scope:target_country modifier = elevated_prussia }
+		show_as_tooltip = {
+			scope:target_country = {
+				reverse_add_opinion = { target = scope:emperor_country modifier = elevated_prussia }
+			}
+		}
+		scope:target_country = {
+			trigger_event_silently = { 
+				id = king_in_prussia.3 
+				days = 30
+			}
+		}
+	}
+	#We will no recognize this self-appointed monarch
+	option = {
+		name = king_in_prussia.2.c
+
+		ai_chance = {
+			base = 5
+		}
+
+		custom_tooltip = king_in_prussia_rejection_tt
+		reverse_add_opinion = { target = scope:target_country modifier = opinion_prussia_not_recognized }
+		scope:target_country = {
+			trigger_event_silently = { 
+				id = king_in_prussia.5
+				days = 30
+			}
+		}
+	}
+}
+
+#The King in Prussia - Accepted
+king_in_prussia.3 = {
+	type = country_event
+	title = king_in_prussia.3.title
+	desc = king_in_prussia.3.desc
+
+	illustration_tags = {
+		10 = happy
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_government_estate_effect = yes
+	}
+
+	option = {
+		name = king_in_prussia.3.a
+		set_country_rank_effect = { rank = country_rank:rank_kingdom }
+		add_prestige = prestige_extreme_bonus
+		add_government_power = government_power_ultimate_bonus
+		reverse_add_opinion = { target = scope:emperor_country modifier = elevated_prussia }
+	}
+}
+
+#The King in Prussia - Compromise
+king_in_prussia.4 = {
+	type = country_event
+	title = king_in_prussia.4.title
+	desc = king_in_prussia.4.desc
+	image = "gfx/interface/illustrations/international_organization_types/hre.dds"
+	
+	option = {
+		name = king_in_prussia.4.a
+		add_prestige = prestige_mild_bonus
+		add_legitimacy = legitimacy_mild_bonus
+		reverse_add_opinion = { target = scope:emperor_country modifier = opinion_king_in_prussia }
+		international_organization:hre = {
+			international_organization_unlock_parliament_agenda_effect = { type = pa_hre_elevate_prussia_to_kingdom }
+		}
+	}
+}
+
+#The King in Prussia - Denied
+king_in_prussia.5 = {
+	type = country_event
+	title = king_in_prussia.5.title
+	desc = king_in_prussia.5.desc
+
+	illustration_tags = {
+		10 = angry
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_government_estate_effect = yes
+	}
+
+	#We do not need the Emperor's permission
+	option = {
+		name = king_in_prussia.5.a
+		international_organization:hre = { remove_country_from_international_organization = scope:target_country }
+		set_country_rank_effect = { rank = country_rank:rank_kingdom }
+		change_imperial_authority = { value = imperial_authority_very_strong_penalty }
+		reverse_add_opinion = { target = scope:emperor_country modifier = opinion_prussia_not_recognized }
+	}
+	#Accept the Emperor's decision gracefully..
+	option = {
+		name = king_in_prussia.5.a
+
+		ai_chance = {
+			base = 95
+		}
+
+		add_prestige = prestige_mild_penalty
+		add_legitimacy = legitimacy_mild_penalty
+		add_casus_belli = {	target = scope:emperor_country	type = casus_belli:cb_insulted_us }
+	}
+}
+
+#The King in Prussia - Accepted via Agenda
+king_in_prussia.6 = {
+	type = country_event
+	title = king_in_prussia.6.title
+	desc = king_in_prussia.6.desc
+
+	image = "gfx/interface/illustrations/international_organization_types/hre.dds"
+
+	immediate = {
+		international_organization:hre = {
+			leader_country ?= {
+				ruler_or_regent ?= {
+					save_scope_as = emperor_character
+				}
+			}
+		}
+		ruler_or_regent = {
+			save_scope_as = target_character
+		}
+	}
+	option = {
+		name = king_in_prussia.6.a
+		set_country_rank_effect = { rank = country_rank:rank_kingdom }
+		add_prestige = prestige_extreme_bonus
+		add_government_power = government_power_ultimate_bonus
+		reverse_add_opinion = { target = scope:emperor_country modifier = elevated_prussia }
+	}
+}

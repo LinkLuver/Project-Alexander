@@ -1,0 +1,206 @@
+﻿colonial_revolution = {
+	monthly_spawn_chance = monthly_spawn_chance_very_low
+	
+	can_start = {	
+		current_age = age_6_revolutions
+		any_colonial_country = {
+			country_type = location
+			exists = overlord.capital
+			capital.continent != overlord.capital.continent
+			has_policy = colonial_representation_law_no
+			is_disloyal_subject = yes
+			has_embraced_institution = institution:enlightenment
+		}
+	}
+	
+	can_end = {
+		always = no
+	}
+	visible = {
+		NOT = { country_type = pop }
+		NOT = { country_type = building }
+	}
+
+	on_start = {
+		every_colonial_country = {
+			trigger_event_non_silently = {
+				id = colonial_revolution.1
+			}
+		}
+		every_colonial_overlord = {
+			trigger_event_non_silently = {
+				id = colonial_revolution.2
+			}
+		}
+	}
+
+	on_monthly = {
+		every_colonial_country = {
+			limit = {
+				is_subject = yes
+				can_see_situation = root
+			}
+			random_list = {
+				1 = {
+					trigger_event_non_silently = colonial_revolution.3
+				}
+				1 = {
+					trigger = {
+						any_cabinet_character = {
+							count > 0
+						}
+					}
+					trigger_event_non_silently = colonial_revolution.10
+				}
+				1 = {
+					trigger = {
+						any_cabinet_character = {
+							count > 1
+						}
+					}
+					trigger_event_non_silently = colonial_revolution.15
+				}
+				300 = { }
+			}
+		}
+		every_colonial_overlord = {
+			if = {
+				limit = {
+					can_see_situation = root
+				}
+				random_list = {
+					1 = {
+						trigger = {
+							societal_value:mercantilism_vs_free_trade < 0
+						}
+						trigger_event_non_silently = colonial_revolution.4
+					}
+					1 = {
+						trigger_event_non_silently = colonial_revolution.5
+					}
+					1 = {
+						trigger = {
+							any_subject = {
+								is_subject_type = colonial_nation
+								subject_loyalty < 60
+								any_cabinet_character = {
+									count > 0
+								}
+							}
+						}
+						trigger_event_non_silently = colonial_revolution.6
+					}
+					1 = {
+						trigger = {
+							societal_value:absolutism_vs_liberalism < 0
+						}
+						trigger_event_non_silently = colonial_revolution.12
+					}
+					1 = {
+						trigger = {
+							societal_value:absolutism_vs_liberalism < 0
+						}
+						trigger_event_non_silently = colonial_revolution.13
+					}
+					1 = {
+						trigger = {
+							any_cabinet_character = {
+								count > 1
+							}
+						}
+						trigger_event_non_silently = colonial_revolution.15
+					}
+					99 = { }
+				}
+			}
+			if = {
+				limit = {
+					can_see_situation = root
+					societal_value:absolutism_vs_liberalism > 99
+				}
+				random_list = {
+					1 = {
+						trigger_event_non_silently = colonial_revolution.14
+					}
+					999 = { }
+				}
+			}
+		}
+	}
+
+	on_ended = {
+		
+	}
+
+
+
+	tooltip = {
+		if = {
+			limit = { #is a colonial overlord
+				owner ?= {
+					is_colonial_overlord = yes
+					any_subject = {
+						is_colonial_subject = yes
+					}
+				}
+			}
+			custom_tooltip = ar_colonial_overlord.tt
+		}
+		else_if = {
+			limit = {
+				owner ?= { is_subject_type = colonial_nation }
+			}
+			if = {
+				limit = { #disloyal colonial subject
+					OR = {
+						owner ?= { is_disloyal_subject = yes }
+						owner ?= { is_member_of_international_organization_of_type = { type = colonial_federation } }
+					}
+				}
+				custom_tooltip = ar_disloyal_colonial_subject.tt
+			}
+			else = { #loyal colonial subject
+				custom_tooltip = ar_loyal_colonial_subject.tt
+			}
+		}
+	}
+
+	map_color = {
+		if = {
+			limit = { #is a colonial overlord
+				owner ?= {
+					OR = {
+						capital.continent = continent:europe
+						capital.continent = continent:asia
+						capital.continent = continent:africa
+					}
+					any_subject = {
+						is_subject_type = colonial_nation
+						capital.continent = continent:america
+					}
+				}
+			}
+			value = owner.country_color
+		}
+		else_if = {
+			limit = {
+				owner ?= { is_subject_type = colonial_nation }
+			}
+			if = {
+				limit = { #disloyal colonial subject
+					OR = {
+						owner ?= { is_disloyal_subject = yes }
+						owner ?= { is_member_of_international_organization_of_type = { type = colonial_federation } }
+					}
+				}
+				value = owner.country_color
+			}
+			else = { #loyal colonial subject
+				value = top_owner.country_color
+			}
+		}
+		else = {
+			value = define:NMapColors|DEFAULT_COLOR
+		}
+	}
+}

@@ -1,0 +1,349 @@
+﻿namespace = joint_ruling
+
+#Joint Ruling Recurring Event
+#Launches recurringly to change the ruler of the country to another eligible brother
+#If rejected, creates rebels and removes de reform
+#If there are no eligible brothers (maybe they died) it removes the reform
+joint_ruling.100 = {
+	type = country_event
+	title = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {	
+					list_size = { name = other_sons value >= 1 }
+				}
+				desc = joint_ruling.100.title.a
+			}
+			triggered_desc = { 
+				desc = joint_ruling.100.title.b
+			}
+		}
+	}
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {	
+					list_size = { name = other_sons value >= 1 }
+				}
+				desc = joint_ruling.100.desc.a
+			}
+			triggered_desc = { 
+				desc = joint_ruling.100.desc.b
+			}
+		}
+	}
+
+	trigger = {
+		is_emperor = no	#It just feels godawful to lose the Emperorship due to a bad inheritance system
+		has_reform = government_reform:joint_ruling_monarchy
+		has_variable = year_of_start_of_joint_rule
+		current_year >= { #Have 5 years passed since the signing of the law
+			value = var:year_of_start_of_joint_rule
+			add = 5
+		}
+		ruler.father ?= {
+			any_child = {
+				NOT = { this = root.ruler } 
+				is_alive = yes
+				is_legally_male = yes
+			}
+		}
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		remove_variable = year_of_start_of_joint_rule
+		ruler.father = { 
+			every_child = {
+				limit = {
+					not = {this = root.ruler} 
+					is_alive = yes
+					is_legally_male = yes
+				}
+				add_to_list = other_sons 
+			}
+		}
+		
+		ruler.father = { 
+			random_child = {
+				limit = {
+					not = {this = root.ruler} 
+					is_alive = yes
+					is_legally_male = yes
+					is_adult = yes
+				}
+				save_scope_as = pretender_brother
+			}
+		}
+	}
+
+	option = {#Accept the change of ruler
+		name = joint_ruling.100.a
+		trigger = {	
+			list_size = { name = other_sons value >= 1 }
+		}
+		hidden_effect = {
+			ignore_succesion_effect = yes
+			union ?= {
+				every_international_organization_member = {
+					ignore_succesion_effect = yes
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:pretender_brother ?= {
+					is_alive = yes	#Check necessary in case the brother dies somehow
+				}
+			}
+			set_new_ruler_with_union = { character = scope:jealous_brother }
+		}
+		add_prestige = prestige_weak_bonus
+		add_stability = stability_weak_bonus
+		set_variable = {
+			name = year_of_start_of_joint_rule
+			value = current_year
+			days = 3000 #Giving it a expiring date to avoid shaenanigans
+		}
+	}
+	
+	option = {#Reject the transfer of power 
+	#Create a new Noble rebel supported by the brothers and populations of "their" territory
+		name = joint_ruling.100.b
+		trigger = {	
+			list_size = { name = other_sons value >= 1 }
+		}
+
+		create_rebel = {
+			category = pretender
+			name = rebellious_prince_name
+			save_scope_as = brother_rebel
+		}
+		every_in_list = {
+			list = other_sons
+			change_character_allegiance = scope:brother_rebel
+		}
+		ordered_province = {#Get the provinces "ruled" by the brothers
+			limit = {
+				not = {root.capital.province = this}
+			}
+			order_by = { #Get the least controlled ones
+                value = province_average_control
+                multiply = -1
+            }
+			#Select one province for each living male child of the old ruler,
+			#that is not the current ruler
+			max = {
+				every_in_list = {
+					list = other_sons
+					add = 1
+				}
+				#We make sure to avoid trying to get more provinces than available
+				max = {
+					value = num_provinces
+					subtract = 1	#Removnig the capital province from the list
+				}
+			}
+			#For that province add the population to the rebels
+			every_location_in_province = {
+				every_pop = {
+					limit = {
+						owner = root
+					}
+					add_pop_satisfaction = pop_satisfaction_ultimate_penalty
+					change_pop_allegiance = scope:brother_rebel
+				}
+			}
+		}
+		if = {
+			#If we have the reform, remove it
+			limit = {
+				has_reform = government_reform:joint_ruling_monarchy
+			}
+			remove_reform = government_reform:joint_ruling_monarchy
+			remove_variable = year_of_start_of_joint_rule
+		}
+	}
+	
+	option = {#Rule alone, if we have the reform, remove it
+		name = joint_ruling.100.c
+		trigger = {	
+			list_size = { name = other_sons value = 0 }
+		}
+		if = {
+			#If we have the reform
+			limit = {
+				has_reform = government_reform:joint_ruling_monarchy
+			}
+			remove_reform = government_reform:joint_ruling_monarchy
+			remove_variable = year_of_start_of_joint_rule
+		}
+
+		add_legitimacy = legitimacy_severe_bonus
+	}
+}
+
+joint_ruling.101 = {
+	type = country_event
+	title = joint_ruling.101.title
+	desc = joint_ruling.101.desc
+
+	trigger = {
+		is_emperor = no #JUST NO we do NOT want the empire to get messed around with just because of one jealous little sibling who cannot accept a no
+		has_reform = government_reform:joint_ruling_monarchy
+
+		#If the ruler has any brothers that are not rulers themselves
+		ruler.father ?= { 
+			any_child = {
+				not = {this = root.ruler} 
+				is_alive = yes
+				is_female = no
+				is_adult = yes
+			}
+		}
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		ruler.father = { 
+			every_child = {
+				limit = {
+					not = {this = root.ruler} 
+					is_alive = yes
+					is_female = no
+				}
+				add_to_list = other_sons 
+			}
+		}
+		
+		ruler.father = { 
+			random_child = {
+				limit = {
+					not = {this = root.ruler} 
+					is_alive = yes
+					is_female = no
+					is_adult = yes
+				}
+				save_scope_as = jealous_brother
+			}
+		}
+	}
+
+	option = {#Accept the change of ruler
+		name = joint_ruling.101.a
+		hidden_effect = {
+			ignore_succesion_effect = yes
+			union ?= {
+				every_international_organization_member = {
+					ignore_succesion_effect = yes
+				}
+			}
+		}
+		set_new_ruler_with_union = { character = scope:jealous_brother }
+		add_legitimacy = legitimacy_weak_penalty
+		add_stability = stability_severe_penalty
+		if = {
+			#If we have the reform
+			limit = {
+				has_reform = government_reform:joint_ruling_monarchy
+			}
+			remove_reform = government_reform:joint_ruling_monarchy
+			remove_variable = year_of_start_of_joint_rule
+		}
+	}
+	
+	option = {#Reject the transfer of power 
+	#Create a new Noble rebel supported by the brother and populations of "his" territory
+		name = joint_ruling.101.b
+		trigger = {	
+			list_size = { name = other_sons value >= 1 }
+			list_size = { name = other_sons value <= root.num_provinces }
+		}
+
+		create_rebel = {
+			category = pretender
+			name = rebellious_prince_name
+			save_scope_as = brother_rebel
+		}
+		scope:jealous_brother = {
+			change_character_allegiance = scope:brother_rebel
+		}
+		ordered_province = {#Get the provinces "ruled" by the brothers
+			limit = {
+				not = {root.capital.province = this}
+			}
+			check_range_bounds = no
+			order_by = { #Get the least controlled ones
+                value = province_average_control
+                multiply = -1
+            }
+			#Select one province for each living male child of the old ruler,
+			#that is not the current ruler
+			max = {
+				every_in_list = {
+					list = other_sons
+					add = 1
+				}
+				#We make sure to avoid trying to get more provinces than available
+				max = num_provinces
+			}
+			add_to_list = provinces_low_control 
+		}
+		ordered_in_list = {
+			list = provinces_low_control
+			order_by = population
+			max = 1
+			#For that province add the population to the rebels
+			every_location_in_province = {
+				every_pop = {
+					limit = {
+						owner = root
+					}
+					add_pop_satisfaction = pop_satisfaction_ultimate_penalty
+					change_pop_allegiance = scope:brother_rebel
+				}
+			}
+		}
+		
+		scope:brother_rebel= {
+			add_rebel_progress = 0.7
+		}
+	}
+	
+	option = {#Kill the brother
+		name = joint_ruling.101.c 
+		trigger = {	
+			ruler = {
+				OR = {
+					has_trait = cruel
+					has_trait = malevolent
+					has_trait = sinner
+				}
+			}
+		}
+
+		add_legitimacy = legitimacy_severe_bonus
+		add_prestige = prestige_extreme_penalty
+		kill_character = scope:jealous_brother
+		if = {
+			#If we have the reform and the dead guys was our only brother
+			limit = {
+				list_size = { name = other_sons value = 1 }
+				has_reform = government_reform:joint_ruling_monarchy
+			}
+			remove_reform = government_reform:joint_ruling_monarchy
+			remove_variable = year_of_start_of_joint_rule
+		}
+	}
+}
+

@@ -1,0 +1,1020 @@
+﻿namespace = wokou_events
+
+scripted_trigger in_range_of_a_wokou_pirate = {
+	has_global_variable_list = wokou_nation_list
+	any_in_global_list = {
+		variable = wokou_nation_list
+		"border_distance_to(root)" < 800
+		NOT = {
+			receiving_scripted_relation = {
+				type = relation_type:wako_sponsorship
+				target = PREV
+			}
+		}
+		knows_country = prev
+	}
+}
+
+scripted_trigger wokou_has_sponsor = {
+	has_variable = sponsoring_tag
+}
+
+scripted_trigger location_in_range_of_a_wokou_pirate = {
+	has_global_variable_list = wokou_nation_list
+	any_in_global_list = {
+		variable = wokou_nation_list
+		exists = capital
+		"capital.distance_to(prev)" < 300
+		NOT = {
+			receiving_scripted_relation = {
+				type = relation_type:wako_sponsorship
+				target = PREV.owner
+			}
+		}
+	}
+}
+
+scripted_effect select_random_wokou_nation = {
+	random_in_global_list = {
+		variable = wokou_nation_list
+		limit = {
+			NOT = {
+				receiving_scripted_relation = {
+					type = relation_type:wako_sponsorship
+					target = PREV
+				}
+			}
+		}
+		weight = {
+			factor = 1
+			modifier = {
+				factor = {
+					value = 300
+					subtract = "border_distance_to(root)"
+					subtract = 1
+				}
+			}
+		}
+		save_scope_as = target_country
+	}
+}
+
+scripted_trigger should_be_informed_about_wokou = {
+	has_global_variable_list = wokou_nation_list
+	any_in_global_list = {
+		variable = wokou_nation_list
+		"border_distance_to(root)" < 1200
+	}
+}
+
+# Raid!
+wokou_events.1 = {
+	type = country_event
+	title = wokou_events.1.title
+	desc = wokou_events.1.desc
+
+	illustration_tags = {
+		10 = angry
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		select_random_wokou_nation = yes
+		
+		random_port_in_country = {
+			limit = {
+				location_in_range_of_a_wokou_pirate = yes
+			}
+			weight = {
+				factor = 1
+				modifier = {
+					factor = {
+						value = 300
+						subtract = "distance_to(scope:target_country.capital)"
+					}
+				}
+			}
+			save_scope_as = target_location
+			province = {
+				save_scope_as = target_province
+			}
+		}
+		set_local_variable = {
+			name = slaves_amount
+			value = 0
+		}
+		set_local_variable = {
+			name = gold_amount
+			value = 0
+		}
+	}
+
+	trigger = {
+		in_range_of_a_wokou_pirate = yes
+		any_port_in_country = {
+			location_in_range_of_a_wokou_pirate = yes
+		}
+	}
+
+	option = {
+		name = wokou_events.1.a
+		
+		scope:target_location.market = {
+			add_goods_supply = {
+				amount = market_goods_weak_loss
+				goods = goods:silk
+			}
+		}
+
+		scope:target_province = {
+			every_location_in_province = {
+				limit = {
+					is_port = yes
+				}
+				every_pop = {
+					limit = {
+						pop_type = pop_type:peasants
+					}
+					change_local_variable = {
+						name = slaves_amount
+						add = {
+							value = pop_size
+							multiply = 0.004
+						}
+					}
+					show_as_tooltip = {
+						add_pop_size = {
+							value = pop_size
+							multiply = -0.01
+						}
+					}
+					add_to_list = raided_pop
+				}
+				every_pop = {
+					change_local_variable = {
+						name = gold_amount
+						add = pop_size
+					}
+				}
+				change_local_variable = {
+					name = gold_amount
+					multiply = {
+						value = 1
+						add = prosperity
+					}
+				}
+			}
+		}
+
+		add_casus_belli = {
+			target = scope:target_country
+			type = casus_belli:cb_anti_piracy
+		}
+
+		scope:target_country = {
+			trigger_event_non_silently = wokou_events.2
+		}
+	}
+}
+
+# Spoils of Raid
+wokou_events.2 = {
+	type = country_event
+	title = wokou_events.2.title
+	desc = wokou_events.2.desc
+
+	illustration_tags = {
+		10 = happy
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+	}
+
+	option = {
+		name = wokou_events.2.a
+		
+		add_gold = {
+			value = local_var:gold_amount
+			multiply = modifier:slave_raid_efficiency
+		}
+		custom_tooltip = {
+			text = wokou_amount_of_slaves_gained
+			capital ?= {
+				every_in_list = {
+					list = raided_pop
+					prev = {
+						add_pop = {
+							culture = prev.culture
+							religion = prev.religion
+							size = {
+								value = prev.pop_size
+								multiply = 0.004
+							}
+							type = pop_type:slaves
+						}
+					}
+					add_pop_size = {
+						value = pop_size
+						multiply = -0.01
+					}
+				}
+			}
+		}
+	}
+}
+
+# Migration to Wokou
+wokou_events.3 = {
+	type = country_event
+	title = wokou_events.3.title
+	desc = wokou_events.3.desc
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	trigger = {
+		in_range_of_a_wokou_pirate = yes
+		any_owned_location = {
+			location_in_range_of_a_wokou_pirate = yes
+			is_coastal = yes
+			OR = {
+				development < {
+					value = root.total_development
+					divide = root.num_locations
+				}
+				prosperity <= -0.25
+			}
+			any_pop = {
+				owner = root
+				pop_type = pop_type:peasants
+				pop_size >= 0.5
+			}
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		select_random_wokou_nation = yes
+		random_owned_location = {
+			limit = {
+				location_in_range_of_a_wokou_pirate = yes
+				is_coastal = yes
+				OR = {
+					development < {
+						value = root.total_development
+						divide = root.num_locations
+					}
+					prosperity <= -0.25
+				}
+			}
+			save_scope_as = target_location
+			ordered_pop = {
+				limit = {
+					owner = root
+					pop_type = pop_type:peasants
+					pop_size >= 0.5
+				}
+				order_by = pop_size
+				max = 1 
+				save_scope_as = target_pop
+			}
+		}
+		set_local_variable = {
+			name = pops_migrated_amount
+			value = {
+				min = {
+					value = scope:target_pop.pop_size
+					multiply = 0.05
+				}
+				max = {
+					value = scope:target_pop.pop_size
+					multiply = 0.2
+				}
+			}
+		}
+	}
+
+	option = {
+		name = wokou_events.3.a
+		
+		scope:target_pop = {
+			add_pop_size = {
+				value = local_var:pops_migrated_amount
+				multiply = -1
+			}
+			add_pop_satisfaction = pop_satisfaction_extreme_penalty
+		}
+		show_as_tooltip = {
+			scope:target_country.capital = {
+				add_pop = {
+					culture = scope:target_pop.culture
+					religion = scope:target_pop.religion
+					type = pop_type:peasants
+					size = local_var:pops_migrated_amount
+				}
+			}
+		}
+
+		scope:target_country = {
+			trigger_event_non_silently = wokou_events.4
+		}
+	}
+}
+
+# Wokou Migration - Information Event
+wokou_events.4 = {
+	type = country_event
+	title = wokou_events.4.title
+	desc = wokou_events.4.desc
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+	}
+
+	option = {
+		name = wokou_events.4.a
+		
+		capital = {
+			add_pop = {
+				culture = scope:target_pop.culture
+				religion = scope:target_pop.religion
+				type = pop_type:peasants
+				size = local_var:pops_migrated_amount
+			}
+		}
+	}
+}
+
+# Plundering a Governmental Fleet
+wokou_events.5 = {
+	type = country_event
+	title = wokou_events.5.title
+	desc = wokou_events.5.desc
+
+	trigger = {
+		is_wokou_nation = yes
+		OR = {
+			region:east_china_region = {
+				any_present_country =  {
+					capital ?= {
+						sub_continent = sub_continent:east_asia
+					}
+					num_of_ports >= 1
+					"border_distance_to(root)" < 800
+				}
+			}
+			region:japan_region = {
+				any_present_country =  {
+					capital ?= {
+						sub_continent = sub_continent:east_asia
+					}
+					num_of_ports >= 1
+					"border_distance_to(root)" < 800
+				}
+			}
+			region:korea_region = {
+				any_present_country =  {
+					capital ?= {
+						sub_continent = sub_continent:east_asia
+					}
+					num_of_ports >= 1
+					"border_distance_to(root)" < 800
+				}
+			}
+			region:south_china_region = {
+				any_present_country =  {
+					capital ?= {
+						sub_continent = sub_continent:east_asia
+					}
+					num_of_ports >= 1
+					"border_distance_to(root)" < 800
+				}
+			}
+		}
+		sailors >= 0.3
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		random_country = {
+			limit = {
+				capital ?= {
+					sub_continent = sub_continent:east_asia
+				}
+				num_of_ports >= 1
+				"border_distance_to(root)" < 800
+			}
+			save_scope_as = target_country
+		}
+		save_scope_as = prev_country
+		set_local_variable = {
+			name = plunder_value
+			value = {
+				value = scope:target_country.monthly_income_trade_and_tax
+				multiply = { 3 6 }
+			} 
+		}
+	}
+
+	option = {
+		name = wokou_events.5.a
+		
+		add_sailors = { -0.3 -0.1 }
+
+		add_gold = local_var:plunder_value
+		show_as_tooltip = {
+			scope:target_country = {
+				add_casus_belli = {
+					target = ROOT
+					type = casus_belli:cb_anti_piracy
+				}
+			}
+		}
+		scope:target_country = {
+			trigger_event_non_silently = wokou_events.6
+		}
+	}
+
+	option = {
+		name = wokou_events.5.b
+		
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_minor_move_to_right
+		}
+	}
+}
+
+# Our Ships targeted by pirates!
+wokou_events.6 = {
+	type = country_event
+	title = wokou_events.6.title
+	desc = wokou_events.6.desc
+
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_poptype_effect = { foreground = pop_type:soldiers background = pop_type:soldiers }
+	}
+	
+	option = {
+		name = wokou_events.6.a
+		
+		add_casus_belli = {
+			target = scope:prev_country
+			type = casus_belli:cb_anti_piracy
+		}
+	}
+}
+
+scripted_effect create_wokou_nation = {
+	add_to_global_variable_list = {
+		name = wokou_nation_list
+		target = this
+	}
+
+	capital = {
+		while = {
+			count = 5
+			create_sub_unit_of_category = sub_unit_category:navy_galley
+		}
+		change_building_level_in_location = {
+			building = building_type:pirate_stronghold
+			value = 1
+		}
+		change_building_level_in_location = {
+			building = building_type:pirate_haven
+			value = 1
+		}
+	}
+
+	add_gold = { 300 500 }
+	add_sailors = { 0.5 1.5 }
+}
+
+scripted_trigger land_viable_for_early_wokou = {
+	OR = {
+		this = location:tamna
+		this = location:seongwi
+		province_definition = province_definition:tsushima_province
+		this = location:minamimatsuura
+		this = location:gomu
+		this = location:kumage_oosumi
+		province_definition = province_definition:satsunan_islands_province
+	}
+}
+
+scripted_trigger land_viable_for_latter_wokou = {
+	OR = {
+		area = area:taiwan_area
+		province_definition = province_definition:lower_cagayan_province
+		province_definition = province_definition:upper_cagayan_province
+		area = area:ryuukyuu_area
+	}
+}
+
+scripted_trigger can_spawn_wokou_nation_here = {
+	has_owner = no
+	is_ownable = yes
+}
+
+scripted_effect set_up_wokou_nation_in_immediate = {
+	continent:asia = {
+		random_location_in_continent = {
+			limit = {
+				$era_specific_trigger$ = yes
+				can_spawn_wokou_nation_here = yes
+			}
+			save_scope_as = target_location
+		}
+	}
+
+	scope:target_location = {
+		change_location_owner = ROOT
+		create_country_from_location = {
+			unlock_government_reform_effect = { type = pirate_brethren_reform }
+			reforms = {
+				pirate_brethren_reform
+			}
+			change_heir_selection = heir_selection:pirate_elective
+			change_government_type = government_type:republic
+			change_culture = ROOT.culture
+			change_religion = ROOT.religion
+			save_scope_as = target_country
+			change_religion_for_ruler_and_family = { country = scope:target_country religion = ROOT.religion }
+		}
+		change_max_raw_material_workers = 1
+	}
+
+	scope:target_country = {
+		create_wokou_nation = yes
+	}
+}
+
+# Formation of a Warlord
+wokou_events.100 = {
+	type = country_event
+	title = wokou_events.100.title
+	desc = wokou_events.100.desc
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	major = yes
+	major_trigger = {
+		should_be_informed_about_wokou = yes
+	}
+
+	trigger = {
+		culture = { has_culture_group = culture_group:japanese_group }
+		country_type = location
+		NOT = { has_global_variable = haijin_enforcement }
+		OR = {
+			NOT = { has_global_variable_list = wokou_nation_list }
+			AND = {
+				has_global_variable_list = wokou_nation_list
+				global_variable_list_size = {
+					name = wokou_nation_list
+					value < 1
+				}
+			}
+		}
+		
+		OR = {
+			any_owned_location = {
+				land_viable_for_early_wokou = yes
+			}
+			any_subject_or_below = {
+				any_owned_location = {
+					land_viable_for_early_wokou = yes
+				}
+			}
+		}
+		continent:asia = {
+			any_location_in_continent = {
+				land_viable_for_early_wokou = yes
+				can_spawn_wokou_nation_here = yes
+			}
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		set_up_wokou_nation_in_immediate = {
+			era_specific_trigger = land_viable_for_early_wokou
+		}
+		random_owned_location = {
+			limit = {
+				land_viable_for_early_wokou = yes
+			}
+			save_scope_as = origin_location
+		}
+		random_subject_or_below = {
+			limit = {
+				any_owned_location = {
+					land_viable_for_early_wokou = yes
+				}
+			}
+			random_owned_location = {
+				limit = {
+					land_viable_for_early_wokou = yes
+				}
+				save_scope_as = origin_location
+			}
+		}
+		scope:target_location = {
+			add_pop = {
+				culture = scope:origin_location.dominant_culture
+				religion = scope:origin_location.dominant_religion
+				type = pop_type:peasants
+				size = {
+					value = 0
+					scope:origin_location = {
+						every_pop = {
+							add = pop_size
+						}
+					}
+					multiply = 0.5
+				}
+			}
+		}
+	}
+
+	option = {
+		name = wokou_events.100.a
+		
+		scope:target_country = {
+			add_opinion = {
+				modifier = chi_filthy_pirate
+				target = ROOT
+			}
+		}
+		custom_tooltip = wokou_warning_tt
+
+		scope:target_country.capital = {
+			add_location_modifier = {
+				mode = add_and_extend
+				modifier = wokou_chance_for_a_new_life
+				years = 20
+			}
+		}
+	}
+
+	option = {
+		name = wokou_events.102.b
+
+		trigger = {
+			is_ai = no
+		}
+
+		change_player = scope:target_country
+	}
+}
+
+# Enforcing Haijin
+wokou_events.101 = {
+	type = country_event
+	title = wokou_events.101.title
+	desc = wokou_events.101.desc
+
+	fire_only_once = yes
+	dynamic_historical_event = {
+		tag = CHI
+		from = 1530.1.1
+		to = 1580.1.1
+		monthly_chance = 10
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	major = yes
+	major_trigger = {
+		should_be_informed_about_wokou = yes
+	}
+
+	trigger = {
+		international_organization:middle_kingdom ?= {
+			leader_country = root
+			international_organization_has_policy = policy:haijin_policy
+		}
+		OR = {
+			has_ruler = yes
+			has_heir = yes
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		ruler_or_heir_if_regent = {
+			save_scope_as = target_character
+		}
+	}
+
+	option = {
+		name = wokou_events.101.a
+		
+		set_global_variable = haijin_enforcement
+		custom_tooltip = later_era_of_wokou_tt
+	}
+}
+
+# Family turns to Piracy
+wokou_events.102 = {
+	type = country_event
+	title = wokou_events.102.title
+	desc = wokou_events.102.desc
+
+	major = yes
+	major_trigger = {
+		should_be_informed_about_wokou = yes
+	}
+
+	illustration_tags = {
+		10 = angry
+		10 = exterior
+	}
+
+	trigger = {
+		has_global_variable = haijin_enforcement
+		has_global_variable_list = wokou_nation_list
+		global_variable_list_size = {
+			name = wokou_nation_list
+			value < 4
+		}
+		culture = {
+			has_culture_group = culture_group:chinese_group
+		}
+		OR = {
+			area:haibei_hainan_area = {
+				any_location_in_area = {
+					percent >= 0.5
+					owner ?= ROOT 
+				}
+				any_location_in_area = {
+					is_coastal = yes
+					owner ?= ROOT
+				}
+			}
+			area:guangdong_area = {
+				any_location_in_area = {
+					percent >= 0.5
+					owner ?= ROOT 
+				}
+				any_location_in_area = {
+					is_coastal = yes
+					owner ?= ROOT
+				}
+			}
+			area:fujian_area = {
+				any_location_in_area = {
+					percent >= 0.5
+					owner ?= ROOT 
+				}
+				any_location_in_area = {
+					is_coastal = yes
+					owner ?= ROOT
+				}
+			}
+			area:zhejiang_area = {
+				any_location_in_area = {
+					percent >= 0.5
+					owner ?= ROOT 
+				}
+				any_location_in_area = {
+					is_coastal = yes
+					owner ?= ROOT
+				}
+			}
+		}
+		continent:asia = {
+			any_location_in_continent = {
+				land_viable_for_latter_wokou = yes
+				can_spawn_wokou_nation_here = yes
+			}
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		set_up_wokou_nation_in_immediate = {
+			era_specific_trigger = land_viable_for_latter_wokou
+		}
+	}
+
+	option = {
+		name = wokou_events.102.a
+
+		scope:target_country = {
+			add_opinion = {
+				modifier = chi_filthy_pirate
+				target = ROOT
+			}
+		}
+		custom_tooltip = wokou_warning_tt
+
+		scope:target_country.capital = {
+			add_location_modifier = {
+				mode = add_and_extend
+				modifier = wokou_chance_for_a_new_life
+				years = 20
+			}
+		}
+	}
+
+	option = {
+		name = wokou_events.102.b
+
+		trigger = {
+			is_ai = no
+		}
+
+		change_player = scope:target_country
+	}
+}
+
+wokou_events.200 = {
+	type = country_event
+	title = wokou_events.200.title
+	desc = wokou_events.200.desc
+
+	illustration_tags = {
+		10 = angry
+		10 = exterior
+	}
+
+	trigger = {
+		has_global_variable_list = wokou_nation_list
+		any_in_global_list = {
+			variable = wokou_nation_list
+			"border_distance_to(root)" < 800
+			wokou_has_sponsor = yes
+		}
+		num_of_ports >= 10
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		save_scope_as = prev_country
+		random_in_global_list = {
+			variable = wokou_nation_list
+			limit = {
+				"border_distance_to(root)" < 800
+				wokou_has_sponsor = yes
+			}
+			save_scope_as = pirate_country
+			var:sponsoring_tag = {
+				save_scope_as = target_country
+			}
+		}
+	}
+
+	# Threaten the sponsor
+	option = {
+		name = wokou_events.200.a
+		
+		scope:target_country = {
+			trigger_event_non_silently = wokou_events.201
+		}
+	}
+
+	# We are in no position to make demands.
+	option = {
+		name = wokou_events.200.b
+
+		add_estate_satisfaction = {
+			type = estate_type:burghers_estate
+			value = estate_satisfaction_extreme_penalty
+		}
+
+		add_estate_satisfaction = {
+			type = estate_type:peasants_estate
+			value = estate_satisfaction_extreme_penalty
+		}
+	}
+}
+
+# Demands from [prev_country.GetName]
+wokou_events.201 = {
+	type = country_event
+	title = wokou_events.201.title
+	desc = wokou_events.201.desc
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = wokou_events.201.a
+		
+		remove_relation = {
+			first = ROOT
+			second = scope:pirate_country
+			type = relation_type:wako_sponsorship
+		}
+
+		scope:prev_country = {
+			trigger_event_non_silently = wokou_events.202
+		}
+	}
+
+	option = {
+		name = wokou_events.201.b
+
+		add_prestige = prestige_mild_bonus
+		scope:prev_country = {
+			trigger_event_non_silently = wokou_events.203
+		}
+	}
+}
+
+wokou_events.202 = {
+	type = country_event
+	title = wokou_events.202.title
+	desc = wokou_events.202.desc
+
+	illustration_tags = {
+		10 = angry
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		create_character = {
+			estate = estate_type:peasants_estate
+			culture = scope:pirate_country.dominant_culture
+			religion = scope:pirate_country.dominant_religion
+			move_country = scope:pirate_country
+			save_scope_as = target_character
+		}
+		random_port_in_country = {
+			save_scope_as = target_location
+		}
+		random_port_in_country = {
+			save_scope_as = target_location
+		}
+	}
+
+	option = {
+		name = wokou_events.202.a
+		
+		kill_character = {
+			target = scope:target_character
+			reason = execution
+		}
+
+		add_prestige = prestige_severe_bonus
+	}
+}
+
+wokou_events.203 = {
+	type = country_event
+	title = wokou_events.203.title
+	desc = wokou_events.203.desc
+
+	illustration_tags = {
+		10 = angry
+		10 = exterior
+	}
+
+	option = {
+		name = wokou_events.203.a
+		
+		add_casus_belli = {
+			target = scope:pirate_country
+			type = casus_belli:cb_anti_piracy
+		}
+		
+		add_casus_belli = {
+			target = scope:target_country
+			type = casus_belli:cb_insulted_us
+		}
+	}
+}

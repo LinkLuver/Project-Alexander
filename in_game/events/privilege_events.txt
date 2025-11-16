@@ -1,0 +1,433 @@
+﻿namespace = privilege_events
+scripted_trigger is_correct_region = {
+    OR = {
+        this = region:north_german_region
+        this = region:south_german_region
+        this = region:france_region
+    }
+}
+scripted_trigger is_correct_area = {
+    OR = {
+        this = area:alsace_area
+        this = area:upper_rhine_area
+        this = area:rhineland_area
+        this = area:hesse_area
+        this = area:westphalia_area
+        this = area:wallonia_area
+        this = area:lorraine_area
+        this = area:champagne_area
+        this = area:brabant_area
+        this = area:swabia_area
+        this = area:bavaria_area
+        this = area:franconia_area
+        this = area:lower_saxony_area
+        this = area:flanders_area
+        this = area:holland_area
+    }
+}
+scripted_trigger has_correct_dominant_culture = {
+    OR = {
+        dominant_culture = culture:angrian
+        dominant_culture = culture:brandenburgish
+        dominant_culture = culture:eastern_pomeranian
+        dominant_culture = culture:eastphalian
+        dominant_culture = culture:holsatian
+        dominant_culture = culture:lower_saxon
+        dominant_culture = culture:markish
+        dominant_culture = culture:prussian
+        dominant_culture = culture:western_pomeranian
+        dominant_culture = culture:westphalian
+        dominant_culture = culture:east_franconian
+        dominant_culture = culture:low_franconian
+        dominant_culture = culture:moselle_franconian
+        dominant_culture = culture:rhine_franconian
+        dominant_culture = culture:ripuarian_franconian
+        dominant_culture = culture:saxon
+        dominant_culture = culture:danube_bavarian
+        dominant_culture = culture:high_alemannic
+        dominant_culture = culture:rhine_alemannic
+        dominant_culture = culture:southern_bavarian
+        dominant_culture = culture:swabian
+        dominant_culture = culture:upper_palatine
+        dominant_culture = culture:frisian
+        dominant_culture = culture:walloon
+    }
+}
+scripted_trigger is_province_german_and_in_bad_shape = {
+    exists = owner #Check that it's not a wasteland or sea
+    province = {
+        has_correct_dominant_culture = yes
+        privilege_events_100_is_in_bad_shape = yes
+        population > 0.500
+    }
+}
+scripted_trigger is_valid_for_immigration = {
+    is_area_sea = no
+    any_province_definition_in_area = {
+        any_location_in_province_definition = {
+            is_province_german_and_in_bad_shape = yes
+        }
+    }
+}
+scripted_effect start_german_migration = {
+    #sets up a migration { <from = provdef> <from_location = location> <to = provdef> <to_location = location> <culture = x> <religion = y> <type = z>  months = x amount = y.
+    add_migration = {
+        owner = $the_owner$
+        from_location = $from_location$
+        to = $to_province$
+        culture = $target_culture$
+        amount = {
+            # x = amount of migrants, y = max amount of migrants
+            #  max year = 1430
+            #  x = floor(y*((100/(1430 - 1337))*(max(1430-current_year,0))/100))
+            value = {
+                value = $num_pops$ #Pops to migrate
+                multiply = {
+                    value = {
+                        value = 100
+                        divide = { #years to last year
+                            value = 1430
+                            subtract = 1337
+                        }
+                    }
+                    multiply = {
+                        value = 1430
+                        subtract = current_year
+                        min = 0
+                    }
+                    divide = 100
+                }
+                floor = yes
+            }
+            divide = 1000
+        }
+        months = 48
+    }
+}
+scripted_trigger enough_migrants_500 = { #Are there more than 0 migrants?
+    0 < { # More than 0 migrants
+        value = 500 #Pops to migrate
+        multiply = {
+            value = {
+                value = 100
+                divide = { #years to last year
+                    value = 1430
+                    subtract = 1337
+                }
+            }
+            multiply = {
+                value = 1430
+                subtract = current_year
+                min = 0
+            }
+            divide = 100
+        }
+        floor = yes
+    }
+}
+scripted_trigger enough_migrants_1000 = { #Are there more than 0 migrants?
+    0 < { # More than 0 migrants
+        value = 1000 #Pops to migrate
+        multiply = {
+            value = {
+                value = 100
+                divide = { #years to last year
+                    value = 1430
+                    subtract = 1337
+                }
+            }
+            multiply = {
+                value = 1430
+                subtract = current_year
+                min = 0
+            }
+            divide = 100
+        }
+        floor = yes
+    }
+}
+#Encourage German Migration Recurring Event
+#Launches recurringly to create german migrations to the country that has the privilege active
+privilege_events.100 = {
+    type = country_event
+    title = privilege_events.100.title
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                desc = privilege_events.100.desc.kulm_law
+                trigger = {
+                    has_estate_privilege = estate_privilege:kulm_law
+                }
+            }
+            triggered_desc = {
+                desc = privilege_events.100.desc
+                trigger = {
+                    always = yes 
+                }
+            }
+        }
+    }
+    trigger = {
+        modifier:enables_german_migration = yes
+        #Is there any german dominated province in western europe
+        # of the chosen culture and
+        # that is starving or has negative prosperity?
+        OR = {
+            area:alsace_area = { is_valid_for_immigration = yes }
+            area:upper_rhine_area = { is_valid_for_immigration = yes }
+            area:rhineland_area = { is_valid_for_immigration = yes }
+            area:hesse_area = { is_valid_for_immigration = yes }
+            area:westphalia_area = { is_valid_for_immigration = yes }
+            area:wallonia_area = { is_valid_for_immigration = yes }
+            area:lorraine_area = { is_valid_for_immigration = yes }
+            area:champagne_area = { is_valid_for_immigration = yes }
+            area:brabant_area    = { is_valid_for_immigration = yes }
+            area:swabia_area = { is_valid_for_immigration = yes }
+            area:bavaria_area = { is_valid_for_immigration = yes }
+            area:franconia_area = { is_valid_for_immigration = yes }
+            area:lower_saxony_area = { is_valid_for_immigration = yes }
+            area:flanders_area = { is_valid_for_immigration = yes }
+            area:holland_area = { is_valid_for_immigration = yes }
+        }
+        sub_continent:western_europe = {
+            any_region_in_continent = {
+                is_correct_region = yes
+                any_area_in_region = {
+                    is_valid_for_immigration = yes
+                    any_province_definition_in_area = {
+                        any_location_in_province_definition = {
+                            is_province_german_and_in_bad_shape = yes
+                        }
+                    }
+                }
+            }
+        }
+    }
+    illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+    immediate = {
+        sub_continent:western_europe = {
+            random_region_in_continent = {
+                limit = { #Our cultures are only available in these regions
+                    is_correct_region = yes
+                    any_area_in_region = {
+                        is_valid_for_immigration = yes
+                    }
+                }
+                random_area_in_region = {
+                    limit = { #Our cultures are only available in these areas
+                        is_correct_area = yes
+                        is_valid_for_immigration = yes
+                    }
+                    random_province_definition_in_area = {
+                        limit = {
+                            any_location_in_province_definition = {
+                                is_province_german_and_in_bad_shape = yes
+                            }
+                        }
+                        random_location_in_province_definition = {
+                            limit = {
+                                is_province_german_and_in_bad_shape = yes
+                            }
+                            save_scope_as = scope_german_location
+                            owner ?= {
+                                save_scope_as = scope_german_location_owner
+                            }
+                            province_definition = {
+                                save_scope_as = german_province_definition
+                            }
+                            province = {
+                                save_scope_as = german_province
+                                dominant_culture = {
+                                    save_scope_as = german_migrating_culture
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ordered_pop = {
+            max = 1
+            order_by = pop_size
+            limit = {
+                pop_type = pop_type:peasants
+            }
+            save_scope_as = target_pop
+        }
+        ordered_pop = {
+            max = 1
+            order_by = pop_size
+            limit = {
+                pop_type = pop_type:peasants
+            }
+            save_scope_as = target_pop_bckg
+        }
+        random_province = {
+            limit = {
+                #The province receiving the migrant can't be the same sending them
+                this.province_definition != scope:german_province_definition
+                #Make sure they never become majority through this event
+                culture_percentage = {
+                    culture = scope:german_migrating_culture
+                    value < 0.4
+                }
+            }
+            save_scope_as = target_province
+        }
+        save_scope_as = migration_destination_country
+    }
+    option = { #Welcome
+        name = privilege_events.100.a
+        trigger = {
+            custom_tooltip = {
+                text = enough_migrants_tt
+                exists = scope:german_province_definition
+                enough_migrants_500 = yes
+            }
+        }
+        change_gold_effect = { scale = -2 }
+        scope:target_province = {
+            start_german_migration = {
+                the_owner = scope:scope_german_location_owner
+                from_location = scope:scope_german_location
+                to_province = this.province_definition
+                target_culture = scope:german_migrating_culture
+                num_pops = 500
+            }
+        }
+        scope:german_province.owner = {
+            trigger_event_non_silently = {
+                id = privilege_events.101
+            }
+        }
+    }
+    option = {#Help them (more money for double the migrants)
+        name = privilege_events.100.b
+        trigger = {
+            custom_tooltip = {
+                text = enough_migrants_tt
+                exists = scope:german_province_definition
+                enough_migrants_1000 = yes
+            }
+        }
+        change_gold_effect = { scale = -5 }
+        scope:target_province = {
+            start_german_migration = {
+                the_owner = scope:scope_german_location_owner
+                from_location = scope:scope_german_location
+                to_province = this.province_definition
+                target_culture = scope:german_migrating_culture
+                num_pops = 1000
+            }
+        }
+        scope:german_province.owner = {
+            trigger_event_non_silently = {
+                id = privilege_events.101
+            }
+        }
+    }
+    option = {#Stop the migrations
+        name = privilege_events.100.c
+        trigger = {
+            custom_tooltip = {
+                text = enough_migrants_tt
+                enough_migrants_500 = yes
+            }
+        }
+        add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_mild_bonus }
+        add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_severe_penalty }
+        add_stability = stability_severe_penalty
+        revoke_estate_privilege = estate_privilege:invite_german_settlers
+    }
+    option = {#No migrants left
+        name = privilege_events.100.d
+        trigger = {
+            custom_tooltip = {
+                text = not_enough_migrants_tt
+                enough_migrants_500 = no
+            }
+        }
+        add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_mild_penalty }
+        add_stability = stability_mild_penalty
+        revoke_estate_privilege = estate_privilege:invite_german_settlers
+    }
+}
+# Inform the German Nation about Migration
+privilege_events.101 = {
+    type = country_event
+    title = privilege_events.101.title
+    desc = privilege_events.101.desc
+    illustration_tags = {
+        10 = angry
+        10 = interior
+    }
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+    }
+    option = {
+        name = privilege_events.101.a
+        
+        custom_tooltip = privilege_events.101.tt
+    }
+}
+#Libro d'Oro Recurring Event
+#Launches recurringly to add a new family in the Libro d'Oro
+privilege_events.110 = {
+    hide_portraits = yes
+    type = country_event
+    title = privilege_events.110.title
+    desc = privilege_events.110.desc
+    trigger = {
+        has_estate_privilege = estate_privilege:libro_d_oro
+        has_variable = year_of_start_of_libro_d_oro
+        current_year >= { #Have 50 years passed since the signing of the law
+            value = var:year_of_start_of_libro_d_oro
+            add = 50
+        }
+        #Is the country in financial trouble?
+        monthly_balance < 10
+        gold < { value = monthly_income_trade_and_tax multiply = 10}
+        num_loans > 0
+    }
+    illustration_tags = {
+        10 = angry
+        10 = interior
+    }
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = year_of_start_of_libro_d_oro
+            value = current_year
+        }
+        random_owned_location = {
+            create_dynasty_from_location = random
+            last_dynasty_in_location = {
+                save_scope_as = target_dynasty
+            }
+            save_scope_as = location_scope
+        }
+        create_character = {
+            dynasty = scope:target_dynasty
+			create_in_limbo = yes
+            save_scope_as = target_character
+        }
+    }
+    option = {
+        name = privilege_events.110.a
+		scope:target_character = { move_country = root }
+        add_prestige = prestige_severe_penalty
+        change_gold_effect = { scale = 10 }
+        add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_mild_penalty }
+    }
+    option = {
+        name = privilege_events.110.b
+        hidden_effect = {
+            kill_character_silently = scope:target_character
+        }
+        add_prestige = prestige_mild_bonus
+        add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_mild_bonus }
+    }
+}
