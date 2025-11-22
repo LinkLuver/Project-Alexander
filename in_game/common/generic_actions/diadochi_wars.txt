@@ -1,28 +1,99 @@
-press_claims = {
+
+claim_diadochi = {
 	type = situation
-	show_message = no
-	potential = {
+
+	price = 100
+
+	allow = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:achaemenid_argead
+			at_war = no
+		}
 	}
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target
+		name = "claim_diadochi"
+		none_available_msg_key = "test fail"
+		column = {
+			data = name
+		}
+		column = {
+			data = expected_army_size
+		}
+		visible = {
+			NOT = { has_truce_with = scope:actor }
+			NOT = { is_allied_with = { target = scope:actor } }
+			NOT = { is_subject_of = scope:actor }
+			is_member_of_international_organization = international_organization:achaemenid_argead
+			within_diplomatic_range = scope:actor
+			scope:actor = {
+				NOT = { has_casus_belli_of_type_on = { type = casus_belli:cb_timurs_conquests target = PREV } }
+			}
+		}
+	}  
+	effect = {
+		scope:actor = {
+			if = {
+				limit = {
+					exists = scope:target
+				}
+				add_casus_belli = {
+					target = scope:target
+					type = casus_belli:cb_timurs_conquests
+				}
+				drop_antagonism_bomb = {
+					target = scope:target.capital
+					modifier = antagonism_planned_invasion
+				}
+			}
+			else = {
+				custom_tooltip = rot_plan_invasion_tt
+			}
+		}
+	}
+}
+
+aproach_diadochi = {
+	type = situation
+
+	price = 0
 
 	allow = {
 		scope:actor = {
 			at_war = no
+			# NOT = {is_member_of_international_organization = international_organization:achaemenid_argead}
 		}
 	}
-
-	automation_tick = never
-	automation_tick_frequency = 12
-	ai_tick = monthly
-	ai_tick_frequency = 3
-	price = 100
-
-	#cooldown = {
-	#	type = press_claims_cooldown_key
-	#	years = 2
-	#}
-
-
-	effect = { 
 	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target
+		name = "aproach_diadochi"
+		none_available_msg_key = "none_msg"
+		column = {
+			data = name
+		}
+		column = {
+			data = expected_army_size
+		}
+		visible = {
+			NOT = { is_allied_with = { target = scope:actor } }
+			NOT = { is_subject_of = scope:actor }
+			is_member_of_international_organization = international_organization:achaemenid_argead
+			within_diplomatic_range = scope:actor
+			scope:actor = {
+			}
+		}
+	}  
+	effect = {
+		scope:actor = {
+			make_subject_of = {
+				target = scope:target
+				type = vassal
+			}
+		}
+		
 	}
 }
