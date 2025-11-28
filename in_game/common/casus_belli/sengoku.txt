@@ -1,0 +1,123 @@
+﻿#root is country
+#scope:target is the target 
+
+cb_take_shogunate = {
+
+	visible = {
+		ruler ?= {
+			has_character_modifier = allowed_shogun_title
+		}
+		is_member_of_international_organization = international_organization:japanese_shogunate
+	}
+	allow_creation = {
+		international_organization:japanese_shogunate ?= {
+			leader_country ?= {
+				this = scope:target
+			}
+		}
+	}
+
+	speed = 10
+
+	war_goal_type = take_shogunate_wargoal
+}
+
+
+cb_sengoku = {
+
+	visible = {
+		is_member_of_international_organization = international_organization:japanese_shogunate
+		is_situation_active = situation:sengoku
+	}
+	allow_creation = {
+		is_member_of_international_organization = international_organization:japanese_shogunate
+		is_situation_active = situation:sengoku
+		scope:target = {
+			is_member_of_international_organization = international_organization:japanese_shogunate
+		}
+	}
+
+	speed = 10
+
+	war_goal_type = sengoku_wargoal
+}
+
+cb_japanese_clan_expand_authority = {
+	visible = {
+		OR = {
+			has_reform = government_reform:japanese_clan
+			has_reform = government_reform:japanese_imperial_family
+			has_reform = government_reform:daimyo
+		}
+		OR = {
+			situation:nanbokuchou = { situation_has_ended = yes }
+			is_situation_active = situation:sengoku
+		}
+	}
+
+	allow_creation = {
+		OR = { #Building based clans can attack whoever, landed daimyo can only attack other landed daimyo
+			AND = {
+				OR = {
+					has_reform = government_reform:japanese_clan
+					has_reform = government_reform:japanese_imperial_family
+				}
+				scope:target = { 
+					OR = {
+						has_reform = government_reform:japanese_clan
+						has_reform = government_reform:daimyo
+					}
+				}
+			}
+			AND = {
+				has_reform = government_reform:daimyo
+				scope:target = { has_reform = government_reform:daimyo }
+			}
+		}
+	}
+
+	speed = 10
+	max_warscore_from_battles = 100
+
+	war_goal_type = clan_expansion_wargoal
+}
+
+cb_japanese_clan_rebel_against_shogunate_authority = {
+	visible = {
+		is_member_of_international_organization = international_organization:japanese_shogunate
+		NOT = { is_situation_active = situation:nanbokuchou }
+		NOT = { is_leader_of_international_organization = international_organization:japanese_shogunate }
+	}
+
+	allow_creation = {
+		is_member_of_international_organization = international_organization:japanese_shogunate
+		NOT = { is_situation_active = situation:nanbokuchou }
+		scope:target = { is_leader_of_international_organization = international_organization:japanese_shogunate }
+	}
+
+	speed = 10
+	max_warscore_from_battles = 100
+
+	war_goal_type = clan_expansion_wargoal
+}
+
+cb_shogunate_reassert_authority = {
+	visible = {
+		is_leader_of_international_organization = international_organization:japanese_shogunate
+		NOT = { is_situation_active = situation:nanbokuchou }
+	}
+
+	allow_creation = {
+		is_leader_of_international_organization = international_organization:japanese_shogunate
+		NOT = { is_situation_active = situation:nanbokuchou }
+		scope:target = { 
+			is_member_of_international_organization = international_organization:japanese_shogunate
+			is_japanese_emperor_or_shogun = no
+		}
+	}
+
+	speed = 10
+	max_warscore_from_battles = 100
+
+	war_goal_type = clan_expansion_wargoal
+}
