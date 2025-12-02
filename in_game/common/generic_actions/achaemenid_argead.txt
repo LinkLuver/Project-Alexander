@@ -1,3 +1,206 @@
+
+claim_argead_empire = {
+	type = internationalorganization
+	price = 100
+	allow = {
+		international_organization:achaemenid_argead = {
+			has_land_ownership_rule = yes
+		}
+		scope:actor = {
+			is_member_of_international_organization = international_organization:achaemenid_argead
+			at_war = no
+			total_population_in_international_organization_percentage ={
+				international_organization = international_organization:achaemenid_argead
+				value > 0.50
+			}
+		}
+
+	}
+	effect = {
+		# form empire
+		scope:actor = {
+			form_country = formable_country:IRE_f # TODO Change this to the real Empire tag 
+			if = {
+				limit = { country_rank_level < 3 }
+				set_country_rank_effect = { rank = country_rank:rank_empire }
+			}
+		}
+	}
+}
+claim_argead_contender = {
+	type = internationalorganization
+	price = 100
+	allow = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:achaemenid_argead
+			at_war = no
+			total_population > 200
+			not = {
+				has_special_status_in_international_organization = {
+					type = special_status:argead_contender
+					international_organization = international_organization:achaemenid_argead
+				}
+			}
+			# total_population_in_international_organization_percentage ={
+			# 	international_organization = international_organization:achaemenid_argead
+			# 	value > 0.50
+			# }
+		}
+
+	}
+	effect = {
+		international_organization:achaemenid_argead = {
+			international_organization_add_special_status = {
+				type = special_status:argead_contender
+				country = scope:actor
+			}
+		}
+	}
+}
+
+arrange_marriage_with_argead_noble = {
+	type = internationalorganization
+	price = 100
+	allow = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:achaemenid_argead
+		}
+	}
+	select_trigger = {
+		top_widget = marry_noble_character_top
+		looking_for_a = character
+		source = actor
+		target_flag = target
+		name = "marry_argead_noble_select_title"
+		none_available_msg_key = "marry_argead_noble_no_characters"
+		column = {
+			data = character_info
+		}
+		visible = {
+			OR = {
+				scope:actor = {
+					modifier:can_marry_only_overlord_dynasty_characters = no
+				}
+				AND = {
+					scope:actor = {
+						modifier:can_marry_only_overlord_dynasty_characters = yes
+					}
+					has_dynasty = yes
+					OR = {
+						owner = {
+							any_subject = {
+								this = scope:actor
+							}
+						}
+						dynasty = {
+							any_character_in_dynasty = {
+								owner = {
+									any_subject = {
+										this = scope:actor
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			NOT = {
+				is_same_gender = scope:recipient
+			}
+			NOT = {
+				is_close_relative = scope:recipient
+			}
+			character_can_marry_trigger = yes
+			not = {
+				is_spouse_of = scope:recipient
+			}
+			modifier:blocked_from_character_interactions = no
+		}
+	}
+	effect = {
+		if = {
+			limit = {
+				exists = scope:recipient
+				exists = scope:target
+			}
+			scope:recipient = {
+				marry_character = scope:target
+			}
+		}
+	}
+}
+
+arrange_marriage_with_achemenid_noble = {
+	type = internationalorganization
+	price = 100
+	allow = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:achaemenid_argead
+		}
+	}
+	select_trigger = {
+		top_widget = marry_noble_character_top
+		looking_for_a = character
+		source = actor
+		target_flag = target
+		name = "marry_achemenid_noble_select_title"
+		none_available_msg_key = "marry_achemenid_noble_no_characters"
+		column = {
+			data = character_info
+		}
+		visible = {
+			OR = {
+				scope:actor = {
+					modifier:can_marry_only_overlord_dynasty_characters = no
+				}
+				AND = {
+					scope:actor = {
+						modifier:can_marry_only_overlord_dynasty_characters = yes
+					}
+					has_dynasty = yes
+					OR = {
+						owner = {
+							any_subject = {
+								this = scope:actor
+							}
+						}
+						dynasty = {
+							any_character_in_dynasty = {
+								owner = {
+									any_subject = {
+										this = scope:actor
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			NOT = {
+				is_same_gender = scope:recipient
+			}
+			NOT = {
+				is_close_relative = scope:recipient
+			}
+			character_can_marry_trigger = yes
+			not = {
+				is_spouse_of = scope:recipient
+			}
+			modifier:blocked_from_character_interactions = no
+		}
+	}
+	effect = {
+		if = {
+			limit = {
+				exists = scope:recipient
+				exists = scope:target
+			}
+			scope:recipient = {
+				marry_character = scope:target
+			}
+		}
+	}
+}
 imperial_reconquest_claim = {
 	type = internationalorganization
 	price = 100
@@ -32,6 +235,7 @@ imperial_reconquest_claim = {
 			}
 			is_member_of_international_organization = international_organization:achaemenid_argead
 			within_diplomatic_range = scope:actor
+			total_population >= 200
 			scope:actor = {
 				NOT = {
 					has_casus_belli_of_type_on = {
@@ -59,132 +263,6 @@ imperial_reconquest_claim = {
 			}
 			else = {
 				custom_tooltip = rot_plan_invasion_tt
-			}
-		}
-	}
-}
-claim_argead_empire = {
-	type = internationalorganization
-	price = 100
-	allow = {
-		scope:actor = {
-			is_member_of_international_organization = international_organization:achaemenid_argead
-			at_war = no
-			
-		}
-		international_organization:achaemenid_argead = {
-			has_land_ownership_rule = yes
-		}
-	}
-	effect = {
-		# form empire
-		scope:actor = {
-			form_country = formable_country:IRE_f
-			if = {
-				limit = { country_rank_level < 3 }
-				set_country_rank_effect = { rank = country_rank:rank_empire }
-			}
-		}
-	}
-}
-
-arrange_marriage_with_argead_noble = {
-	type = internationalorganization
-	price = 100
-	allow = {
-		scope:actor = {
-			is_member_of_international_organization = international_organization:achaemenid_argead
-
-		}
-	}
-	select_trigger = {
-		top_widget = marry_noble_character_top
-		looking_for_a = character
-		source = actor
-		target_flag = target
-		name = "marry_noble_select_title"
-		none_available_msg_key = "marry_noble_no_characters"
-		column = {
-			data = character_info
-		}
-		visible = {
-			OR = {
-				scope:actor = {
-					modifier:can_marry_only_overlord_dynasty_characters = no
-				}
-				AND = {
-					scope:actor = {
-						modifier:can_marry_only_overlord_dynasty_characters = yes
-					}
-					has_dynasty = yes
-					OR = {
-						owner = {
-							any_subject = {
-								this = scope:actor
-							}
-						}
-						dynasty = {
-							any_character_in_dynasty = {
-								owner = {
-									any_subject = {
-										this = scope:actor
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			OR = {
-				has_estate = estate_type:nobles_estate
-				AND = {
-					scope:actor = {
-						succession_law = heir_selection:signoria_selection
-					}
-					has_estate = estate_type:burghers_estate
-				}
-			}
-			NOT = {
-				is_same_gender = scope:recipient
-			}
-			NOT = {
-				is_close_relative = scope:recipient
-			}
-			character_can_marry_trigger = yes
-			not = {
-				is_spouse_of = scope:recipient
-			}
-			modifier:blocked_from_character_interactions = no
-		}
-	}
-	effect = {
-		if = {
-			limit = {
-				exists = scope:recipient
-				exists = scope:target
-			}
-			scope:recipient = {
-				marry_character = scope:target
-			}
-		}
-		if = {
-			limit = {
-				scope:actor ?= {
-					NOT = {
-						has_estate_privilege = estate_privilege:noble_marriage_rights
-					}
-				}
-			}
-			scope:actor = {
-				add_legitimacy = legitimacy_mild_penalty
-			}
-		}
-		if = {
-			limit = {
-				scope:recipient = character:vij_bukka_raya_sangama
-			}
-			scope:target = {
-				add_to_list = bukka_raya_previous_spouses
 			}
 		}
 	}
