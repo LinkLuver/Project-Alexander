@@ -1,0 +1,409 @@
+﻿has_diplomatic_traits = {
+	OR = {
+		has_trait = careful
+		has_trait = entrepreneur
+		has_trait = industrious
+		has_trait = expansionist
+		has_trait = navigator
+		has_trait = well_connected
+		has_trait = secretive
+		has_trait = intricate_web_weaver
+		has_trait = benevolent
+		has_trait = charismatic_negotiator
+		has_trait = silver_tongue
+		has_trait = fierce_negotiator
+		has_trait = well_advised
+	}
+}
+has_administrative_traits = {
+	OR = {
+		has_trait = just
+		has_trait = righteous
+		has_trait = tolerant
+		has_trait = free_thinker
+		has_trait = calm
+		has_trait = zealot
+		has_trait = pious
+		has_trait = lawgiver
+		has_trait = midas_touched
+		has_trait = incorruptible
+		has_trait = architectural_visionary
+		has_trait = scholar
+		has_trait = kind_hearted
+	}
+}
+has_military_traits = {
+	OR = {		 
+		has_trait = bold_fighter
+		has_trait = tactical_genius
+		has_trait = conqueror
+		has_trait = strict
+		has_trait = inspiring_leader
+		has_trait = martial_educator
+	}
+}
+
+has_negative_traits = {
+	OR = {
+		has_trait = cruel
+		has_trait = babbling_buffoon
+		has_trait = embezzler
+		has_trait = drunkard
+		has_trait = sinner
+		has_trait = greedy
+		has_trait = naive
+		has_trait = craven
+		has_trait = loose_lips
+		has_trait = obsessive_perfectionist
+		has_trait = malevolent
+	}
+}
+
+#These traits are more for the RP part of characters instead of pure mechanical categories
+#Useful for special heir selections where the government wants a very specific type of ruler
+has_economical_traits = {
+	OR = {
+		has_trait = entrepreneur
+		has_trait = industrious
+		has_trait = midas_touched
+		has_trait = architectural_visionary
+	}
+}
+
+has_social_traits = {
+	OR = {
+		has_trait = well_connected
+		has_trait = charismatic_negotiator
+		has_trait = silver_tongue
+		has_trait = inspiring_leader
+	}
+}
+
+has_tolerant_traits = {
+	OR = {
+		has_trait = tolerant
+		has_trait = free_thinker
+		has_trait = calm
+		has_trait = benevolent
+	}
+}
+
+has_religious_traits = {
+	OR = {
+		has_trait = zealot
+		has_trait = pious
+	}
+}
+
+has_intrigue_traits = {
+	OR = {
+		has_trait = careful
+		has_trait = well_connected
+		has_trait = charismatic_negotiator
+		has_trait = silver_tongue
+		has_trait = secretive
+		has_trait = intricate_web_weaver
+	}
+}
+
+has_tactical_traits = {
+	OR = {
+		has_trait = careful
+		has_trait = bold_fighter
+		has_trait = tactical_genius
+		has_trait = strict
+		has_trait = inspiring_leader
+		has_trait = martial_educator
+	}
+}
+
+#Available types:
+# administrative
+# diplomatic
+# military
+# negative
+# economical
+# social
+# tolerant
+# religious
+# intrigue
+# tactical
+has_traits_of_type = {
+	has_$type$_traits = yes
+}
+
+character_can_marry_trigger = {
+	is_adult = yes
+	has_available_marriage_slot = yes
+	is_alive = yes
+	modifier:blocked_from_marriage = no
+	NOT = {
+		AND = {
+			has_estate = estate_type:clergy_estate
+			OR = {
+				AND = {
+					religion = religion:catholic
+					OR = {
+						international_organization:catholic_church = {
+							international_organization_has_policy = policy:priest_marriage_not_allowed
+						}
+						AND = {
+							international_organization:catholic_church = {
+								international_organization_has_policy = policy:priest_marriage_partially_allowed
+							}
+							owner = c:PAP
+						}
+					}
+				}
+				religion = religion:orthodox
+				religion = religion:miaphysite
+			}
+		}
+	}
+}
+
+character_can_marry_recipient_trigger = {
+	# root = character proposing
+	# scope:recipient = character target of proposal
+
+	OR = {
+		AND = {
+			NOT = {
+				OR = {
+					owner ?= { modifier:country_celtic_marriage_banned = yes }
+					scope:recipient = { owner ?= { modifier:country_celtic_marriage_banned = yes } }
+				}
+			}
+			OR = {
+				AND = {
+					culture = { has_culture_group = culture_group:celtic_group }
+					NOT = { scope:recipient.culture = { has_culture_group = culture_group:celtic_group } }
+				}
+				AND = {
+					scope:recipient.culture = { has_culture_group = culture_group:celtic_group }
+					NOT = { culture = { has_culture_group = culture_group:celtic_group } }
+				}
+			}
+		}
+		AND = {
+			culture = { has_culture_group = culture_group:celtic_group }
+			scope:recipient.culture = { has_culture_group = culture_group:celtic_group }
+		}
+		AND = {
+			NOT = { culture = { has_culture_group = culture_group:celtic_group } }
+			NOT = { scope:recipient.culture = { has_culture_group = culture_group:celtic_group } }
+		}
+	}
+}
+
+is_legally_male = {
+	custom_tooltip = {
+		text = is_legally_male
+		OR = {
+			is_female = no
+			modifier:is_praefecta = yes
+		}
+	}
+}
+
+is_a_praefecta = {
+	is_female = yes
+	modifier:is_praefecta = yes
+}
+
+character_can_join_order_of_chivalry = {
+	custom_tooltip = {
+		text = character_can_join_order_of_chivalry_tt
+		$character$ = {
+			is_adult = yes
+			trigger_if = {
+				limit = { $country$ = { has_policy = order_of_saint_george_policy } }
+				is_female = no
+			}
+			trigger_else_if = {
+				limit = { $country$ = { has_policy = order_of_the_ermine_policy } }
+				always = yes
+			}
+			trigger_else_if = {
+				limit = { $country$ = { has_policy = order_of_the_dragon_policy } }
+				OR = {
+					has_estate = estate_type:nobles_estate
+					has_estate = estate_type:crown_estate
+				}
+				is_female = no
+			}
+			trigger_else_if = {
+				limit = { $country$ = { has_policy = order_of_the_band_policy } }
+				OR = {
+					has_estate = estate_type:nobles_estate
+					has_estate = estate_type:crown_estate
+				}
+				OR = {
+					is_female = no
+					owner = { has_variable = allowed_women_in_band_order }
+				}
+			}
+			trigger_else_if = {
+				limit = { $country$ = { has_policy = order_of_the_swan_policy } }
+				OR = {
+					has_estate = estate_type:nobles_estate
+					has_estate = estate_type:crown_estate
+				}
+			}
+			trigger_else_if = {
+				limit = { $country$ = { has_policy = order_of_the_black_eagle_policy } }
+				OR = {
+					has_estate = estate_type:nobles_estate
+					has_estate = estate_type:crown_estate
+					is_general = yes
+				}
+			}
+			trigger_else_if = {
+				limit = { $country$ = { has_policy = order_of_the_white_eagle_policy } }
+				OR = {
+					has_estate = estate_type:nobles_estate
+					has_estate = estate_type:crown_estate
+					is_general = yes
+				}
+			}
+			trigger_else = {
+				always = no
+			}
+		}
+	}
+}
+
+has_religion_of_country_heir_law = {
+	trigger_if = {
+		limit = {
+			$country$ = {
+				modifier:heir_of_any_religion = yes
+			}
+		}
+		hidden_trigger = { always = yes }
+	}
+	trigger_else_if = {
+		limit = {
+			$country$ = {
+				modifier:heir_of_same_religion_group = yes
+			}
+		}
+		religion.group = $country$.religion.group
+	}
+	trigger_else = {
+		religion = $country$.religion
+	}
+}
+
+can_become_a_ruler = {
+	is_alive = yes
+	is_adult = yes
+	has_exploration = no
+	has_exploration_construction = no
+	modifier:blocked_from_cabinet = no
+	modifier:blocked_from_being_ruler = no
+	is_regent = no
+	is_religious_figure = no
+	is_artist = no
+	is_mercenary_leader = no
+}
+
+can_become_a_regent = {
+	can_become_a_ruler = yes
+	trigger_if = {
+		limit = {
+			owner ?= { modifier:heir_of_same_religion = yes }
+		}
+		religion = owner.religion
+	}
+	trigger_if = {
+		limit = {
+			owner ?= { modifier:heir_of_same_religion_group = yes }
+		}
+		religion.group = owner.religion.group
+	}
+}
+
+can_become_a_leader = {
+	is_alive = yes
+	is_adult = yes
+	is_artist = no
+	in_cabinet = no
+	has_exploration = no
+	has_exploration_construction = no
+	NOT = { exists = rebel }
+	modifier:blocked_from_being_leader = no
+	OR = {
+		NOT = { has_estate = estate_type:peasants_estate }
+		owner = { modifier:no_lowborn_leaders = yes }
+	}
+	OR = {
+		is_female = no
+		owner = { modifier:gender_equality = yes }
+	}
+}
+
+#This trigger key is used in code so don't change it
+should_use_location_scene_trigger = {
+	# root = character
+	# if evaluates true, we use the location illustration of the character's current location 
+	# if no, we use the character background scene
+	
+	OR = {
+		# does the character have an outdoorsy job?
+		#is_general = yes
+		is_admiral = yes
+		has_exploration = yes
+		has_exploration_construction = yes
+		has_estate = estate_type:peasants_estate
+		has_estate = estate_type:tribes_estate
+
+		# does the character belong to an outdoorsy country?
+		owner = {
+			country_type = pop
+		}
+	}
+}
+
+character_address_imperial_ruler_trigger = {
+	any_ruling_countries = {
+		NOR = {
+			has_reform = government_reform:shogunate
+		}
+		OR = {
+			AND = {
+				government_type = government_type:monarchy
+				country_rank = country_rank:rank_empire
+			}
+			is_leader_of_international_organization = international_organization:hre
+		}
+	}
+}
+
+character_address_royal_ruler_trigger = {
+	any_ruling_countries = {
+		OR = {
+			AND = {
+				government_type = government_type:monarchy
+				country_rank = country_rank:rank_kingdom
+			}
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:high_kingship
+				leader_country ?= prev
+			}
+		}
+	}
+}
+
+character_in_combat = {
+	custom_description = {
+		text = character_in_combat_text
+		OR = {
+			is_general = yes
+			is_admiral = yes
+		}
+		unit ?= {
+			in_combat = yes
+		}
+	}
+}

@@ -1,0 +1,241 @@
+﻿#root = country, scope:target = character who dies
+on_character_death = {
+	on_actions = {
+		on_cabinet_death
+		on_horde_pretender_death
+		on_tamil_rebel_death
+		on_prussian_crusader_death
+		on_timurid_governor_death
+		on_timurid_ruler_death
+	}
+	effect = {
+		#Remove favored heirs from supported_heirs
+		if = {
+			limit = {
+				has_variable_list = supported_heirs
+				scope:target = {
+					has_variable = home_country
+				}
+			}
+			if = {
+				limit = { 
+					scope:target.var:home_country ?= {
+						NOT = { this = root }
+					}
+				}
+				remove_relation = {
+					type = relation_type:support_heir
+					first = this
+					second = scope:target.var:home_country
+				}
+			}
+			remove_list_variable = {
+				name = supported_heirs
+				target = scope:target
+			}
+			if = {
+				limit = {
+					has_variable = favored_heir
+					var:favored_heir = scope:target
+				}
+				remove_variable = favored_heir
+			}
+		}
+		if = {
+			limit = {
+				scope:target = {
+					has_character_modifier = pol_blocked_from_marriage_betrothal
+				}
+			}
+			c:POL ?= {
+				trigger_event_non_silently = flavor_pol.46
+			}
+		}
+		if = {
+			limit = {
+				scope:target = {
+					has_variable = chi_captured_emperor_origin
+				}
+			}
+			trigger_event_non_silently = {
+				id = flavor_chi_mon.3
+			}
+		}
+		if = {
+			limit = {
+				c:FRA ?= {
+					has_country_modifier = fra_fleury_ministry
+				}		
+				scope:target = {
+					has_character_modifier = is_andre_fleury
+				}				
+			}
+			c:FRA ?= {
+				trigger_event_non_silently = flavor_fra.534
+			}
+		}
+		if = {
+			limit = {
+				scope:target ?= { has_variable = hostage_character_country }
+			}
+			scope:target ?= {
+				var:hostage_character_country ?= {
+					save_scope_as = origin_country
+					if = {
+						limit = {
+							has_trust = { modifier = trust_offered_hostage target = root }
+						}
+						remove_trust = { modifier = trust_offered_hostage target = root }
+					}
+					if = {
+						limit = {
+							has_opinion = { modifier = opinion_offered_hostage target = root }
+						}
+						remove_opinion = { modifier = opinion_offered_hostage target = root }
+					}
+				}
+			}
+			root ?= {
+				if = {
+					limit = {
+						has_trust = { modifier = trust_offered_hostage target = scope:origin_country }
+					}
+					remove_trust = { modifier = trust_offered_hostage target = scope:origin_country }
+				}
+				if = {
+					limit = {
+						has_opinion = { modifier = opinion_offered_hostage target = scope:origin_country }
+					}
+					remove_opinion = { modifier = opinion_offered_hostage target = scope:origin_country }
+				}
+			}
+		}
+		if = {
+			limit = {
+				tag_exists = MUG
+				country_exists = c:MUG
+				root = c:MUG
+				location:agra.owner ?= root
+				current_year > 1590
+				current_year < 1650
+				ruler ?= scope:target.first_spouse
+			}
+			scope:target = {
+				save_scope_as = target_character
+			}
+			trigger_event_silently = {
+				id = flavor_mug.6
+				years = 1
+			}
+		}
+		if = {
+			limit = {
+				scope:target = { 
+					has_variable = is_chinese_expedition_expedition_leader
+					has_global_variable = chinese_treasure_voyage_running
+					owner ?= global_var:chinese_treasure_voyage_running
+				}
+			}
+			scope:target = { save_scope_as = chinese_expedition_expedition_leader }
+			global_var:chinese_treasure_voyage_running = {
+				trigger_event_non_silently = {
+					id = flavor_chi.2021
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:target ?= { has_variable = wali_songo }
+			}
+			trigger_event_non_silently = {
+				id = flavor_maj.18
+			}
+		}
+	}
+}
+
+on_cabinet_death = {
+	trigger = {
+		scope:target = { in_cabinet = yes }
+	}
+	effect = {
+		if = {
+			limit = { scope:target = { has_character_modifier = head_of_the_cabinet_modifier } }
+			remove_head_of_cabinet_country_effect = yes
+		}
+	}
+}
+
+on_horde_pretender_death = {
+	trigger = {
+		scope:target = {
+			has_variable = scope_horde_pretender_var
+			var:scope_horde_pretender_var = {
+				NOT = { has_variable = horde_civil_war_can_end }
+			}
+		}
+	}
+	effect = {
+		scope:target = {
+			var:scope_horde_pretender_var = {
+				trigger_event_silently = horde_civil_war.3
+			}
+		}
+	}
+}
+
+on_tamil_rebel_death = {
+	trigger = {
+		scope:target = { has_variable = tamil_rebel_leader }
+	}
+	effect = {
+		trigger_event_silently = flavor_vij.1103
+	}
+}
+
+on_prussian_crusader_death = {
+	trigger = {
+		scope:target = { has_character_modifier = on_prussian_crusade }
+	}
+	effect = {
+		if = {
+			limit = { scope:target = { has_variable = pr_cr_home_country } }
+			scope:target = {
+				var:pr_cr_home_country = {
+					trigger_event_silently = flavor_teu.102
+				}
+			}
+		}
+	}
+}
+
+on_timurid_governor_death = {
+	trigger = {
+		OR = {
+			has_reform = government_reform:soyurghal_governor_banished_reform
+			has_reform = government_reform:soyurghal_governor_effective_governor_reform
+			has_reform = government_reform:soyurghal_governor_reform
+		}
+	}
+
+	events = {
+		flavor_tim_governor.1
+	}
+}
+
+on_timurid_ruler_death = {
+	trigger = {
+		any_subject = {
+			has_reform = government_reform:soyurghal_governor_banished_reform
+		}
+	}
+
+	effect = {
+		every_subject = {
+			limit = {
+				has_reform = government_reform:soyurghal_governor_banished_reform
+			}
+			trigger_event_silently = flavor_tim_governor.9
+		}
+	}
+}

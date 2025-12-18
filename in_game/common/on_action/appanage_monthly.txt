@@ -1,0 +1,52 @@
+﻿on_new_appanage = {
+	trigger = {
+		is_subject_type = appanage
+		overlord ?= { has_reform = government_reform:french_feudal_nobility }	
+		NOT = { has_reform = government_reform:french_appanage_reform } 
+	}
+	effect = {
+		add_reform = government_reform:french_appanage_reform
+	}
+}	
+on_vassalized_appanage = {
+	trigger = {
+		has_reform = government_reform:french_appanage_reform
+		OR = { # In case you 'vassalize' an Appanage, or have one thats a different subject type
+			is_independent_or_autonomous_subject = yes
+			NOT = { is_subject_type = appanage }
+			overlord ?= { NOT = { has_reform = government_reform:french_feudal_nobility } }
+		}	
+	}
+	effect = {
+		remove_reform = government_reform:french_appanage_reform
+		set_variable = { name = is_former_appanage_check value = 1 }
+	}
+}	
+on_former_independent_appanage = {
+	trigger = {
+		NOT = { overlord ?= { has_reform = government_reform:french_feudal_nobility } }
+		is_independent_or_autonomous_subject = yes	
+		has_variable = is_former_appanage_check
+	}
+	effect = {
+		c:FRA = {
+			add_casus_belli = { 
+				target = prev
+				type = casus_belli:cb_annex
+			}
+		}	
+		remove_variable = is_former_appanage_check
+	}
+}	
+on_disloyal_independent_appanage = {
+	trigger = {
+		is_subject_type = appanage
+		overlord ?= { has_reform = government_reform:french_feudal_nobility  }	
+		subject_loyalty < 33
+		has_global_variable = league_of_public_weal_enabled	
+		NOT = { in_union_with = c:FRA }
+	}
+	effect = {
+		trigger_event_silently = flavor_fra.2032
+	}
+}	
