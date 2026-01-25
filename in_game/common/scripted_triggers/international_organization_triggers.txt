@@ -1,0 +1,819 @@
+﻿#############################################
+# General IO triggers						#
+#############################################
+has_unlocked_resolution_trigger = {
+	custom_description = {
+		text = has_unlocked_resolution_trigger_text
+		value = resolution:$type$
+		has_variable = unlocked_resolution_$type$
+	}
+}
+
+#Law scope
+law_can_be_initiated_by_members = {
+	custom_description = {
+		text = law_can_be_initiated_by_members_text
+		OR = {
+			#Catholic Church Specific laws
+			this = law:cc_indulgences
+			this = law:cc_papal_authority
+			this = law:cc_veneration_of_saints_and_reliquaries
+			this = law:cc_simony
+			this = law:cc_society_of_jesus
+			this = law:cc_witchcraft
+			this = law:cc_marriage_of_priest
+		}
+	}
+}
+
+policy_is_voting_target = {
+	custom_description = {
+		text = policy_is_voting_target_text
+		object = $policy$
+		trigger_if = {
+			limit = {
+				resolution_is_active = resolution:policy_vote
+				has_variable = io_law_target
+			}
+			hidden_trigger = {
+				var:io_law_target = $policy$
+			}
+		}
+		trigger_else = {
+			NOT = { resolution_is_active = resolution:policy_vote }
+		}
+	}
+}
+
+has_currency_to_vote_for_law = {
+	trigger_if = {
+		limit = {
+			NOT = { resolution_is_active = resolution:policy_vote }
+		}
+		trigger_if = {
+			limit = { international_organization_type = international_organization_type:hre }
+			var:imperial_authority >= $value$
+		}
+		trigger_else_if = {
+			limit = { international_organization_type = international_organization_type:middle_kingdom }
+			var:celestial_authority >= $value$
+		}
+		trigger_else = {
+			hidden_trigger = {
+				always = yes
+			}
+		}
+	}
+	trigger_else = {
+		hidden_trigger = {
+			always = yes
+		}
+	}
+}
+
+can_have_parliament_called_by = {
+	custom_description = {
+		text = can_have_parliament_called_by_text
+		object = $country$
+		OR = {
+			AND = {
+				international_organization_has_leader = yes
+				leader_country ?= $country$
+			}
+			AND = {
+				modifier:allow_member_call_parliament = yes
+				trigger_if = {
+					limit = {
+						international_organization_type = international_organization_type:hre
+					}
+					$country$ = {
+						is_member_of_international_organization = prev
+						modifier:can_call_organization_parliament = yes
+					}
+				}
+				trigger_else = {
+					$country$ = { is_member_of_international_organization = prev }
+				}
+			}
+		}
+	}
+}
+
+has_proposed_parliament_issue_in = {
+	custom_description = {
+		text = has_proposed_parliament_issue_in_text
+		object = $international_organization$
+		has_variable_list = io_parliaments_called_list
+		is_target_in_variable_list = {
+			name = io_parliaments_called_list
+			target = $international_organization$
+		}
+	}
+}
+
+international_organization_has_unlocked_law_trigger = {
+	custom_description = {
+		text = international_organization_has_unlocked_law_trigger_text
+		value = law:$type$
+		has_variable = unlocked_law_$type$
+	}
+}
+international_organization_has_unlocked_policy_trigger = {
+	custom_description = {
+		text = international_organization_has_unlocked_policy_trigger_text
+		value = policy:$type$
+		has_variable = unlocked_policy_$type$
+	}
+}
+international_organization_has_unlocked_parliament_issue_trigger = {
+	custom_description = {
+		text = international_organization_has_unlocked_parliament_issue_trigger_text
+		value = parliament_issue:$type$
+		has_variable = unlocked_parliament_issue_$type$
+	}
+}
+international_organization_has_unlocked_parliament_agenda_trigger = {
+	custom_description = {
+		text = international_organization_has_unlocked_parliament_agenda_trigger_text
+		value = parliament_agenda:$type$
+		has_variable = unlocked_parliament_agenda_$type$
+	}
+}
+international_organization_has_unlocked_parliament_type_trigger = {
+	custom_description = {
+		text = international_organization_has_unlocked_parliament_type_trigger_text
+		value = parliament_type:$type$
+		has_variable = unlocked_parliament_type_$type$
+	}
+}
+
+international_organization_has_locked_law = {
+	custom_description = {
+		text = international_organization_has_locked_law_text
+		object = law:$law$
+		international_organization_has_law = law:$law$
+	}
+}
+
+is_leader_of_international_organization_of_type = { #this = country
+	custom_description = {
+		text = is_leader_of_international_organization_of_type_text
+		value = international_organization_type:$type$
+		any_international_organizations_member_of = {
+			international_organization_type = international_organization_type:$type$
+			leader_country ?= prev
+		}
+	}
+}
+
+uses_parliament_for_law_votes_trigger = {
+	has_parliament = yes
+	modifier:uses_parliament_for_law_votes = yes
+}
+
+has_valid_policy_vote_proposer = {
+	custom_description = {
+		text = has_valid_policy_vote_proposer_text
+		has_variable = io_law_proposer
+		exists = var:io_law_proposer
+		country_exists = var:io_law_proposer
+	}
+}
+
+
+#Created the scripted effect because it is not super intuitive that a country has to leave the vote empty to vote nothing
+#Only usable for resolutions which allow a null object target
+has_abstained_vote = {
+	custom_description = {
+		text = has_abstained_vote_text
+		subject = $voter$
+		object = $resolution$
+		has_voted_for = {
+			voter = $voter$
+			resolution = $resolution$
+		}
+	}
+}
+
+################################################
+# Holy Roman Empire International Organization #
+################################################
+emperor_exists = {
+	unique_international_organization_type_exists = international_organization_type:hre
+	international_organization:hre = {
+		international_organization_has_leader = yes
+	}
+}
+
+hre_has_locked_law = {
+	international_organization:hre = {
+		has_variable = hre_locked_law_$law$
+	}
+}
+
+hre_has_enabled_all_imperial_laws = {
+	custom_tooltip = {
+		text = hre_has_enabled_all_imperial_laws_tt
+		international_organization:hre = {
+			has_variable = hre_enabled_all_imperial_laws
+		}
+	}
+}
+hre_has_disabled_all_imperial_laws = {
+	custom_tooltip = {
+		text = hre_has_enabled_all_imperial_laws_tt
+		international_organization:hre = {
+			NOT = { has_variable = hre_enabled_all_imperial_laws }
+		}
+	}
+}
+hre_has_enabled_imperial_privileges = {
+	custom_tooltip = {
+		text = hre_has_enabled_imperial_privileges_tt
+		international_organization:hre = {
+			has_variable = hre_enabled_imperial_privileges
+		}
+	}
+}
+hre_has_disabled_imperial_privileges = {
+	custom_tooltip = {
+		text = hre_has_disabled_imperial_privileges_tt
+		international_organization:hre = {
+			NOT = { has_variable = hre_enabled_imperial_privileges }
+		}
+	}
+}
+
+hre_imperial_religion = {
+	custom_tooltip = {
+		text = hre_imperial_religion_$value$_tt
+		international_organization:hre = {
+			has_variable = hre_imperial_religion
+			var:hre_imperial_religion = $type$:$value$
+		}
+	}
+}
+hre_country_is_of_imperial_religion = {
+	trigger_if = {
+		limit = {
+			exists = international_organization:hre
+			international_organization:hre = { has_variable = hre_imperial_religion }
+		}
+		religion = international_organization:hre.var:hre_imperial_religion
+	}
+}
+hre_country_is_not_of_imperial_religion = {
+	trigger_if = {
+		limit = {
+			exists = international_organization:hre
+			international_organization:hre = { has_variable = hre_imperial_religion }
+		}
+		NOT = { religion = international_organization:hre.var:hre_imperial_religion }
+	}
+}
+hre_country_is_of_imperial_religion_group = {
+	trigger_if = {
+		limit = {
+			exists = international_organization:hre
+			international_organization:hre = { has_variable = hre_imperial_religion_group }
+		}
+		religion.group = international_organization:hre.var:hre_imperial_religion_group
+	}
+}
+hre_country_is_not_of_imperial_religion_group = {
+	trigger_if = {
+		limit = {
+			exists = international_organization:hre
+			international_organization:hre = { has_variable = hre_imperial_religion_group }
+		}
+		NOT = { religion.group = international_organization:hre.var:hre_imperial_religion_group }
+	}
+}
+hre_country_breaks_imperial_religion = {
+	trigger_if = {
+		limit = { international_organization:hre = { international_organization_has_policy = policy:only_imperial_religion_policy } }
+		hre_country_is_not_of_imperial_religion = yes
+	}
+	trigger_else = {
+		hre_country_is_not_of_imperial_religion_group = yes
+	}
+}
+
+hre_has_selected_policy_of_this_law = {
+	international_organization:hre = {
+		trigger_if = {
+			limit = { NOT = { has_variable = hre_has_enacted_reform_for_$law$ } }
+			custom_description = {
+				text = hre_has_selected_policy_of_this_law_text
+				object = law:$law$
+				has_variable = hre_has_enacted_reform_for_$law$
+			}
+		}
+	}
+}
+hre_can_select_adjacent_reform_level = {
+	international_organization:hre = {
+		trigger_if = {
+			limit = { has_variable = hre_has_enacted_reform_for_$law$ }
+			trigger_if = {
+				limit = { var:hre_has_enacted_reform_for_$law$ > $upper_level$ }
+				custom_description = {
+					text = hre_can_select_adjacent_reform_level_low
+					object = law:$law$
+					value = $upper_level$
+					var:hre_has_enacted_reform_for_$law$ <= $upper_level$
+				}
+			}
+			trigger_if = {
+				limit = { var:hre_has_enacted_reform_for_$law$ < $lower_level$ }
+				custom_description = {
+					text = hre_can_select_adjacent_reform_level_up
+					object = law:$law$
+					value = $lower_level$
+					var:hre_has_enacted_reform_for_$law$ >= $lower_level$
+				}
+			}
+		}
+	}
+}
+
+hre_voting_bound_to_religion = {
+	custom_tooltip = {
+		text = hre_voting_bound_to_religion_tt
+		international_organization:hre = {
+			has_variable = hre_voting_to_religion
+		}
+	}
+}
+hre_voting_not_bound_to_religion = {
+	custom_tooltip = {
+		text = hre_voting_not_bound_to_religion_tt
+		international_organization:hre = {
+			NOT = { has_variable = hre_voting_to_religion }
+		}
+	}
+}
+hre_voting_bound_to_religion_group = {
+	custom_tooltip = {
+		text = hre_voting_bound_to_religion_group_tt
+		international_organization:hre = {
+			has_variable = hre_voting_to_religion_group
+		}
+	}
+}
+hre_voting_not_bound_to_religion_group = {
+	custom_tooltip = {
+		text = hre_voting_not_bound_to_religion_group_tt
+		international_organization:hre = {
+			NOT = { has_variable = hre_voting_to_religion_group }
+		}
+	}
+}
+hre_voting_unbound_from_religion = {
+	custom_tooltip = {
+		text = hre_voting_unbound_from_religion_tt
+		international_organization:hre = {
+			has_variable = hre_voting_no_religion_requirement
+		}
+	}
+}
+hre_voting_not_unbound_from_religion = {
+	custom_tooltip = {
+		text = hre_voting_not_unbound_from_religion_tt
+		international_organization:hre = {
+			NOT = { has_variable = hre_voting_no_religion_requirement }
+		}
+	}
+}
+
+hre_electorship_bound_to_religion = {
+	custom_tooltip = {
+		text = hre_electorship_bound_to_religion_tt
+		international_organization:hre = {
+			has_variable = hre_electorship_to_religion
+		}
+	}
+}
+hre_electorship_not_bound_to_religion = {
+	custom_tooltip = {
+		text = hre_electorship_not_bound_to_religion_tt
+		international_organization:hre = {
+			NOT = { has_variable = hre_electorship_to_religion }
+		}
+	}
+}
+hre_electorship_bound_to_religion_group = {
+	custom_tooltip = {
+		text = hre_electorship_bound_to_religion_group_tt
+		international_organization:hre = {
+			has_variable = hre_electorship_to_religion_group
+		}
+	}
+}
+hre_electorship_not_bound_to_religion_group = {
+	custom_tooltip = {
+		text = hre_electorship_not_bound_to_religion_group_tt
+		international_organization:hre = {
+			NOT = { has_variable = hre_electorship_to_religion_group }
+		}
+	}
+}
+hre_electorship_unbound_from_religion = {
+	custom_tooltip = {
+		text = hre_electorship_unbound_from_religion_tt
+		international_organization:hre = {
+			has_variable = hre_electorship_no_religion_requirement
+		}
+	}
+}
+hre_electorship_not_unbound_from_religion = {
+	custom_tooltip = {
+		text = hre_electorship_not_unbound_from_religion_tt
+		international_organization:hre = {
+			NOT = { has_variable = hre_electorship_no_religion_requirement }
+		}
+	}
+}
+
+hre_country_fulfills_imperial_religion_requirement = {
+	custom_tooltip = {
+		text = hre_country_fulfills_imperial_religion_requirement_tt
+		trigger_if = {
+			limit = { hre_$type$_bound_to_religion = yes }
+			hre_country_is_of_imperial_religion = yes
+		}
+		trigger_else_if = {
+			limit = { hre_$type$_bound_to_religion_group = yes }
+			hre_country_is_of_imperial_religion_group = yes
+		}
+		trigger_else = {
+			always = yes
+		}
+	}
+}
+
+
+hre_has_fixed_succession = {
+	custom_tooltip = {
+		text = hre_has_fixed_succession_tt
+		international_organization:hre = {
+			has_variable = hre_fixed_succession
+		}
+	}
+}
+hre_has_not_fixed_succession = {
+	custom_tooltip = {
+		text = hre_has_not_fixed_succession_tt
+		international_organization:hre = {
+			NOT = { has_variable = hre_fixed_succession }
+		}
+	}
+}
+
+hre_num_of_emperor_comfort_policies_active = {
+	custom_tooltip = {
+		text = hre_num_of_emperor_comfort_policies_active_$value$_tt
+		international_organization:hre = {
+			modifier:hre_emperor_comfort_policies_counter >= $value$
+		}
+	}
+}
+
+hre_disallowed_emperor_reform_proposal = {
+	custom_tooltip = {
+		text = hre_disallowed_emperor_reform_proposals_tt
+		international_organization:hre = { has_variable = hre_emperor_cannot_change_policies }
+	}
+}
+hre_allowed_emperor_reform_proposal = {
+	trigger_if = {
+		limit = { international_organization:hre = { has_variable = hre_emperor_cannot_change_policies } }
+		custom_tooltip = {
+			text = hre_allowed_emperor_reform_proposals_tt
+			international_organization:hre = { NOT = { has_variable = hre_emperor_cannot_change_policies } }
+		}
+	}
+}
+
+hre_disabled_free_cities = {
+	custom_tooltip = {
+		text = hre_disabled_free_cities_tt
+		has_variable = hre_disabled_free_cities
+	}
+}
+hre_enabled_free_cities = {
+	custom_tooltip = {
+		text = hre_enabled_free_cities_tt
+		NOT = { has_variable = hre_disabled_free_cities }
+	}
+}
+
+hre_disabled_free_cities_protection = {
+	custom_tooltip = {
+		text = hre_disabled_free_cities_protection_tt
+		has_variable = hre_free_cities_disabled_protection
+	}
+}
+hre_enabled_free_cities_protection = {
+	custom_tooltip = {
+		text = hre_enabled_free_cities_protection_tt
+		NOT = { has_variable = hre_free_cities_disabled_protection }
+	}
+}
+
+hre_has_free_city_subjects = {
+	custom_tooltip = {
+		text = hre_has_free_city_subjects_tt
+		has_variable = hre_free_cities_subject
+	}
+}
+hre_has_not_free_city_subjects = {
+	custom_tooltip = {
+		text = hre_has_not_free_city_subjects_tt
+		NOT = { has_variable = hre_free_cities_subject }
+	}
+}
+hre_has_direct_free_city_subjects = {
+	custom_tooltip = {
+		text = hre_has_direct_free_city_subjects_tt
+		has_variable = hre_direct_free_cities_subject
+	}
+}
+hre_has_not_direct_free_city_subjects = {
+	custom_tooltip = {
+		text = hre_has_not_direct_free_city_subjects_tt
+		NOT = { has_variable = hre_direct_free_cities_subject }
+	}
+}
+
+current_imperial_authority = {
+	custom_description = {
+		text = current_imperial_authority_text
+		value = $value$
+		international_organization:hre ?= {
+			var:imperial_authority >= $value$
+		}
+	}
+}
+
+hre_is_perpetual_diet_location = {
+	custom_tooltip = {
+		text = hre_is_perpetual_diet_location_tt
+		has_variable = diet_location
+		var:diet_location = yes
+	}
+}
+
+##############################################
+# Middle Kingdome International Organization #
+##############################################
+
+current_celestial_authority = {
+	custom_description = {
+		text = current_celestial_authority_text
+		value = $value$
+		international_organization:middle_kingdom ?= {
+			var:celestial_authority >= $value$
+		}
+	}
+}
+
+##############################################
+# Personal Unions International Organization #
+##############################################
+is_same_ruler_personal_union = {
+	custom_description = {
+		text = is_same_ruler_personal_union_text
+		any_international_organization_member = {
+			ruler_or_heir_if_regent ?= { save_temporary_scope_as = ruler_character }
+		}
+		any_international_organization_member = {
+			ruler_or_heir_if_regent ?= scope:ruler_character
+			count > 1
+		}
+	}
+}
+
+has_union_integration_level_as_union = {
+	trigger_if = {
+		limit = {
+			exists = union
+			has_variable = integrated_in_union
+			union = {
+				modifier:union_integration_level >= 0
+			}
+		}
+		var:integrated_in_union >= union.modifier:union_integration_level
+	}
+	trigger_else = {
+		exists = union
+	}
+}
+
+has_not_union_integration_level_as_union = {
+	exists = union
+	union = {
+		modifier:union_integration_level >= 0
+	}
+	OR = {
+		NOT = { has_variable = integrated_in_union }
+		var:integrated_in_union < union.modifier:union_integration_level
+	}
+}
+
+has_consistent_integration_level = {
+	custom_description = {
+		text = has_consistent_integration_level_text
+		modifier:union_integration_level > 0
+		any_international_organization_member = {
+			has_variable = integrated_in_union
+			var:integrated_in_union >= prev.modifier:union_integration_level	#>= because the variables increase happens BEFORE the new modifier value is updated
+			count = all
+		}
+	}
+}
+
+has_not_consistent_integration_level = {
+	custom_description = {
+		text = not_has_consistent_integration_level_text
+		OR = {
+			NOT = { modifier:union_integration_level > 0 }
+			any_international_organization_member = {
+				NOT = {
+					prev = {
+						country_has_special_status = {
+							type = special_status:senior_partner
+							country = prev
+						}
+					}
+				}
+				OR = {
+					NOT = { has_variable = integrated_in_union }
+					NOT = { var:integrated_in_union ?= prev.modifier:union_integration_level }
+				}
+			}
+		}
+	}
+}
+
+country_is_senior_partner = {
+	international_organization_has_policy = policy:union_establish_seniority_policy
+	country_has_special_status = {
+		type = special_status:senior_partner
+		country = $country$
+	}
+}
+
+is_most_likely_candidate_for_seniority = {
+	trigger_if = {
+		limit = { exists = $union$ }
+		save_temporary_scope_value_as = {
+			name = union_highest_non_root_great_power_score
+			value = {
+				value = 0
+				$union$ = {
+					ordered_international_organization_member = {
+						limit = { this != root }
+						order_by = great_power_score
+						max = 1
+						check_range_bounds = no
+						add = great_power_score
+					}
+				}
+			}
+		}
+		great_power_score >= scope:union_highest_non_root_great_power_score
+	}
+	trigger_else = {
+		exists = $union$
+	}
+}
+
+get_senior_partner = {
+	trigger_if = {
+		limit = { exists = $union$ }
+		save_temporary_scope_value_as = {
+			name = union_highest_non_root_great_power_score
+			value = {
+				value = 0
+				$union$ = {
+					ordered_country_with_special_status_of_type = {
+						type = senior_partner
+						limit = { this != root }
+						order_by = great_power_score
+						max = 1
+						check_range_bounds = no
+						add = great_power_score
+					}
+				}
+			}
+		}
+		$union$ = {
+			any_international_organization_member = {
+				great_power_score >= scope:union_highest_non_root_great_power_score
+				save_temporary_scope_as = senior_partner_scope
+			}
+		}
+	}
+	trigger_else = {
+		exists = $union$
+	}
+}
+
+get_most_likely_candidate_for_seniority = {
+	trigger_if = {
+		limit = { exists = $union$ }
+		save_temporary_scope_value_as = {
+			name = union_highest_non_root_great_power_score
+			value = {
+				value = 0
+				$union$ = {
+					ordered_international_organization_member = {
+						order_by = great_power_score
+						max = 1
+						check_range_bounds = no
+						add = great_power_score
+					}
+				}
+			}
+		}
+		$union$ = {
+			trigger_if = {
+				limit = { has_variable = pre_selected_senior_partner }
+				var:pre_selected_senior_partner = {
+					great_power_score >= scope:union_highest_non_root_great_power_score
+					save_temporary_scope_as = likely_senior_partner
+				}
+			}
+			trigger_else = {
+				any_international_organization_member = {
+					great_power_score >= scope:union_highest_non_root_great_power_score
+					save_temporary_scope_as = likely_senior_partner
+				}
+			}
+		}
+	}
+	trigger_else = {
+		exists = $union$
+	}
+}
+
+has_active_senior_partner = {	
+	international_organization_has_policy = policy:union_establish_seniority_policy
+	trigger_if = {
+		limit = { has_special_status_available = special_status:senior_partner }
+		any_country_with_special_status_of_type = {
+			type = senior_partner
+			government_type = government_type:monarchy
+		}
+	}
+	trigger_else = {
+		has_special_status_available = special_status:senior_partner
+	}
+}
+
+union_flavor_is_plc = {
+	any_country_with_special_status_of_type = {
+		type = senior_partner
+		tag = POL
+	}
+	any_international_organization_member = { tag = LIT }
+}
+union_flavor_is_lpc = {
+	any_country_with_special_status_of_type = {
+		type = senior_partner
+		tag = LIT
+	}
+	any_international_organization_member = { tag = POL }
+}
+union_flavor_is_kalmar_union = {
+	any_international_organization_member = { tag = DAN }
+	any_international_organization_member = { tag = SWE }
+	any_international_organization_member = { tag = NOR }
+}
+union_flavor_is_great_britain = {
+	any_international_organization_member = { tag = ENG }
+	any_international_organization_member = { tag = SCO }
+}
+union_flavor_is_spain = {
+	OR = {
+		AND = {
+			any_international_organization_member = { tag = SPA }
+			any_international_organization_member = { tag = POR }
+		}
+		AND = {
+			any_international_organization_member = { tag = CAS }
+			any_international_organization_member = { tag = ARA }
+			any_international_organization_member = { tag = POR }
+		}
+	}
+}
+union_flavor_is_habsburg = {
+	any_country_with_special_status_of_type = {
+		type = senior_partner
+		ruler_or_heir_if_regent ?= {
+			has_dynasty = yes
+			dynasty ?= dynasty:habsburg_dynasty
+		}
+	}
+}

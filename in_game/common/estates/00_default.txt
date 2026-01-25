@@ -1,0 +1,865 @@
+﻿crown_estate = {
+	color = estate_crown
+	power_per_pop = 0
+	tax_per_pop = 0
+	rival = 0
+	alliance = 0
+
+	revolt_court_language = court_language
+
+	priority_for_dynasty_head = yes # when calculating a new dynasty head, the dynasty will check characters of this estate first before falling back to the other estates
+	
+	can_spawn_random_characters = no
+
+	#multiplied with (satisfaction - LOW_SATISFACTION_THRESHOLD)
+	satisfaction = {
+		#not shown for ruler-estate, and as satisfaction is always at max.
+	}
+
+	#multiplied with (relative_power - LOW_POWER_THRESHOLD) if > LOW_POWER_THRESHOLD
+	high_power = {
+		country_cabinet_efficiency = 1.0
+		power_projection = 5
+		building_upkeep_costs = -1.0
+		revoke_privilege_cost_modifier = -1
+		court_spending_cost = -0.05
+		change_policy_cost_modifier = -0.5
+		global_estate_target_satisfaction = crown_power_estate_satisfaction_impact
+	}
+	
+	
+	#multiplied with -(relative_power - LOW_POWER_THRESHOLD) if < LOW_POWER_THRESHOLD
+	low_power = {
+		country_cabinet_efficiency = -1.0
+		estate_building_destruction_satisfaction_impact = -0.66
+		change_policy_cost_modifier = 0.5
+		tax_income_efficiency = -1.0
+		diplomatic_reputation = -2
+		building_upkeep_costs = 2.0
+	}
+	
+	power = {
+		parliament_base_support = 0.5
+		trade_income = 1.0
+	}
+
+	ruler = yes
+	
+}
+
+
+nobles_estate = {
+	color = pop_nobles
+	power_per_pop = 25
+	tax_per_pop = 150
+	rival = -0.01
+	alliance = 0.01
+
+	
+
+	characters_have_dynasty = always # new characters always spawn with a dynasty
+	can_generate_mercenary_leaders = yes
+	bank = yes 	#can and will loan money
+
+	revolt_court_language = court_language
+	
+
+	#multiplied with (satisfaction - LOW_SATISFACTION_THRESHOLD)
+	satisfaction = {
+		counter_espionage = 0.2
+		monthly_prestige = 0.2
+	}
+	
+	#multiplied with (relative_power - LOW_POWER_THRESHOLD) if > LOW_POWER_THRESHOLD
+	high_power = {
+		nobles_estate_max_tax = -0.5
+		levy_combat_efficiency_modifier = 1.0
+		fort_limit_modifier = 1.0
+		monthly_towards_aristocracy = societal_value_significant_monthly_move
+	}
+	
+	
+	#multiplied with -(relative_power - LOW_POWER_THRESHOLD) if < LOW_POWER_THRESHOLD
+	low_power = {
+		nobles_estate_max_tax = 0.5
+	}
+	
+	opinion = {
+		add = {
+			desc = "ESTATE_OPINION_BASE"
+			value = "opinion(scope:target)"
+			multiply = 0.05
+		}
+
+		add = {
+			desc = "ESTATE_OPINION_PRESTIGE"
+			value = prestige
+			subtract = scope:target.prestige
+			multiply = 0.05
+		}
+		
+		add = {
+			desc = "ESTATE_OPINION_POWER_PROJECTION"
+			value = power_projection
+			subtract = scope:target.power_projection
+			multiply = 0.1
+		}
+		
+		add = {
+			desc = "aristocracy_vs_plutocracy"
+			value = {
+				value = societal_value:aristocracy_vs_plutocracy
+				multiply = -1
+				divide = 10
+			}
+		}
+		
+		add = {
+			desc = "serfdom_vs_free_subjects"
+			value = {
+				value = societal_value:serfdom_vs_free_subjects
+				multiply = -1
+				divide = 10
+			}
+		}
+
+		if = {
+			
+			limit = {
+				government_type = government_type:monarchy
+				scope:target = { government_type = government_type:monarchy }
+			}	
+			add = {
+				desc = "ESTATE_OPINION_BOTH_MONARCHY"
+				value = 5
+			}
+		}
+		
+		add = {
+			desc = "ESTATE_OPINION_TARGET_N_ESTATE_POWER"
+			value = "scope:target.estate_power(estate_type:nobles_estate)"
+			multiply = 5
+		}
+		
+		add = {
+			desc = "ESTATE_OPINION_TARGET_DIPLOMATIC_REPUTATION"
+			value = scope:target.modifier:diplomatic_reputation
+			multiply = 0.25
+		}
+		
+		if = {
+			limit = {
+				culture.cultural_influence < scope:target.culture.cultural_influence
+			}	
+			
+			add = {
+				desc = "ESTATE_OPINION_HIGHER_CULTURE_INF"
+				value = 5
+			}
+		}
+
+
+		if = {
+			limit = {
+				expected_army_size < scope:target.expected_army_size
+			}	
+			add = {
+				desc = "ESTATE_OPINION_HIGHER_MIL_POWER"
+				value = -10
+			}
+		}
+
+
+		if = {
+			limit = {
+				country_art_quality > scope:target.country_art_quality
+			}	
+
+
+			add = {
+				desc = "ESTATE_OPINION_LOWER_ART"
+				value = -10
+			}
+		}
+
+		
+		
+		if = {
+			limit = {
+				is_neighbor_of = scope:target
+			}	
+			
+			add = {
+				desc = "ESTATE_OPINION_NEIGHBOR"
+				value = -5
+			}
+		}
+
+		if = {
+			limit = {
+				court_language = scope:target.court_language
+			}
+			add = {
+				desc = "ESTATE_OPINION_SAME_COURT_LANGUAGE"
+				value = 5
+			}
+		}
+
+		if = {
+			limit = {
+				language = scope:target.court_language
+			}
+			add = {
+				desc = "ESTATE_OPINION_COURT_LANGUAGE_IS_OUR_COMMON_LANGUAGE"
+				value = 5
+			}
+		}
+		
+		
+		if = {
+			limit = {
+				is_subject_of = scope:target
+			}
+			if = {
+				limit = { is_disloyal_subject = yes }
+				add = {
+					desc = "ESTATE_OPINION_SUBJECT_DISLOYAL"
+					value = -10
+				}
+			}
+			else = {
+				add = {
+					desc = "ESTATE_OPINION_SUBJECT_LOYAL"
+					value = 10
+				}
+			}
+		}
+		else_if = {
+			limit = { any_subject = { this = scope:target } }
+			if = {
+				limit = {
+					scope:target = { is_disloyal_subject = yes }
+				}
+				add = {
+					desc = "ESTATE_OPINION_SUBJECT_DISLOYAL"
+					value = -10
+				}
+			}
+			else = {
+				add = {
+					desc = "ESTATE_OPINION_SUBJECT_LOYAL"
+					value = 10
+				}
+			}
+		}
+		
+	}
+}
+
+
+clergy_estate = {
+	color = pop_clergy
+	power_per_pop = 10
+	tax_per_pop = 25
+	rival = -0.01
+	alliance = 0.01
+	
+	revolt_court_language = liturgical_language
+	characters_have_dynasty = sometimes # new characters may spawn with a dynasty
+	can_generate_mercenary_leaders = no
+	
+	bank = yes 	#can and will loan money
+
+	#multiplied with (satisfaction - LOW_SATISFACTION_THRESHOLD)
+	satisfaction = {
+		research_speed_modifier = 0.5
+		diplomatic_reputation = 2
+	}	
+	#multiplied with (relative_power - LOW_POWER_THRESHOLD) if > LOW_POWER_THRESHOLD
+	high_power = {
+		clergy_estate_max_tax = -0.5
+		global_pop_conversion_speed_modifier = 2.0
+		stability_cost = -0.5
+		monthly_towards_spiritualist = societal_value_significant_monthly_move
+	}
+	
+	
+	#multiplied with -(relative_power - LOW_POWER_THRESHOLD) if < LOW_POWER_THRESHOLD
+	low_power = {
+		clergy_estate_max_tax = 0.25
+	}
+	
+	opinion = {
+		add = {
+			desc = "ESTATE_OPINION_BASE"
+			value = "opinion(scope:target)"
+			multiply = 0.05
+		}
+
+		if = {
+			limit = {
+				 scope:target.religion = religion
+			}	
+			add = {
+				desc = "ESTATE_OPINION_TRUE_FAITH"
+				value = 10
+				multiply = modifier:tolerance_own
+			}
+		}
+
+		if = {
+			limit = {
+				 scope:target.religion != religion
+				 scope:target.religion.group = religion.group
+			}	
+			add = {
+				desc = "ESTATE_OPINION_HERETIC"
+				value = 10
+				multiply = modifier:tolerance_heretic
+			}
+		}
+
+		
+		if = {
+			limit = {
+				 scope:target.religion.group != religion.group
+			}	
+			add = {
+				desc = "ESTATE_OPINION_HEATHEN"
+				value = 10
+				multiply = modifier:tolerance_heathen
+			}
+		}
+
+
+		add = {
+			desc = "ESTATE_OPINION_TARGET_C_ESTATE_POWER"
+			value = "scope:target.estate_power(estate_type:clergy_estate)"
+			subtract = 0.15
+			multiply = 6
+		}
+
+
+
+		if = {
+			limit = {
+				scope:target.religious_unity < 0.90
+			}	
+			add = {
+				desc = "ESTATE_OPINION_RELIGIOUS_UNITY"
+				value = 1
+				subtract = scope:target.religious_unity
+				multiply = -10
+			}
+		}
+
+
+		add = {
+			desc = "spiritualist_vs_humanist"
+			value = {
+				value = societal_value:spiritualist_vs_humanist
+				multiply = -1
+				divide = 10
+				multiply = "religion.religious_view_impact(scope:target.religion)"
+			}
+		}
+	
+
+	
+	
+		add = {
+			desc = "ESTATE_OPINION_TARGET_ADVANCED"
+			value = num_of_advances_researched
+			subtract = scope:target.num_of_advances_researched
+			multiply = -0.05
+			max = 5
+		}
+		
+
+		if = {
+			limit = {
+				scope:target = { 
+					government_type = government_type:theocracy
+				}
+			}	
+			add = {
+				desc = "ESTATE_OPINION_THEOCRACY"
+				value = 5
+				multiply = "religion.religious_view_impact(scope:target.religion)"
+			}
+		}
+
+
+
+		if = {
+			limit = {
+				scope:target.liturgical_language ?= liturgical_language
+			}	
+			add = {
+				desc = "ESTATE_OPINION_SAME_LITURGICAL"
+				value = 10
+			}
+		}
+
+		if = {
+			limit = {
+				scope:target.court_language ?= liturgical_language
+			}	
+			add = {
+				desc = "ESTATE_OPINION_THEIR_COURT_LITURGICAL"
+				value = 10
+			}
+		}
+
+		if = {
+			limit = {
+				scope:target = { 
+					religion = root.religion
+					has_reform =government_reform:papacy_reform 
+				}
+			}	
+			add = {
+				desc = "ESTATE_OPINION_HOLY_SEE"
+				value = 20
+			}
+		}
+		
+		
+		
+		if = {
+			limit = {
+				OR = {
+					has_reform =government_reform:military_order_reform 
+					has_estate_privilege = estate_privilege:clergy_military_orders
+				}
+
+				scope:target = { 
+					religion = root.religion
+					OR = {
+						has_reform =government_reform:military_order_reform 
+						has_estate_privilege = estate_privilege:clergy_military_orders
+					}
+				}
+			}	
+			add = {
+				desc = "ESTATE_OPINION_BOTH_MIL_ORDERS"
+				value = 10
+			}
+		}
+	}
+}
+
+
+burghers_estate = {
+	color = pop_burghers
+	power_per_pop = 2
+	tax_per_pop = 20
+	rival = -0.01
+	alliance = 0.01
+	
+	revolt_court_language = common_language
+	characters_have_dynasty = sometimes # new characters may spawn with a dynasty
+	can_generate_mercenary_leaders = yes
+	
+	bank = yes 	#can and will loan money
+	
+	#multiplied with (satisfaction - LOW_SATISFACTION_THRESHOLD)
+	satisfaction = {
+		global_merchant_power = 0.5
+		global_production_efficiency = medium_production_efficiency_bonus
+	}
+	#multiplied with (relative_power - LOW_POWER_THRESHOLD) if > LOW_POWER_THRESHOLD
+	high_power = {
+		burghers_estate_max_tax = -0.5
+		global_merchant_capacity_modifier = 1.0
+		navy_maintenance_cost = -0.33
+		monthly_towards_plutocracy = societal_value_significant_monthly_move
+	}
+	
+	
+	#multiplied with -(relative_power - LOW_POWER_THRESHOLD) if < LOW_POWER_THRESHOLD
+	low_power = {
+		burghers_estate_max_tax = 0.5
+	}
+	
+	opinion = {
+		add = {
+			desc = "ESTATE_OPINION_BASE"
+			value = "opinion(scope:target)"
+			multiply = 0.05
+		}
+		
+		
+		
+		
+		add = {
+			desc = "ESTATE_OPINION_TARGET_B_ESTATE_POWER"
+			value = "scope:target.estate_power(estate_type:burghers_estate)"
+			subtract = 0.2
+			multiply = 5
+		}
+		
+		
+		add = {
+			desc = "ESTATE_OPINION_MERCHANT_CAPACITY"
+			value = total_merchant_capacity
+			subtract = scope:target.total_merchant_capacity
+			multiply = 0.1
+			max = 5
+			min = -5
+		}
+		
+		add = {
+			desc = "capital_economy_vs_traditional_economy"
+			value = {
+				value = societal_value:capital_economy_vs_traditional_economy
+				multiply = -1
+				divide = 10
+			}
+		}
+		
+		add = {
+			desc = "aristocracy_vs_plutocracy"
+			value = {
+				value = societal_value:aristocracy_vs_plutocracy
+				divide = 10
+			}
+		}
+		
+		add = {
+			desc = "mercantilism_vs_free_trade"
+			value = {
+				value = societal_value:mercantilism_vs_free_trade
+				divide = 10
+			}
+		}
+		
+		
+		if = {
+			limit = {
+				capital.market.language = scope:target.capital.market.language
+			}
+			add = {
+				desc = "ESTATE_OPINION_OUR_MARKET_LANGUAGE"
+				value = 10
+			}
+		}
+		
+		
+		if = {
+			limit = {
+				capital.market = { has_merchant = scope:target }
+			}	
+			add = {
+				desc = "ESTATE_OPINION_MERCHANT_IN_CAPITAL"
+				value = -5
+			}
+		}
+		
+		
+		if = {
+			limit = {
+				scope:target.capital.market = { has_merchant = root }
+			}	
+			add = {
+				desc = "ESTATE_OPINION_OUR_MERCHANT_IN_THEIR_CAPITAL"
+				value = 10
+			}
+		}
+
+
+		if = {
+			
+			limit = {
+				government_type = government_type:republic
+				scope:target = { government_type = government_type:republic }
+			}	
+			add = {
+				desc = "ESTATE_OPINION_BOTH_REPUBLIC"
+				value = 5
+			}
+		}
+		
+		
+		if = {
+			limit = {
+				is_embargoed_by = scope:target
+			}	
+			add = {
+				desc = "ESTATE_OPINION_EMBARGOING_US"
+				value = -5
+			}
+		}
+
+
+	}
+}
+
+
+peasants_estate = {
+	color = pop_peasants
+	power_per_pop  = 0.025
+	tax_per_pop = 1
+	rival = -0.01
+	alliance = 0.01
+	
+	bank = yes 	#can and will loan money
+	
+	revolt_court_language = common_language
+	characters_have_dynasty = never # new characters never spawn with a dynasty
+	use_diminutive = yes
+	can_generate_mercenary_leaders = yes
+	
+	#multiplied with (satisfaction - LOW_SATISFACTION_THRESHOLD)
+	satisfaction = {
+		stability_cost = -0.2
+		global_monthly_food_modifier = 0.25
+		levy_recovery_modifier = 0.5
+	}
+	#multiplied with (relative_power - LOW_POWER_THRESHOLD) if > LOW_POWER_THRESHOLD
+	high_power = {
+		peasants_estate_max_tax = -0.5
+		food_purchase_cost = -0.5
+		global_estate_target_satisfaction = medium_permanent_target_satisfaction
+		monthly_towards_free_subjects = societal_value_significant_monthly_move
+	}
+	
+	
+	#multiplied with -(relative_power - LOW_POWER_THRESHOLD) if < LOW_POWER_THRESHOLD
+	low_power = {
+		peasants_estate_max_tax = 0.5
+	}
+
+	opinion = {
+		add = {
+			desc = "ESTATE_OPINION_BASE"
+			value = "opinion(scope:target)"
+			multiply = 0.05
+		}
+		
+		
+		add = {
+			desc = "ESTATE_OPINION_TARGET_P_ESTATE_POWER"
+			value = "scope:target.estate_power(estate_type:peasants_estate)"
+			subtract = 0.2
+			multiply = 5
+		}
+		
+		
+		if = {
+			limit = {
+				scope:target.religion != religion
+				scope:target.religion.group = religion.group
+			}	
+			add = {
+				desc = "ESTATE_OPINION_HERETIC"
+				value = -5
+			}
+		}
+
+		
+		if = {
+			limit = {
+				scope:target.religion.group != religion.group
+			}	
+			add = {
+				desc = "ESTATE_OPINION_HEATHEN"
+				value = -10
+			}
+		}
+		
+		if = {
+			limit = {
+				NOT = { scope:target.culture = { has_shared_culture_group = root.dominant_culture } }
+			}	
+			add = {
+				desc = "ESTATE_OPINION_DIFFERENT_CULTURE_GROUP"
+				value = -5
+			}
+		}
+
+		if = {
+			limit = {
+				exists = dominant_culture.language
+				scope:target.culture.language = dominant_culture.language
+			}	
+			add = {
+				desc = "ESTATE_OPINION_SAME_COMMON_LANGUAGE"
+				value = 5
+			}
+		}
+
+		if = {
+			limit = {
+				is_rival_of = scope:target
+			}	
+			add = {
+				desc = "ESTATE_OPINION_RIVAL"
+				value = -20
+			}
+		}
+
+
+		if = {
+			limit = {
+				scope:target = {
+					has_reform = government_reform:peasant_republic_reform
+				}
+			}	
+			add = {
+				desc = "ESTATE_OPINION_PEASANT_REPUBLIC"
+				value = 10
+			}
+		}
+		
+		add = {
+			desc = "capital_economy_vs_traditional_economy"
+			value = {
+				value = societal_value:capital_economy_vs_traditional_economy
+				divide = 10
+			}
+		}
+		
+		add = {
+			desc = "spiritualist_vs_humanist"
+			value = {
+				value = societal_value:spiritualist_vs_humanist
+				divide = 10
+			}
+		}
+		
+		add = {
+			desc = "serfdom_vs_free_subjects"
+			value = {
+				value = societal_value:serfdom_vs_free_subjects
+				divide = 10
+			}
+		}
+	}
+}
+
+tribes_estate = {
+	color = pop_tribes
+	power_per_pop  = 0.01
+	tax_per_pop = 0.01
+	rival = -0.01
+	alliance = 0.01
+	can_generate_mercenary_leaders = yes
+	
+	revolt_court_language = common_language
+	characters_have_dynasty = never # new characters never spawn with a dynasty
+	use_diminutive = yes
+	
+	#multiplied with (satisfaction - LOW_SATISFACTION_THRESHOLD)
+	satisfaction = {
+		global_raw_material_output = 0.05
+		global_monthly_food_modifier = 0.10
+	}
+	#multiplied with (relative_power - LOW_POWER_THRESHOLD) if > LOW_POWER_THRESHOLD
+	high_power = {
+		global_raw_material_output = 0.1
+		tribes_estate_max_tax = -0.3
+		monthly_towards_traditional_economy = societal_value_significant_monthly_move
+	}
+	
+	
+	#multiplied with -(relative_power - LOW_POWER_THRESHOLD) if < LOW_POWER_THRESHOLD
+	low_power = {
+		tribes_estate_max_tax = 0.5
+	}
+
+	opinion = {
+		add = {
+			desc = "ESTATE_OPINION_BASE"
+			value = "opinion(scope:target)"
+			multiply = 0.05
+		}
+		
+
+		
+		
+		add = {
+			desc = "ESTATE_OPINION_TARGET_T_ESTATE_POWER"
+			value = "scope:target.estate_power(estate_type:tribes_estate)"
+			subtract = 0.2
+			multiply = 5
+		}
+		
+		
+		if = {
+			limit = {
+				 scope:target.religion != religion
+				 scope:target.religion.group = religion.group
+			}	
+			add = {
+				desc = "ESTATE_OPINION_HERETIC"
+				value = -5
+			}
+		}
+
+		
+		if = {
+			limit = {
+				 scope:target.religion.group != religion.group
+			}	
+			add = {
+				desc = "ESTATE_OPINION_HEATHEN"
+				value = -10
+			}
+		}
+
+
+		if = {
+			limit = {
+				 scope:target.religion.group != religion.group
+			}	
+			add = {
+				desc = "ESTATE_OPINION_HEATHEN"
+				value = -10
+			}
+		}
+		
+		if = {
+			limit = {
+				 NOT = { scope:target.culture = { has_shared_culture_group = root.dominant_culture } }
+			}	
+			add = {
+				desc = "ESTATE_OPINION_DIFFERENT_CULTURE_GROUP"
+				value = -5
+			}
+		}
+
+		if = {
+			limit = {
+				scope:target.culture.language = dominant_culture.language
+			}	
+			add = {
+				desc = "ESTATE_OPINION_SAME_COMMON_LANGUAGE"
+				value = 5
+			}
+		}
+
+		if = {
+			limit = {
+				is_rival_of = scope:target
+			}	
+			add = {
+				desc = "ESTATE_OPINION_RIVAL"
+				value = -20
+			}
+		}
+ 
+		if = {
+			limit = {
+				scope:target = { 
+					government_type = government_type:tribe
+				}
+			}	
+			add = {
+				desc = "ESTATE_OPINION_TRIBE"
+				value = 10
+			}
+		}
+	}
+
+}
