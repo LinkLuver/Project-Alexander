@@ -1,0 +1,144 @@
+﻿diadochi_wars = {
+	monthly_spawn_chance = monthly_spawn_chance_unique
+	
+	can_start = {
+		current_date > 450.1.1
+		current_date < 470  # idk 
+	}
+	
+	can_end = {
+		diadochi_wars_end_trigger = yes
+	}
+	
+	visible = {
+		OR = {
+			has_presence_in = region:balkan_region
+			has_presence_in = region:egypt_region
+			has_presence_in = region:anatolia_region
+			has_presence_in = region:crescent_region
+			has_presence_in = region:persia_region
+			has_reform = government_reform:diadochi_gov   #Diadochi gov
+		}
+	}
+	
+
+	on_start = {
+		
+		every_country = {
+			limit = {
+            	culture = { has_culture_group = culture_group:greek_group } 
+			}
+			add_to_global_variable_list = { name = eligible_diadochi_list target = this }
+
+			add_country_modifier = {
+				modifier = ai_force_annexation
+				years = -1
+				mode = add_and_extend
+			}
+		
+		}
+		ordered_in_global_list = {  
+			variable = eligible_diadochi_list
+			order_by = {
+				
+				add = {
+					value = military_strength
+				}
+				add = {
+					value = monthly_income_trade_and_tax
+				}
+				if = {	#If they are a subject, they receive a -25% penalty to their score 
+					limit = { is_subject = yes }
+					multiply = 0.75
+				}
+			} 
+			max = 1
+			check_range_bounds = no 
+			situation:diadochi_wars = {
+				set_variable = {
+					name = strongest_diadochi_variable
+					value = prev
+				}
+				set_variable = {
+					name = strongest_strongest_diadochi_total_score_variable
+					value = {
+						add = var:strongest_diadochi_variable.military_strength
+						add = var:strongest_diadochi_variable.monthly_income_trade_and_tax 
+						if = {
+							limit = {	#If they are a subject, they receive a -25% penalty to their score 
+								var:strongest_diadochi_variable ?= { is_subject = yes }
+							}
+							multiply = 0.75
+						}
+					}
+				}
+			}
+			#trigger_event_non_silently = rise_of_the_ottomans.2
+		}
+		#ordered_in_global_list = {  
+
+		#}
+		#ordered_in_global_list = {  
+
+		#}
+		every_country = {
+		}
+	}
+
+	on_monthly = {
+		ordered_in_global_list = {  
+			variable = eligible_diadochi_list
+			order_by = {
+				add = {
+					value = military_strength
+				}
+				add = {
+					value = monthly_income_trade_and_tax
+				}
+				if = {
+					limit = { is_subject = yes }
+					multiply = 0.75
+				}
+			} 
+			max = 1
+			check_range_bounds = no 
+			situation:diadochi_wars = {
+				set_variable = {
+					name = strongest_diadochi_variable
+					value = prev
+				}
+				set_variable = {
+					name = strongest_strongest_diadochi_total_score_variable
+					value = {
+						add = var:strongest_diadochi_variable.military_strength
+						add = var:strongest_diadochi_variable.monthly_income_trade_and_tax 
+						if = {
+							limit = {	#If they are a subject, they receive a -25% penalty to their score 
+								var:strongest_diadochi_variable ?= { is_subject = yes }
+							}
+							multiply = 0.75
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+
+	on_ended = {
+		
+	}
+
+
+	tooltip = {
+		
+	}
+
+	map_color = {
+		
+	}
+	
+
+	
+}
