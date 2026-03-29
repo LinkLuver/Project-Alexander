@@ -1,0 +1,73 @@
+rise_of_an_empire_claim = {
+	type = situation
+	show_message = no
+	potential = {
+		population < 1000
+	}
+	allow = {
+		scope:actor = {
+			at_war = no
+			has_rasied_levies = no
+		}
+	}
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:rise_of_an_empire = this
+			situation_is_active = yes
+		}
+	}
+	select_trigger = {
+		looking_for_a = province
+		target_flag = target
+		name = "choose_province"
+		none_available_msg_key = "no_areas_available"
+		column = { data = owner_flag }
+		column = { data = name }
+		column = { data = population }
+		visible = {
+			within_diplomatic_range = scope:actor
+			any_location_in_province = {
+				is_neighbor_of = scope:actor
+			}
+			NOT = {
+				owner = {
+					OR = {
+						this = scope:actor
+						overlord ?= scope:actor
+						overlord ?= { is_subject_of = scope:actor }
+						has_mutual_scripted_relation = {
+							type = relation_type:alliance
+							target = scope:actor
+						}
+					}
+				}
+			}
+		}
+	}
+	effect = {
+		scope:actor = {
+			if = {
+				limit = {
+					exists = scope:target
+				}
+				add_casus_belli = {
+					target = scope:target
+					type = casus_belli:cb_conquer_enemy
+				}
+				drop_antagonism_bomb = {
+					target = scope:target.capital
+					modifier = antagonism_planned_invasion
+				}
+			}
+			else = {
+				custom_tooltip = rot_plan_invasion_tt
+			}
+		}
+	}
+}
