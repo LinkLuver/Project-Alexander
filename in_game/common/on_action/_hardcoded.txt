@@ -100,6 +100,17 @@
 		c:JAP = {
 			japan_set_up = yes
 		}
+		c:TEU = {
+			every_current_war = {
+				limit = {
+					c:LIT = {
+						is_war_leader_of = prev
+					}
+				}
+				set_variable = teu_lit_first_war
+			}
+		}
+
 	}
 }
 
@@ -111,14 +122,14 @@ on_siege_won = {
 		on_milanese_library_occupied
 	}
 	events = {
-		#flavor_sco.1404
-		#flavor_pap.12
-		#flavor_tur.211
-		#flavor_tur.212
-		#flavor_tur.213
-		#flavor_tur.214
-		#flavor_tur.215
-		#flavor_tur.216
+		flavor_sco.1404
+		flavor_pap.12
+		flavor_tur.211
+		flavor_tur.212
+		flavor_tur.213
+		flavor_tur.214
+		flavor_tur.215
+		flavor_tur.216
 	}
 	effect = {
 		if = {
@@ -172,14 +183,21 @@ on_siege_won = {
 
 on_siege_lost = {
 	events = {
-		#flavor_pap.11
-		#flavor_eth.60
-		#flavor_tle.1 #Fall of Tlemcem
-		#rise_of_the_ottomans.210
+		flavor_pap.11
+		flavor_eth.60
+		flavor_tle.1 #Fall of Tlemcem
+		rise_of_the_ottomans.210
 	}
 	effect = {
 		if = {
 			limit = {
+				OR = {
+					has_reform = government_reform:anatolian_beylik
+					any_in_global_list = {
+						variable = eligible_beylik_list
+						this = root
+					}
+				}
 				in_civil_war = no
 				scope:target = { 
 					has_building = building_type:bey_fortress 
@@ -206,8 +224,8 @@ on_location_occupied = {
 		on_milanese_library_occupied
 	}
 	events = {
-		#war_of_religions.17 #Sack of Magdeburg
-		#war_of_religions.18 #Looting of the Heidelberg Library
+		war_of_religions.17 #Sack of Magdeburg
+		war_of_religions.18 #Looting of the Heidelberg Library
 	}
 	effect = {
 		if = {
@@ -275,8 +293,8 @@ on_location_occupied = {
 
 on_location_lost = {
 	events = {
-		#flavor_eng.56
-		#flavor_pap.1502
+		flavor_eng.56
+		flavor_pap.1502
 	}
 }
 
@@ -506,7 +524,6 @@ on_annexed = {
 					}
 				}
 			}
-			rise_of_the_ottomans_recalculate_top_3 = yes
 			if = {
 				limit = {
 					any_in_global_list = {
@@ -519,6 +536,7 @@ on_annexed = {
 					target = scope:target 
 				}
 			}
+			rise_of_the_ottomans_recalculate_top_3 = yes
 				
 			#See in_game\common\scripted_effects\situation_effects
 			#This effectively recalculates the top 3 positions in the situation
@@ -936,7 +954,8 @@ on_civil_war_lost = {
 		}
 		
 		if = {
-			limit = { 
+			limit = {
+				country_exists = c:SBL
 				scope:winner = c:SBL
 			}
 			character:sco_robert_the_bruce = {
@@ -1599,6 +1618,21 @@ on_ending_war = {
 			}
 			trigger_event_silently = flavor_mor.36
 		}
+		if = {
+			limit = {
+				is_situation_active = situation:rise_of_timur
+				OR = {
+					scope:winner = { tag = TIM }
+					scope:loser = { tag = TIM }
+				}
+			}
+			#just clear it for the whole region
+			situation:rise_of_timur.var:rot_conquest_ambition = {
+				every_location_in_region = {
+					remove_location_modifier = rot_timur_scare
+				}
+			}
+		}
 	}
 }
 
@@ -1793,6 +1827,41 @@ on_war_declared = {
 			}
 			c:SIC = {
 				remove_variable = sicily_pays_tribute
+			}
+		}
+		#Timur Scare
+		if = {
+			limit = {
+				scope:actor = {
+					tag = TIM
+					ruler ?= { has_character_modifier = timmy_wants_to_play }
+				}
+				situation:rise_of_timur = {
+					situation_is_active = yes
+					has_variable = rot_conquest_ambition
+					scope:recipient.capital.region = var:rot_conquest_ambition
+				}
+			}
+			situation:rise_of_timur = {
+				var:rot_conquest_ambition = {
+					every_location_in_region = {
+						limit = { is_ownable = yes }
+						remove_location_modifier = rot_timur_scare
+						if = {
+							limit = {
+								owner ?= {
+									this != scope:actor
+									is_at_war_with = scope:actor
+								}
+							}
+							add_location_modifier = {
+								modifier = rot_timur_scare
+								years = 10
+								mode = replace
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -2033,7 +2102,7 @@ on_battle_won_character = {
 			limit = {
 				owner ?= {
 					OR = {
-						culture ?= culture:jurchen_culture
+						culture ?= { has_culture_group = culture_group:jurchen_group }
 						tag = MCH
 					}
 				}
@@ -2126,7 +2195,7 @@ on_battle_lost_character = {
 # scope:war_score -> how much war score the winner gains from that battle
 on_great_battle_won = {
 	events = {
-		#flavor_cas.76
+		flavor_cas.76
 	}
 	effect = {
 		if = {
@@ -2222,7 +2291,7 @@ on_great_battle_lost = {
 # scope:war_score -> how much war score the winner gains from that battle
 on_battle_won = {
 	events = {
-		#flavor_cas.76
+		flavor_cas.76
 	}
 	effect = {
 		if = {
@@ -2539,7 +2608,33 @@ on_government_type_change = {
 			}
 			international_organization_chooses_new_leader = international_organization:hre
 		}
-
+		if = {
+			limit = {
+				OR = {
+					has_ruler = yes
+					has_heir = yes
+				}
+				ruler_or_heir_if_regent = { owner ?= root }
+			}
+			ruler_or_heir_if_regent ?= {
+				change_character_estate = estate_type:crown_estate
+				every_close_relative = {
+					limit = {
+						owner ?= root
+						NOT = { has_estate = estate_type:crown_estate }
+					}
+					change_character_estate = estate_type:crown_estate
+				}
+				if = {
+					limit = {
+						has_dynasty = no
+						scope:to != government_type:theocracy
+						scope:to != government_type:republic
+					}
+					found_dynasty = random
+				}
+			}
+		}
 	}
 	events = {
 	}
@@ -2548,30 +2643,30 @@ on_government_type_change = {
 # root = country; scope:old_ruler and scope:new_ruler are supplied
 on_new_ruler = {
 	events = {	
-		#flavor_mor_maghrebi_wars.1000 #The Ambitious Brother
-		#flavor_mor_maghrebi_wars.1100 #The new ruler of the [ShowRegionNameWithNoTooltip('maghreb_region')]
-		#flavor_hsa.3
-		#flavor_wal.1 # Vlad the Impaler.
-		#flavor_nap.119
-		#flavor_ara.111
-		#flavor_kbo.8 #Mai & Warrior
-		#flavor_azt.210
-		#flavor_chi.60
-		#flavor_csu.100 #Distribution of Panaqas
-		#flavor_vij.15 #Death of Harihara I and the rise of Bukka Raya I
+		flavor_mor_maghrebi_wars.1000 #The Ambitious Brother
+		flavor_mor_maghrebi_wars.1100 #The new ruler of the [ShowRegionNameWithNoTooltip('maghreb_region')]
+		flavor_hsa.3
+		flavor_wal.1 # Vlad the Impaler.
+		flavor_nap.119
+		flavor_ara.111
+		flavor_kbo.8 #Mai & Warrior
+		flavor_azt.210
+		flavor_chi.60
+		flavor_csu.100 #Distribution of Panaqas
+		flavor_vij.15 #Death of Harihara I and the rise of Bukka Raya I
 		
-		#delay = { days = { 30 80 } }
-		#culture_religion_events.2
-		#flavor_eth.210 #The Stele of the New King
-		#flavor_hun.430 #The Crooked Holy Crown of Hungary
-		#flavor_hun.440 #Broken Traditions 
-		#flavor_pol.11 #The Pacta Conventa and the Henrykian Articles
-		#flavor_pol.12 #The Sobieskian Army Reforms
-		#flavor_pol.6 #The Groom of Poland
-		#flavor_hab.1100 #The Capital of our Ruler
-		#flavor_vij.25 #Approach of the Vijayanagar
-		#flavor_kor.20 #Korean Factionalism
-		#flavor_por.2005 # Pedro on the throne
+		delay = { days = { 30 80 } }
+		culture_religion_events.2
+		flavor_eth.210 #The Stele of the New King
+		flavor_hun.430 #The Crooked Holy Crown of Hungary
+		flavor_hun.440 #Broken Traditions 
+		flavor_pol.11 #The Pacta Conventa and the Henrykian Articles
+		flavor_pol.12 #The Sobieskian Army Reforms
+		flavor_pol.6 #The Groom of Poland
+		flavor_hab.1100 #The Capital of our Ruler
+		flavor_vij.25 #Approach of the Vijayanagar
+		flavor_kor.20 #Korean Factionalism
+		flavor_por.2005 # Pedro on the throne
 	}
 	effect = {
 		if = {
@@ -2628,6 +2723,23 @@ on_new_ruler = {
 								dynasty ?= dynasty:yamato_dynasty
 							}
 							root = { NOT = { is_situation_active = situation:nanbokuchou } }
+						}
+					}
+				}
+				#disable it for fiefdoms, as both are the same character
+				NAND = {
+					is_subject = yes
+					overlord ?= {
+						ruler ?= {
+							this = scope:new_ruler
+						}
+					}
+				}
+				#Disable also for unions
+				NOT = {
+					any_union_partner = {
+						ruler ?= {
+							this = scope:new_ruler
 						}
 					}
 				}
@@ -2709,20 +2821,29 @@ on_new_ruler = {
 # root = country; scope:old_ruler is the one who died
 on_ruler_death = {
 	events = {	
-		#flavor_eng.212 #Union of the Crowns
-		#flavor_por.24
-		#flavor_bra_dynasty.9	#Death of the False Waldemar
+		flavor_eng.212 #Union of the Crowns
+		flavor_por.24
+		turmoil_in_brandenburg.200	#Death of the False Waldemar
 		horde_civil_war.2
 		laws.0040 #Capital movement event
-		#flavor_dlh.39 #End of the Tughlaq Dynasty
-		#flavor_vol.1102 #The Poisoning of Yuri II - Fallback
+		flavor_dlh.39 #End of the Tughlaq Dynasty
+		flavor_vol.1102 #The Poisoning of Yuri II - Fallback
 	}
 
 	on_actions = {
 		on_ruler_death_delhi_tombs_construction
+		on_timurid_governor_death
+		on_timurid_ruler_death
 	}
 
 	effect = {
+		if = {
+			limit = { scope:old_ruler = character:maj_hayam_wuruk }
+			set_variable = {
+				name = eligible_for_dohw_disaster_variable
+				years = 10
+			}
+		}
 		if = {
 			limit = {
 				OR = {
@@ -3075,6 +3196,7 @@ on_religion_changed = {
 						leader_country ?= {
 							NOT = { religion = root.religion }
 						}
+						NOT = { international_organization_has_policy = policy:only_imperial_religion_group_policy }	#Peace of Westphalia
 					}
 				}
 				save_scope_as = heretic_country
@@ -3086,7 +3208,10 @@ on_religion_changed = {
 					}
 				}
 			}
-			else = {
+			else_if = {
+				limit = {
+					NOT = { has_variable = hre_got_religion_enforced }
+				}
 				#prince in the HRE converts to the true faith
 				save_scope_as = true_faith_country
 				international_organization:hre = {
@@ -3211,10 +3336,25 @@ on_religion_changed = {
 			}
 			stop_cabinet_action = {}
 		}
+		#Set religious school
+		if = {
+			limit = {
+				religion = { has_religious_schools = yes }
+			}
+			religion = {
+				random_religious_school_in_religion = {
+					root = { set_religious_school = prev }
+				}
+			}
+		}
 	}
 	events = {	
-		#legatusnatus.4
+		legatusnatus.4
 	}
+}
+
+#root = country, scope:old_culture = old culture
+on_culture_changed = {
 }
 
 #root = int org, actor = creator (optional), target = target (optional)
@@ -3414,18 +3554,18 @@ on_location_changed_owner = {
 		on_timurid_occupy_location_horde
 	}
 	events = {
-		#autocephalous_patriarchates.1
-		#autocephalous_patriarchates.2
-		#miaphysite_flavor.1
-		#miaphysite_flavor.3
-		#miaphysite_flavor.5
-		#miaphysite_flavor.7
-		#miaphysite_flavor.9
-		#miaphysite_flavor.11
-		#miaphysite_flavor.13
-		#miaphysite_flavor.15
+		autocephalous_patriarchates.1
+		autocephalous_patriarchates.2
+		miaphysite_flavor.1
+		miaphysite_flavor.3
+		miaphysite_flavor.5
+		miaphysite_flavor.7
+		miaphysite_flavor.9
+		miaphysite_flavor.11
+		miaphysite_flavor.13
+		miaphysite_flavor.15
 		
-		#conquistador.10
+		conquistador.10
 	}
 	effect = {
 		if = {
@@ -3804,10 +3944,10 @@ on_international_organization_changed_leader = {
 			if = {
 				limit = {
 					OR = {
-						AND = { work_of_art_exists = { work_of_art = work_of_art:imperial_crown_hre } work_of_art:imperial_crown_hre.owner != ROOT }
-						AND = { work_of_art_exists = { work_of_art = work_of_art:imperial_orb_hre } work_of_art:imperial_orb_hre.owner != ROOT }
-						AND = { work_of_art_exists = { work_of_art = work_of_art:saint_stephans_purse } work_of_art:saint_stephans_purse.owner != ROOT }
-						AND = { work_of_art_exists = { work_of_art = work_of_art:coronation_gospel_hre } work_of_art:coronation_gospel_hre.owner != ROOT }
+						imperial_work_of_art_can_be_moved = { work_of_art = work_of_art:imperial_crown_hre country = root international_organization = scope:target }
+						imperial_work_of_art_can_be_moved = { work_of_art = work_of_art:imperial_orb_hre country = root international_organization = scope:target }
+						imperial_work_of_art_can_be_moved = { work_of_art = work_of_art:saint_stephans_purse country = root international_organization = scope:target }
+						imperial_work_of_art_can_be_moved = { work_of_art = work_of_art:coronation_gospel_hre country = root international_organization = scope:target }
 					}
 				}
 				trigger_event_non_silently = hre.800
@@ -4029,15 +4169,20 @@ on_international_organization_changed_leader = {
 
 on_nation_changing = {
 	events = {
-		#king_in_prussia.1
-		#flavor_nap.280
+		king_in_prussia.1
+		flavor_nap.280
 	}
 }
 
 on_regency_start = {
 	effect = {
 		if = {
-			limit = { has_heir = no }
+			limit = {
+				succession_law ?= {
+					uses_elections = no
+				}
+				has_heir = no
+			}
 			every_subject = {
 				limit = { is_subject_type = fiefdom }
 				make_subject_of = { target = prev type = subject_type:vassal }
@@ -4067,6 +4212,25 @@ on_regency_end = {
 #root = country, scope:target = character who got assigned to the cabinet
 on_cabinet_assigned = {
 	effect = {
+		if = {
+			limit = {
+				any_active_disaster = { disaster_type = disaster_type:decline_of_empire }
+			}
+			random_list = {
+				95 = { }
+				5 = { 
+					scope:target = {
+						add_character_modifier = {
+							modifier = entrenched_cabinet_member
+							years = -1
+							mode = replace
+						}
+					}
+
+					add_complacency = complacency_weak_penalty
+				}
+			}
+		}
 	}
 }
 
@@ -4077,6 +4241,13 @@ on_cabinet_removed = {
 	effect = {
 		scope:target = {
 			remove_head_of_cabinet_effect = yes
+		}
+		if = {
+			limit = {
+				any_active_disaster = { disaster_type = disaster_type:decline_of_empire }
+				scope:target = { has_character_modifier = entrenched_cabinet_member }
+			}
+			scope:target = { remove_character_modifier = entrenched_cabinet_member }
 		}
 	}
 }
@@ -4238,7 +4409,7 @@ on_insult = {
 #root, scope:actor = sender, scope:recipient = receiver, scope:target_1 = character of scope:actor who gets married, scope:target_2 = character of scope:recipient
 on_royal_marriage = {
 	events = {
-		#flavor_hab.83
+		flavor_hab.83
 	}
 }
 
@@ -4252,9 +4423,7 @@ on_lose_great_power_status = {
 
 #root = country
 on_embrace_revolution = {
-	events = { 
-		#the_revolution.9 
-	}
+	events = { the_revolution.9 }
 	effect = {
 		add_to_revolutionary_list = yes
 		if = {
@@ -4272,6 +4441,16 @@ on_embrace_revolution = {
 		if = {
 			limit = { NOT = { succession_law = heir_selection:republic_4_year_terms } }
 			change_heir_selection = heir_selection:republic_4_year_terms
+		}
+		if = {
+			limit = { is_emperor = yes }
+			international_organization:hre = {
+				international_organization_remove_special_status = {
+					type = special_status:emperor
+					country = root
+				}
+			}
+			international_organization_chooses_new_leader = international_organization:hre
 		}
 	}
 }
@@ -4297,9 +4476,7 @@ on_lose_revolution = {
 
 #root = country
 on_become_revolution_target = {
-	events = { 
-		#the_revolution.10 
-	}
+	events = { the_revolution.10 }
 }
 
 #root = country
@@ -4313,6 +4490,9 @@ on_shatter_country = {
 		change_country_type = location
 		change_government_type = government_type:tribe
 		every_owned_location = {
+			limit = {
+				has_building = building_type:kurultai
+			}
 			destroy_building = "building(building_type:kurultai|owner)"
 		}
 	}
@@ -4447,4 +4627,12 @@ on_country_rank_change = {
 			}
 		}
 	}
+}
+
+#root = country, scope:target = hegemony
+on_gain_hegemon_status = {
+}
+
+#root = country, scope:target = hegemony
+on_lose_hegemon_status = {
 }
