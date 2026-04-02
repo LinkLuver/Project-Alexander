@@ -1,0 +1,821 @@
+﻿join_branch = {
+	type = religious
+
+	sound = UI_action_religion_generic
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	potential = {
+		scope:actor.religion = religion:hindu
+	}
+
+	allow = {
+	}
+
+	cooldown = {
+		type = join_branch
+		years = 10
+	}
+	
+	price = price:join_branch
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = target
+		name = "join_branch_choose_branch"
+		none_available_msg_key = "join_branch_no_ios"
+		column = {
+			data = name
+		}
+		interaction_source_list = {
+			religion:hindu = {
+				every_religion_international_organization = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_interaction_source_list = yes
+		visible = {
+			international_organization_type = international_organization_type:hindu_branch
+			scope:actor = {
+				not = { is_member_of_international_organization = root }
+			}
+		}
+		enabled = {
+			scope:actor = {
+				can_join_international_organization = root
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				add_country_to_international_organization = scope:actor
+			}
+		}
+	}
+
+	ai_will_do = {
+		#how useful is this branch?
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+		}
+		
+		#if we're already in one, subtract the utility of the current one
+		scope:actor = {
+			#not in one? do it NOW!
+			if = {
+				limit = {
+					not = {
+						is_member_of_international_organization_of_type = { type = hindu_branch }
+					}
+				}
+				add = 100
+			}
+
+			every_international_organizations_member_of = {
+				limit = {
+					international_organization_type = international_organization_type:hindu_branch
+				}
+				subtract = {
+					value = "modifier_utility(scope:actor)"
+
+					#inertia - if we're already in one then moving to another one must be significantly better
+					add = 1
+				}
+			}
+		}
+	}
+}
+
+activate_avatar = {
+	type = religious
+
+	sound = UI_action_religion_generic
+
+	ai_tick = monthly
+	ai_tick_frequency = 3
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	potential = {
+		scope:actor = {
+			religion = religion:hindu
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:hindu_branch
+				international_organization_has_policy = policy:vaishnavism
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			num_avatars < modifier:number_of_allowed_avatars
+		}
+	}
+	
+	price = price:activate_avatar
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = avatar
+		target_flag = target
+		name = "activate_avatar_choose_avatar"
+		none_available_msg_key = "activate_avatar_no_avatars"
+		column = {
+			data = name
+		}
+		visible = {
+			god = god:vishnu_god
+			scope:actor = {
+				not = {
+					has_avatar = root
+				}
+			}
+		}
+		enabled = {
+			holy_site ?= {
+				location = {
+					OR = {
+						owner ?= scope:actor
+						owner ?= {
+							OR = {
+								is_allied_with = { target = scope:actor }
+								top_overlord ?= scope:actor
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:actor = {
+				add_avatar = scope:target
+			}
+		}
+	}
+
+	ai_will_do = {
+		#how useful is this avatar?
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+		}
+	}
+}
+
+deactivate_avatar = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	potential = {
+		scope:actor = {
+			religion = religion:hindu
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:hindu_branch
+				international_organization_has_policy = policy:vaishnavism
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			num_avatars > 0
+		}
+	}
+	
+	price = price:deactivate_avatar
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = avatar
+		target_flag = target
+		name = "deactivate_avatar_choose_avatar"
+		none_available_msg_key = "deactivate_avatar_no_avatars"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:actor = {
+				has_avatar = root
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:actor = {
+				remove_avatar = scope:target
+			}
+		}
+	}
+
+	ai_will_do = {
+		#how useful is this avatar?
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+			multiply = -1
+		}
+	}
+}
+
+reroll_avatar = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = monthly
+	ai_tick_frequency = 3
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	
+	potential = {
+		scope:actor = {
+			religion = religion:hindu
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:hindu_branch
+				international_organization_has_policy = policy:shaktism
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	cooldown = {
+		type = reroll_avatar
+		years = 2
+	}
+
+	price = price:reroll_avatar
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		hidden_effect = {
+			if = {
+				limit = {
+					scope:actor = { any_current_avatars = { is_peacetime_shakti_avatar = yes } }
+				}
+				scope:actor = {
+					every_current_avatars = {
+						scope:actor = { remove_avatar = prev }
+					}
+				}
+				god:shakti_god = {
+					random_avatar_for_god = {
+						limit = { is_peacetime_shakti_avatar = yes }
+						scope:actor = { add_avatar = prev }
+						save_scope_as = target
+					}
+				}
+			}
+			else = {
+				scope:actor = {
+					every_current_avatars = {
+						scope:actor = { remove_avatar = prev }
+					}
+				}
+				god:shakti_god = {
+					random_avatar_for_god = {
+						limit = {
+							OR = {
+								AND = {
+									scope:actor = { at_war = no }
+									is_peacetime_shakti_avatar = yes
+								}
+								is_wartime_shakti_avatar = yes
+							}
+						}
+						scope:actor = { add_avatar = prev }
+						save_scope_as = target
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		#how useful is this avatar?
+		add = {
+			value = 0
+			scope:actor = {
+				every_current_avatars = {
+					add = "modifier_utility(scope:actor)"
+				}
+			}
+			multiply = -1
+		}
+	}
+}
+
+perform_yoga = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	potential = {
+		scope:actor = {
+			modifier:allow_self_control = yes
+		}
+	}
+
+	allow = {
+	}
+
+	cooldown = {
+		type = perform_yoga
+		years = 2
+	}
+
+	price = price:perform_yoga
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_self_control = self_control_mild_bonus
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = "scope:actor.currency_utility(self_control|self_control_mild_bonus)"
+		}
+	}
+}
+
+indulge_in_feasts = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	potential = {
+		scope:actor = {
+			modifier:allow_self_control = yes
+		}
+	}
+
+	allow = {
+	}
+
+	cooldown = {
+		type = indulge_in_feasts
+		years = 2
+	}
+
+	price = price:indulge_in_feasts
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_self_control = self_control_mild_penalty
+			add_prestige = prestige_mild_bonus
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = "scope:actor.currency_utility(self_control|self_control_mild_penalty)"
+		}
+	}
+}
+
+discard_worldly_possessions = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	
+	potential = {
+		scope:actor = {
+			modifier:allow_self_control = yes
+		}
+	}
+
+	allow = {
+	}
+
+	cooldown = {
+		type = discard_worldly_possessions
+		years = 2
+	}
+
+	price = price:discard_worldly_possessions
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_self_control = self_control_severe_bonus
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = "scope:actor.currency_utility(self_control|self_control_severe_bonus)"
+		}
+	}
+}
+
+indulge_in_bloodbath = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	potential = {
+		scope:actor = {
+			modifier:allow_self_control = yes
+		}
+	}
+
+	allow = {
+		scope:actor = { at_war = yes }
+	}
+
+	cooldown = {
+		type = indulge_in_bloodbath
+		years = 2
+	}
+
+	price = price:indulge_in_bloodbath
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_self_control = self_control_severe_penalty
+			drop_antagonism_bomb = {
+				modifier = antagonism_indulged_in_bloodbath
+				target = capital
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = "scope:actor.currency_utility(self_control|self_control_severe_penalty)"
+		}
+	}
+}
+
+favor_god = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 40
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	potential = {
+		scope:actor = {
+			religion = religion:hindu
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:hindu_branch
+				international_organization_has_policy = policy:smartism
+			}
+		}
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = favor_god_why
+			scope:actor = {
+				NAND = {
+					has_variable = favoring_ganesha_god
+					has_variable = favoring_shiva_god
+					has_variable = favoring_shakti_god
+					has_variable = favoring_vishnu_god
+					has_variable = favoring_surya_god
+				}
+			}
+		}
+	}
+
+	price = price:favor_god
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = god
+		target_flag = target
+		name = "favor_god_choose_god"
+		none_available_msg_key = "favor_god_no_gods"
+		column = {
+			data = name
+		}
+		visible = {
+			any_religion_for_god = { this = religion:hindu }
+			NAND = {
+				this = god:ganesha_god
+				scope:actor = { has_variable = favoring_ganesha_god }
+			}
+			NAND = {
+				this = god:shiva_god
+				scope:actor = { has_variable = favoring_shiva_god }
+			}
+			NAND = {
+				this = god:shakti_god
+				scope:actor = { has_variable = favoring_shakti_god }
+			}
+			NAND = {
+				this = god:vishnu_god
+				scope:actor = { has_variable = favoring_vishnu_god }
+			}
+			NAND = {
+				this = god:surya_god
+				scope:actor = { has_variable = favoring_surya_god }
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:actor = {
+				switch = {
+					trigger = scope:target
+					god:ganesha_god = {
+						set_variable = { name = favoring_ganesha_god value = 1 years = 3 }
+					}
+					god:shiva_god = {
+						set_variable = { name = favoring_shiva_god value = 1 years = 3 }
+					}
+					god:shakti_god = {
+						set_variable = { name = favoring_shakti_god value = 1 years = 3 }
+					}
+					god:vishnu_god = {
+						set_variable = { name = favoring_vishnu_god value = 1 years = 3 }
+					}
+					god:surya_god = {
+						set_variable = { name = favoring_surya_god value = 1 years = 3 }
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+		}
+	}
+}
+
+stop_favoring_god = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 40
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	potential = {
+		scope:actor = {
+			religion = religion:hindu
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:hindu_branch
+				international_organization_has_policy = policy:smartism
+			}
+		}
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = stop_favoring_god_why
+			scope:actor = { 
+				OR = {
+					has_variable = favoring_ganesha_god
+					has_variable = favoring_shiva_god
+					has_variable = favoring_shakti_god
+					has_variable = favoring_vishnu_god
+					has_variable = favoring_surya_god
+				}
+			}
+		}
+	}
+
+	price = price:favor_god
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = god
+		target_flag = target
+		name = "favor_god_choose_god"
+		none_available_msg_key = "favor_god_no_gods"
+		column = {
+			data = name
+		}
+		visible = {
+			any_religion_for_god = { this = religion:hindu }
+			OR = {
+				AND = {
+					this = god:ganesha_god
+					scope:actor = { has_variable = favoring_ganesha_god }
+				}
+				AND = {
+					this = god:shiva_god
+					scope:actor = { has_variable = favoring_shiva_god }
+				}
+				AND = {
+					this = god:shakti_god
+					scope:actor = { has_variable = favoring_shakti_god }
+				}
+				AND = {
+					this = god:vishnu_god
+					scope:actor = { has_variable = favoring_vishnu_god }
+				}
+				AND = {
+					this = god:surya_god
+					scope:actor = { has_variable = favoring_surya_god }
+				}
+			}
+		}
+	}
+	
+
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:actor = {
+				switch = {
+					trigger = scope:target
+					god:ganesha_god = {
+						remove_variable = favoring_ganesha_god
+					}
+					god:shiva_god = {
+						remove_variable = favoring_shiva_god
+					}
+					god:shakti_god = {
+						remove_variable = favoring_shakti_god
+					}
+					god:vishnu_god = {
+						remove_variable = favoring_vishnu_god
+					}
+					god:surya_god = {
+						remove_variable = favoring_surya_god
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+		}
+	}
+}
