@@ -1,0 +1,91 @@
+﻿surrender_civil_war = {
+	type = diplomacy
+	block_when_at_war = no
+	category = CATEGORY_FRIENDLY_ACTIONS
+	
+	potential = {
+		scope:actor = {
+			in_civil_war = yes
+			NOT = { has_variable = will_not_surrender }
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			"war_with_country(civil_war_opponent)" = {
+				war_length >= 12
+			}
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		interaction_source_list = {
+			scope:actor = {
+				civil_war_opponent = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			this = scope:actor.civil_war_opponent
+		}
+        enabled = {
+			total_population > {
+				value = scope:actor.total_population
+				multiply = 2
+			}
+		}
+	}
+
+	ai_will_do = {
+		#just surrender if it's hopeless
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						total_population < {
+							value = scope:recipient.total_population
+							add = total_population
+							multiply = 0.1
+						}
+					}
+				}
+				value = 1000
+			}
+		}
+
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						any_current_war = {
+							scope:actor = { 
+								war_enthusiasm = { war = prev value <= 0 }
+							}
+							OR = {
+								attacker_leader = scope:recipient
+								defender_leader = scope:recipient
+							}
+						}
+					}
+				}
+				value = 1000
+			}
+		}
+	}
+	
+	effect = {
+        scope:recipient = {
+			annex_country = {
+				country = scope:actor
+				reason = CivilWar
+			}
+		}
+	}
+}

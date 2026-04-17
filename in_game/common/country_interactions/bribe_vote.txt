@@ -1,0 +1,302 @@
+﻿bribe_voter_for_policy = {
+	type = diplomacy
+	category = CATEGORY_ECONOMY_ACTIONS
+
+	ai_limit_per_check = 1
+
+	ai_prerequisite = {
+		monthly_balance > 5
+		num_loans < 1
+		prestige > 10
+		
+		trigger_if = {
+			limit = {
+				prestige < 20
+			}
+			modifier:monthly_prestige > 0
+		}
+		trigger_else = {
+			modifier:monthly_prestige > -0.2
+		}
+	}
+
+	potential = {
+		hidden_trigger = {
+			scope:actor = {
+				any_international_organizations_member_of = {
+					resolution_is_active = resolution:policy_vote
+					has_variable = io_law_proposer
+					var:io_law_proposer ?= scope:actor
+				}
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			monthly_balance > 1
+		}
+	}
+	
+	price = price:bribe_voter_for_policy
+	payee = scope:recipient
+	
+	#we'll supply this as one of the parameters so we won't be shown a UI
+	select_trigger = {
+		looking_for_a = country
+		source = actor
+		source_flags = same_international_organization
+		target_flag = recipient
+		name = "bribe_voter_for_policy_select_country"
+		none_available_msg_key = "bribe_voter_for_policy_no_countries"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+		}
+		enabled = {
+			scope:actor = {
+				gold > root.monthly_income_total
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = recipient
+		target_flag = organization
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			resolution_is_active = resolution:policy_vote
+			has_variable = io_law_proposer
+			var:io_law_proposer ?= scope:actor
+		}
+		enabled = {
+			not = {
+				vote_is_locked = {
+					voter = scope:recipient
+					resolution = resolution:policy_vote
+				}
+			}
+		}
+	}
+
+	#we'll supply this as one of the parameters so we won't be shown a UI
+	select_trigger = {
+		looking_for_a = law
+		target_flag = law
+		name = "bribe_voter_for_policy_select_law"
+		none_available_msg_key = "bribe_voter_for_policy_no_laws"
+		column = {
+			data = name
+		}
+		visible = {
+			is_available_for_international_organization = scope:organization
+			scope:organization = {
+				"active_resolution(resolution:policy_vote)" ?= {
+					"resolution_target(target)" ?= root
+				}
+			}
+		}
+	}
+
+	#how we want them to vote
+	select_trigger = {
+		looking_for_a = policy
+		source = law
+		target_flag = policy
+		#allow null so we choose either a policy or "no thank you"
+		allow_null = {
+			scope:law = {
+				NOT = { has_tag = forbids_no_policy }
+			}
+		}
+		name = "bribe_voter_for_policy_select_policy"
+		none_available_msg_key = "bribe_voter_for_policy_no_policies"
+		column = {
+			data = name
+		}
+		visible = {
+			is_visible_for_international_organization = scope:organization
+		}
+		enabled = {
+			is_allowed_for_international_organization = scope:organization
+		}
+	}
+
+	#how much gold do we want to give to the target country
+	select_trigger = {
+		looking_for_a = value
+		target_flag = target_value
+		name = "bribe_voter_for_policy_select_gold_amount"
+		min = 1
+		max = scope:actor.gold
+		step = scope:recipient.monthly_income_total
+		default = {
+			value = scope:recipient.monthly_income_total
+			multiply = 6
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = { exists = scope:recipient }
+			if = {
+				limit = { exists = scope:target_value }
+				scope:actor = {
+					add_gold = {
+						value = scope:target_value
+						multiply = -1
+					}
+				}
+				scope:recipient = {
+					add_gold = scope:target_value
+				}
+			}
+			if = {
+				limit = {
+					exists = scope:law
+					exists = scope:organization
+					is_set = scope:policy
+				}
+				scope:organization = {
+					set_vote = {
+						voter = scope:recipient
+						resolution = resolution:policy_vote
+						vote = scope:policy
+						lock_reason = {
+							key = VOTE_LOCK_REASON_BRIBED
+						}
+					}
+				}
+			}
+		}
+	}
+	reject_effect = {
+		if = {
+			limit = { exists = scope:recipient }
+			scope:actor = {
+				add_opinion = {
+					target = scope:recipient
+					modifier = opinion_rejected_bribe_voter_for_policy
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		#count how many are voting for what we want - if it's just below but close, then we're more likely to bribe
+		add = {
+			desc = "BRIBE_BIAS_PROXIMITY_TO_GOAL"
+			value = 10
+            save_temporary_value_as = end_vote_counter
+			scope:organization = { 
+				every_international_organization_member = {
+					if = {
+						limit = {
+							"resolution_vote(this|scope:recipient|resolution:policy_vote)" ?= scope:policy
+						}
+						subtract = {
+							value = scope:end_vote_counter
+							value = 1
+						}
+					}
+					else = {
+						add = {
+							value = scope:end_vote_counter
+							value = 1
+						}
+					}
+				}
+			}
+			if = {
+				limit = { scope:end_vote_counter != 0 }
+				divide = scope:end_vote_counter
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:target_value
+			}
+			#making sure the AI makes actually alluring offers
+			add = {
+				desc = "OFFERED_GOLD"
+				value = {
+					value = scope:target_value
+					divide = 4
+					subtract = {
+						value = scope:recipient.monthly_income_total
+						multiply = 12
+					}
+				}
+			}
+		}
+	}
+	diplo_chance = {
+		base = -50
+		in_debt = 5
+	}
+	accept = {
+		if = {
+			limit = {
+				scope:recipient = {
+					monthly_balance < 0
+				}
+			}
+			add = {
+				desc = "IN_DEFICIT"
+				value = 10
+			}
+		}
+		if = {
+			limit = {
+				scope:recipient = {
+					is_during_bankruptcy = yes
+				}
+			}
+			add = {
+				desc = "IS_BANKRUPT_TOOLTIP"
+				value = 1000
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:law
+				exists = scope:organization
+				scope:organization = {
+					has_voted = {
+						voter = scope:recipient
+						resolution = resolution:policy_vote
+					}
+				}
+			}
+			subtract = {
+				desc = "OPINION_OF_CURRENT_RESOLUTION_PROPOSAL"
+				scope:organization = {
+					"active_resolution(resolution:policy_vote)" = {
+						"vote_in_active_resolution(resolution_proposer)" = {
+							save_temporary_scope_as = proposal_vote
+						}
+					}
+				}
+				value = "scope:recipient.resolution_opinion(scope:organization|resolution:policy_vote|scope:proposal_vote)"
+			}
+		}
+		if = {
+			limit = { exists = scope:target_value }
+			add = {
+				desc = "OFFERED_GOLD"
+				value = {
+					value = scope:target_value
+					divide = 4
+				}
+			}
+		}
+	}
+}

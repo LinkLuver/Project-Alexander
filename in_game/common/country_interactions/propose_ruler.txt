@@ -1,0 +1,136 @@
+﻿propose_ruler =  { 
+	type = diplomacy
+	category = CATEGORY_INFLUENCE_ACTIONS
+
+	potential = {
+		scope:actor = {
+			government_type = government_type:monarchy
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			exists = ruler_or_heir_if_regent.dynasty
+			any_character = {
+				is_ruler = no
+				has_dynasty = yes
+				dynasty = scope:actor.ruler_or_heir_if_regent.dynasty
+				religion = scope:actor.religion
+			}
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			government_type = government_type:monarchy
+			not = { is_subject_of = scope:actor }
+		}
+        enabled = {
+			has_regent = yes
+			has_heir = no
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = target
+		name = "propose_ruler_SELECT_TITLE"
+		none_available_msg_key = "propose_ruler_no_characters"
+		column = {
+			data = character_ruler
+		}
+		visible = {
+			is_alive = yes
+			is_ruler = no
+			is_heir = no
+			has_dynasty = yes
+			dynasty = scope:actor.ruler_or_heir_if_regent.dynasty
+			is_adult = yes
+			religion = scope:actor.religion
+			modifier:blocked_from_character_interactions = no
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:target = { move_country = scope:recipient }
+			scope:recipient = { set_new_ruler = scope:target }
+		}
+	}
+	
+	block_when_at_war = yes
+	
+	ai_will_do = {
+		add = {
+			desc = "TARGET_ACCEPTANCE"
+			value = "scope:actor.country_interaction_acceptance(country_interaction:propose_ruler|scope:recipient)"
+		}
+	}
+	accept = {
+		subtract = {
+			desc = "VOTE_BASE_VALUE"
+			value = 400
+		}
+		add = {
+			desc = "THEIR_OPINION_TOOLTIP"
+			value = "scope:recipient.opinion(scope:actor)"
+			if = {
+				limit = {
+					scope:recipient = {
+						"opinion(scope:actor)" > 0
+					}
+				}
+				divide = 10
+			}
+			else = {
+				divide = 5
+			}
+		}
+		add = {
+			desc = "[diplomatic_reputation|e]"
+			value = scope:actor.modifier:diplomatic_reputation
+			multiply = 3
+		}
+		add = {
+			desc = "DIPLOREASON_TRUST"
+			value = "scope:recipient.trust(scope:actor)"
+			divide = 5
+		}
+		if = {
+			limit = { exists = scope:target }
+			add = {
+				desc = "DIPLOREASON_TARGET_CHARACTER_TOTAL_ABILITIES"
+				value = scope:target.total_abilities
+			}
+			if = {
+				limit = { scope:target.culture = scope:recipient.culture }
+				add = {
+					desc = "DIPLOREASON_TARGET_CHARACTER_CULTURE"
+					value = 50
+				}
+			}
+			if = {
+				limit = { scope:target.religion = scope:recipient.religion }
+				add = {
+					desc = "DIPLOREASON_TARGET_CHARACTER_RELIGION"
+					value = 50
+				}
+			}
+			if = {
+				limit = { scope:target = { is_heir_of = scope:actor } }
+				subtract = {
+					desc = "DIPLOREASON_WOULD_CREATE_UNION_WITH_US"
+					value = 200
+				}
+			}
+		}
+	}
+}	

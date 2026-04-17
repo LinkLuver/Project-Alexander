@@ -1,0 +1,124 @@
+﻿improve_cultural_view_subject = {
+	type = subject
+	category = CATEGORY_SUBJECT_ACTIONS
+	
+	
+	potential = {
+		scope:actor = {
+			culture = {
+				dominant_country ?= scope:actor
+			}
+		}
+	}
+
+	allow = {
+	}
+	
+	ai_limit_per_check = 1 #Because it has the cooldown
+
+	cooldown = {
+		type = improve_cultural_view_subject
+		years = 50
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			culture = {
+				dominant_country ?= scope:recipient
+			}
+		}
+        enabled = {
+			NOT = {
+				culture = {
+					cultural_view = {
+						target = scope:actor.culture
+						value = kindred
+					}
+				}
+			}
+			subject_loyalty >= MIN_SUBJECT_LOYALTY_FOR_ACTION
+			liberty_desire < MAX_SUBJECT_LIBERTY_DESIRE_FOR_ACTION
+		}
+	}
+
+	effect = {
+		scope:recipient = {
+			culture = {
+				change_cultural_view = {
+					target = scope:actor.culture
+					change = 1
+				}
+			}
+			add_liberty_desire = liberty_desire_mild_plus
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					is_human = yes
+				}
+				ironman = yes
+			}
+			scope:actor = {
+				set_variable = {
+					name = unlock_achievement_hearts_and_minds
+					months = 1
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		# opinion of the other culture
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						culture = {
+							cultural_view = {
+								target = scope:actor.culture
+								value = enemy
+							}
+						}
+					}
+				}
+				value = 45
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						culture = {
+							cultural_view = {
+								target = scope:actor.culture
+								value = negative
+							}
+						}
+					}
+				}
+				value = 25
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						culture = {
+							cultural_view = {
+								target = scope:actor.culture
+								value = neutral
+							}
+						}
+					}
+				}
+				value = 10
+			}
+		}
+	}
+}

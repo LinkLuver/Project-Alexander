@@ -1,0 +1,152 @@
+﻿improve_cultural_view = {
+	type = diplomacy
+	category = CATEGORY_FRIENDLY_ACTIONS
+
+	diplomatic_cost = improve_cultural_view_cost
+	
+	potential = {
+		scope:actor = {
+			culture = {
+				dominant_country ?= scope:actor
+			}
+		}
+	}
+
+    ai_tick = daily
+	ai_tick_frequency = 365
+
+
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		ai_interaction_source_list = {
+			scope:actor = {
+				every_friendly_or_high_opinion_country = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			culture = {
+				dominant_country ?= scope:recipient
+			}
+			#For a subject-overlord there is a subject interaction
+			NOT = {
+				is_subject_of = scope:actor
+			}
+		}
+        enabled = {
+			NOT = {
+				culture = {
+					cultural_view = {
+						target = scope:actor.culture
+						value = kindred
+					}
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:recipient = {
+			culture = {
+				change_cultural_view = {
+					target = scope:actor.culture
+					change = 1
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					is_human = yes
+				}
+				ironman = yes
+			}
+			scope:actor = {
+				set_variable = {
+					name = unlock_achievement_hearts_and_minds
+					months = 1
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		# opinion of the other culture
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						culture = {
+							cultural_view = {
+								target = scope:actor.culture
+								value = enemy
+							}
+						}
+					}
+				}
+				value = 45
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						culture = {
+							cultural_view = {
+								target = scope:actor.culture
+								value = negative
+							}
+						}
+					}
+				}
+				value = 25
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						culture = {
+							cultural_view = {
+								target = scope:actor.culture
+								value = neutral
+							}
+						}
+					}
+				}
+				value = 10
+			}
+		}
+	}
+	
+	diplo_chance = {
+		base = -10
+		opinion = 0.2
+	}
+
+	#
+	# Extra calculation offers
+	#
+	accept = {
+		add = {
+			desc = "game_concept_rival"
+			if = {
+				limit = {	
+					scope:recipient = { 
+						is_rival_of = scope:actor 
+					}
+				}
+				value = -100
+			}
+		}
+	}
+}

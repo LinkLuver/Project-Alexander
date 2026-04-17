@@ -1,0 +1,71 @@
+﻿force_change_court_language =  { 
+	type = diplomacy
+	category = CATEGORY_INFLUENCE_ACTIONS
+
+	potential = {
+		scope:actor = {
+			modifier:allow_diplomacy_force_change_court_language = yes
+		}
+	}
+	
+	allow = {
+	}
+	
+	diplomatic_cost = force_change_court_language_cost
+
+	
+	ai_tick = daily
+	ai_tick_frequency = 180
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			is_great_power = no
+			not = { court_dialect = scope:actor.court_dialect }
+			NOT = { has_cooldown = force_change_court_language }
+		}
+        enabled = {
+			trigger_if = {
+				limit = {
+					OR = {
+						has_reform = government_reform:papacy_reform
+						has_reform = government_reform:kingdom_of_god_reform
+					}
+					court_language = language:latin_language
+				}
+				always = no
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			scope:recipient = {
+				set_court_language = scope:actor.court_dialect
+				add_cooldown = {
+					type = force_change_court_language
+					years = 10
+				}
+			}
+		}
+	}
+	reject_effect = {
+		reject_hegemon_ultimatum_effect = { type = country_interaction:force_change_court_language }
+	}
+	accept = {
+		add = hegemon_demand_base_acceptance
+	}
+	ai_will_do = {
+		#no reason not to
+		add = 10
+		add = hegemon_demand_base_will_do
+	}
+}	

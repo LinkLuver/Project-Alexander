@@ -1,0 +1,90 @@
+﻿give_location_to_subject = { 
+	type = subject
+	category = CATEGORY_SUBJECT_ACTIONS
+
+	ai_tick = never
+	
+	use_enroute = no
+
+	potential = {
+		scope:actor = {
+			num_locations > 1
+			at_war = no
+		}
+	}
+
+	allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			NOR = {
+				country_type = building
+				country_type = pop
+			}
+		}
+        enabled = {
+			trigger_if = {
+				limit = {
+					is_subject_type = tusi
+				}
+				num_locations < 15
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		source = actor
+		target_flag = target
+		source_flags = only_actual_locations
+		name = "select_a_location_to_give"
+		none_available_msg_key = "give_location_to_subject_no_locations"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			is_capital = no
+			OR = {
+				any_coast_border_location = {
+					owner ?= scope:recipient
+				}
+				area = scope:recipient.capital.area
+			}
+		}
+	}
+	
+	
+	effect = {
+	
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {	
+				change_location_owner = scope:recipient
+			}
+
+		}
+		else = {
+			custom_tooltip = select_a_location_to_give
+		}
+	}
+	
+}	

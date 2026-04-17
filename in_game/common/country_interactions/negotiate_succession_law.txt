@@ -1,0 +1,186 @@
+﻿negotiate_succession_law = {
+	category = CATEGORY_UNION_ACTIONS
+	type = union
+	ai_tick = monthly
+	ai_tick_frequency = 24
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	potential = {
+		scope:actor = {
+			exists = succession_law
+			exists = union
+			government_type = government_type:monarchy
+            union ?= {
+				has_variable = union_senior_partner
+				international_organization_has_policy = policy:union_establish_seniority_policy
+				country_is_senior_partner = { country = scope:actor }
+            }
+		}
+	}
+	allow = {
+		scope:actor = {
+			succession_law = {
+				NOT = { is_locked_for = scope:actor }
+			}
+            union = {
+                modifier:enabled_negotiate_succession_law = yes
+            }
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = { data = name }
+		visible = {
+            in_union_with = scope:actor
+		}
+        enabled = {
+			trigger_if = {
+				limit = {
+					has_heir = yes
+					scope:actor = { has_heir = yes }
+				}
+				heir != scope:actor.heir
+			}
+			trigger_else = {
+				has_heir = no
+			}
+			OR = {
+				custom_tooltip = {
+					text = negotiate_succession_law_at
+					AND = {
+						can_adopt_compatible_religion_law = { country = scope:actor }
+						NOT = { has_compatible_heir_religion_law_with = { country = scope:actor } }
+					}
+				}
+				custom_tooltip = {
+					text = negotiate_succession_law_ct
+					scope:actor.succession_law = { NOT = { has_tag = cannot_be_transferred } }
+					succession_law = {
+						this != scope:actor.succession_law
+						NOT = { is_locked_for = root }
+					}
+				}
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = { exists = scope:recipient }
+			scope:actor = {
+				if = {
+					limit = {
+						succession_law = { NOT = { has_tag = cannot_be_transferred } }
+						scope:recipient = {
+							succession_law = {
+								this != scope:actor.succession_law
+								NOT = { is_locked_for = prev }
+							}
+						}
+					}
+					succession_law = {
+						save_scope_as = target_heir_selection
+					}
+				}
+			}
+			scope:recipient = {
+				if = {
+					limit = { exists = scope:target_heir_selection }
+					change_heir_selection = scope:target_heir_selection
+				}
+				else = {
+					custom_tooltip = negotiate_succession_law_dt
+				}
+				if = {
+					limit = {
+						AND = {
+							can_adopt_compatible_religion_law = { country = scope:actor }
+							NOT = { has_compatible_heir_religion_law_with = { country = scope:actor } }
+						}
+					}
+					adopt_compatible_heir_religion_law = { country = scope:actor }
+				}
+				add_opinion = {
+					target = scope:actor
+					modifier = opinion_enforced_succession_law_changes
+				}
+			}
+		}
+		else = {
+			custom_tooltip = negotiate_succession_law_tt
+			custom_tooltip = negotiate_succession_law_bt
+		}
+	}
+	reject_effect = {
+		scope:actor = {
+			add_prestige = prestige_mild_penalty
+		}
+	}
+	
+	block_when_at_war = yes
+
+	ai_will_do = {
+		add = {
+			desc = "TARGET_ACCEPTANCE"
+			value = "scope:actor.country_interaction_acceptance(country_interaction:negotiate_succession_law|scope:recipient)"
+		}
+	}
+
+	accept = {
+		subtract = {
+			desc = "DIPLOREASON_BASE"
+			value = 50
+		}
+		add = {
+			desc = "THEIR_OPINION_TOOLTIP"
+			value = "scope:recipient.opinion(scope:actor)"
+			if = {
+				limit = {
+					scope:recipient = {
+						"opinion(scope:actor)" > 0
+					}
+				}
+				divide = 10
+			}
+			else = {
+				divide = 5
+			}
+		}
+		if = {
+			limit = { scope:recipient = { government_type = government_type:theocracy } }
+			subtract = {
+				desc = "is_theocracy"
+				value = 100
+			}
+		}
+		if = {
+			limit = { scope:recipient = { government_type = government_type:republic } }
+			subtract = {
+				desc = "is_republic"
+				value = 50
+			}
+		}
+		add = {
+			desc = "[diplomatic_reputation|e]"
+			value = scope:actor.modifier:diplomatic_reputation
+			multiply = 3
+		}
+		add = {
+			desc = "DIPLOREASON_TRUST"
+			value = "scope:recipient.trust(scope:actor)"
+			divide = 5
+		}
+		if = {
+			limit = { exists = scope:actor.union }
+			add = {
+				desc = "DIPLOREASON_YEARS_IN_UNION"
+				value = "scope:recipient.years_in_international_organization(scope:actor.union)"
+				divide = 4
+			}
+		}
+	}
+}

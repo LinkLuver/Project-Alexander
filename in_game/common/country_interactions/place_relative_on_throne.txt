@@ -1,0 +1,121 @@
+﻿place_relative_on_throne = {
+	type = union
+	category = CATEGORY_UNION_ACTIONS
+
+	potential = {
+		scope:actor = {
+			exists = union
+			has_ruler = yes
+			ruler ?= {
+				has_dynasty = yes
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	ai_tick = never
+	ai_tick_frequency = 120
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_union_partner = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_targets = yes
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			has_ruler = yes
+			ruler ?= scope:actor.ruler
+		}
+        enabled = {
+			OR = {
+				opinion = {
+					target = scope:actor
+					value >= 100
+				}
+				government_power <= 50
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = target
+		name = "place_relative_on_throne_SELECT_TITLE"
+		none_available_msg_key = "place_relative_on_throne_no_characters"
+		column = { data = character_info }
+		visible = {
+			is_alive = yes
+			is_adult = yes
+			has_dynasty = yes
+			dynasty ?= scope:actor.ruler_or_heir_if_regent.dynasty
+		}
+		enabled = {
+			custom_tooltip = {
+				text = is_neither_ruler_nor_heir_tt
+				is_ruler = no
+				is_heir = no
+			}
+			custom_tooltip = {
+				text = is_eligible_heir_tt
+				is_eligible_heir = scope:recipient
+				has_religion_of_country_heir_law = { country = scope:recipient }
+			}
+		}
+	}
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:recipient = {
+				set_new_ruler = scope:target
+			}
+		}
+	}
+
+	ai_will_do = {
+		subtract = {
+			desc = "DOES_NOT_BENEFITS_US"
+			value = -1000
+		}
+	}
+
+	diplo_chance = {
+		base = -50
+        diplomatic_reputation = 3
+		opinion = 0.2
+		trust_in_actor = 0.5
+	}
+	accept = {
+		if = {
+			limit = {
+				scope:recipient = {
+					has_ruler = yes
+				}
+				exists = scope:target
+			}
+			add = {
+				desc = "DIPLOREASON_TOTAL_ABILITY_COMPARED_TO_RULER"
+				value = scope:target.total_abilities
+				subtract = scope:recipient.ruler.total_abilities
+			}
+		}
+		add = {
+			desc = "DIPLOREASON_GOVERNMENT_POWER"
+			value = scope:recipient.government_power
+			subtract = 50
+		}
+	}
+}

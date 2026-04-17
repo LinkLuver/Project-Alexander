@@ -1,0 +1,163 @@
+﻿force_embargo =  { 
+	type = diplomacy
+	category = CATEGORY_ECONOMY_ACTIONS
+
+	potential = {
+		scope:actor = {
+			modifier:allow_diplomacy_force_embargo = yes
+		}
+	}
+	
+	allow = {
+	}
+	
+	ai_tick = daily
+	ai_tick_frequency = 180
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			num_of_ports > 0
+			is_great_power = no
+		}
+        enabled = {
+			has_markets = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target
+		interaction_source_list = {
+			scope:actor = {
+				every_rival = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "force_embargo_select_title"
+		none_available_msg_key = "force_embargo_no_countries"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			can_add_relation = {
+				first = scope:recipient
+				second = root
+				type = relation_type:embargo_nation
+			}
+		}
+		enabled = {
+			scope:recipient = {
+				NOT = { 
+					giving_scripted_relation = {
+						type = relation_type:embargo_nation
+						target = root
+					}
+				}
+			}
+		}
+	}
+	
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+				exists = scope:recipient
+			}
+			create_relation = { 
+				first = scope:recipient
+				second = scope:target 
+				type = relation_type:embargo_nation
+				years = 10
+			}
+
+			scope:target = {
+				add_opinion = { target = scope:actor modifier = opinion_forced_embargo_on_me }
+			}
+			scope:recipient = {
+				add_opinion = { target = scope:actor modifier = opinion_forced_me_to_embargo_someone }
+			}
+		}
+	}
+	reject_effect = {
+		reject_hegemon_ultimatum_effect = { type = country_interaction:force_embargo }
+	}
+	accept = {
+		add = hegemon_demand_base_acceptance
+	}
+	ai_will_do = {
+		add = {
+			value = -100 #base
+		}
+		add = hegemon_demand_base_will_do
+		#rivals? prepare to be embargoed.
+		add = {
+			desc = "game_concept_rival"
+			if = {
+				limit = {	
+					scope:target = { 
+						is_rival_of = scope:actor 
+					}
+				}
+				value = 100
+			}
+		}
+		#screw enemies
+		add = {
+			desc = "IS_WAR_ENEMY"
+			if = {
+				limit = {
+					scope:target = { 
+						is_at_war_with = scope:actor
+					}
+				}
+				value = 200
+			}
+		}
+		#leave allies alone
+		add = {
+			desc = "game_concept_ally"
+			if = {
+				limit = {	
+					scope:target = { 
+						is_allied_with = { target = scope:actor }
+					}
+				}
+				value = -100
+			}
+		}
+		#the less we like the target the better
+		subtract = {
+			desc = "game_concept_opinion"
+			scope:actor = {
+				value = "opinion(scope:target)"
+			}
+			multiply = 0.5
+		}
+		#if we distruct the target, screw 'em'
+		add = {
+			scope:actor = {
+				value = 100
+				subtract = "trust(scope:target)"
+				divide = 5
+			}
+		}
+		#if they trust us don't mess with them
+		add = {
+			scope:recipient = {
+				value = "trust(scope:actor)"
+				divide = 5
+			}
+		}
+	}
+}	

@@ -1,0 +1,92 @@
+﻿violate_sovereignty =  { 
+	type = diplomacy
+	category = CATEGORY_HOSTILE_ACTIONS
+
+	potential = {
+		scope:actor = {
+			modifier:allow_diplomacy_violate_sovereignty = yes
+		}
+	}
+	
+	allow = {
+	}
+	
+	ai_tick = daily
+	ai_tick_frequency = {
+		if = {
+			limit = {
+				at_war = yes
+			}
+			value = 5
+		}
+		else = {
+			value = 180
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			is_great_power = no
+			NOT = { gives_food_access_to = scope:actor } 
+			NOT = { gives_military_access_to = scope:actor } 
+		}
+        enabled = {
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			scope:recipient = {
+				add_opinion = {
+					target = scope:actor
+					modifier = opinion_violated_sovereignty
+				}
+			}
+
+			create_relation = { 
+				first = scope:recipient
+				second = scope:actor 
+				type = relation_type:military_access
+				months = 6
+			}
+
+			create_relation = { 
+				first = scope:recipient
+				second = scope:actor 
+				type = relation_type:food_access
+				months = 6
+			}
+		}
+	}
+	reject_effect = {
+		reject_hegemon_ultimatum_effect = { type = country_interaction:violate_sovereignty }
+	}
+	accept = {
+		add = hegemon_demand_base_acceptance
+	}
+	ai_will_do = {
+		#base
+		value = -1000
+		add = hegemon_demand_base_will_do
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						at_war = yes
+						wants_military_access_in = scope:recipient
+					}
+				}
+				value = 1100
+			}
+		}
+	}
+}	

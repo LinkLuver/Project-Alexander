@@ -1,0 +1,88 @@
+﻿renegotiate_loan = { 
+	type = diplomacy
+	category = CATEGORY_ECONOMY_ACTIONS
+
+	diplomatic_cost = renegotiate_loan_cost
+
+	potential = {
+		scope:actor = {
+			has_reform = government_reform:banking_country
+		}
+	}
+
+	allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_country_lent_to = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+        enabled = {
+			opinion = {
+				target = scope:actor
+				value < 100
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = loan
+		interaction_source_list = {
+			scope:actor = {
+				every_loan_lent_to_country = {
+					limit = {
+						borrower = scope:recipient
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = loan
+		name = "renegotiate_loan_choose_loan"
+		none_available_msg_key = "renegotiate_loan_no_loans"
+		column = {
+			data = loan_name_as_lender
+		}
+		visible = {
+		}
+        enabled = {
+			loan_interest < {
+				value = scope:actor.estate_loan_interest
+				multiply = 1.5
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:loan
+			}
+			scope:loan = {
+				change_loan_interest = 0.01
+			}
+			scope:recipient = {	
+				add_opinion = {
+					target = scope:actor
+					modifier = opinion_increased_loan_interest
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 1
+	}	
+}	

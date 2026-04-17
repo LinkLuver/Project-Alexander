@@ -1,0 +1,66 @@
+﻿take_over_loan =  { 
+	category = CATEGORY_ECONOMY_ACTIONS
+	type = diplomacy
+	is_take_over_loan = yes
+	
+	potential = {
+	}
+
+	
+	allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			num_loans > 0
+		}
+        enabled = {
+			any_loan = {
+				NOT = { exists = owner }
+				months_left > 40
+				loan_interest > scope:actor.modifier:bank_interest
+				scope:actor.gold > remaining_debt
+			}
+		}
+	}
+
+	effect = {
+		scope:recipient = {
+			ordered_loan = {
+				limit = {
+					NOT = { exists = owner }
+					months_left > 40
+					loan_interest > scope:actor.modifier:bank_interest
+					scope:actor.gold > remaining_debt
+				}
+				order_by = remaining_debt
+				max = 1
+				
+				custom_description = {
+					text = pay_off_their_debt
+					value = remaining_debt
+					scope:actor = {
+						add_gold = {
+							value = prev.remaining_debt
+							multiply = -1
+						}
+					}
+				}
+
+				change_loan_owner = scope:actor
+			}
+		}	
+	}
+
+	ai_will_do = {
+		#Ignore smaller countries for performance
+		add = -20
+		add = scope:recipient.country_tax_base
+	}
+}	

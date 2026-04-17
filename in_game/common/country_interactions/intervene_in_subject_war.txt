@@ -1,0 +1,164 @@
+﻿intervene_in_subject_regular_war = {
+	type = diplomacy
+	category = CATEGORY_SUBJECT_ACTIONS
+
+	potential = {
+	}
+
+	allow = {
+		scope:actor = {
+			is_during_bankruptcy = no
+			has_regent = no
+		}
+	}	
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			at_war = yes
+			is_subject_of = scope:actor			
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = war
+		source = recipient
+		target_flag = target
+		interaction_source_list = {
+			scope:recipient = {
+				every_current_war = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_interaction_source_list = yes
+		name = "choose_war_to_join"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+		enabled = {
+			is_civil_war_for = scope:recipient
+
+			trigger_if = {
+				limit = {
+					attacker_leader = scope:recipient
+				}
+				can_join_as_attacker = scope:actor
+				NOT = {
+					defender_leader = {
+						is_subject_or_below_of = scope:actor
+					}
+				}
+				scope:actor = {
+					can_join_offensive_war_with = scope:recipient
+					NOT = {
+						has_truce_with = root.defender_leader
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = {
+					defender_leader = scope:recipient
+				}
+				can_join_as_defender = scope:actor
+				NOT = {
+					attacker_leader = {
+						is_subject_or_below_of = scope:actor
+					}
+				}
+				scope:actor = {
+					can_join_defensive_war_with = scope:recipient
+					NOT = {
+						has_truce_with = root.attacker_leader
+					}
+				}
+			}
+			trigger_else = {
+				always = no
+			}
+		}
+	}
+
+	effect = {	
+		scope:target = {
+			if = {
+				limit = {
+					attacker_leader = scope:recipient
+				}
+				scope:actor = {
+					join_war_as_attacker = {
+						war = prev
+						reason = intervene
+					}
+				}
+			}
+			else = {
+				scope:actor = {
+					join_war_as_defender = {
+						war = prev
+						reason = intervene
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "game_concept_opinion"
+			scope:actor = {
+				value = "opinion(scope:recipient)"
+				divide = 5
+			}
+		}
+		add = {
+			desc = "game_concept_trust"
+			scope:actor = {
+				value = "trust(scope:recipient)"
+				divide = 5
+			}
+		}
+		add = {
+			desc = "game_concept_war_exhaustion"
+			scope:actor = {
+				value = war_exhaustion
+				divide = -2
+			}
+		}
+		add = {
+			desc = "LENGTH_OF_WAR_TOOLTIP"
+			scope:target = {
+				value = war_length_in_years
+				add = -4
+				multiply = 10
+			}
+		}
+		add = {
+			desc = "IS_AT_WAR"
+			if = {
+				limit = {	
+					scope:actor = { 
+						at_war = yes
+					}
+				}
+				value = -250
+			}
+		}
+	}
+}
