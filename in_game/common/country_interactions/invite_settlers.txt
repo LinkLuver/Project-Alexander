@@ -1,0 +1,84 @@
+﻿invite_settlers = {
+	type = diplomacy
+	category = CATEGORY_FRIENDLY_ACTIONS
+
+	ai_tick = never
+
+	potential = {
+		scope:actor = {
+			country_type = location
+		}
+	}
+
+	allow = {
+	}
+	
+	cooldown = {
+		type = invite_settlers
+		years = 2
+	}
+
+	diplomatic_cost = invite_settlers_cost
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:actor = {
+				culture = {
+					save_temporary_scope_as = actor_culture
+				}
+			}
+			culture = {
+				any_culture_group = {
+					scope:actor_culture = {
+						has_culture_group = prev
+					}
+				}
+			}
+		}
+        enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target
+		name = "invite_settlers_select_destination"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			add_migration = {
+				owner = scope:recipient
+				to_owner = scope:actor
+				from = scope:recipient.capital.province_definition
+				to = scope:target.province_definition
+				type = pop_type:peasants
+				amount = 0.010
+				months = 24
+			}
+		}
+	}
+	
+	ai_will_do = {
+		#inertia
+		add = -10
+	}
+}

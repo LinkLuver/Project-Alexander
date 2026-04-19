@@ -1,0 +1,104 @@
+﻿share_maps =  { 
+	type = diplomacy
+	category = CATEGORY_FRIENDLY_ACTIONS
+
+	allow = {
+		scope:actor = {
+			can_share_maps_with = scope:recipient
+		}
+	}
+
+	block_when_at_war = no	
+
+	ai_tick = daily
+	ai_tick_frequency = 120
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		ai_interaction_source_list = {
+			scope:actor = {
+				every_friendly_or_high_opinion_country = { 
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+        enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = area
+		target_flag = target
+		name = "share_maps_select_title"
+		none_available_msg_key = "steal_maps_no_areas"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:actor = { has_discovered_area = prev }
+			NOT = { scope:recipient = { has_discovered_area = prev } }
+			
+			any_neighbor_area = {
+				scope:recipient = { 
+					has_discovered_area = prev
+				}
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:recipient = {
+				discover_area = scope:target
+			}
+		}
+	}
+
+	ai_will_do = {
+		#in the same war?
+		scope:actor = {
+			every_current_war = {
+				if = {
+					limit = {
+						is_in_war = scope:recipient
+					}
+					add = {
+						value = 5
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				every_province_in_area = {
+					owner = {
+						if = {
+							limit = {
+								is_at_war_with = scope:recipient
+							}
+							add = 10
+						}
+					}
+				}
+			}
+		}
+	}
+
+	accept = {
+		#why would you not.
+		value = 1000
+	}
+}	

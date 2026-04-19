@@ -1,0 +1,94 @@
+﻿ask_for_money = {
+	type = diplomacy
+
+	category = CATEGORY_ECONOMY_ACTIONS
+
+	diplomatic_cost = ask_for_money_cost
+	
+	ai_tick = daily
+	ai_tick_frequency = 360
+
+	potential = {
+	}
+
+	cooldown = { 
+		type = ask_for_money
+		years = 10
+	}
+
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		ai_interaction_source_list = {
+			scope:actor = {
+				every_friendly_or_high_opinion_country = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			not = {	#Military Orders have their own diplo action with a more flavorful name and more money to gain
+				scope:recipient = {
+					giving_scripted_relation = {
+						type = relation_type:military_sponsorship
+						target = scope:actor
+					}
+				}
+			}
+		}
+        enabled = {
+			gold >= {
+				value = scope:actor.country_tax_base
+				min = scope:recipient.country_tax_base
+			}
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				scope:actor = {	
+					monthly_balance < 0
+				}
+			}
+			add = {
+				value = 10
+			}
+		}
+	}
+	
+	effect = {
+        scope:recipient = {
+			add_gold = {
+				value = scope:recipient.country_tax_base
+				max = {
+					value = scope:actor.country_tax_base
+					multiply = 4
+				}
+				multiply = -1
+			}
+		}
+		scope:actor = {
+			add_gold = {
+				value = scope:recipient.country_tax_base
+				max = {
+					value = scope:actor.country_tax_base
+					multiply = 4
+				}
+			}
+		}
+	}
+
+	diplo_chance = {
+		base = -15
+		in_debt = -100
+		opinion = 0.1
+	}
+}

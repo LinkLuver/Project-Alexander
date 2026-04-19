@@ -1,0 +1,97 @@
+﻿seize_location_from_subject = { 
+	type = subject
+	category = CATEGORY_SUBJECT_ACTIONS
+	
+	ai_tick = never
+	
+	potential = {
+		scope:actor = { country_type = location }
+	}
+
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			country_type = location
+		}
+        enabled = {
+			subject_loyalty >= MIN_SUBJECT_LOYALTY_FOR_ACTION
+			liberty_desire < MAX_SUBJECT_LIBERTY_DESIRE_FOR_ACTION
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		source = recipient
+		target_flag = target
+		source_flags = only_actual_locations
+		name = "seize_location_from_subject_select_title"
+		none_available_msg_key = "seize_location_from_subject_no_locations"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			any_coast_border_location = {
+				owner ?= scope:actor
+			}
+			is_capital = no
+		}
+	}
+	
+	
+	effect = {
+	
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {	
+				change_location_owner_forcefully = scope:actor
+			}
+
+		}
+		else = {
+			custom_tooltip = select_a_location_to_take
+		}
+		
+		scope:recipient = {
+			add_liberty_desire = {
+				value = liberty_desire_mild_plus
+				multiply = {
+					value = 1
+					add = { 
+						value = scope:target.development
+						multiply = 0.1
+					}
+					add = { 
+						value = scope:target.population
+						multiply = 0.05
+					}
+					add = { 
+						value = scope:target.total_building_levels
+						multiply = 0.1
+					}
+					
+				}
+			}
+		}
+	}
+	
+}	

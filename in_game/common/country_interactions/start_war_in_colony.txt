@@ -1,0 +1,89 @@
+﻿start_war_in_colony =  { 
+	category = CATEGORY_SUBJECT_ACTIONS
+	type = subject
+	
+	potential = {
+		scope:actor = { 
+			country_type = location
+		}
+	}
+	
+	allow = {
+	}
+
+	ai_tick = never
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			country_type = location
+			is_subject_type = colonial_nation
+		}
+        enabled = {
+			at_war = no
+			subject_loyalty >= MIN_SUBJECT_LOYALTY_FOR_ACTION
+			liberty_desire < MAX_SUBJECT_LIBERTY_DESIRE_FOR_ACTION
+		}
+	}
+
+	# scope:target will be the nation to go to war with
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target
+		interaction_source_list = {
+			scope:recipient = {
+				every_neighbor_country = {
+					limit = {
+						is_rebel_country = no
+					}
+					add_to_list = source
+				}
+			}
+		}
+		name = "start_war_in_colony_SELECT_COUNTRY_TITLE"
+		none_available_msg_key = "start_war_in_colony_no_countries"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			scope:recipient = {
+				not = { 
+					has_truce_with = root
+				}
+			}
+			OR = {
+				is_subject_type = colonial_nation
+				power_projection < scope:recipient.power_projection
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:recipient = {
+				declare_war_with_cb = {
+					target = scope:target
+					type = casus_belli:cb_colony_war
+				}
+			}
+		}
+	}
+}	

@@ -1,0 +1,115 @@
+﻿subject_return_land = {
+	category = CATEGORY_SUBJECT_ACTIONS
+	type = subject
+
+	diplomatic_cost = subject_return_land_cost
+	
+	ai_tick = never
+
+	potential = {
+		scope:actor = { 
+			country_type = location
+		}
+	}
+
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			country_type = location
+		}
+        enabled = {
+			subject_loyalty >= MIN_SUBJECT_LOYALTY_FOR_ACTION
+			liberty_desire < MAX_SUBJECT_LIBERTY_DESIRE_FOR_ACTION
+		}
+	}
+
+	#first select trigger chooses a location from the subject that has a core from a different country. Result of this gets stored in scope:target
+	select_trigger = {
+		looking_for_a = location
+		source = recipient
+		target_flag = target
+		name = "subject_return_land_choose_0"
+		none_available_msg_key = "subject_return_land_no_locations"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			is_capital = no
+			has_owner = yes
+			owner ?= scope:recipient
+			any_core_in_location = {
+				not = { 
+					this = scope:recipient
+				}
+				is_subject = no
+				root = {
+					is_core_of = prev
+				}
+			}
+		}
+	}
+
+	#second select trigger chooses a country to give the location back to. Result of this gets stored in scope:target_1
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target_1
+		name = "subject_return_land_choose_1"
+		none_available_msg_key = "subject_return_land_no_countries"
+		allow_self = yes
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			not = { 
+				this = scope:recipient
+			}
+			is_subject = no
+			scope:target = {
+				is_core_of = root
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {	
+				change_location_owner = scope:target_1
+			}
+			scope:recipient = {
+				add_liberty_desire = {
+					add = {
+						desc = "game_concept_development"
+						value = scope:target.development
+					}
+				}
+			}
+		}
+		else = {
+			custom_tooltip = select_a_location_to_take
+		}
+	}
+}

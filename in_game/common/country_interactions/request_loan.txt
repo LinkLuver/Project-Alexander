@@ -1,0 +1,57 @@
+﻿request_loan = { 
+	type = diplomacy
+	category = CATEGORY_ECONOMY_ACTIONS
+
+	ai_tick = never
+	
+	potential = {
+	}
+
+	allow = {
+	}
+
+	diplo_chance = {
+		base = 5
+		rank = 0
+		opinion = 0.2
+		relative_strength = 0
+		border_distance = 0
+		trust_in_actor = 0.2
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			capital = { is_discovered_by = scope:actor }
+			within_diplomatic_range = scope:actor
+			has_reform = government_reform:banking_country
+		}
+        enabled = {
+			gold > monthly_income_total
+		}
+	}
+
+	effect = {
+	
+		scope:recipient ?= {	
+			give_loan = {
+				target = scope:actor
+				amount = {
+					value = scope:recipient.monthly_income_total
+					max = {
+						value = scope:actor.monthly_income_trade_and_tax
+						multiply = 2
+					}
+				}
+				interest = scope:actor.modifier:bank_interest
+				months = 60
+			}
+		}
+	}
+	ai_will_do = -10
+}	

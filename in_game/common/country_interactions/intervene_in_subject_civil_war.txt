@@ -1,0 +1,197 @@
+﻿intervene_in_subject_civil_war = {
+	type = diplomacy
+	category = CATEGORY_SUBJECT_ACTIONS
+
+	potential = {
+	}
+
+	allow = {
+	}	
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					limit = {
+						in_civil_war = yes
+					}
+					add_to_list = source
+				}
+				union ?= {
+					every_international_organization_member = {
+						limit = {
+							in_civil_war = yes
+							NOT = { this = scope:actor }
+						}
+						add_to_list = source
+					}
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			in_civil_war = yes
+			
+			OR = {
+				 in_union_with = scope:actor
+				 is_subject_of = scope:actor
+			}
+			
+		}
+        enabled = {
+			not = { is_at_war_with = scope:actor }
+			
+			trigger_if = {
+				limit = {
+					NOT = { in_union_with = scope:actor }
+				}
+				civil_war = {
+					war_length > MONTHS_BEFORE_OVERLORD_CAN_JOIN_CIVIL_WAR
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:recipient = {
+				civil_war = {
+					attacker_leader = {
+						add_to_list = source
+					}
+					defender_leader = {
+						add_to_list = source
+					}
+				}
+			}
+		}
+		target_flag = side
+		name = "intervene_in_subject_civil_war_choose_side"
+		column = {
+			data = name
+		}
+		visible = {
+			not = { is_at_war_with = scope:actor }
+			scope:recipient = {
+				civil_war = {
+					OR = {
+						AND = {
+							is_a_defender = root
+							can_join_as_defender = scope:actor
+						}
+						AND = {
+							is_an_attacker = root
+							can_join_as_attacker = scope:actor
+						}
+					}
+				}
+			}			
+		}
+        enabled = {
+		}
+	}
+
+	effect = {
+		scope:actor = {		
+			reverse_add_opinion = {
+				target = scope:side
+				modifier = opinion_helped_in_civil_war
+			}	
+		}		
+		scope:recipient = {
+			civil_war = {
+				if = {
+					limit = {
+						attacker_leader = scope:side
+					}
+					scope:actor = {
+						join_war_as_attacker = {
+							war = prev
+							reason = intervene
+						}
+					}
+				}
+				else = {
+					scope:actor = {
+						join_war_as_defender = {
+							war = prev
+							reason = intervene
+						}
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "IS_BANKRUPT_TOOLTIP"
+			if = {
+				limit = {	
+					scope:actor = { 
+						is_during_bankruptcy = yes
+					}
+				}
+				value = -1000
+			}
+		}
+		add = {
+			desc = "game_concept_opinion"
+			scope:actor = {
+				value = "opinion(scope:side)"
+				divide = 5
+			}
+		}
+		add = {
+			desc = "game_concept_trust"
+			scope:actor = {
+				value = "trust(scope:side)"
+				divide = 5
+			}
+		}
+		add = {
+			desc = "game_concept_war_exhaustion"
+			scope:actor = {
+				value = war_exhaustion
+				divide = -2
+			}
+		}
+		add = {
+			desc = "LENGTH_OF_WAR_TOOLTIP"
+			scope:recipient = {
+				civil_war = {
+					value = war_length_in_years
+					add = -4
+					multiply = 10
+				}
+			}
+		}
+		add = {
+			desc = "IS_AT_WAR"
+			if = {
+				limit = {	
+					scope:actor = { 
+						at_war = yes
+					}
+				}
+				value = -250
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:side
+				scope:actor = { in_union_with = scope:side }
+			}
+			add = {
+				desc = "SAME_UNION"
+				value = 250
+			}
+		}
+	}
+}

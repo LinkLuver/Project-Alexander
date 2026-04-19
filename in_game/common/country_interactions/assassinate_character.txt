@@ -1,0 +1,181 @@
+﻿assassinate_character = {
+	type = diplomacy
+	category = CATEGORY_COVERT_ACTIONS
+
+	ai_tick = never
+
+	potential = {
+	}
+
+	allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+        enabled = {
+			num_characters > 0
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = recipient
+		target_flag = target
+		name = "assassinate_character_select_character"
+		none_available_msg_key = "assassinate_character_no_characters"
+		column = {
+			data = character_info
+		}
+		visible = {
+			scope:actor = {
+				NOR = {
+					AND = {
+						exists = ruler
+						ruler = ROOT
+					}
+					AND = {
+						exists = heir
+						heir = ROOT
+					}
+					AND = {
+						exists = consort
+						consort = ROOT
+					}
+					AND = {
+						exists = regent
+						regent = ROOT
+					}
+				}
+			}
+			modifier:blocked_from_character_interactions = no
+		}
+        enabled = {
+			scope:actor = {
+				custom_tooltip = {
+					text = assassinate_character_at
+					trigger_if = {
+						limit = {
+							scope:recipient = {
+								is_subject = yes
+								NOT = { is_subject_of = scope:actor }
+							}
+						}
+						spy_network = { 
+							target = scope:recipient.overlord
+							value >= {
+								value = ROOT.assassinate_character_cost_multiplier
+								min = 0.25
+								multiply = 300
+								max = 100
+							}
+						}
+					}
+					trigger_else = {
+						spy_network = { 
+							target = scope:recipient 
+							value >= {
+								value = ROOT.assassinate_character_cost_multiplier
+								min = 0.25
+								multiply = 300
+								max = 100
+							}
+						}
+					}
+				}
+			}
+			has_exploration = no
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:actor = {
+				if = {
+					limit = {
+						scope:recipient = {
+							is_subject = yes
+							NOT = { is_subject_of = scope:actor }
+						}
+					}
+					add_spy_network = {
+						target = scope:recipient.overlord
+						value = {
+							value = -300
+							multiply = scope:target.assassinate_character_cost_multiplier
+							min = -100
+						}
+					}
+				}
+				else = {
+					add_spy_network = {
+						target = scope:recipient
+						value = {
+							value = -300
+							multiply = scope:target.assassinate_character_cost_multiplier
+							min = -100
+						}
+					}
+				}
+				if = {
+					limit = {
+						scope:target = {
+							is_ruler = yes
+						}
+					}
+					add_country_modifier = { 
+						modifier = assassinated_ruler
+						years = 50
+						mode = add_and_extend
+					}
+				}
+				else_if = {
+					limit = {
+						scope:target = {
+							is_heir = yes
+						}
+					}
+					add_country_modifier = { 
+						modifier = assassinated_heir
+						years = 50
+						mode = add_and_extend
+					}
+				}
+				else = {
+					add_country_modifier = { 
+						modifier = assassinated_character
+						years = 50
+						mode = add_and_extend
+					}
+				}
+			}
+			kill_character = {
+				target = scope:target
+				reason = assassination
+				killer = scope:actor.ruler_or_regent
+			}
+		}
+		else = {
+			custom_tooltip = assassinate_character_tt
+			scope:actor = {
+				add_country_modifier = { 
+					modifier = assassinated_character
+					years = 50
+					mode = add_and_extend
+				}
+			}
+		}
+	}
+	
+	ai_will_do = {
+		#inertia
+		add = -10
+	}
+}
