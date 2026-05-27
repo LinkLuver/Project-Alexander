@@ -1,0 +1,71 @@
+﻿take_over_seniority = {
+	category = CATEGORY_HOSTILE_ACTIONS
+	type = diplomacy
+	ai_tick = monthly
+	ai_tick_frequency = 3
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	potential = {
+		scope:actor = {
+			exists = union
+			union ?= {
+				has_variable = union_senior_partner
+				international_organization_has_policy = policy:union_establish_seniority_policy
+				NOT = { country_is_senior_partner = { country = scope:actor } }
+			}
+		}
+	}
+	allow = {
+		scope:actor = {
+			union ?= {
+				is_active_parliament = no
+			}
+		}
+	}
+	cooldown = {
+		type = take_over_seniority
+		years = 25
+	}
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			in_union_with = scope:actor
+			union = {
+				country_is_senior_partner = { country = root }
+			}
+		}
+        enabled = {
+			scope:actor = {
+				great_power_score >= {
+					value = root.great_power_score
+					multiply = 1.25
+				}
+			}
+		}
+	}
+	effect = {
+		scope:actor = {
+			set_senior_partner = yes
+		}
+		scope:recipient = {
+			add_opinion = {
+				target = scope:actor
+				modifier = opinion_eclipsed_in_union
+			}
+		}
+	}
+	ai_will_do = {
+		add = 15
+		add = {
+			desc = "[diplomatic_reputation|e]"
+			value = scope:recipient.modifier:diplomatic_reputation
+			multiply = -3
+		}
+	}
+}

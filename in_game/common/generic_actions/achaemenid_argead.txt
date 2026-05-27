@@ -258,6 +258,7 @@ arrange_marriage_with_achemenid_noble = {
 	}
 }
 imperial_reconquest_claim = {
+
 	type = internationalorganization
 	price = 100
 	potential = {
@@ -270,60 +271,43 @@ imperial_reconquest_claim = {
 			at_war = no
 		}
 	}
-	select_trigger = {
-		looking_for_a = country
-		target_flag = target
-		name = "imperial_reconquest_claim"
-		none_available_msg_key = "none available"
-		column = {
-			data = name
-		}
-		column = {
-			data = expected_army_size
-		}
-		visible = {
-			NOT = {
-				has_truce_with = scope:actor
-			}
-			NOT = {
-				is_allied_with = {
-					target = scope:actor
-				}
-			}
-			NOT = {
-				is_subject_of = scope:actor
-			}
+
+    select_trigger = {
+        looking_for_a = international_organization
+        source = actor
+        target_flag = recipient
+        name = "choose_international_organization"
+        column = { data = name }
+        visible = { international_organization_type = international_organization_type:achaemenid_argead }
+    }
+
+    select_trigger = {
+        looking_for_a = country
+        target_flag = target
+        name = "choose_country"
+        column = { data = name }
+        visible = {
+			NOT = { this = scope:actor }
 			is_member_of_international_organization = international_organization:achaemenid_argead
-			within_diplomatic_range = scope:actor
-			total_population >= 200
-			scope:actor = {
-				NOT = {
-					has_casus_belli_of_type_on = {
-						type = casus_belli:cb_timurs_conquests
-						target = PREV
-					}
-				}
-			}
+        }
+
+		enabled = {
+			#is_neighbor_of = scope:actor
 		}
-	}
-	effect = {
-		scope:actor = {
-			if = {
-				limit = {
-					exists = scope:target
-				}
-				add_casus_belli = {
-					target = scope:target
-					type = casus_belli:cb_timurs_conquests
-				}
-				drop_antagonism_bomb = {
-					target = scope:target.capital
-					modifier = antagonism_planned_invasion
-				}
-			}
-			else = {
-				custom_tooltip = rot_plan_invasion_tt
-			}
-		}
-	}
+    }
+
+    effect = {
+        if = {
+            limit = { exists = scope:target }
+            scope:actor = {
+                add_casus_belli = {
+                    type   = casus_belli:attack_threat
+                    target = scope:target
+                    years  = 5
+                }
+            }
+        }
+        else = { custom_tooltip = lordship_of_ireland_casus_belli }
+    }
+
 }

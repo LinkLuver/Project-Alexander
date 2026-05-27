@@ -1,0 +1,130 @@
+﻿invite_artist = {
+	type = diplomacy
+
+	category = CATEGORY_FRIENDLY_ACTIONS
+	
+	ai_tick = daily
+	ai_tick_frequency = 360
+
+	potential = {
+	}
+
+	allow = {
+		scope:actor = {
+			num_artists < {
+				value = modifier:num_possible_artists
+				multiply = 2
+			}
+		}
+	}
+	
+	price = price:invite_artist
+	price_modifier = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			value = scope:target.yearly_salary
+		}
+		else = {
+			value = 1
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		ai_interaction_source_list = {
+			scope:actor = {
+				every_friendly_or_high_opinion_country ?= {
+					limit = {
+						num_artists > 0
+					}
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+        enabled = {
+			prestige < scope:actor.prestige
+			country_rank_level <= scope:actor.country_rank_level
+			country_tax_base < scope:actor.country_tax_base
+		}
+	}
+ 
+	select_trigger = {
+		looking_for_a = character
+		source = recipient
+		target_flag = target
+		name = "invite_artist_select_artist"
+		none_available_msg_key = "invite_artist_no_characters"
+		column = {
+			data = character_artist
+		}
+		visible = {
+			is_artist = yes
+			is_ruler = no
+			is_heir = no
+			is_consort = no
+			art_progress < 0.02
+			modifier:blocked_from_character_interactions = no
+		}
+	}
+
+	effect = {
+	
+		if = {
+			limit = {
+				scope:recipient ?= {
+					culture ?= {
+						scope:actor ?= {
+							culture ?= { this != scope:recipient.culture }
+						}
+					}
+				}
+				
+			}
+			scope:recipient = {
+				culture = {
+					add_cultural_influence = cultural_influence_mild_bonus
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				move_country = scope:actor
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					is_human = yes
+				}
+				ironman = yes
+			}
+			scope:actor = {
+				set_variable = {
+					name = unlock_achievement_patron_of_the_arts
+					months = 1
+				}
+			}
+		}
+	}
+	
+	ai_will_do = {
+		#inertia
+		add = -25
+
+		#how useful is it for this artist to be added?
+		add = scope:target.artist_skill
+	}
+}

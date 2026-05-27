@@ -1,61 +1,61 @@
 
-# claim_diadochi = {
-# 	type = situation
+ claim_diadochi = {
+ 	type = situation
 
-# 	price = 100
-# 	potential = {
-# 		is_member_of_international_organization = international_organization:achaemenid_argead
-# 	}
-# 	allow = {
-# 		scope:actor = {
-# 			is_member_of_international_organization = international_organization:achaemenid_argead
-# 			at_war = no
-# 		}
-# 	}
+ 	price = 100
+ 	potential = {
+ 		is_member_of_international_organization = international_organization:achaemenid_argead
+ 	}
+ 	allow = {
+ 		scope:actor = {
+ 			is_member_of_international_organization = international_organization:achaemenid_argead
+ 			at_war = no
+ 		}
+ 	}
 	
-# 	select_trigger = {
-# 		looking_for_a = country
-# 		target_flag = target
-# 		name = "claim_diadochi"
-# 		none_available_msg_key = "test fail"
-# 		column = {
-# 			data = name
-# 		}
-# 		column = {
-# 			data = expected_army_size
-# 		}
-# 		visible = {
-# 			NOT = { has_truce_with = scope:actor }
-# 			NOT = { is_allied_with = { target = scope:actor } }
-# 			NOT = { is_subject_of = scope:actor }
-# 			is_member_of_international_organization = international_organization:achaemenid_argead
-# 			within_diplomatic_range = scope:actor
-# 			scope:actor = {
-# 				NOT = { has_casus_belli_of_type_on = { type = casus_belli:cb_timurs_conquests target = PREV } }
-# 			}
-# 		}
-# 	}  
-# 	effect = {
-# 		scope:actor = {
-# 			if = {
-# 				limit = {
-# 					exists = scope:target
-# 				}
-# 				add_casus_belli = {
-# 					target = scope:target
-# 					type = casus_belli:cb_timurs_conquests
-# 				}
-# 				drop_antagonism_bomb = {
-# 					target = scope:target.capital
-# 					modifier = antagonism_planned_invasion
-# 				}
-# 			}
-# 			else = {
-# 				custom_tooltip = rot_plan_invasion_tt
-# 			}
-# 		}
-# 	}
-# }
+ 	select_trigger = {
+ 		looking_for_a = country
+ 		target_flag = target
+ 		name = "claim_diadochi"
+ 		none_available_msg_key = "test fail"
+ 		column = {
+ 			data = name
+ 		}
+ 		column = {
+ 			data = expected_army_size
+ 		}
+ 		visible = {
+ 			NOT = { has_truce_with = scope:actor }
+ 			NOT = { is_allied_with = { target = scope:actor } }
+ 			NOT = { is_subject_of = scope:actor }
+ 			is_member_of_international_organization = international_organization:achaemenid_argead
+ 			within_diplomatic_range = scope:actor
+ 			scope:actor = {
+ 				NOT = { has_casus_belli_of_type_on = { type = casus_belli:cb_timurs_conquests target = PREV } }
+ 			}
+ 		}
+ 	}  
+ 	effect = {
+ 		scope:actor = {
+ 			if = {
+ 				limit = {
+ 					exists = scope:target
+ 				}
+ 				add_casus_belli = {
+ 					target = scope:target
+ 					type = casus_belli:cb_timurs_conquests
+ 				}
+ 				drop_antagonism_bomb = {
+ 					target = scope:target.capital
+ 					modifier = antagonism_planned_invasion
+ 				}
+ 			}
+ 			else = {
+ 				custom_tooltip = rot_plan_invasion_tt
+ 			}
+ 		}
+ 	}
+ }
 
 # aproach_diadochi = {
 # 	type = situation
@@ -101,3 +101,108 @@
 		
 # 	}
 # }
+imperial_reconquest_claim = {
+	type = situation
+	price = 100
+	potential = {
+		exists = situation:diadochi_wars
+		scope:actor = { is_member_of_international_organization = international_organization:achaemenid_argead }
+	}
+	allow = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:achaemenid_argead
+			at_war = no
+		}
+	}
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target
+		name = "imperial_reconquest_claim"
+		none_available_msg_key = "none available"
+		column = {
+			data = name
+		}
+		column = {
+			data = expected_army_size
+		}
+		visible = {
+			NOT = {
+				has_truce_with = scope:actor
+			}
+			NOT = {
+				is_allied_with = {
+					target = scope:actor
+				}
+			}
+			NOT = {
+				is_subject_of = scope:actor
+			}
+			is_member_of_international_organization = international_organization:achaemenid_argead
+			within_diplomatic_range = scope:actor
+			total_population >= 200
+			scope:actor = {
+				NOT = {
+					has_casus_belli_of_type_on = {
+						type = casus_belli:take_country
+						target = PREV
+					}
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			if = {
+				limit = {
+					exists = scope:target
+				}
+				if = {
+					limit = {
+						scope:target = {
+							capital = {
+								OR = {
+									region = scope:actor.capital.region
+									AND = {
+										scope:recipient = { has_variable = rot_conquest_ambition }
+										region = scope:recipient.var:rot_conquest_ambition
+									}
+								}
+							}
+						}
+					}
+					drop_antagonism_bomb = {
+						target = scope:target.capital
+						modifier = antagonism_started_invasion
+					}
+					declare_war_with_cb = {
+						target = scope:target
+						type = casus_belli:cb_timurs_conquests
+					}
+				}
+				else = {
+					add_casus_belli = {
+						target = scope:target
+						type = casus_belli:cb_timurs_conquests
+					}
+					drop_antagonism_bomb = {
+						target = scope:target.capital
+						modifier = antagonism_planned_invasion
+					}
+				}
+			}
+			else = {
+				custom_tooltip = rot_plan_invasion_tt
+				if = {
+					limit = {
+						scope:recipient = { has_variable = rot_conquest_ambition }
+					}
+					custom_tooltip = rot_plan_invasion_bt
+				}
+				else = {
+					custom_tooltip = rot_plan_invasion_at
+				}
+			}
+		}
+	}
+}

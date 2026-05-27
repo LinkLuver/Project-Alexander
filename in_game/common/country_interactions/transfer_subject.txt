@@ -1,0 +1,196 @@
+﻿transfer_subject =  { 
+	type = diplomacy
+	category = CATEGORY_ECONOMY_ACTIONS
+
+	potential = {
+		scope:actor = {
+            num_subjects > 0
+        }
+	}
+	
+	allow = {
+	}
+
+    price = price:transfer_subject_price
+    price_modifier = {
+        if = {
+            limit = {
+                exists = scope:sale_price
+            }
+            add = {
+                desc = "SALE_PRICE"
+                value = scope:sale_price
+            }
+        }
+        else = {
+            value = 0
+        }
+    }
+    payer = scope:recipient
+	payee = scope:actor
+
+	ai_tick = never
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+        enabled = {
+		}
+	}
+
+	select_trigger = {
+        bottom_widget = transfer_subject_select_price #show the price too
+        move_to_next_section_on_click = no #the button on the price will do that
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target
+		name = "transfer_subject_select_title"
+		none_available_msg_key = "transfer_subject_no_countries"
+		cache_interaction_source_list = yes
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		enabled = {
+            this != scope:recipient
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = value
+		target_flag = sale_price
+		name = "select_a_price"
+		min = 0
+		max = {
+			value = scope:recipient.gold 
+		}
+		step = {
+			value = scope:recipient.gold 
+            divide = 100
+		}
+		default = 0
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+            scope:target = {
+                transfer_subject = scope:recipient
+            }
+		}
+		else = {
+			custom_tooltip = select_a_subject_to_transfer
+		}
+	}
+
+	ai_will_do = {
+        value = -10
+	}
+
+	diplo_chance = {
+        at_war = -100
+        recipient_at_war = -100
+        recipient_occupied_beseiged_locations = -20
+        recipient_is_rival = 10
+        in_debt = -2
+        price = -1
+        price_percentage_of_treasury_funds = -100
+        competing_power = 10
+        few_relations = 10
+        max_relations = -50
+        tax_base = 0.5
+	}
+
+	accept = {
+        #relation of recipient to subject
+        if = {
+            limit = {
+                exists = scope:target
+                exists = scope:recipient
+            }
+            scope:recipient = { 
+                #religion
+                if = {
+                    limit = {	
+                        religion = scope:target.religion
+                    }
+                    add = {
+                        desc = "DIPLOREASON_SAME_RELIGION"
+                        value = 10
+                    }
+                }
+                else_if = {
+                    limit = {	
+                        religion.group = scope:target.religion.group
+                    }
+                    add = {
+                        desc = "DIPLOREASON_SAME_RELIGION_GROUP"
+                        value = 5
+                    }
+                }
+                else = {
+                    add = {
+                        desc = "DIPLOREASON_DIFF_RELIGION"
+                        value = -10
+                    }
+                }
+
+                #culture
+                if = {
+                    limit = {	
+                        culture = scope:target.culture
+                    }
+                    add = {
+                        desc = "DIPLOREASON_SAME_CULTURE"
+                        value = 10
+                    }
+                }
+                else = {
+                    add = {
+                        desc = "DIPLOREASON_DIFF_CULTURE"
+                        value = -10
+                    }
+                }
+
+                #conquer desire
+                add = {
+                    desc = "CONQUER_DESIRE"
+                    value = "conquer_desire(scope:target)"
+                    multiply = 100
+                }
+
+                #distance
+                add = {
+                    desc = "DIPLOREASON_BORDER_DISTANCE"
+                    value = "border_distance_to(scope:target)"
+                    multiply = -0.2
+                }
+            }
+
+            #subject attributes
+            scope:target = {
+                add = {
+                    desc = "DIPLOREASON_TAX_BASE_WITH_SCOPE"
+                    value = country_tax_base
+                    multiply = 10
+                }
+            }
+        }
+	}
+}

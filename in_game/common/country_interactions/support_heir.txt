@@ -1,0 +1,188 @@
+﻿support_heir_interaction =  { 
+	type = diplomacy
+	category = CATEGORY_INFLUENCE_ACTIONS
+	potential = {
+		scope:actor = {
+			NOT = { has_for_elective_heir_selection = yes }
+		}
+	}	
+	allow = {
+		scope:actor = {
+			OR = {
+				has_ruler = yes
+				has_heir = yes
+			}
+			ruler_or_heir_if_regent ?= {
+				has_dynasty = yes
+			}
+		}
+	}
+
+	ai_limit_per_check = 1 #Moves the heir
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		interaction_source_list = {
+			every_country_with_succession_law = {
+				succession_law = heir_selection:bishopric_elective
+				add_to_list = source
+			}
+			every_country_with_succession_law = {
+				succession_law = heir_selection:grandmaster_elective
+				add_to_list = source
+			}
+		}
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			NOT = {
+				receiving_scripted_relation = {
+					type = relation_type:support_heir
+					target = scope:actor
+				}
+			}
+			has_for_elective_heir_selection = yes
+		}
+        enabled = {
+		}
+	}
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		interaction_source_list = {
+			scope:actor = {
+				ruler_or_heir_if_regent = {
+					dynasty = {
+						every_character_in_dynasty = {
+							limit = {
+								owner ?= scope:actor
+							}
+							add_to_list = source
+						}
+					}
+				}
+			}
+		}
+		pre_evaluation_sort_value = {
+			value = age_in_years
+		}
+		pre_evaluation_number_to_evaluate_fully = 5
+		cache_interaction_source_list = yes
+		target_flag = target
+		name = "support_heir_interaction_SELECT_TITLE"
+		none_available_msg_key = "support_heir_interaction_no_characters"
+		column = {
+			data = character_ruler
+		}
+		visible = {
+			is_adult = yes
+			is_ruler = no
+			is_heir = no
+			modifier:blocked_from_character_interactions = no
+			is_eligible_heir_baseline = scope:recipient	#is_eligible_heir won't work due to heir_is_allowed checking for characters selected by this diplo action already, which means it would mean the trigger is constantly wrong. Instead, we just check for the baseline independently from the country's succession law
+			has_religion_of_country_heir_law = { country = scope:recipient }
+			is_female = no
+		}
+	}
+	effect = {
+		if = {
+			limit = {
+				exists = scope:recipient
+				exists = scope:target
+			}
+			scope:target = {
+				move_country = scope:recipient
+				if = {
+					limit = { NOT = { valid_estate_for_heir_selection = scope:recipient.succession_law } }
+					scope:recipient = {
+						if = {
+							limit = { government_type = government_type:theocracy }
+							scope:target = { change_character_estate = estate_type:clergy_estate }
+						}
+						else_if = {
+							limit = { government_type = government_type:republic }
+							scope:target = { change_character_estate = estate_type:burghers_estate }
+						}
+						else = {
+							scope:target = { change_character_estate = estate_type:nobles_estate }
+						}
+					}
+				}
+				set_variable = {
+					name = home_country
+					value = scope:actor
+				}
+			}
+			scope:recipient = {
+				add_to_variable_list = {
+					name = supported_heirs
+					target = scope:target
+				}
+			}
+			custom_tooltip = {
+				text = support_heir_bt
+				create_relation = { 
+					first = scope:actor
+					second = scope:recipient
+					type = relation_type:support_heir
+				}
+			}
+		}
+		else = {
+			custom_tooltip = support_heir_at
+		}
+	}
+	ai_will_do = {
+		#base
+		value = -350
+		add = {
+			desc = "THEIR_OPINION_TOOLTIP"
+			value = "scope:recipient.opinion(scope:actor)"
+			divide = 2
+		}
+		add = {
+			desc = "DIPLOREASON_DIPLOMATIC_REPUTATION"
+			scope:actor = {
+				value = modifier:diplomatic_reputation
+				multiply = 5
+			}
+		}
+		add = {
+			desc = "DISTANCE_TO_TARGET"
+			scope:recipient = {
+				value = "border_distance_to(scope:actor)"
+				multiply = -0.04
+			}
+		}
+		add = {
+			desc = "FREE_DIPLO_CAPACITY"
+			scope:actor = {
+				value = num_relations_above_limit
+				multiply = -10
+			}
+		}
+		add = {
+			desc = "game_concept_rival"
+			if = {
+				limit = {	
+					scope:recipient = { 
+						is_rival_of = scope:actor 
+					}
+				}
+				value = -1000
+			}
+		}
+		if = {
+			limit = { exists = scope:target }
+			add = {
+				desc = "POTENTIAL_HEIR_SCORE"
+				value = "scope:target.heir_score(scope:recipient)"
+			}
+		}
+	}
+}

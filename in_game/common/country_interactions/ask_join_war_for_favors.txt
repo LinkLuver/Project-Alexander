@@ -1,0 +1,170 @@
+﻿ask_join_war_for_favors = {
+	type = diplomacy
+	category = CATEGORY_INFLUENCE_ACTIONS
+
+	diplomatic_cost = ask_join_war_for_favors_cost
+	
+	potential = {
+		scope:actor = {
+			at_war = yes
+			any_current_war = {
+				not = { is_in_war = root }
+				or = {
+					attacker_leader = scope:actor
+					defender_leader = scope:actor
+				}
+			}
+		}
+	}
+
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		interaction_source_list = {
+			scope:actor = {
+				every_country_that_can_be_called_offensively = {
+					add_to_list = source
+				}
+				every_country_that_can_be_called_defensively = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_country"
+		show_why_not_enabled = yes
+		none_available_msg_key = "no_valid_countries"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+        enabled = {
+			scope:actor = {
+				any_current_war = {
+					not = { is_in_war = root }
+					trigger_if = {
+						limit = {
+							attacker_leader = scope:actor
+						}
+						root = {
+							can_join_offensive_war_with = scope:actor
+						}
+					}
+					trigger_else_if = {
+						limit = {
+							defender_leader = scope:actor
+						}
+						root = {
+							can_join_defensive_war_with = scope:actor
+						}
+					}
+					trigger_else = {
+						always = no
+					}
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = war
+		target_flag = war
+		interaction_source_list = {
+			scope:actor = {
+				every_current_war = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_interaction_source_list = yes
+		name = "choose_war_to_join"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+        enabled = {
+			not = { is_in_war = scope:recipient }
+
+			trigger_if = {
+				limit = {
+					is_civil_war_for = scope:actor
+					scope:actor = { is_subject_or_below_of = scope:recipient }
+				}
+				war_length > MONTHS_BEFORE_OVERLORD_CAN_JOIN_CIVIL_WAR
+			}
+
+			trigger_if = {
+				limit = {
+					attacker_leader = scope:actor
+				}
+				can_join_as_attacker = scope:recipient
+				NOT = {
+					defender_leader = {
+						is_subject_or_below_of = scope:recipient
+					}
+				}
+				scope:recipient = {
+					can_join_offensive_war_with = scope:actor
+					NOT = {
+						has_truce_with = root.defender_leader
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = {
+					defender_leader = scope:actor
+				}
+				can_join_as_defender = scope:recipient
+				NOT = {
+					attacker_leader = {
+						is_subject_or_below_of = scope:recipient
+					}
+				}
+				scope:recipient = {
+					can_join_defensive_war_with = scope:actor
+					NOT = {
+						has_truce_with = root.attacker_leader
+					}
+				}
+			}
+			trigger_else = {
+				always = no
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 10
+	}
+	
+	effect = {
+        scope:war = {
+			if = {
+				limit = {
+					attacker_leader = scope:actor
+				}
+				scope:recipient = {
+					join_war_as_attacker = {
+						war = prev
+						call_in_subjects = yes
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					defender_leader = scope:actor
+				}
+				scope:recipient = {
+					join_war_as_defender = {
+						war = prev
+						call_in_subjects = yes
+					}
+				}
+			}
+		}
+	}
+}

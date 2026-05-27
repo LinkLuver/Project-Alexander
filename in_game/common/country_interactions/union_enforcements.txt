@@ -1,0 +1,158 @@
+﻿union_enforce_religion = {
+	type = union
+	category = CATEGORY_UNION_ACTIONS
+	potential = {
+        scope:actor = {
+            union ?= {
+                modifier:enabled_union_enforcement_actions = yes
+            }
+        }
+	}
+	allow = {
+	}
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			not = { religion = scope:actor.religion }
+		}
+        enabled = {
+            opinion = {
+                target = scope:actor
+                value >= MIN_JUNIOR_PARTNER_OPINION_FOR_ACTIONS
+            }
+			trigger_if = {
+				limit = {
+					modifier:blocked_from_conversion = yes
+					has_reform = government_reform:military_order_reform
+				}
+				overlord = { has_reform = government_reform:military_order_reform }
+			}
+			trigger_else = {
+				modifier:blocked_from_conversion = no
+			}
+		}
+	}
+	effect = {
+        enforce_religion_effect = {
+            actor = scope:actor
+            target = scope:recipient
+        }
+		scope:recipient = {
+			add_opinion = {
+                target = scope:actor
+                modifier = opinion_enforced_religion
+            }
+		}
+	}
+    reject_effect = {
+		scope:recipient = {
+			add_opinion = {
+                target = scope:actor
+                modifier = opinion_tried_enforced_religion
+            }
+		}
+    }
+	
+	block_when_at_war = yes
+
+	ai_will_do = {
+		subtract = {
+			desc = "VOTE_BASE_VALUE"
+			value = 100
+		}
+		add = {
+			desc = "TARGET_ACCEPTANCE"
+			value = "scope:actor.country_interaction_acceptance(country_interaction:negotiate_succession_law|scope:recipient)"
+		}
+	}
+
+	accept = {
+        value = "scope:actor.country_interaction_acceptance(country_interaction:negotiate_succession_law|scope:recipient)"
+	}
+}
+union_enforce_culture = {
+	type = union
+	category = CATEGORY_UNION_ACTIONS
+	potential = {
+        scope:actor = {
+            union ?= {
+                modifier:enabled_union_enforcement_actions = yes
+            }
+        }
+	}
+	allow = {
+	}
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			not = { culture = scope:actor.culture }
+		}
+        enabled = {
+            opinion = {
+                target = scope:actor
+                value >= MIN_JUNIOR_PARTNER_OPINION_FOR_ACTIONS
+            }
+		}
+	}
+	effect = {
+        enforce_culture_effect = {
+            actor = scope:actor
+            target = scope:recipient
+        }
+		scope:recipient = {
+			add_opinion = {
+                target = scope:actor
+                modifier = opinion_enforced_culture
+            }
+		}
+	}
+    reject_effect = {
+		scope:recipient = {
+			add_opinion = {
+                target = scope:actor
+                modifier = opinion_tried_enforced_culture
+            }
+		}
+    }
+	
+	block_when_at_war = yes
+
+	ai_will_do = {
+		subtract = {
+			desc = "VOTE_BASE_VALUE"
+			value = 100
+		}
+		add = {
+			desc = "TARGET_ACCEPTANCE"
+			value = "scope:actor.country_interaction_acceptance(country_interaction:negotiate_succession_law|scope:recipient)"
+		}
+	}
+
+	accept = {
+        value = "scope:actor.country_interaction_acceptance(country_interaction:negotiate_succession_law|scope:recipient)"
+	}
+}

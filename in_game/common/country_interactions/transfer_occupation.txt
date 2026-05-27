@@ -1,0 +1,81 @@
+﻿transfer_occupation = {
+	type = diplomacy
+	category = CATEGORY_FRIENDLY_ACTIONS
+
+	ai_tick = never
+	use_enroute = no
+
+	potential = {
+		scope:actor = {
+			at_war = yes
+		}
+	}
+
+	allow = {
+		scope:recipient = {
+			NOT = { is_at_war_with = scope:actor }
+			any_current_war = {
+				is_in_war = scope:actor
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			NOT = { is_at_war_with = scope:actor }
+			any_current_war = {
+				is_in_war = scope:actor
+			}
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		target_flag = target
+
+		interaction_source_list = {
+			scope:actor = {
+				every_controlled_location = {
+					add_to_list = source
+				}
+			}
+		}
+
+		target_flag = target
+		name = "transfer_occupation_select_title"
+		none_available_msg_key = "transfer_occupation_no_locations"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			controller = scope:actor
+
+			owner = {
+				is_at_war_with = scope:actor
+				is_at_war_with = scope:recipient
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				transfer_location_occupation = scope:recipient
+			}
+		}
+	}
+}

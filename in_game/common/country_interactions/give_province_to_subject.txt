@@ -1,0 +1,128 @@
+﻿give_province_to_subject = { 
+	type = subject
+	category = CATEGORY_SUBJECT_ACTIONS
+
+	use_enroute = no
+
+	ai_prerequisite = {
+		wants_to_give_away_any_province = yes
+	}
+	
+	potential = {
+		scope:actor = {
+			num_locations > 1
+			at_war = no
+		}
+	}
+	
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			NOR = {
+				country_type = building
+				country_type = pop
+			}
+
+		}
+        enabled = {
+			trigger_if = {
+				limit = {
+					is_subject_type = tusi
+				}
+				num_locations < 10
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target
+		source_flags = border_or_recipients_capital_area
+		source_flags_ai_override = provinces_ai_wants_to_give_away
+		name = "select_a_province_to_give"
+		none_available_msg_key = "give_province_to_subject_no_provinces"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			not = {
+				any_location_in_province = {
+					is_capital = yes
+					
+				}
+				
+			}			
+			OR = {
+				any_location_in_province = {
+					any_coast_border_location = {
+						owner ?= scope:recipient
+					}
+				}
+				area = scope:recipient.capital.area
+			}
+		}
+	}
+	
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				random_location_in_province = {
+					save_scope_as = random_location
+				}
+				change_province_owner = scope:recipient
+			}
+
+			scope:random_location = {
+				province = {
+					save_scope_as = new_province
+				}
+			}
+		}
+		else = {
+			custom_tooltip = select_a_province_to_give
+		}
+	
+	
+	}
+
+	ai_will_do = {
+		add = -1
+		if = {
+			limit = {
+				scope:target = { 
+					does_owner_want_to_give_away = yes
+					any_location_in_province = {
+						any_neighbor_location = {
+							owner ?= scope:recipient
+						}
+					}
+				}
+			}
+			add = 1000
+		}
+	}
+	
+}	
