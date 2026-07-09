@@ -15,10 +15,7 @@
 	}
 	if = {
 		limit = {
-			or = {
-				location_rank ?= location_rank:city
-				location_rank ?= location_rank:metropolis
-			}
+			location_rank ?= location_rank:city
 		}
 		add = {
 			desc = "BUILDING_LEVEL_IS_CITY"
@@ -27,12 +24,79 @@
 	}
 	if = {
 		limit = {
+			location_rank ?= location_rank:megalopolis
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_MEGAPOLIS"
+			value = 10
+		}
+	}
+
+
+
+	if = {
+		limit = {
 			location_rank ?= location_rank:rural_settlement
 			has_variable = extra_levels_clothmaker_variable
 		}
 		add = {
 			desc = "[ShowMissionTaskName('mission_cloth_makers')]"
 			value = 2
+		}
+	}
+	if = {
+		limit = { market_access < 0.75 }
+		multiply = {
+			desc = "BUILDING_LEVEL_LOW_MARKET_ACCESS_PENALTY"
+			value = market_access
+			add = 0.25
+		}
+	}
+	min = 1
+}
+
+
+trade_office_max_level = {
+	add = {
+		desc = "BUILDING_LEVEL_BASE"
+		value = 1
+	}
+	add = {
+		desc = "BUILDING_LEVEL_DEVELOPMENT"
+		value = development
+		multiply = 0.1
+	}
+	add = {
+		desc = "BUILDING_LEVEL_POPULATION"
+		value = population
+		multiply = 0.05
+	}
+	if = {
+		limit = {
+			location_rank ?= location_rank:city
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_CITY"
+			value = 5
+		}
+	}
+	if = {
+		limit = {
+			location_rank ?= location_rank:megalopolis
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_MEGAPOLIS"
+			value = 10
+		}
+	}
+		
+	if = {
+		limit = { exists = owner }
+	
+		multiply = {
+			desc = "BUILDING_LEVEL_FROM_OWNER_MODIFIERS"
+			value = 1
+			add = owner.modifier:market_building_levels
 		}
 	}
 }
@@ -44,17 +108,34 @@ hanseatic_kontor_max_level = {
 	}
 	if = {
 		limit = {
-			or = {
-				location_rank ?= location_rank:city
-				location_rank ?= location_rank:metropolis
-			}
+			location_rank ?= location_rank:city
 		}
 		add = {
 			desc = "BUILDING_LEVEL_IS_CITY"
 			value = 2
 		}
 	}
+	if = {
+		limit = {
+			location_rank ?= location_rank:megalopolis
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_MEGAPOLIS"
+			value = 10
+		}
+	}
+	
+	if = {
+		limit = { exists = owner }
+	
+		multiply = {
+			desc = "BUILDING_LEVEL_FROM_OWNER_MODIFIERS"
+			value = 1
+			add = owner.modifier:market_building_levels
+		}
+	}
 }
+	
 
 workshop_max_level = {
 	add = {
@@ -73,16 +154,31 @@ workshop_max_level = {
 	}
 	if = {
 		limit = {
-			or = {
-				location_rank ?= location_rank:city
-				location_rank ?= location_rank:metropolis
-			}
+			location_rank = location_rank:city
 		}
 		add = {
 			desc = "BUILDING_LEVEL_IS_CITY"
 			value = 10
 		}
 	}
+	if = {
+		limit = {
+			location_rank ?= location_rank:megalopolis
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_MEGAPOLIS"
+			value = 20
+		}
+	}
+	if = {
+		limit = { market_access < 0.75 }
+		multiply = {
+			desc = "BUILDING_LEVEL_LOW_MARKET_ACCESS_PENALTY"
+			value = market_access
+			add = 0.25
+		}
+	}
+	min = 1
 }
 
 
@@ -103,16 +199,33 @@ manufactory_max_level = {
 	}
 	if = {
 		limit = {
-			or = {
-				location_rank ?= location_rank:city
-				location_rank ?= location_rank:metropolis
-			}
+			location_rank = location_rank:city
 		}
 		add = {
 			desc = "BUILDING_LEVEL_IS_CITY"
 			value = 20
 		}
 	}
+
+	if = {
+		limit = {
+			location_rank ?= location_rank:megalopolis
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_MEGAPOLIS"
+			value = 40
+		}
+	}
+	if = {
+		limit = { market_access < 0.75 }
+		multiply = {
+			desc = "BUILDING_LEVEL_LOW_MARKET_ACCESS_PENALTY"
+			value = market_access
+			add = 0.25
+		}
+	}
+	min = 1
+
 }
 
 
@@ -133,19 +246,51 @@ market_max_level = {
 	}
 	if = {
 		limit = {
-			or = {
-				location_rank ?= location_rank:city
-				location_rank ?= location_rank:metropolis
-			}
+			location_rank ?= location_rank:city
 		}
 		add = {
 			desc = "BUILDING_LEVEL_IS_CITY"
 			value = 5
 		}
 	}
+	if = {
+		limit = {
+			location_rank ?= location_rank:megalopolis
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_MEGAPOLIS"
+			value = 10
+		}
+	}
+	
+	if = {
+		limit = {
+			owner ?= { modifier:market_building_levels != 0 }
+		}
+		multiply = {
+			desc = "BUILDING_LEVEL_FROM_OWNER_MODIFIERS"
+			value = 1
+			add = owner.modifier:market_building_levels
+		}
+	}
 }
 
-
+hre_imperial_armory_max_level = {
+	add = {
+		desc = "BUILDING_LEVEL_BASE"
+		value = 1
+	}
+	if = {
+		limit = {
+			exists = international_organization:hre
+			international_organization:hre ?= { modifier:hre_imperial_armory_level > 0 }
+		}
+		add = {
+			desc = "BUILDING_LEVEL_HRE_ARMORY_LEVEL"
+			value = "international_organization:hre.modifier:hre_imperial_armory_level"
+		}
+	}
+}
 
 mills_max_level = {
 	add = {
@@ -164,16 +309,33 @@ mills_max_level = {
 	}
 	if = {
 		limit = {
-			or = {
-				location_rank ?= location_rank:city
-				location_rank ?= location_rank:metropolis
-			}
+			location_rank = location_rank:city
 		}
 		add = {
 			desc = "BUILDING_LEVEL_IS_CITY"
 			value = 25
 		}
 	}
+
+	if = {
+		limit = {
+			location_rank ?= location_rank:megalopolis
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_MEGAPOLIS"
+			value = 50
+		}
+	}
+	if = {
+		limit = { market_access < 0.75 }
+		multiply = {
+			desc = "BUILDING_LEVEL_LOW_MARKET_ACCESS_PENALTY"
+			value = market_access
+			add = 0.25
+		}
+	}
+	min = 1
+
 }
 
 
@@ -201,16 +363,24 @@ market_warehouse_max_level = {
 	}
 	if = {
 		limit = {
-			or = {
-				location_rank ?= location_rank:city
-				location_rank ?= location_rank:metropolis
-			}
+			location_rank = location_rank:city
 		}
 		add = {
 			desc = "BUILDING_LEVEL_IS_CITY"
 			value = 2
 		}
 	}
+	
+	if = {
+		limit = {
+			location_rank ?= location_rank:megalopolis
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_MEGAPOLIS"
+			value = 5
+		}
+	}
+	
 }
 
 
@@ -344,9 +514,12 @@ slave_market_max_level = {
 		value = development
 		multiply = 0.2
 	}
-	add = {
-		desc = "BUILDING_LEVEL_FROM_OWNER_MODIFIERS"
-		value = owner.modifier:slave_market_max_level
+	if = {
+		limit = { exists = owner }
+		add = {
+			desc = "BUILDING_LEVEL_FROM_OWNER_MODIFIERS"
+			value = owner.modifier:slave_market_max_level
+		}
 	}
 	if = {
 		limit = {
@@ -355,6 +528,20 @@ slave_market_max_level = {
 		multiply = {
 			desc = "strengthened_african_slave_trade"
 			value = 2
+		}
+	}
+}
+
+aqueduct_system_max_level = {
+	add = {
+		desc = "BUILDING_LEVEL_BASE"
+		value = 1
+	}
+	if = {
+		limit = { owner.modifier:aqueduct_system_max_level != 0 }
+		add = {
+			desc = "BUILDING_LEVEL_FROM_OWNER_MODIFIERS"
+			value = owner.modifier:aqueduct_system_max_level
 		}
 	}
 }
@@ -432,16 +619,23 @@ venetian_palaces_max_level = {
 	}
 	if = {
 		limit = {
-			or = {
-				location_rank ?= location_rank:city
-				location_rank ?= location_rank:metropolis
-			}
+			location_rank = location_rank:city
 		}
 		add = {
 			desc = "BUILDING_LEVEL_IS_CITY"
 			value = 2
 		}
 	}
+	if = {
+		limit = {
+			location_rank ?= location_rank:megalopolis
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_MEGAPOLIS"
+			value = 5
+		}
+	}
+	
 }
 
 bock_max_level = {
@@ -520,7 +714,9 @@ theodosian_walls_max_level = {
 	}
 	if = {
 		limit = {
-			has_variable = strengthened_theodosian_walls
+			owner = {
+				has_variable = strengthened_theodosian_walls
+			}
 		}
 		add = {
 			desc = "strengthened_theodosian_walls_desc"
@@ -536,7 +732,9 @@ italian_merchant_quarters_max_level = {
 	}
 	if = {
 		limit = {
-			has_variable = requested_aid_from_italian_merchants
+			owner = {
+				has_variable = requested_aid_from_italian_merchants
+			}
 		}
 		add = {
 			desc = "allowed_italian_merchants_desc"
@@ -557,16 +755,23 @@ fulani_cattle_rearing_pen_max_level = {
 	}
 	if = {
 		limit = {
-			or = {
-				location_rank ?= location_rank:city
-				location_rank ?= location_rank:metropolis
-			}
+			location_rank = location_rank:city
 		}
 		add = {
 			desc = "BUILDING_LEVEL_IS_CITY"
 			value = -2
 		}
 	}
+	if = {
+		limit = {
+			location_rank ?= location_rank:megalopolis
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_MEGAPOLIS"
+			value = -2
+		}
+	}
+
 }
 
 kurmina_headquarter_max_level = {
@@ -593,16 +798,23 @@ eghabho_nore_mansion_max_level = {
 	}
 	if = {
 		limit = {
-			or = {
-				location_rank ?= location_rank:city
-				location_rank ?= location_rank:metropolis
-			}
+			location_rank = location_rank:city
 		}
 		add = {
 			desc = "BUILDING_LEVEL_IS_CITY"
 			value = 1
 		}
 	}
+	if = {
+		limit = {
+			location_rank ?= location_rank:megalopolis
+		}
+		add = {
+			desc = "BUILDING_LEVEL_IS_MEGAPOLIS"
+			value = 2
+		}
+	}
+	
 }
 
 reformation_preachers_max_level = {
@@ -720,8 +932,103 @@ kurultai_max_level = {
 	}
 }
 
+japanese_clan_building_cap = {
+	add = {
+		desc = "BUILDING_LEVEL_BASE"
+		value = 1
+	}
+	add = {
+		desc = "BUILDING_LEVEL_DEVELOPMENT"
+		value = development
+		multiply = 0.05
+	}
+	add = {
+		desc = "BUILDING_LEVEL_RGO_MAX"
+		value = max_rgo_workers
+		multiply = 0.2
+	}
+}
 
+jewelry_guild_max_level = {
+	add = guild_max_level
 
+	if = {
+		limit = {
+			modifier:local_jewelry_guild_building_levels > 0
+		}
+		add = {
+			desc = "royal_jewelry_rights"
+			value = modifier:local_jewelry_guild_building_levels
+		}
+	}
+}
+
+marketplace_max_level = {
+	add = market_max_level
+	
+	if = {
+		limit = {
+			modifier:local_marketplace_building_levels > 0
+		}
+		add = {
+			desc = "town_rights_marketplace"
+			value = modifier:local_marketplace_building_levels
+		}
+	}
+}
+
+cloth_guild_max_level = {
+	add = guild_max_level
+
+	if = {
+		limit = {
+			modifier:local_cloth_guild_building_levels > 0
+		}
+		add = {
+			desc = "flemish_cloth_industries_right"
+			value = modifier:local_cloth_guild_building_levels
+		}
+	}
+}
+
+fine_cloth_guild_max_level = {
+	add = guild_max_level
+
+	if = {
+		limit = {
+			modifier:local_fine_cloth_guild_building_levels > 0
+		}
+		add = {
+			desc = "flemish_cloth_industries_right"
+			value = modifier:local_fine_cloth_guild_building_levels
+		}
+	}
+}
+
+porto_pisano_max_level = {
+	add = {
+		desc = "BUILDING_LEVEL_BASE"
+		value = 1
+	}
+	if = {
+		limit = {
+			has_variable = pis_reclaimed_sardinia
+		}
+		add = {
+			desc = "RECLAIMED_SARDINIAN_OUTPOSTS"
+			value = 1
+		}
+	}
+	if = {
+		limit = {
+			has_variable = pis_destroyed_genoa
+		}
+		add = {
+			desc = "ECLIPSED_GENOA"
+			value = 1
+		}
+	}
+}
 academy_max_level = {
 	add = {
 		desc = "BUILDING_LEVEL_BASE"
