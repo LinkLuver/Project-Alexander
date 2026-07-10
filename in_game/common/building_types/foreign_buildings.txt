@@ -1,21 +1,26 @@
 ﻿trade_office = {
+	audio_tier = 2
 	is_foreign = yes
 	stronger_power_projection = no
-	max_levels = guild_max_level
+	max_levels = trade_office_max_level
 	need_good_relation = yes
 	pop_type = burghers
 	
 	category = trade_category
 	
 	employment_size = foreign_trade_employment
-	
+	pop_size_created = foreign_trade_employment
+
 	rural_settlement = no
 	town = yes
 	city = yes
-	metropolis = yes
-	
+	megalopolis = yes
+
+	country_potential = {
+		always = yes #P:A
+	}
+
 	allow = {
-		is_port = yes
 		market = { in_trade_range_of = scope:actor }
 	}
 	
@@ -39,8 +44,10 @@
 }
 
 embassy = {
+	audio_tier = 2
 	is_foreign = yes
 	stronger_power_projection = no
+	want_foreign_pop_created = no
 	max_levels = 1
 	need_good_relation = yes
 	pop_type = nobles
@@ -52,11 +59,18 @@ embassy = {
 	rural_settlement = no
 	town = yes
 	city = yes
-	metropolis = yes
+	megalopolis = yes
 	
+	country_potential = {
+		always = yes #P:A
+	}
+
 	allow = {
 		is_capital = yes
-		scope:actor.country_rank_level <= owner.country_rank_level
+		custom_tooltip = {
+			text = embassy_max_rank_tt
+			scope:actor.country_rank_level <= owner.country_rank_level
+		}
 	}
 	remove_if = {
 		is_no_longer_capital = yes
@@ -86,6 +100,7 @@ embassy = {
 }
 
 missionary_building = {
+	audio_tier = 1
 	in_empty = empty
 	is_foreign = yes
 	max_levels = 1
@@ -102,6 +117,10 @@ missionary_building = {
 	town = no
 	city = no
 	
+	country_potential = {
+		always = yes #P:A
+	}
+
 	allow = {
 		OR = { 
 			is_coastal_within_range = yes	
@@ -129,10 +148,12 @@ missionary_building = {
 }
 
 slave_center = {
+	audio_tier = 2
 	in_empty = any
 	is_foreign = yes
 	stronger_power_projection = yes
 	max_levels = 1
+	startup_ramp_target = rural_startup_ramp_target
 	pop_type = burghers
 	
 	category = colonial_category
@@ -145,7 +166,7 @@ slave_center = {
 	rural_settlement = yes
 	town = yes
 	city = yes
-	metropolis = yes
+	megalopolis = yes
 	
 	location_potential = {
 		NOT = { dominant_religion.group = scope:actor.religion.group }
@@ -186,12 +207,13 @@ slave_center = {
 
 	
 	modifier = {
-		building_enslavement_power = 0.050
+		building_enslavement_power = 0.20
 		local_slave_pop_satisfaction = -0.05
 	}
 }
 
 overseas_trading_post = {
+	audio_tier = 2
 	in_empty = any
 	is_foreign = yes
 	max_levels = 1
@@ -209,6 +231,10 @@ overseas_trading_post = {
 	town = no
 	city = no
 
+
+	country_potential = {
+		always = yes #P:A
+	}
 
 	location_potential = {
 		NOT = { continent = scope:actor.capital.continent }
@@ -236,3 +262,115 @@ overseas_trading_post = {
 	}
 	
 }
+
+
+
+
+
+colonial_administration = {
+	audio_tier = 3
+	is_foreign = yes
+	need_good_relation = yes
+	
+	
+	want_foreign_pop_created = no
+	pop_type = burghers
+
+	max_levels = guild_max_level
+	
+	category = colonial_category
+
+	employment_size = foreign_trade_employment
+	
+	pop_size_created = foreign_trade_employment
+	
+	rural_settlement = no
+	town = yes
+	city = yes
+	megalopolis = yes
+
+	location_potential = {
+		custom_tooltip = {
+			text = colonial_administration_in_colony_only
+			owner ?= {
+				is_subject_type = colonial_nation
+				overlord ?= {
+					THIS = scope:actor
+				}
+			}
+		}
+	}
+
+	
+	remove_if = {
+		location.owner = {
+			OR = {
+				NOT = { is_subject_type = colonial_nation }
+				NOT = {
+					overlord ?= {
+						THIS = root.owner
+					}
+				}
+			}
+		}
+	}
+
+	
+	
+
+	unique_production_methods = {
+		colonial_administration_requirements = {
+			paper = 0.1
+			category = building_maintenance
+		}
+	}
+	construction_demand = simple_colony_construction
+
+	
+	build_time = colonise_build_time
+	
+	modifier = {
+		merchant_capacity_from_building = 0.2
+		merchant_power_from_building = 0.2
+	}
+	
+}
+
+merchant_guild_chapel = {
+	audio_tier = 1
+	is_foreign = yes
+	need_good_relation = yes
+	want_foreign_pop_created = no
+	pop_type = clergy
+
+	max_levels = 1
+	expensive = yes
+	category = colonial_category
+
+	employment_size = religious_building_employment
+	
+	pop_size_created = religious_building_employment
+
+	price = merchant_guild_chapel_price
+	
+	rural_settlement = setup_only
+	town = setup_only
+	city = yes
+	megalopolis = yes
+
+	country_potential = {
+		has_reform = government_reform:merchant_republic
+	}
+	
+	possible_production_methods = { merchant_guild_chapel_requirements }
+	construction_demand = merchant_guild_chapel_construction
+
+	
+	build_time = generic_town_build_time
+	
+	modifier = { local_max_literacy = 2 }
+
+	market_center_modifier = { 	monthly_religious_influence = 0.1 }
+}
+
+#P:A Removed viceroyalties
