@@ -14,7 +14,7 @@ location_base_values = {
 	max_constructions_at_same_time = 1
 
 	
-	local_pop_promotion_speed = 0.01
+	local_pop_promotion_speed = 0.001
 	local_pop_demotion_speed = 0.10
 
 	local_food_capacity = 50
@@ -33,7 +33,7 @@ location_base_values = {
 	
 	local_monthly_prosperity = 0.0025
 	
-	local_trade_embark_disembark_cost_modifier = 0.1
+	local_trade_embark_disembark_efficiency = -0.1
 	
 	
 	local_clergy_desired_pop_scaled = 0.005
@@ -69,16 +69,18 @@ location_template_natural_harbor_suitability_poor = {
 	}
 	
 	#poor natural harbours make construction harder
-	local_port_build_buildings_cost = 0.3
+	local_port_build_buildings_efficiency = -0.3
 }
 
 location_template_natural_harbor_suitability_good = {
 	game_data = {
 		category = location
 	}
-	
+
 	#good natural harbours make construction easier
-	local_port_build_buildings_cost = -0.3
+	local_port_build_buildings_efficiency = 0.6
+	local_trade_center_power = 0.01
+
 }
 
 # mulitplied by 0-1 from total share of art in the world.  expect it to be multiplied by 0.0001 at best or maybe 0.02 if its like Paris
@@ -115,7 +117,7 @@ cheap_food_in_location = {
 	game_data = {
 		category = location
 	}
-	local_population_growth = 0.0015
+	local_population_growth = 0.002
 }
 
 #multiplied by relative_raw_material_price
@@ -135,7 +137,7 @@ harbor = {
     friendly_disembark_time_modifier = -0.2
     hostile_disembark_time_modifier = -0.2
     local_port_cost_distance_impact = -0.5
-    local_trade_embark_disembark_cost_modifier = -0.50
+    local_trade_embark_disembark_efficiency = 1
     local_maritime_presence = 0.3
 	local_repair_speed = 0.05
 }
@@ -171,6 +173,7 @@ has_road_connected_to_capital = {
 	local_institution_growth_modifier = 0.1
 	local_monthly_development_modifier = 0.2
 	local_monthly_control = 0.0005
+	local_integration_speed_modifier = 0.1
 }
 
 location_size_impact = {
@@ -206,8 +209,9 @@ is_blockaded_by_enemies = {
 	local_max_control = -0.10
 	hostile_food_multiplier = -0.75
 	local_monthly_development_modifier = -0.20
-	local_trade_embark_disembark_cost_modifier = 2.0
+	local_trade_embark_disembark_efficiency = -2
 	local_construction_speed = -0.10
+	local_mercenaries_modifier = 0.25
 }
 
 
@@ -228,8 +232,9 @@ under_siege = {
 	local_monthly_development_modifier = -0.20
 	road_building_blocked = yes
 	local_prosperity_decay = 0.05
-	
+
 	constructions_stalled = yes
+	local_mercenaries_modifier = 0.25
 }
 
 
@@ -239,13 +244,14 @@ is_occupied = {
 	}
 	local_monthly_prosperity = -0.025
 	local_monthly_control = -0.002
-	
-	hostile_food_multiplier = -0.5
-	
-	local_garrison_growth = -1.0
-	
-	local_construction_speed = -0.25
 
+	hostile_food_multiplier = -0.5
+
+	local_garrison_growth = -1.0
+
+	local_construction_speed = -0.25
+	local_building_establishment_reduction = 0.005
+	local_mercenaries_modifier = 0.5
 }
 
 
@@ -264,7 +270,9 @@ devastation = {
 	local_monthly_development = 0.004
 	local_life_expectancy = 10
 	local_mercenaries_modifier = -0.5
-	local_construction_speed = -0.5
+	local_construction_speed = 0.5
+	
+	local_building_establishment_reduction = 0.01
 }
 
 
@@ -292,7 +300,7 @@ development = {
 	local_supply_limit_modifier = 0.02
 	blockade_force_required = 0.01
 	local_migration_attraction = 0.0025
-	local_trade_center_power = 0.001
+	local_trade_center_power = 0.002
 
 	local_institution_growth_modifier = 0.002
 	
@@ -308,8 +316,10 @@ development = {
 	
 	occupation_time = 0.01
 	
-	local_build_buildings_cost = -0.001
+	local_build_buildings_efficiency = 0.002
 	maximum_stockpile_capacity = 5
+
+	local_mills_build_buildings_efficiency = 0.01
 }
 
 
@@ -322,9 +332,9 @@ capital = {
 	local_population_capacity_modifier = 0.10
 	local_migration_attraction = 0.025
 	
-	local_nobles_desired_pop = 0.02
-	local_clergy_desired_pop = 0.02
-	local_fort_maintenance_cost = -0.50
+	local_nobles_desired_pop_scaled = 0.002
+	local_clergy_desired_pop_scaled = 0.002
+	local_fort_maintenance_efficiency = 1.00
 	
 	free_building_levels = 5
 }
@@ -337,8 +347,8 @@ province_capital = {
 	local_population_capacity_modifier = 0.05
 	local_migration_attraction = 0.01
 	
-	local_nobles_desired_pop = 0.01
-	local_clergy_desired_pop = 0.01
+	local_nobles_desired_pop_scaled = 0.001
+	local_clergy_desired_pop_scaled = 0.001
 	
 	free_building_levels = 2
 }
@@ -409,7 +419,7 @@ market_center = {
 	local_merchant_power = 20
 	local_institution_growth_modifier = 0.25
 	free_building_levels = 5
-	maximum_stockpile_capacity = 250
+	maximum_stockpile_capacity = 25
 }
 
 
@@ -439,6 +449,7 @@ overpopulation = {
 	local_pop_demotion_speed_modifier = 0.5
 	local_migration_attraction = -25.0
 	local_migration_speed = 0.05 # Pops migrate faster the more overpopulated the area is
+	local_mercenaries_modifier = 0.5
 }
 
 unemployed_peasants = {
@@ -456,6 +467,8 @@ surplus_jobs = {
 		category = location
 	}
 	local_migration_attraction = 0.1
+	local_peasant_enfranchisment = 0.02
+	local_construction_speed = -0.1
 }
 
 refugees_welcome = {
@@ -465,7 +478,7 @@ refugees_welcome = {
 	local_migration_attraction = 1 #nerfed
 }
 
-river_flowing_through = {
+river_flowing_through_1 = {
 	game_data = {
 		category = location
 	}
@@ -475,11 +488,79 @@ river_flowing_through = {
 	local_monthly_development_modifier = 0.05
 }
 
-river_flowing_through_coast = {
+river_flowing_through_coast_1 = {
 	game_data = {
 		category = location
 	}
 	natural_harbor_suitability = 0.05
+}
+
+river_flowing_through_2 = {
+	game_data = {
+		category = location
+	}
+	local_population_capacity_modifier = 0.20
+	local_monthly_food_modifier = 0.10
+	local_supply_limit_modifier = 0.10
+	local_monthly_development_modifier = 0.10
+}
+
+river_flowing_through_coast_2 = {
+	game_data = {
+		category = location
+	}
+	natural_harbor_suitability = 0.10
+}
+
+river_flowing_through_3 = {
+	game_data = {
+		category = location
+	}
+	local_population_capacity_modifier = 0.30
+	local_monthly_food_modifier = 0.15
+	local_supply_limit_modifier = 0.15
+	local_monthly_development_modifier = 0.15
+}
+
+river_flowing_through_coast_3 = {
+	game_data = {
+		category = location
+	}
+	natural_harbor_suitability = 0.15
+}
+
+river_flowing_through_4 = {
+	game_data = {
+		category = location
+	}
+	local_population_capacity_modifier = 0.40
+	local_monthly_food_modifier = 0.20
+	local_supply_limit_modifier = 0.20
+	local_monthly_development_modifier = 0.20
+}
+
+river_flowing_through_coast_4 = {
+	game_data = {
+		category = location
+	}
+	natural_harbor_suitability = 0.20
+}
+
+river_flowing_through_5 = {
+	game_data = {
+		category = location
+	}
+	local_population_capacity_modifier = 0.50
+	local_monthly_food_modifier = 0.25
+	local_supply_limit_modifier = 0.25
+	local_monthly_development_modifier = 0.25
+}
+
+river_flowing_through_coast_5 = {
+	game_data = {
+		category = location
+	}
+	natural_harbor_suitability = 0.25
 }
 
 coastal = {
@@ -498,16 +579,23 @@ building_levels = {
 		category = location
 	}
 	local_population_capacity_modifier = 0.001
-	local_trade_center_power = 0.0004
+	local_trade_center_power = 0.0005
 }
 
 unsupported_building_levels = {
 	game_data = {
-		category = location 
+		category = location
 	}
-	
-	local_build_new_buildings_cost = 0.05
+
+	local_build_new_buildings_efficiency = -0.05
 	local_migration_attraction = -0.01
+}
+
+unestablished_buildings = {
+	game_data = {
+		category = location
+	}
+	local_building_establishment_speed = -0.3
 }
 
 total_population = {
@@ -540,6 +628,7 @@ looted = {
 
 	local_monthly_development_modifier = -0.25
 	max_attrition = 5			#Maximum Attrition is increased by 5
+	local_mercenaries_modifier = 0.5
 }
 
 
@@ -571,6 +660,7 @@ average_satisfaction_inverted = {
 	}
 	local_monthly_prosperity = -0.0025
 	local_max_control = -0.10
+	local_mercenaries_modifier = 0.5
 }
 
 
@@ -780,6 +870,17 @@ chastening_of_venice = {
 		category = location
 	}
 	local_monthly_development = -0.01
+}
+
+
+vignoso_garrison_modifier = {
+	game_data = {
+		category = location
+	}
+	local_garrison_growth = 0.1
+	local_defensive = 0.15
+	local_unrest = 0.30
+	local_max_control = -0.10
 }
 
 
@@ -1373,6 +1474,14 @@ ven_murano_glass_industry = {
 }
 
 
+flo_societas_alum_mine = {
+	game_data = {
+		category = location
+	}
+	local_alum_output_modifier = 0.15
+}
+
+
 waqfs_donated = {
 	game_data = {
 		category = location
@@ -1458,7 +1567,7 @@ flourishing_capital_modifier = {
 	}
 
 	local_monthly_prosperity = 0.005
-	local_build_buildings_cost = -0.2
+	local_build_buildings_efficiency = 0.4
 	local_population_growth = 0.05
 }
  
@@ -1593,7 +1702,7 @@ nor_rebuilding_oslo = {
 	game_data = {
 		category = location
 	}
-	local_build_buildings_cost = -0.1
+	local_build_buildings_efficiency = 0.2
 }
 
 local_witch_hunts = {
@@ -1619,7 +1728,7 @@ nap_state_of_the_presidi = {
 	}
 	local_port_cost_distance_impact = -0.05
 	local_trade_center_power = 0.025
-	local_port_build_buildings_cost = -0.1
+	local_port_build_buildings_efficiency = 0.2
 }
 
 the_apostle = {
@@ -1629,6 +1738,18 @@ the_apostle = {
 	local_monthly_literacy = 0.05
 	local_migration_attraction = 0.1
 	local_cultural_tradition = 0.1
+}
+
+
+
+host_olympiad_location_modifier = {
+	game_data = {
+		category = location
+	}
+	
+	local_monthly_control = 0.10
+	local_monthly_prosperity = 0.10
+	local_migration_attraction = 0.1
 }
 
 shoring_up_defenses = {
@@ -1669,7 +1790,7 @@ assume_fort_command_modifier = {
 		category = location
 	}
 	local_defensive = 0.25
-	local_fort_maintenance_cost = -0.2
+	local_fort_maintenance_efficiency = 0.4
 }
 
 tempest_engineer = {
@@ -1712,7 +1833,7 @@ plc_start_of_a_navy = {
 	}
 
 	local_navy_levy_size_modifier = 1
-	local_port_build_buildings_cost = -0.25
+	local_port_build_buildings_efficiency = 0.5
 }
 
 PRU_secondary_capital_tangermunde = {
@@ -1720,7 +1841,7 @@ PRU_secondary_capital_tangermunde = {
 		category = location
 	}
 	
-	local_proximity_source = 50
+	local_proximity_source = 20
 }
 
 PRU_quitzow_modifier = {
@@ -1748,12 +1869,30 @@ kor_cotton_seed = {
 	local_cotton_output_modifier = 0.2
 }
 
+BYZ_morea_nobles = {
+	game_data = {
+		category = location
+	}
+
+	local_nobles_estate_power = 3
+}
+
+BYZ_grand_fair_of_st_demetrius = {
+	game_data = {
+		category = location
+	}
+
+	local_monthly_prosperity = 0.001
+	local_merchant_capacity = 5
+	local_monthly_development = 0.01
+}
+
 stronghold_of_the_burghers_modifier = {
 	game_data = {
 		category = location 
 	}
 
-	local_burghers_desired_pop = 0.1
+	local_burghers_desired_pop = 0.05
 	local_burghers_estate_power = 0.5
 }
 
@@ -1821,7 +1960,7 @@ minor_recovery_effort = {
 	}
 
 	local_devastation_recovery = 0.005
-	local_build_buildings_cost = -0.1
+	local_build_buildings_efficiency = 0.2
 }
 
 major_recovery_effort = {
@@ -1830,7 +1969,7 @@ major_recovery_effort = {
 	}
 
 	local_devastation_recovery = 0.005
-	local_build_buildings_cost = -0.2
+	local_build_buildings_efficiency = 0.4
 }
 
 habsburg_capital = {
@@ -1839,7 +1978,7 @@ habsburg_capital = {
 	}
 
 	local_migration_attraction = 0.1
-	local_build_buildings_cost = -0.1
+	local_build_buildings_efficiency = 0.2
 	local_pop_promotion_speed_modifier = 0.1
 }
 
@@ -1879,7 +2018,7 @@ stronghold_city_modifier = {
 	}
 
 	local_max_control = 0.2
-	local_war_score_cost = -0.5
+	local_war_score_efficiency = -0.25
 	local_monthly_control = 0.002
 }
 
@@ -1898,7 +2037,7 @@ decaying_defenses_modifier = {
 	}
 
 	local_defensive = -0.25
-	local_fort_maintenance_cost = 0.5
+	local_fort_maintenance_efficiency = -0.5
 }
 
 rot_timurs_core_region = {
@@ -1970,7 +2109,7 @@ louvre_palace_renovations = {
 	local_monthly_prosperity = 0.005
 	local_max_control = 0.25
 	local_migration_attraction = 0.1
-	local_build_buildings_cost = -0.1
+	local_build_buildings_efficiency = 0.2
 }
 
 louvre_fortress = {
@@ -1978,7 +2117,7 @@ louvre_fortress = {
 		category = location
 	}
 	local_defensive = 0.25
-	local_fort_maintenance_cost = -0.5
+	local_fort_maintenance_efficiency = 1.0
 }
 
 fontainebleau_hunting_lodge = {
@@ -2007,6 +2146,52 @@ fra_pont_neuf_constructed_scaled_back = {
 	local_trade_center_power = 0.010
 }
 
+ath_permitted_catalan_settlements = {
+	game_data = {
+		category = location
+	}
+	local_migration_attraction = 0.1
+	growth_is_primary_culture = yes
+	local_pop_assimilation_speed = 0.025
+	local_pop_assimilation_speed_modifier = 1	
+}
+
+ath_a_permanent_capital = {
+	game_data = {
+		category = location
+	}
+	local_crown_estate_power = 0.25
+	local_build_buildings_efficiency = 0.2
+	local_monthly_development_modifier = 0.25
+}
+
+ath_benefits_of_the_shifting_capitals = {
+	game_data = {
+		category = location
+	}
+	local_crown_estate_power = 0.10
+	local_monthly_control = 0.005
+	local_max_control = 0.1
+}
+
+lat_restoration_of_the_constantinople_patriarchate = {
+	game_data = {
+		category = location
+	}
+	local_migration_attraction = 0.1
+	local_pop_conversion_speed_modifier = 0.25
+}
+
+lat_improved_location_integration = {
+	game_data = {
+		category = location
+	}
+	local_migration_attraction = 0.1
+	local_monthly_control = 0.001
+	local_integration_speed_modifier = 0.25
+	local_max_control = 0.1
+}
+
 the_golden_city_of_prague = {
 	game_data = {
 		category = location
@@ -2021,7 +2206,7 @@ new_hungarian_capital = {
 	}
 
 	local_migration_attraction = 0.1
-	local_build_buildings_cost = -0.1
+	local_build_buildings_efficiency = 0.2
 	local_pop_promotion_speed_modifier = 0.1
 }
 
@@ -2130,7 +2315,7 @@ increased_incense_production = {
 		category = location
 	}
 	local_rgo_build_time = -0.3
-	local_build_buildings_cost = -0.2
+	local_build_buildings_efficiency = 0.4
 }
 
 bolstering_hormuz_island = {
@@ -2138,7 +2323,7 @@ bolstering_hormuz_island = {
 		category = location
 	}
 	merchant_power_from_building = 0.1
-	local_fort_maintenance_cost = -0.25
+	local_fort_maintenance_efficiency = 0.50
 }
 
 banu_marin_wool_modifier = {
@@ -2191,8 +2376,8 @@ por_patronage_of_navigator_location = {
 	game_data = {
 		category = location
 	}
-	
-	local_port_build_buildings_cost = -0.25
+
+	local_port_build_buildings_efficiency = 0.5
 }
 
 
@@ -2430,7 +2615,7 @@ walls_of_vienna = {
 	}
 
 	local_defensive = 0.2
-	local_fort_maintenance_cost = -0.2
+	local_fort_maintenance_efficiency = 0.4
 }
 
 dlh_increased_taxes = {
@@ -2560,7 +2745,7 @@ capital_expansion_modifier = {
 		category = location
 	}
 
-	local_build_buildings_cost = -0.25
+	local_build_buildings_efficiency = 0.5
 }
 
 capital_food_provisions_modifier = {
@@ -2627,7 +2812,7 @@ introduction_of_newcommen_engine = {
 		category = location
 	}
 
-	local_build_buildings_cost = -0.1
+	local_build_buildings_efficiency = 0.2
 	local_monthly_development = 0.01
 	local_rgo_build_time = -0.25
 }
@@ -2705,7 +2890,7 @@ economic_urbanization_modifier = {
 		category = location
 	}
 
-	local_build_buildings_cost = -0.15
+	local_build_buildings_efficiency = 0.3
 	local_population_capacity_modifier = 0.1
 }
 
@@ -2714,7 +2899,7 @@ industrial_urbanization_modifier = {
 		category = location
 	}
 
-	local_build_buildings_cost = -0.15
+	local_build_buildings_efficiency = 0.3
 	local_monthly_development = 0.01
 }
 
@@ -2901,7 +3086,7 @@ kni_tripoli_fortified = {
 	}
 
 	local_defensive = 0.25
-	local_fort_maintenance_cost = -0.5
+	local_fort_maintenance_efficiency = 1.0
 }
 
 lit_destruction_of_romuva_sites = {
@@ -2986,9 +3171,21 @@ spa_implemented_nueva_planta = {
 	game_data = {
 		category = location
 	}
-	
+
 	local_unrest = 0.25
 	local_monthly_control = 0.01
+}
+
+###################################
+# Italian Wars
+###################################
+
+iw_martial_grasp_modifier = {
+	game_data = {
+		category = location
+	}
+	local_manpower_modifier = 0.25
+	local_max_control = 0.1
 }
 
 spa_severe_smallpox_outbreak = {
@@ -3140,9 +3337,9 @@ chk_fortifying_center = {
 	game_data = {
 		category = location
 	}
-	
+
 	local_defensive = 0.25
-	local_fort_maintenance_cost = -0.2
+	local_fort_maintenance_efficiency = 0.4
 }
 
 chk_shadow_of_cahokia_city = {
@@ -3227,7 +3424,7 @@ jap_osaka_castle = {
 	}
 
 	local_defensive = 0.50
-	local_fort_maintenance_cost = -0.25
+	local_fort_maintenance_efficiency = 0.50
 	local_monthly_food_modifier = 0.1
 }
 
@@ -3246,7 +3443,7 @@ center_of_urban_exchange_modifier = {
 		category = location
 	}
 	
-	local_build_buildings_cost = -0.1
+	local_build_buildings_efficiency = 0.2
 	local_trades_per_burgher = 0.2
 }
 
@@ -3379,13 +3576,13 @@ new_capital_modifier = {
 
 	local_migration_attraction = 1
 	local_unrest = -0.2
-	local_build_buildings_cost = -0.33
+	local_build_buildings_efficiency = 0.66
 }
 
 influence_of_the_old_capital_modifier = {
 	game_data = { category = location }
-	
-	local_proximity_source = 70
+
+	local_proximity_source = 80
 }
 
 royal_dowry_modifier = {
@@ -3419,4 +3616,274 @@ local_noble_stronghold_modifier = {
 	}
 
 	local_nobles_estate_power = 1
+}
+
+continued_patronage_of_institutions_modifier = {
+	game_data = {
+		category = location
+		decaying = yes
+	}
+
+	promote_institution_chance = 1
+	local_monthly_prosperity = 0.0025
+}
+
+increased_italian_privileges = {
+	game_data = {
+		category = location
+	}
+
+	local_trades_per_burgher = 0.5
+	local_crown_estate_power = -0.5
+}
+
+strengthened_crown_control = {
+	game_data = {
+		category = location
+	}
+
+	local_trade_center_power = 0.15
+	local_crown_estate_power = 0.5
+}
+
+lesser_italian_privileges = {
+	game_data = {
+		category = location
+	}
+
+	local_trades_per_burgher = 0.5
+	local_crown_estate_power = -0.2
+}
+
+greek_culture_promotion_of_trade = {
+	game_data = {
+		category = location
+	}
+
+	local_migration_attraction = 0.5
+	local_trades_per_burgher = 1
+}
+
+greek_culture_recent_aid_during_wartime = {
+	game_data = {
+		category = location
+	}
+
+	local_defensive = 0.25
+	local_garrison_growth = 0.1
+}
+
+greek_culture_reinforced_akritai = {
+	game_data = {
+		category = location
+	}
+
+	local_garrison_growth = 0.2
+	local_unrest = -0.2
+}
+
+greek_culture_slow_collapse_of_defences = {
+	game_data = {
+		category = location
+	}
+
+	local_defensive = -0.25
+}
+
+greek_culture_decline_of_meditteranean_trade = {
+	game_data = {
+		category = location
+	}
+
+	local_trades_per_burgher = -0.75
+}
+
+greek_culture_influential_polis = {
+	game_data = {
+		category = location
+	}
+
+	local_migration_attraction = 1
+	free_building_levels = 2
+	local_nobles_estate_power = 0.5
+	local_burghers_estate_power = 0.5
+	local_clergy_estate_power = 0.5
+}
+
+greek_culture_mystras_scholarship_teachings_spread = {
+	game_data = {
+		category = location
+	}
+
+	local_monthly_literacy = 0.03
+	local_institution_growth_modifier = 0.15
+}
+
+italian_culture_rival_wool_trade = {
+	game_data = {
+		category = location
+	}
+	local_raw_material_output = 0.25
+	local_merchant_capacity = 1
+	local_market_access = 0.10
+	local_monthly_development = 0.01	
+}
+
+italian_culture_move_countryside_to_capital = {
+	game_data = {
+		category = location
+	}
+	local_migration_attraction = 1.5
+	local_monthly_development_modifier = 0.10
+	local_build_buildings_efficiency = 0.25
+	local_population_growth = 0.005
+}
+
+italian_culture_center_of_humanism = {
+	game_data = {
+		category = location
+	}
+	local_monthly_development_modifier = 0.25
+	local_monthly_literacy = 0.1
+	local_migration_attraction = 0.1
+}
+
+italian_culture_major_center_of_art_and_culture = {
+	game_data = {
+		category = location
+	}
+	local_monthly_development_modifier = 0.10
+	local_population_growth = 0.002
+	local_prosperity_decay = -0.1
+}
+
+increased_kephale_support = {
+	game_data = {
+		category = location
+	}
+
+	local_max_control = 0.1
+}
+
+staple_port_commercial_stagnation_modifier = {
+	game_data = { category = location }
+	
+	local_market_access = -0.25
+	local_merchant_capacity_modifier = -0.25
+
+}
+
+local_maritime_boom_modifier = {
+	game_data = { category = location }
+	
+	local_ship_build_speed = 0.5
+	local_maritime_presence = 0.33
+}
+
+major_fire_modifier = {
+	game_data = { category = location decaying = yes }
+	
+	local_monthly_development = -0.2
+	local_monthly_prosperity = -0.01
+}
+
+location_innovative_tooling_techniques_modifier = {
+	game_data = { category = location }
+	
+	local_raw_material_output = 0.25
+	local_production_efficiency = 0.1
+}
+
+location_faceting_techniques_modifier = {
+	game_data = { category = location }
+	
+	local_jewelry_output_modifier = 0.25
+	local_trades_per_burgher = 1
+}
+
+local_quality_standards_modifier = {
+	game_data = { category = location }
+
+	local_production_efficiency = 0.1
+	raw_material_in_province_impact = 0.05
+}
+
+urban_center_attracts_artisans_modifier = {
+	game_data = { category = location }
+	
+	local_migration_attraction = 2
+}
+
+local_brewing_boom_modifier = {
+	game_data = { category = location }
+	local_unrest = -0.25
+	local_beer_output_modifier = 0.5
+	local_wine_output_modifier = 0.5
+	local_liquor_output_modifier = 0.5
+}
+
+bul_powerful_local_elites = {
+	game_data = { category = location }
+	
+	local_unrest = 0.2
+	local_max_control = -0.5
+}
+
+bul_unpaid_garrison = {
+	game_data = {
+		category = location
+	}
+
+	local_defensive = -0.5
+	local_unrest = 0.2
+}
+
+sie_golden_age_of_siena = {
+	game_data = {
+		category = location
+	}
+
+	local_population_growth = 0.002
+	local_monthly_development_modifier = 0.2
+}
+
+pis_salted_the_soil = {
+	game_data = { category = location }
+
+	local_monthly_development_modifier = -0.75
+	local_monthly_food_modifier = -0.15
+}
+
+pis_gem_of_sardinia = {
+	game_data = { category = location }
+
+	local_migration_attraction = 2
+	local_build_buildings_efficiency = 0.25
+}
+
+luc_fine_cloth_productions = {
+	game_data = { 
+		category = location
+	}
+
+	local_fine_cloth_output_modifier = 0.25
+}
+
+iw_fortify_key_location_modifier = {
+	game_data = {
+		category = location
+		decaying = yes
+	}
+
+	local_hostile_attrition = 2.5
+	local_defensive = 0.2
+}
+
+center_of_authority_ruins_modifier = {
+	game_data = {
+		category = location
+		decaying = yes
+	}
+
+	local_proximity_source = 80
 }
