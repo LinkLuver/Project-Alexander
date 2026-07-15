@@ -1,5 +1,6 @@
 ﻿#<road type id> = {
 #	level = <integer>								#Determines what level of road type this is and is important for has_latest_road_to triggers. Generally speaking, higher level = later road type
+#	pop_movement = <double>							#modifier for how pops might move along this road (affects movements, diseases)
 #	enabled = { <trigger> }							#Can build this road only if the triggers in enabled are true. Root scope is the country which tries to build the road
 #	proximity = <integer>							#Reduction of the distance to capital effect for locations
 #	movement_cost = <double>						#Modifies how fast units move on a location with this road type

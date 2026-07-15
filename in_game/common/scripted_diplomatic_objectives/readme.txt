@@ -26,7 +26,7 @@
 #   #Should the nations improve relations
 #   improve_relation = <yes/no>
 #   #To which opinion should the country improve relations, optional, if not present AI will improve up to max
-#   improve_relations_limit = <int/scripted value>
+#   improve_relation_limit = <int/scripted value>
 #   #Should the actor try to defend the recipient
 #   defensive_support = <yes/no>
 #   #Should the actor use hostile country interactions/relations against the recipient

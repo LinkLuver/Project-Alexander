@@ -3,6 +3,7 @@
 @location_zoomstep_min = 4
 @location_mapname_zoomstep_min = 2
 @location_zoomstep_max = 5
+@construction_mapmarkers_max = 7
 @province_zoomstep_min = 8
 @province_zoomstep_max = 10
 @country_zoomstep_min = 11
@@ -40,6 +41,7 @@ NJominiMapGraphics = {
 	COUNTRY_NAMES_LOD_FACTOR = 0.06	# Names get blurrier as the texel/pixel ratio increases. Blur amount will be lod factor * texel/pixel ratio
 	COUNTRY_NAMES_THICKNESS_BIAS = 0.0	# More bias = thicker map names. Can be used to solve artifacts caused by thin areas
 	COUNTRY_NAMES_STRIDE_SIZE = 1
+	COUNTRY_NAMES_MAX_COSINE = -0.9
 }
 
 NJominiGraphics = {
@@ -77,6 +79,8 @@ NGraphics = {
 	SECONDARY_COLOR_BORDER_COLOR = {0.0 0.0 0.0};
 	SECONDARY_COLOR_BORDER_WIDTH = 0.15;
 	SECONDARY_COLOR_BORDER_STRENGHT = 2.0;
+	SECONDARY_STRIPE_SMOOTH_MIN = 0.55;	# diagonal stripe smoothstep window for secondary country colour (cos threshold where transition begins)
+	SECONDARY_STRIPE_SMOOTH_MAX = 0.85;	# cos threshold where the stripe is fully solid; higher = thinner stripe
 	
 	FLAT_MAP_HEIGHT = 3.92
 	FLAT_MAP_FADE_SPEED = 2	# How fast to fade to/from flat map state
@@ -181,8 +185,8 @@ NGraphics = {
 	RIVERS_CLEARING_ZONE_THICKNESS = 1.5 								# The thickness of the clearing zone around river's splines, removing excess vegetation
 	DISABLE_SHADOWS_ZOOM_LEVEL = 6
 
-	TRADE_WAGONS_OPACITY_START_STEP = 5
-	TRADE_WAGONS_OPACITY_ZOOM_STEP = 0.25
+	TRADE_WAGONS_OPACITY_START_STEP_LAND = 5
+	TRADE_WAGONS_OPACITY_START_STEP_WATER = 8
 }
 
 NMapColors = {
@@ -220,19 +224,58 @@ NMapColors = {
 	COLOR_TOO_SIMILAR_THRESHOLD			= 0.04 # The threshold in interaction target view below which a color being too similar to COLOR_TOO_SIMILAR_COLOR gets some special recoloring.
 	COLOR_TOO_SIMILAR_COLOR =			{ 0.08 0.403 0.545 } # Set to the texture of the map.
 
+	MAP_COLOR_NULL = { 0.55 0.43 0.07 } #blue black
 	MAP_COLOR_MIN = { 0 0.85 0.015 } #black
 	MAP_COLOR_LOW = { 0 0.85 0.34 } #red
 	MAP_COLOR_MID = { 0.13 0.95 0.75 } #yellow
 	MAP_COLOR_HIGH = { 0.31 0.9 0.6	} #green
 	MAP_COLOR_MAX = { 0.31 1.0 1.0	} #light-green
 	MAP_COLOR_TOP = { 0.49 1.0 1.0 } #light blue
+	MAP_ANTAGONISM_ORANGE = { 0.08 0.85 0.90 } #light orange (antagonism coalition threshold pivot)
+	MAP_COLOR_PROXIMITY_BUILDING = { 0.0 0.0 1.0 } #white
+
+	# Current Weather map mode (clear / weak…strong interpolation)
+	WEATHER_MAP_CLEAR_COLOR = { 0.31 0.55 0.55 }
+	WEATHER_MAP_WEAK_COLOR = { 0.13 0.95 0.88 }
+	WEATHER_MAP_POWERFUL_COLOR = { 0.0 0.95 0.95 }
 
 	MAP_COLOR_POSITIVE_MIN = { 0.31 0.3 0.3	} #dark-green
 	MAP_COLOR_NEUTRAL_MIN = { 0.13 0.3 0.3	} #dark-yellow
 	MAP_COLOR_NEGATIVE_MIN = { 0.0 0.3 0.3	} #dark-red
-	
+
+	GOODS_PRICE_DIFFERENCE_COPPER = { 0.05 0.80 0.90 }
+	GOODS_PRICE_DIFFERENCE_SILVER = { 0.00 0.00 0.90 }
+	GOODS_PRICE_DIFFERENCE_GOLD = { 0.10 1.00 1.00 }
+
+	# AI Disposition mapmode colors (HSV)
+	MAP_AI_DISP_ALARMED      = { 0.091 0.786 0.953 }
+	MAP_AI_DISP_WARY         = { 0.147 0.470 0.902 }
+	MAP_AI_DISP_PLANNING_WAR = { 0.009 0.812 1.000 }
+	MAP_AI_DISP_COVETS       = { 0.765 0.435 0.659 }
+	MAP_AI_DISP_DOMINEERING  = { 0.510 1.000 0.667 }
+	MAP_AI_DISP_RIVALS       = { 0.03 1.0 0.7 }
+	MAP_AI_DISP_NEUTRAL      = { 0.000 0.000 0.812 }
+	MAP_AI_DISP_SELF         = { 0.118 0.882 0.294 }
+	MAP_AI_DISP_FRIENDLY     = { 1.000 0.843 0.000 }
+
 	MAP_COLOR_SATURATION_RANGE = { 0.0 1.0 }
 	MAP_COLOR_VALUE_RANGE = { 0.0 1.0 } # { 0.38 1.0 }
+
+	# Deuteranopia/Protanopia palette - matches GUI color_red (blue-violet) / color_green (lime-yellow)
+	# Value (brightness) ramps linearly
+	MAP_COLOR_LOW_CB_RG  = { 0.67 0.70 0.50 } # dark blue-violet
+	MAP_COLOR_MID_CB_RG  = { 0.42 0.60 0.63 } # olive-green midpoint
+	MAP_COLOR_HIGH_CB_RG = { 0.20 0.90 0.75 } # bright lime-yellow
+	MAP_COLOR_MAX_CB_RG  = { 0.20 1.00 0.88 } # very bright lime
+	MAP_COLOR_TOP_CB_RG  = { 0.17 0.90 1.00 } # max bright lime
+
+	# Tritanopia palette - red/green axis (tritanopes retain L/M discrimination; avoids orange-cyan confusion axis)
+	# Value (brightness) ramps linearly: 
+	MAP_COLOR_LOW_CB_TRI  = { 0.00 0.85 0.50 } # dark red 
+	MAP_COLOR_MID_CB_TRI  = { 0.12 0.65 0.63 } # yellow-green
+	MAP_COLOR_HIGH_CB_TRI = { 0.33 0.80 0.75 } # bright green
+	MAP_COLOR_MAX_CB_TRI  = { 0.33 0.88 0.88 } # very bright green
+	MAP_COLOR_TOP_CB_TRI  = { 0.33 0.90 1.00 } # max bright pale green
 
 	SELL_LOCATION_UNAVAILABLE_COLOR = { 0.95 0.13 0.75 }
 	SELL_LOCATION_AVAILABLE_COLOR = { 0.13 0.95 0.75 }
@@ -249,7 +292,7 @@ NMapColors = {
 
 	RIVERS_RIVER_COLOR = 				{  0.54 0.80 1.00	 }
 	RIVERS_SEA_COLOR = 				{  0.66 0.40 0.10	 }
-	RIVERS_LAND_COLOR = 				{  0.366 0.82 0.38	 }	
+	RIVERS_LAND_COLOR = 				{  0.35 0.92 0.27	 }	
 	
 	SELECTED_GOODS_COLOR_OUR_RGO = 				{    0.333	0.8		0.6	 }
 	SELECTED_GOODS_COLOR_OUR_PRODUCED = 				{    0.8	0.333		0.6	 }
@@ -269,13 +312,16 @@ NMapColors = {
 	OFFER_PEACE_AVAILABLE_COLOR = 		{ 0.0	0.9		0.8  }
 	OFFER_PEACE_UNAVAILABLE_COLOR =		{ 0.0	0.5		0.3  }
 	OFFER_PEACE_BECOME_SUBJECT_COLOR =	{ 0.333	0.8		0.7  }
-	OFFER_PEACE_CANCEL_SUBJECT_COLOR =	{ 0.666	0.8 	0.7  }
+	OFFER_PEACE_CANCEL_SUBJECT_COLOR =	{ 0.0	0.0		1.0  }
 	OFFER_PEACE_FORM_UNION_COLOR =		{ 0.666	0.8		0.7  }
 	OFFER_PEACE_RELEASE_NATION_COLOR =	{ 0.833	0.8 	0.7  }
+	OFFER_PEACE_ANNUL_TREATIES_COLOR =	{ 0.0	0.0		0.0  }
 
 	CREATE_MILITARY_OBJECTIVE_SELECTED =	{ 0.11	0.9	1.0  }
 	CREATE_MILITARY_OBJECTIVE_AVAILABLE =	{ 0.05	0.6	0.67  }
 	CREATE_MILITARY_OBJECTIVE_SECONDARY_HIGHLIGHT = { 0.11 0.9 0.5 }
+
+	SETUP_TRADE_ORIGIN_COLOR =				{ 0.617	0.75	0.85 }
 	
 	TACTICAL_0_COLOR = { 0 0.638 0.34 } #red
 	TACTICAL_1_COLOR = { 0.13 0.713 0.75 } #yellow
@@ -284,8 +330,8 @@ NMapColors = {
 	
 	NAVAL_RANGE_CUTOFF_FACTOR = 1.25 #Remove ugly black stripes on water from this factor times max range
 	
-	NO_WINTER_COLOR = 					{  0.17 0.05 0.0	 }
-	NO_WINTER_ALPHA = 					0.0
+	NO_WINTER_COLOR = 					{  0.0 0.0 0.0	 }
+	NO_WINTER_ALPHA = 					1.0
 	MILD_WINTER_COLOR = 				{  0.61	0.8		0.8	 }
 	NORMAL_WINTER_COLOR = 				{  0.56	0.61	1.0	 }
 	SEVERE_WINTER_COLOR = 				{  0.0	0.0		1.0	 }
@@ -329,6 +375,15 @@ NMapColors = {
 
 	DISEASE_BUBONIC_PLAGUE_MIN =		{ 0.113	0.221	0.26	}
 	DISEASE_BUBONIC_PLAGUE_MAX =		{ 0.413	0.921	0.76	}
+
+	DISEASE_MAPMODE_TIER_LOW_MAX = 0.30
+	DISEASE_MAPMODE_TIER_MID_MAX = 0.60
+	DISEASE_MAPMODE_TIER_SYNTHETIC_LOW = 0.12
+	DISEASE_MAPMODE_TIER_SYNTHETIC_MID = 0.42
+	DISEASE_MAPMODE_TIER_SYNTHETIC_HIGH = 0.88
+	DISEASE_MAPMODE_MIN_PRESENCE_TO_PAINT = 0.001
+	DISEASE_MAPMODE_MIN_PRESENCE_FOR_STRIPE = 0.02
+	DISEASE_MAPMODE_MIN_ENDEMIC_RATE_TO_PAINT = 0.07
 
 	INTERNATIONAL_ORGANIZATION_LEADER_COLOR = 		{ 0.14	0.81	1.0		} # 0.592	0.962	0.91
 	INTERNATIONAL_ORGANIZATION_MEMBER_COLOR = 		{ 0.4	0.61	0.7 	}
@@ -395,6 +450,11 @@ NMapColors = {
 	OVERLORD_VALUE_STRENGTH_ON_SUBJECT = 0.4
 	SUBJECT_MAP_COLOR_LIGHTEN = 0.1
 	SUBJECT_MAP_COLOR_SATURATE = -0.1
+	
+	REVOLTER_COLOR = { 0.0 0.0 0.0}
+	COUNTRY_HUE_STRENGTH_ON_REVOLTER = 1
+	COUNTRY_SATURATION_STRENGTH_ON_REVOLTER = 1.0
+	COUNTRY_VALUE_STRENGTH_ON_REVOLTER = 0.35
 
 	LANGUAGE_DIALECT_HUE_VARIATION = 0.02
 	LANGUAGE_DIALECT_SAT_VARIATION = 0.0
@@ -410,6 +470,7 @@ NMapColors = {
 
 	POPULATION_MAPMODE_MIN = 1.000
 	POPULATION_MAPMODE_LOG_FACTOR = 1.0
+	TAX_BASE_MAPMODE_LOG_FACTOR = 0.5
 }
 
 NTerraIncognita = {
@@ -432,6 +493,8 @@ NBorder = {
 	MAX_ZOOM_STEP_IMPASSABLE = 8# @province_zoomstep_max
 	MAX_ZOOM_STEP_BLOCKADED = -1 # @province_zoomstep_max
 	MAX_ZOOM_STEP_SEA_LANE = 22
+	SPLINE_TESSELATION_MAX_ANGLE = 15.0
+	SPLINE_TESSELATION_MAX_DISTANCE = 10.0
 }
 NTrees = {
 	FADE_FAR = 1.0
@@ -519,12 +582,14 @@ NMapMarker = {
 	ZOOM_STEP_RANGE_STATE_CAPITAL = 	{  0 @location_zoomstep_max }
 
 	#Visible in the "province" and "state" zoom levels
-	ZOOM_STEP_RANGE_CONSTRUCTION = 		{ 0 @province_zoomstep_max }
+	ZOOM_STEP_RANGE_CONSTRUCTION = 		{ 0 @construction_mapmarkers_max }
 	ZOOM_STEP_RANGE_OCCUPATION = 		{ 0 @province_zoomstep_max }
 	ZOOM_STEP_RANGE_PARLIAMENT = 		{ 0 @province_zoomstep_max }
+	ZOOM_STEP_RANGE_HOLY_SITE = 		{ 0 20 }
 	ZOOM_STEP_RANGE_CABINET_ACTION = 	{ 0 @province_zoomstep_max }
 	ZOOM_STEP_RANGE_DIPLOMATIC_ACTION = { 0 @province_zoomstep_max }
 	ZOOM_STEP_RANGE_BLOCKED_VISION = 	{ 0 7 }
+	ZOOM_STEP_RANGE_WINTER_BLOCKED = 	{ 0 7 }
 
 	#Visible in the "state" zoom level
 	ZOOM_STEP_RANGE_COUNTRY_CAPITAL = 	{ @province_zoomstep_min @province_zoomstep_max }
@@ -559,13 +624,14 @@ NMapMarker = {
 	# Determines which zoom level different city icons appear
 	# Some of these are cumulative
 	CITY_MARKER_WEIGHT_BASE = 							0		# Offset everything by this amount
-	CITY_MARKER_WEIGHT_LABEL_MULTIPLIER = 				0.33		# Text labels only appear once the camera gets a little closer
+	CITY_MARKER_WEIGHT_BASE_PLAYER = 					2		# Offset everything by this amount
+	CITY_MARKER_WEIGHT_LABEL_MULTIPLIER = 				0.33	# Text labels only appear once the camera gets a little closer
 	CITY_MARKER_WEIGHT_ICON_MULTIPLIER = 				1.0		# Icons appear at the normal point
 	CITY_MARKER_WEIGHT_FORT_LEVEL = 					0		# How much the fort level influences city icons
-	CITY_MARKER_WEIGHT_FORT_LEVEL_AT_WAR =				5	# How much the fort level influences city icons while at war
+	CITY_MARKER_WEIGHT_FORT_LEVEL_AT_WAR =				5		# How much the fort level influences city icons while at war
 	CITY_MARKER_WEIGHT_LOCATION_RANK = 					2		# How much location rank (town, city etc) influences. Tied to frame_tier
 	CITY_MARKER_WEIGHT_PROVINCE_CAPITAL = 				2		# How much a location being the province capital influences
-	CITY_MARKER_WEIGHT_PROVINCE_CAPITAL_AT_WAR =		2		# How much a location being the province capital influences while at war
+	CITY_MARKER_WEIGHT_PROVINCE_CAPITAL_AT_WAR =		6		# How much a location being the province capital influences while at war
 	CITY_MARKER_WEIGHT_AREA_CAPITAL = 					4		# How much a location being the most populated in an area influences
 	CITY_MARKER_WEIGHT_COUNTRY_CAPITAL_PLAYER = 		20		# How much being the player's country capital influences
 	CITY_MARKER_WEIGHT_COUNTRY_CAPITAL_ALLY = 			5		# How much being an ally/overlord/vassals's country capital influences
@@ -576,8 +642,13 @@ NMapMarker = {
 	CITY_MARKER_WEIGHT_MARKET_CENTER = 					2		# How much being a Market Center influences
 	CITY_MARKER_WEIGHT_PLAYER_HAS_FOREIGN_BUILDINGS = 	1		# How much owning a building in a non-owned location influences
 	CITY_MARKER_WEIGHT_CEILING_FOR_NOT_PLAYER_CAPITAL =	19		# At what zoom level do we kill everything but your capital
-}
 
+	CITY_MARKER_RANK_ZOOM_THRESHOLD = 7
+}
+NRoads = {
+	ROADS_DISSAPEAR_ZOOM_LEVEL = 8
+	ROADS_DISSAPEAR_FARAWAY_ZOOM_LEVEL = 13
+}
 NUnitGraphics = {
 	UNIT_ICON_SHORT_VARIANT_AT_ZOOM_STEP = 9
 	UNIT_MAP_MARKER_MAP_PIXELS_SOUTH = 2	# The unit map marker (# of troops, etc.) will be positioned as if it was this many pixels on the map south of where the unit is standing
@@ -722,6 +793,9 @@ NUnitGraphics = {
 	BATTLE_TILE_MORALE_ALPHA_THRESHOLD = 0.25 # At what Morale percentage do units start fading away? (at this point they are fully visible)
 	BATTLE_TILE_MORALE_ALPHA_MINIMUM = 0.5 # What is the lowest transparency they can get to (when at 0% morale)
 
+	FLATMAP_COMBAT_TEXT_SEPARATION = 3.0
+	INSTANT_MOVEMENT_SPEED_LIMIT  = 6 #from whitch speed the movement of the unit graphics will be instant
+	UNIT_CHANGE_MESSAGE_HOLDDUP_TIME = 0.5
 }		
 
 NGameIcons = {
@@ -762,6 +836,8 @@ NGameIcons = {
 	GOODS_ICON_PREFIX = "icon_goods_"
 	PARLIAMENT_TYPES_ICON_PATH = "gfx/interface/icons/parliament_types"
 	CABINET_ACTION_ICON_PATH = "gfx/interface/icons/cabinet_actions"
+	GENERIC_ACTION_ICON_PATH = "gfx/interface/icons/generic_actions"
+	EMPLOYMENT_SYSTEM_ICON_PATH = "gfx/interface/icons/employment_systems"
 	CHARACTER_INTERACTION_ICON_PATH = "gfx/interface/icons/character_interactions"
 	COUNTRY_INTERACTION_ICON_PATH = "gfx/interface/icons/country_interactions"
 	BUILDINGS_ICON_PATH = "gfx/interface/icons/buildings"
@@ -770,8 +846,10 @@ NGameIcons = {
 	HOLY_SITE_ICON_PATH = "gfx/interface/illustrations/holy_sites/"
 	RELIGIOUS_FACTION_ICON_PATH = "gfx/interface/icons/religious_factions"
 	GOD_ICON_PATH = "gfx/interface/icons/gods"
+	OMEN_ICON_PATH = "gfx/interface/icons/omens"
 	AVATAR_ICON_PATH = "gfx/interface/icons/avatars"
 	DISEASE_ICON_PATH = "gfx/interface/icons/disease"
+	MOVEMENT_ICON_PATH = "gfx/interface/icons/movement"
 	RELIGIOUS_FOCUS_ICON_PATH = "gfx/interface/icons/religious_focuses"
 	RELIGIOUS_ASPECT_ICON_PATH = "gfx/interface/icons/religious_aspects"
 	ESTATE_ICON_PATH = "gfx/interface/icons/estates"
@@ -788,11 +866,16 @@ NGameIcons = {
 	HEGEMONY_BORDER_PATH = "gfx/interface/hegemony"
 	HEGEMONY_ICON_PATH = "gfx/interface/icons/hegemony"
 	DISASTER_ICON_PATH = "gfx/interface/icons/disasters"
+		AI_PERSONALITY_ICON_PATH = "gfx/interface/icons/ai_personalities"
+		AI_DISPOSITION_ICON_PATH = "gfx/interface/icons/ai_dispositions"
+	TOWN_RIGHTS_ICON_PATH = "gfx/interface/icons/town_rights"
 	SITUATION_ICON_PATH = "gfx/interface/icons/situations"
 	RELIGIOUS_SCHOOL_ICON_PATH = "gfx/interface/icons/religious_schools"
 	INTERNATIONAL_ORGANIZATION_PAYMENT_ICON_PATH = "gfx/interface/icons/flat_icons/balance"
+	BUREAUCRACY_ICON_PATH = "gfx/interface/icons/bureaucracy"
 	ADVANCE_ICON_PATH = "gfx/interface/advance"
 	CHECK_ADVANCE_ICONS_ERRORS = 0
+	CHIVALRIC_ORDER_ICON_PATH = "gfx/interface/icons/chivalric_orders"
 	LAW_ICON_PATH = "gfx/interface/icons/laws"
 	LAW_CATEGORY_ICON_PATH = "gfx/interface/icons/laws/categories"
 	LAW_CATEGORY_COLOR_PATH = "gfx/interface/icons/laws/categories/colors"
@@ -800,6 +883,7 @@ NGameIcons = {
 	SORT_BUTTON_ICON_PATH = "gfx/interface/icons/sort"
 	CONTROL_GROUP_ICON_PATH = "gfx/interface/icons/control_groups"
 	RECRUIT_METHOD_ICON_PATH = "gfx/interface/icons/unit_recruit"
+	UNIT_FORMATION_PREFERENCE_ICON_PATH = "gfx/interface/icons/unit_formation_preference"
 	INTERNATIONAL_ORGANIZATION_TYPE_ICON_PATH = "gfx/interface/icons/international_organizations"
 	INTERNATIONAL_ORGANIZATION_TYPE_ILLUSTRATION_PATH = "gfx/interface/illustrations/international_organization_types"
 	INTERNATIONAL_ORGANIZATION_SPECIAL_STATUS_ICON_PATH = "gfx/interface/icons/international_organizations/special_statuses"
@@ -811,7 +895,8 @@ NGameIcons = {
 	TREATY_TYPE_ICON_PATH = "gfx/interface/icons/treaty_type/"
 	RELIGION_ICON_PATH = "gfx/interface/icons/religion/"
 	WORK_OF_ART_QUALITY_ICON_PATH = "gfx/interface/icons/work_of_art/art_quality_badges/"
-	
+	GAME_CONCEPT_ICON_PATH = "gfx/interface/icons/"
+
 	MISSION_TASKS_ICON_PATH = "gfx/interface/advance"
 	MISSION_ICON_PATH = "gfx/interface/icons/missions/"
 
@@ -847,6 +932,7 @@ NMapName = {
 	SMALL_NAMES_ZOOM_STEP = @location_mapname_zoomstep_min
 	MEDIUM_NAMES_ZOOM_STEP = @province_zoomstep_min
 	LARGE_NAMES_ZOOM_STEP = @country_zoomstep_min
+	MAX_PROVINCE_NAME_ZOOM_STEP = @country_zoomstep_max
 	PROVINCE_UNDER_MOUSE_OPACITY = 1.0
 	PROVINCE_UNDER_MOUSE_NEIGHBOR_OPACITY = 0.75
 	MAX_SLOPE_DIFFERENCE_TO_MEAN = { 0.5 0.35 }
@@ -919,11 +1005,21 @@ NMapLines = {
   TRADE_ROUTE_IMPORT = "line_trade_blue"
   TRADE_ROUTE_EXPORT = "line_trade_orange"
   PATH_TO_MARKET = "line_trade_green" # TODO: create a new one. Could be bidirectional.
-  PATH_TO_CAPITAL = "line_trade_yellow" # TODO: create a new one. Might be the same as path to market.
   SEA_CURRENT = "line_trade_yellow" # TODO: create a new one. A short arrow
-  RIVER_DIRECTION = "line_river_direction"
+  RIVER_DIRECTION = "line_trade_yellow"
   UNIT_LOGISTICS = "line_trade_green" # TODO: create a new one. unit supply looking
   ROAD_BUILDER = "line_road_builder"
+  ROAD_BUILDER_CONSTRUCTION = "line_road_construction"
+  PROXIMITY_FROZEN = "line_pop_movement_red"
+  PROXIMITY_LAKE = "line_trade_blue"
+  PROXIMITY_LAND = "line_pop_movement_red"
+  PROXIMITY_MARITIME = "line_trade_blue"
+  PROXIMITY_PORT = "line_trade_yellow"
+  PROXIMITY_RIVER = "line_river_direction"
+  PROXIMITY_ROAD_1 = "line_gravel_road"
+  PROXIMITY_ROAD_2 = "line_paved_road"
+  PROXIMITY_ROAD_3 = "line_modern_road"
+  PROXIMITY_ROAD_4 = "line_rails_road"
 }
 
 NOutliner = {
@@ -931,6 +1027,11 @@ NOutliner = {
 	CATEGORY_ICON_PATH = "gfx/interface/icons/outliner/categories"
 	BG_CATEGORY_ICON_PATH = "gfx/interface/icons/outliner/background"
 	BG_SUBCATEGORY_ICON_PATH = "gfx/interface/icons/outliner/background"
+}
+
+NMapModeSelector = {
+	MAPMODES_SLOTS_COUNT = 14
+	MAPMODES_SLOTS_COLLECTION_NAME_PREFIX = "map_modes_slot"
 }
 
 NMessages = {
@@ -986,7 +1087,16 @@ NCityGraphics = {
 	
 	ZOOM_OUT_STEP = 9;
 	
+	INVISIBLE_CITY_TIME_THRESHOLD =  600.0f;
+	
+	WALL_HALF_WIDTH = 0.4
+	WALL_BEZIER_POWER = 0.35
+
 	CITY_SAFE_GRID_RADIUS  = 5.0f;
+	LAKES_LAYERS = 
+	{
+		"lake_layer"
+	}
 }
 
 
@@ -1051,10 +1161,22 @@ NTextSettings = {
 	UNITLOSS_TEXT_COLOR = {0.0 1.0 1.0 1.0} #Red
 	UNITLOSS_OUTLINE_WIDTH = 0.2
 	UNITLOSS_OUTLINE_COLOR = {0.0 0.0 0.0 1.0} #Black
-	UNITLOSS_HEIGHT_SIZE = 2
+	UNITLOSS_HEIGHT_SIZE = 1
 	UNITLOSS_BOUNDING_BOX_EXTRA_SIZE = {0.0 0.0 20.0} #Add extra height to account for animation
 	UNITLOSS_ANIMATION_FUNCTION = "ShowGrowAndDisappearAnimation"
-	UNITLOSS_TEXT_DURATION = 1
+	UNITLOSS_TEXT_DURATION = 2
+
+	UNITLOSS_ENEMY_ALIGNMENT = 2 #Center
+	UNITLOSS_ENEMY_FONT = "StandardGameFont"
+	UNITLOSS_ENEMY_FONT_SIZE = 60
+	UNITLOSS_ENEMY_LOD_FACTOR = 0.015   # Names get blurrier as the texel/pixel ratio increases. Blur amount will be lod factor * texel/pixel ratio
+	UNITLOSS_ENEMY_TEXT_COLOR = {0.33  1.0 1.0 1.0} #Green
+	UNITLOSS_ENEMY_OUTLINE_WIDTH = 0.2
+	UNITLOSS_ENEMY_OUTLINE_COLOR = {0.0 0.0 0.0 1.0} #Black
+	UNITLOSS_ENEMY_HEIGHT_SIZE = 1
+	UNITLOSS_ENEMY_BOUNDING_BOX_EXTRA_SIZE = {0.0 0.0 20.0} #Add extra height to account for animation
+	UNITLOSS_ENEMY_ANIMATION_FUNCTION = "ShowGrowAndDisappearAnimation"
+	UNITLOSS_ENEMY_TEXT_DURATION = 2
 	
 	SIEGE_MESSAGE_ALIGNMENT = 2 #Center
 	SIEGE_MESSAGE_FONT = "StandardGameFont"
@@ -1165,6 +1287,7 @@ NVisibleLocationsGfx = {
 	PLAGE_SCHEMATIC_NAME = "plague_particle"
 	GLACIER_SCHEMATIC_NAMES = {"glacier_schematic" "glacier_schematic_medium" "glacier_schematic_small"}
 	SANDSTORM_SCHEMATIC_NAME = "sandstorm_schematic"
+	SANDSTORM_MAX_ZOOM_STEP = @particles_zoom_out
 	
 	DENSITY_OF_GLACIERS_MILD  = 0
 	DENSITY_OF_GLACIERS_NORMAL = 0.0005
@@ -1183,16 +1306,17 @@ NSeaCurrents = {
 	MAX_ALPHA = 0.4
 	UV_SCALE = 0.033
 	
-	UV_SCALE_3D = 0.06
+	UV_SCALE_3D = 0.12
 	ANIMATION_SPEED_3D = 0.25;
-	WAVES_SEPARATION_3D = 2.3;
+	WAVES_SEPARATION_3D = 3.8;
 	WAVES_SPAWN_CHANCE_3D = 1.0;
+	WAVES_UV_SCALE_DISTORTION_3D = {0.6 0.5};
 	
-	DISAPPEARANCE_DEBUG_3D = 0;
+	DISAPPEARANCE_DEBUG_3D = 0.0;
 
-	DISAPPEARANCE_UV_SCALE_3D = {0.025 0.1};
-	DISAPPEARENCE_TRHESSHOLD_3D = 0.25;
-	DISAPPEARENCE_TRHESSHOLD_CORRECTION_3D = 0.5;
+	DISAPPEARANCE_UV_SCALE_3D = {0.05 0.2};
+	DISAPPEARENCE_TRHESSHOLD_3D = 1.0;
+	DISAPPEARENCE_TRHESSHOLD_CORRECTION_3D = 0.25;
 
 	DISAPPEARENCE_STATE_SWITCH_SPEED_3D = 1.5;
 }
@@ -1204,8 +1328,10 @@ NGameLocators = {
 	AVOID_CITY_RADIUS = 3.0
 	AVOID_COMBAT_LAND_RADIUS = 2.5
 	AVOID_COMBAT_SEA_RADIUS = 15.0
+	AVOID_DOCK_SEA_PLACING_RADIUS = 15.0
 	SEA_ZONE_RECT_SCALE = 3.0f
 	OUT_OF_BOUNDS_BADNESS = 5000
+	NEAR_OUT_OF_BOUND_BADNESS = 2500
 	AVOID_POS_BADNESS = 1000
 	DISTANCE_TO_CENTER_BADNESS = 50
 	LATITUDE_BIAS_UNIT_STACK = -1
@@ -1216,6 +1342,7 @@ NGameLocators = {
 	COMBAT_EXTENT_MIN = { -6 -4 }
 	COMBAT_EXTENT_MAX = { 6 4 }
 	SLOPE_BADNESS = 1500
+	SEA_HEIGHT_BADNESS = 1000
 }
 
 NGameCityLocators = {

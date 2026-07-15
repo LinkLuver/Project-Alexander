@@ -1,6 +1,6 @@
 ﻿NGame = {
-	START_DATE = "450.10.1"
-	END_DATE = "753.12.31"
+	START_DATE = "450.10.1" #P:A
+	END_DATE = "753.12.31" #P:A
 	
 	HOUR_TICK = 2
 	MORNING_OFFSET = 8
@@ -32,6 +32,25 @@
 	LOSE_OWNERSHIP_ON_EMPTY_LOCATION = no
 }
 
+NCityAudio = {
+	CONSTRUCTION_AUDIO_MODE = 2					# 0 = only on click, 1 = only on completion, 2 = both
+	CONSTRUCTION_AUDIO_MIN_TIER = 1				# tier values below this are clamped up
+	CONSTRUCTION_AUDIO_MAX_TIER = 6				# tier values above this are clamped down
+	CONSTRUCTION_DEFAULT_AUDIO_CATEGORY = "generic"		# fallback when a building's category has no audio_category
+}
+
+NAlertAudio = {
+	# Wwise event played when an alert banner of the given priority appears.
+	ALERT_APPEAR_BLUE = "UI_alert_appear_blue"
+	ALERT_APPEAR_GREEN = "UI_alert_appear_green"
+	ALERT_APPEAR_YELLOW = "UI_alert_appear_yellow"
+	ALERT_APPEAR_ORANGE = "UI_alert_appear_orange"
+	ALERT_APPEAR_RED = "UI_alert_appear_red"			# also used for War priority alerts
+	ALERT_APPEAR_BLACK = "UI_alert_appear_black"
+	ALERT_APPEAR_PURPLE = "UI_alert_appear_purple"
+	ALERT_APPEAR_DEFAULT = "UI_alert_appear"			# fallback when an alert has no specific priority
+}
+
 NJominiMap = {
 	@world_height = 32
 	@water_level_percentage = 0.08340625
@@ -40,7 +59,6 @@ NJominiMap = {
 	WORLD_EXTENTS_Z = 8192
 	WATERLEVEL = @[ world_height * water_level_percentage ]
 }
-
 
 
 NGUI = {
@@ -78,7 +96,7 @@ NGUI = {
 
 	DARK_COLOR_THRESHOLD = 0.60
 
-	SIGNIFICANT_AMOUNT_FOR_NEGATIVE_INCOME = 0.01
+	SIGNIFICANT_AMOUNT_FOR_NEGATIVE_INCOME = -0.01
 
 	GOVERNMENT_REFORM_SOCIETAL_VALUE_REQUIREMENT_FORECAST_IN_MONTHS = 12
 	GOVERNMENT_REFORM_SOCIETAL_VALUE_REQUIREMENT_FORECAST_CUTOFF_IN_MONTHS = 24
@@ -95,10 +113,27 @@ NText = {
 	FORMAT_CHARACTER_NAMES = -1 # debugging tool, -1 = default behaviour, 0 = always no, 1 = always yes
 }
 
+
 NCountry = {
 
 
 	MONTHS_FOR_REBEL_UPRISING_EFFECT = 60
+	SCRIPTED_CORE_DURATION_YEARS = 100
+	
+	REBEL_JOIN_OTHER_THRESHOLD = 0.75
+
+	REBEL_FORT_LOYALTY_BASE = 50					# base roll-to-stay-loyal chance (out of 100) when rebels spawn
+	REBEL_FORT_LOYALTY_ESTATE_SATISFACTION_SCALE = 30	# max bonus from estate satisfaction (multiplied by satisfaction 0-1)
+	REBEL_FORT_LOYALTY_ESTATE_CATEGORY_PENALTY = 15	# penalty when garrison estate matches rebel category
+	REBEL_FORT_LOYALTY_LOW_UNREST_THRESHOLD = 3		# local_unrest below this counts as "low"
+	REBEL_FORT_LOYALTY_LOW_UNREST_BONUS = 10		# bonus when local_unrest is below threshold
+	REBEL_FORT_LOYALTY_CULTURE_BONUS = 10			# bonus when fort location culture matches owner primary culture
+	REBEL_FORT_LOYALTY_RELIGION_BONUS = 10			# bonus when fort location religion matches owner religion
+	REBEL_FORT_LOYALTY_HIGH_PROGRESS_THRESHOLD = 0.8	# rebel progress above this applies the high-progress penalty
+	REBEL_FORT_LOYALTY_HIGH_PROGRESS_PENALTY = 20		# penalty applied when rebel progress exceeds threshold
+	REBEL_FORT_LOYALTY_MIN = 10					# minimum loyalty chance after all modifiers
+	REBEL_FORT_LOYALTY_MAX = 90					# maximum loyalty chance after all modifiers
+	 
 
 
 	BASE_ESTATE_POWER_FROM_CABINET = 0.25
@@ -120,6 +155,8 @@ NCountry = {
 	SOCIAL_VALUE_REQUIREMENT_FOR_REFORM = 50
 
 	SOCIETAL_VALUE_INERTIA_SCALE = 100
+	SOCIETAL_VALUE_MIN = -100
+	SOCIETAL_VALUE_MAX = 100
 
 	GRANT_PRIVILEGE_SATISFACTION_IMPACT = 3
 	REVOKE_PRIVILEGE_SATISFACTION_BASE = -0.25
@@ -150,28 +187,33 @@ NCountry = {
 	MAX_MANPOWER_YEARS = 5
 	MAX_SAILORS_YEARS = 5
 
-	BASE_RESEARCH_COST = 25
+	BASE_RESEARCH_COST = 25				# is set when advance db is loaded.
+	BASE_UNIQUE_RESEARCH_COST = 5		# is set when advance db is loaded.
 	AGE_RESEARCH_MODIFIER = 0.15		#multiplied per age..
 	PREVIOUS_AGE_REDUCTION = -8
 	
 	INSTITUTION_MINIMUM_PERCENT = 0.2
-	
-	INSTITUTION_TRADE_SPREAD_SCALE = 0.0075
+
+	# Trade-spread of institutions: distance-discounted share of a market's trade with the embraced world
+	INSTITUTION_TRADE_SPREAD_RANGE_HALFCOST = 50	# trade path cost at which a source market's contribution halves
+	INSTITUTION_TRADE_SPREAD_SOFTKNEE = 0.25		# connectedness fraction at which trade spread reaches half of base
+	INSTITUTION_TRADE_MIN_VOLUME = 10				# min total market throughput before trade spread applies
 
 	CABINET_ACTION_SKILL_MODIFIER = 0.005
 	
 	
-	ENSLAVE_AT_OCCUPATION_DAY_COOLDOWN = 500		#more than a year, should cover most back&forth shit.
-	ENSLAVE_AT_OCCUPATION = 0.1 #percentage of a pop to enslave on occupying a location
+	ENSLAVE_AT_OCCUPATION_DAY_COOLDOWN = 240		#more than a year, should cover most back&forth shit.
+	ENSLAVE_AT_OCCUPATION = 0.15 #percentage of a pop to enslave on occupying a location
 	ENSLAVE_FROM_PRIVATEERS = 0.01
 
 
 	MONTHLY_PRIVATEER_SLAVE_CHANCE = 25  #less than this on a d1000
 
-	ANNEX_MIN_COST = 50
-	ANNEX_COST_PER_LOCATION = 20.0
+	ANNEX_BASE_COST = 200
+	ANNEX_COST_PER_LOCATION = 10.0
 
 	ALERT_HIGH_WAR_EXHAUSTION = 10
+	ALERT_HIGH_COMPLACENCY_VALUE = 60
 	ALERT_HIGH_DOOM = 90
 	
 	ARMY_LEVY_RECRUITMENT_TIME = 15
@@ -184,7 +226,8 @@ NCountry = {
 	ESTATE_LEVY_SATISFACTION_THRESHOLD = 0.25
 	
 	ESTATE_TAX_SATISFACTION_THRESHOLD = 0.01
-	
+
+	ESTATE_SATISFACTION_BUREAUCRACY = 0.01	
 
 	SLAVE_MONTHLY_MAX_DISTRIBUTION = 0.25	
 	
@@ -200,7 +243,7 @@ NCountry = {
 	CAPITAL_MOVE_BASE_DAYS = 180
 	CAPITAL_MOVE_DISTANCE_FACTOR = 0.05
 	
-	MERCHANT_DISTANCE_COST_DIVISOR = 2000	
+	MERCHANT_DISTANCE_COST_DIVISOR = 800
 
 	MERCHANT_MAINTENANCE_COST = 0.5
 	
@@ -242,11 +285,15 @@ NCountry = {
 	PARLIAMENT_DURATION_DAYS = 180
 	PARLIAMENT_ISSUE_THRESHOLD = 0.5
 	PARLIAMENT_AGENDA_REPEAT_FACTOR = -0.25
+	PARLIAMENT_ABOLISHED_ESTATE_SATISFACTION_PENALTY = -0.2
 	DURATION_BEFORE_PURGING_INACTIVE_COUNTRIES_IN_DAYS = 365
 	PARLIAMENT_COOLDOWN_MONTHS = 59
 	
 	
 	LOW_CONTROL_THRESHOLD_FOR_BEST_TAX = 0.95
+
+	BUREAUCRACY_ENTRENCHMENT_YEARS_PER_PHASE = 100
+	BUREAUCRACY_ENTRENCHMENT_QUOTE_PER_PHASE = 50
 }  
 
 NMercenary = {
@@ -256,17 +303,22 @@ NMercenary = {
 	MERCENARY_MAX_DURATION_IN_MONTHS = 120
 	MERCENARY_DEFAULT_DURATION_IN_MONTHS = 24
 	MERCENARY_CONTRACT_ALERT_MONTHS = 3
-	MERCENARY_MANPOWER_REPLENISH_TIME_MONTHS = 240 # how many months to fully restock mercs in an area
+	MERCENARY_MANPOWER_REPLENISH_TIME_DAYS = 360 # how many days for population to fully drift into an area's mercenary pool (was 7200 / 240 months, far too slow to recover or to see pops moving once availability is paid for out of population)
 	MERCENARY_ARMY_UNIT_MAX_SIZE = 150
 	MERCENARY_NAVY_UNIT_MAX_SIZE = 25
+	MERCENARY_POOL_AVAILABILITY_SCALE_ARMY = 0.1 # multiplier on how much of a location's population can become recruitable land mercenaries; lower means fewer available
+	MERCENARY_POOL_AVAILABILITY_SCALE_NAVY = 0.5 # same, for naval mercenaries; kept separate because a ship is not a 1000-man regiment, so the land cut would over-shrink the (already small) naval burgher draw
 	MERCENARY_PRISONER_MONTHLY_MAINTENANCE_MULTIPLIER = 0.25
 	MERCENARY_PRISONER_MAX_MORALE = 0.6
+	LENT_UNIT_VIRTUAL_CONTRACT_MONTHS = 9999 # large enough that IsContractExpired() never fires; war-gated recall handles expiry
 	MERCENARY_SUBUNITS_AVAILABLE_PER_ADM_POINT = 0.25 #leaders with better adm can lead bigger armies
 	MERCENARY_LEADER_BASE_PRICE = 50
 	MERCENARY_LEADER_ABILITY_WEIGHT = 50 #multiplied by an exponential number in range 0..8 based on char ability (so better ones are a lot more expensive than worse ones, less difference between lower ability characters)
 	MERCENARY_LEADER_CULTURE_OPINION_MULTIPLIER = -0.07 #same or friendly culture leaders will work for less for you
 	MERCENARY_LEADER_RELIGION_OPINION_MULTIPLIER = -0.07 #same or friendly religion leaders will work for less for you
 	MERCENARY_LEADER_DISTANCE_MULTIPLIER = 0.0005 # Mileage allowance, paid by employer. Must be nice.
+	MERCENARY_ATTRITION_LEVEL_TO_THINK_ABOUT_ABANDONING_CONTRACT = 3
+	MERCENARY_DAYS_THAT_EMERGENCY_RATIONS_LAST = 365
 }
 
 
@@ -287,6 +339,7 @@ NUnit = {
 
 	REGIMENT_SIZE = 1000
 	ATTRITION_ON_FOOD_CONSUMPTION_IMPACT = 2.0
+	MAX_FOOD_CONSUMPTION_PENALTY = 3.0	# cap on the over-supply-limit food consumption penalty (consumption never exceeds base * (1 + this)). 0 = uncapped.
 	MONTHS_OF_FOOD_FOR_DETACHED_SUPPORT = 6
 	
 	ATTRITION_LACK_OF_FOOD	= 5	
@@ -332,14 +385,17 @@ NUnit = {
 	FALLING_THROUGH_ICE_MIN_PROPORTION_TO_ESCAPE = 0.5
 
 	DEPOSIT_FOOD_FRACTION = 0.25
-	SUPPLY_DEPOT_FOOD_FRACTION = 0.1
+	SUPPLY_DEPOT_FOOD_FRACTION = 0.5
 	
-	
+	PATHFIND_NON_COASTAL_PENALTY_FACTOR = 10 # How less likely is the pathfinding to select locations that aren't coastal when finding a path for navies, 0 = same as coastal
+
 	DISEMBARK_COST_MULTIPLIER = 0.5		#seazones are larger etc, and disembark is not from middle of seazone..
 	
 	LOCATION_SCALE_ON_MOVEMENT_COST = 1.33
 
 	PERCENTAGE_OF_REGIMENTS_WITH_NICKNAME = 0.5 # What fraction of regiments spawn with a nickname (e.g. 1st 'Sitges' Regiment instead of just 1st Regiment)
+
+	PATHFIND_FROZEN_PENALTY_FACTOR = 20 # How less likely is the pathfinding to select locations that are frozen when finding a path for armies, 0 = same as not frozen
 }
 
 
@@ -350,6 +406,8 @@ NCombat = {
 	GARRISON_AFTER_OCCUPATION = 0.010
 	MORALE_COLLAPSE_THRESHOLD = 0.05
 	MINIMUM_COMBAT_DURATION = 24
+	MINIMUM_NAVAL_COMBAT_DURATION = 72    # 3 game-days minimum for naval battles
+	NAVAL_LOW_MORALE_THRESHOLD = 1.5      # below 50% of base naval morale (3.0) → shattered retreat to port
 	
 	BOMBARD_BASE_CHANCE = 0.2
 	BOMBARD_HOURS = 5
@@ -368,11 +426,12 @@ NCombat = {
 	
 	MAX_FRONTAGE_OVERSTACKING = 1.25	#25% overstack in flanks.
 	
-	LAND_LEVY_COMBAT_IMPACT = 0.50
+	LAND_LEVY_COMBAT_IMPACT = 0.75
 	
 	INITIATIVE_BASE_CHANCE = 0.1	# base chance each tick
 	INITIATIVE_CHANCE_EACH = 0.02 # Chance to engage per point of initiative
 	INITIATIVE_CHANCE_HOURS = 0.01 # Chance to engage per hour passed (adds with INITIATIVE_CHANCE_EACH)
+	INITIATIVE_CHANCE_MAX = 0.1 # Cap on the initiative-derived part of engage chance, before base/hours add. Prevents stacked initiative + army_initiative bonuses from snowballing engagement.
 	
 	COMBAT_SPEED_SCALE = 0.05
 
@@ -380,14 +439,14 @@ NCombat = {
 	LAND_EXPERIENCE_DAMAGE_REDUCTION = 0.5
 
 	LAND_STRENGTH_DAMAGE_MODIFIER = 0.2
-	NAVAL_STRENGTH_DAMAGE_MODIFIER = 0.05
+	NAVAL_STRENGTH_DAMAGE_MODIFIER = 0.25
 	LAND_MORALE_DAMAGE_MODIFIER = 1.0
 	NAVAL_MORALE_DAMAGE_MODIFIER = 0.2 
 	NOT_ENGAGED_STRENGTH_DAMAGE_MODIFIER = 1.1
 	NOT_ENGAGED_MORALE_DAMAGE_MODIFIER = 1.2
 	
 	NAVY_OVERRUN_EXTRA_CAPTURE_CHANCE = 0.15
-	NAVAL_COMBAT_DAMAGED_SHIP_EXTRA_CAPTURE_SCALE = 0.01
+	NAVAL_COMBAT_DAMAGED_SHIP_EXTRA_CAPTURE_SCALE = 0.025
 
 	NAVAL_COMBAT_SHIP_STR_SINK_THRESHOLD = 0.1		#ships below this % have a chance of sinking when retreating.
 	NAVAL_COMBAT_DAMAGED_SHIP_SINK_CHANCE = 10		# chance vs (1-100) dice to sink when retreating at below threshold
@@ -401,15 +460,17 @@ NCombat = {
 	FOOD_PERCENTAGE_LOST_AT_RETREAT = 0.5
 
 	EXPERIENCE_GAIN = 30
-
-	LAND_WAR_EXHAUSTION_FROM_LOSSES = 100
+	LAND_WAR_EXHAUSTION_FROM_LOSSES = 1
 	
 	NAVAL_WAR_EXHAUSTION_FROM_LOSSES = 1.5 #Multiplier on losses
-	MAX_WAR_EXHAUSTION_FROM_BATTLE = 10.0
+	MAX_WAR_EXHAUSTION_FROM_BATTLE = 5.0
 
 
 	TRADITION_GAIN_LAND = 10
 	TRADITION_GAIN_NAVAL = 20
+
+
+	PRESTIGE_VS_RIVAL = 1.5	#prestige multiplier from battles vs rivals
 
 	PRESTIGE_FROM_LAND = 0.5
 	PRESTIGE_FROM_NAVAL = 0.5
@@ -424,6 +485,7 @@ NCombat = {
 	SIEGE_MEMORY = 11
 	SIEGE_WIN = 20
 	MAX_BREACH = 3
+	BREACH_REPAIR_PER_DAY = 0.01
 
 	SIEGE_SUPPLY_SHORTAGE_LOSS = 0.02
 	SIEGE_SUPPLY_SHORTAGE_IMPACT = 1
@@ -444,8 +506,8 @@ NCombat = {
 	
 	ASSAULT_ATTACKER_LOSS = 2.5
 	ASSAULT_ATTACKER_MORALE_LOSS = 3.0
-	ASSAULT_DEFENDER_LOSS = 0.025
-	ASSAULT_DEFENDER_MORALE_LOSS = 0.25
+	ASSAULT_DEFENDER_LOSS = 0.03
+	ASSAULT_DEFENDER_MORALE_LOSS = 0.3
 	ASSAULT_DICE_MODIFIER = 5
 	ASSAULT_WIDTH_LIMIT = 1
 }
@@ -465,29 +527,35 @@ NAI = {
 	WAR_ALLY_DISTANCE_BASE = 200
 	WAR_BALANCE_MANPOWER_IMPORTANCE = 0.5
 	WAR_BALANCE_LEVIES_IMPORTANCE = 1
-	WAR_BALANCE_REGULARS_IMPORTANCE = 2
+	WAR_BALANCE_REGULARS_IMPORTANCE = 3
 	WAR_BALANCE_SAILORS_IMPORTANCE = 1.0
 	WAR_BALANCE_LEVY_BOATS_IMPORTANCE = 10
 	WAR_BALANCE_TAXBASE_IMPORTANCE = 0.05
-	WAR_WIN_CHANCE_SENSITIVITY = 4
+	WAR_WIN_CHANCE_SENSITIVITY = 8
 
 	MARKET_FLIPPING_IMPORTANCE = 0.1
 
 	LOCATION_CITY_RELIGION_PERCENTAGE_FACTOR = 2
-	LOCATION_RELIGION_PERCENTAGE_FACTOR = 5 # utility of having your entire country be your primary religion
-	AI_CONVERT_RELIGION_REVOLT_PREVENTION_FACTOR = 20 # bonus score locations to pervent zealot revolts based on strength of the revolt
+	LOCATION_RELIGION_PERCENTAGE_FACTOR = 15 # utility of having your entire country be your primary religion
+	AI_CONVERT_RELIGION_REVOLT_PREVENTION_FACTOR = 100 # bonus score locations to pervent zealot revolts based on strength of the revolt
+	AI_GLOBAL_CONVERSION_SPEED_UTILITY = 5
+
+	AI_CROWN_ESTATE_CABINET_MEMBER_FACTOR = 1.5 # How much extra score AI gives to characters from crown estate when assigning cabinet members
+	AI_ESTATE_BLOCKED_FROM_CABINET_UTILITY = -0.25 # Compounding negative utility for each estate blocked from cabinet
+	AI_CULTURE_CAPACITY_UTILITY = 0.1 # Utility based on used culture capacity, gives 100% of the utility when 100% of the capacity is used
 
 	AI_UTILITY_PER_CAPITA_THRESHOLD = 0.25 # when a location has less than this amount of available peasants start favouring utility per capita
 	AI_UTILITY_PER_CAPITA_BASE_EMPLOYMENT = 0.3 # employment number to normalize against, employing more is penalized and employing less is encouraged
 	AI_CULTURE_CONVERSION_UTIL = 0.5 # score when converting pops in our cores
 	AI_CULTURE_CONVERSION_CORE_FACTOR = 5.0 # AI score for promoting primary culture to make a location into a core, normalized by tax base of location
+	AI_CULTURE_CONVERSION_DOMINANT_CULTURE_FACTOR = 0.25 # AI score for promoting primary culture to make a location into dominant culture
 	AI_GLOBAL_ASSIMILATION_SPEED_UTIL = 0.25 # modifier score multiplied by inverse accepted culture ratio
 	AI_GLOBAL_ASSIMILATION_SPEED_MODIFIER_UTIL = 0.25 # modifier score multiplied by inverse accepted culture ratio
 
-	AI_INTEGRATION_IMPORTANCE_MULT = 0.5 # overall importance of integrating provinces
-	AI_INTEGRATION_ACCEPTED_CULTURE_MULT = 1 # bonus multiplier of importance for locations of accepted culture
-	AI_INTEGRATION_POPULATION_SHARE_MULT = 2.5 # importance factor of the population for integration
-	AI_INTEGRATION_TAXBASE_SHARE_MULT  =   1.5 # importance factor of the taxbase for integration
+	AI_INTEGRATION_IMPORTANCE_MULT = 0.075 # overall importance of integrating provinces
+	AI_INTEGRATION_ACCEPTED_CULTURE_MULT = 2 # bonus multiplier of importance for locations of accepted culture
+	AI_INTEGRATION_POPULATION_SHARE_MULT = 0.01 # importance factor of the population for integration
+	AI_INTEGRATION_TAXBASE_SHARE_MULT  =   0.01 # importance factor of the taxbase for integration
 
 	UNBALANCED_FAVORS_ACCEPTANCE_MULT = 200.0
 	
@@ -508,11 +576,14 @@ NAI = {
 	COLONY_REGION_COMPLETION_UTILITY_BONUS = 5.0 # multiplicative bonus from ratio of locations we own (or vassals) in the region which we colonize
 	COLONY_POP_THRESHOLD = 20
 
+	COLONY_DISEASE_UTILITY_PENALTY = 50.0 # Utility penalty for target province, disabled when above threshold migration (discourages colonizing disease-endemic regions)
+	AI_MIGRATION_THRESHOLD_FOR_DISEASED_LOCATIONS = 0.05 # expected monthly migration required to be able to successfully colonize locations with disease e.g. malaria
 
 	AI_MARKET_LOW_FOOD_THRESHOLD = 0.5 # when market food stockpile reaches this level AI will improve food production if food balance is negative
 	AI_MARKET_CRITICAL_FOOD_THRESHOLD = 0.1 # when market food stockpile reaches this level AI will improve food production even if food balance is positive
 	AI_PROVINCE_FOOD_STOCKPILE_UTILITY = 0.1 # utility for province food stockpile modifier, upper limit based on total province food consumption change
 	AI_RGO_SIZE_PRICE_UTIL = 0.02 # utility for RGO size modifier based on price of the location RGO, multiplied further by the goods ai_rgo_size_importance
+	AI_TOWN_RIGHTS_MIN_UTILITY = 0.1 # minimum net utility required for AI to grant a town right (prevents spamming marginal grants)
 	AI_MAXIMUM_EXPECT_TOWN_RATIO = 0.33 # when evaluating RGO vs town efficiency modifier we consider this town Ratio as "100% urbanized"
 	AI_TOWN_RATIO_PRODUCTION_EFFICIENCY_UTIL = 2 # global building efficiency modifier based on ratio of locations that are towns
 	AI_RGO_PRODUCTION_EFFICIENCY_UTIL = 2 # global RGO efficiency modifier util from inverse ratio of locations that are towns
@@ -527,13 +598,24 @@ NAI = {
 	AI_UPGRADE_CITY_LOW_CURRENT_SAILORS_THRESHOLD = 0.2 # have less than 20% of maximum sailors
 	AI_UPGRADE_CITY_LOW_SAILORS_UTILITY = 0.025 # how strong the incentive is to build more costal cities when both above requirements are met
 	AI_ONGOING_CITY_UPGRADE_MULT = 0.5 # multiplicative score factor for each ongoing city upgrade
+	AI_UPGRADE_CITY_LOW_MANPOWER_UTILITY = 0.035 # AI desire to build more towns when limited on manpower
+	AI_CITY_UPGRADE_GOVERNOR_POTENTIAL_FACTOR = 0.4 # partial credit for city upgrade unlocking a potential local_governor hub site
 
 	AI_MIN_ALLOWED_URBANIZE_FOOD_LOCATION_RATIO = 0.2 # minimum ratio of food locations that is allowed to be cities based on market average market food yield
 	AI_MAX_ALLOWED_URBANIZE_FOOD_LOCATION_RATIO = 0.8 # maximum ratio of food locations that is allowed to be cities based on market average market food yield
 	AI_AVERAGE_MARKET_FOOD_FOR_MAX_FOOD_URBANIZATION = 5 # AI_MAX_ALLOWED_URBANIZE_FOOD_LOCATION is reached when average location in market has this base food output of their rgo
+	AI_PROVINCE_DEFINITION_MAX_URBANIZATION = 0.2 # max location ratio allowed to be urbanized per province def. Rounded up.
+
+	AI_PREEMPTIVE_SPECIALIZATION_BONUS = 0.005 # AI score for granting a town right that synergize with province rgo if there is no such method in this market
+	AI_SPECIALIZE_TOWN_CONTROL_THRESHOLD = 0.5 # control needed for AI to hand out a pre-emptive specialization in the hopes of building an industry here
+	AI_SPECIALIZE_TOWN_MARKET_ACCESS_THRESHOLD = 0.5 # market access needed for AI to hand out a pre-emptive specialization in the hopes of building an industry here
 
 	PROFITABLE_EXPORT_GOODS_UTILITY_FACTOR = 0.5 # How much AI factors in that a building is producing a profitable export good that has no surplus when building new buildings
 	PROFITABLE_EXPORT_GOODS_REDUCE_PRICE_UTILITY_FACTOR = 0.05 # Same as above but when we have surplus, this is AI working to lower price of their exports to make them more profitable
+	AI_EXPORT_GOODS_SURPLUS_GRADIENT_CAP = 0.5 # Projected surplus at which the export utility factor bottoms out at PROFITABLE_EXPORT_GOODS_REDUCE_PRICE_UTILITY_FACTOR
+	AI_RGO_PRICE_TREND_WINDOW = 12 # Number of monthly price history entries to check for a falling price trend
+	AI_RGO_FALLING_PRICE_PENALTY_THRESHOLD = 0.10 # Price must have dropped by more than this fraction over the trend window to trigger the dampener
+	AI_RGO_FALLING_PRICE_UTILITY_FACTOR = 0.4 # RGO utility is multiplied by this when the goods price has been falling
 	CONSTRUCTION_GOODS_SHORTAGE_UTILITY_FACTOR = 0.66 # How much AI factors in that a building is producing a goods that is in shortage for construction
 	CONSTRUCTION_GOODS_SHORTAGE_MAX_UTILITY_FACTOR = 2 # Maximum extra utility for building something that produces a construction good with shortage
 	CONSTRUCTION_GOODS_OVERPRICED_UTILITY_FACTOR = 3 # multiplied on price ratio above 50% of default
@@ -543,17 +625,28 @@ NAI = {
 	FOOD_NEGATIVE_IN_PROV_UTILITY = 0.1
 	AI_ALLOWED_FORT_BUDGET = 0.1 # % of income allowed fort maintenance, normalized to full slider value
 	AI_ALLOWED_BUILDING_MAINTENANCE = 0.25 # % of income allowed for building maintenance excluding forts, only used to close or reopen buildings during crisis
-	
+	AI_BUILDING_MAINTENANCE_LEEWAY = 1.20 # How much above the maintenance budget AI can be before they start closing buildings
+
 	AI_STEAL_MERCHANT_CAPACITY_PROFIT_MARGIN = 1.25 # AI will remove merchant capacity from low profit and move it to high profit if its this much more profitable
 	AI_STEAL_MERCHANT_CAPACITY_RATIO = 0.1 # How much in % that AI can move their trade capacity from low to high profit per month
 	AI_MINIMUM_TRADE_SIZE = 0.5 # AI will avoid to make trades smaller than this whenever possible
+	AI_TRADE_ORDER_MAX_MONTHLY_CAPACITY_INCREASE = 10 # Max merchant capacity a trade order can add to a route in a single month, preventing market flooding
 	ADJUST_TRADE_ROUTE_CHANCE = 0.5 # Chance AI will act on any given trade opportunity (sorted by profitability) lower chance reduces likelihood of all AI jumping on the same profitable trade
-	AI_IMPORT_POP_NEED_SCORE_BONUS = 3 # bonus score for AI to import goods that are in shortage for pop needs
+	TRADE_MARKETS_PER_DAY = 1 # Max number of HandleTradesFromMarket calls per country per daily tick; remaining markets are deferred to the next day
+	AI_IMPORT_POP_NEED_SCORE_BONUS = 5 # bonus score for AI to import goods that are in shortage for pop needs
 	AI_IMPORT_INSTITUTION_SCORE_BONUS = 2 # bonus score for AI to import from a market that has an institution that we dont
+	AI_IMPORT_INPUT_GOODS_SCORE_BONUS = 2 # bonus score for AI to import goods that are missing as inputs for local buildings
+	AI_WELFARE_IMPORT_PROFIT_CUTOFF = -1.0 # AI will accept this much loss per merchant capacity if the import satisfies pop needs or building inputs
+	AI_EXPORT_POP_SHORTAGE_PENALTY = 5 # penalty score per unit for exporting goods that local pops are short on
+	AI_COLONIAL_EXPORT_SCORE_BONUS = 3 # bonus score per unit for exporting plantation goods (ai_rgo_size_importance >= 5) from overseas markets
+	AI_TRADE_SURPLUS_CUSHION_PROFIT_UTILITY_FACTOR = 0.5 # at full surplus cushion, add this fraction of monetary trade profit as extra AI utility
+	AI_TRADE_SURPLUS_CUSHION_FULL_COVERAGE = 10.0 # surplus/trade-size ratio needed for full surplus cushion
 
 	# 1 - (1 / 75*12) 75 years lookahead
 	AI_LONG_TERM_DISCOUNT_FACTOR = 0.9988 # AI long term utility planing, used for evaluating long term modifiers such as estate privileges
+	AI_BUILDING_OPTIMIZATION_TIMEMULTI_THRESHOLD = 250 #time multiplier needed for moving buildings around 
 	AI_DEVELOPMENT_UTILITY = 0.1 # Utility bonus from development as it has so many modifiers that are hard to calculate
+	AI_BUILDING_PROFIT_THRESHOLD = 1.2 # needs to be at least 20% profitable for AI to expand a building that is not producing strategic goods
 
 	# These two defines adjust AI desire to maintain a profit margin for their country
 	AI_PROFIT_MARGIN_TARGET = 0.25 # the desired profit margin
@@ -567,10 +660,11 @@ NAI = {
 	SELL_PROVINCE_DEBT_CAP = 2 # Max bonus from being in debt, in percentage
 	SELL_PROVINCE_DEBT_CASH_CAP = 2 # Multiplied with the Total Debt and cap the bonus from cash, in percentage
 	SELL_PROVINCE_FRACTURE_COUNTRY = -3 # Multiplied by how many new country areas will be created
-	AI_PROFITABILITY_THRESHOLD_FOR_MISSING_GOODS_UTIL = 1.15 # Must be at least 15% profitable to build it in order to solve input issues for other buildings, safe guard against it closing
+	AI_PROFITABILITY_THRESHOLD_FOR_MISSING_GOODS_UTIL = 1.2 # Must be at least 15% profitable to build it in order to solve input issues for other buildings, safe guard against it closing
 	AI_ESTATE_PROFIT_UTILITY_FACTOR = 0.5 # AI utility score for enriching estates based on income from tax rates being lower than 35%
 	AI_UTILITY_MARGIN_REQUIRED_TO_REOPEN_BUILDING = 0.20 # AI needs at least this much utility to reopen a closed building
 	AI_CHANCE_TO_REOPEN_PROFITABLE_BUILDING = 0.25 # chance to reopen a building each month if it meets the profit requirements
+	AI_PARLIAMENT_LAW_CHANGE_SCORE_THRESHOLD = 10 # Score difference between current policy needed to ask parliament to change law
 
 	# These two defines below determine AI performance optimizations for extremely large markets
 	# Example: AI market with 500 locations that are all desert, we try to evaluate if we can build a fishing village in at least
@@ -584,6 +678,8 @@ NAI = {
 	AI_ALLOWED_PARALLEL_SAME_TYPE_CONSTRUCTION_RATIO = 0.02 # allowed to build the same type of building in 2% of our locations in parallel
 	AI_ALLOWED_PARALLEL_SAME_TYPE_CONSTRUCTION_MINIMUM = 3 # minimum allowed of parallel construction of the same type of building
 	AI_ALLOWED_PARALLEL_TOTAL_CONSTRUCTION_RATIO = 0.05 # Allowed to start new constructions in 5% of our locations each monthly tick
+	AI_MAX_NEW_BUILDINGS_PER_LOCATION = 3 # AI will not start a new ramping building if doing so would put more than this many ramping/in-flight buildings at the same location
+	AI_PROXIMITY_SOURCE_MINIMUM_DISTANCE = 150 # minimum map distance between proximity source buildings
 
 	AI_PERFORMANCE_UTILITY_LOCATIONS_TO_SAMPLE = 20 # Maximum number of sample locations for AI modifier utility for performance costly modifiers
 	AI_PERFORMANCE_CABINET_ACTION_LOCATION_SAMPLE_SIZE = 20 # Maximum number of sample locations for AI cabinet actions
@@ -591,14 +687,16 @@ NAI = {
 	AI_PERFORMANCE_CABINET_ACTION_AREA_SAMPLE_SIZE = 1 # Maximum number of sample areas for AI cabinet actions
 	AI_PERFORMANCE_CABINET_ACTION_MONTHS_BETWEEN_UPDATES = 36 # Number of months between each AI update to change cabinet actions
 	AI_PERFORMANCE_REFORMS_MONTHS_BETWEEN_UPDATES = 24 # Number of months between each AI update to change government reforms
+	AI_PERFORMANCE_BUREAUCRACY_MONTHS_BETWEEN_UPDATES = 24 # Number of months between each AI update to add or remove bureaucracies
 	AI_PERFORMANCE_POLICIES_MONTHS_BETWEEN_UPDATES = 6 # Number of months between each AI update to change policies of laws
 	AI_PERFORMANCE_ESTATE_PRIVILEGES_MONTHS_BETWEEN_UPDATES = 12 # Number of months between each AI update to change estate privileges
 	AI_PERFORMANCE_ESTATE_PRIVILEGES_UNUSED_TAX_MONTHS_BETWEEN_UPDATES = 2 # Number of months between each AI update to change estate privileges
 	AI_PERFORMANCE_SCHOLARS_MONTHS_BETWEEN_UPDATES = 6 #Number of months between each AI update to change religion scholars
-	AI_PERFORMANCE_TRADE_PROFIT_PER_WEIGHT_CUTOFF = 0.5 # If expected profit from a trade route is less than this amount per merchant capacity used we skip it
+	AI_PERFORMANCE_TRADE_PROFIT_PER_WEIGHT_CUTOFF = 0.25 # If expected profit from a trade route is less than this amount per merchant capacity used we skip it
+	AI_PERFORMANCE_TRADE_RANGE_SCALE_CUTOFF = 1.5 # If distance to market is more than country trade range times this we skip it
 
 	AI_PERFORMANCE_PATHFIND_DISTANCE_THRESHOLD = 100 # distance threshold for less accurate pathfind to save performance for ai, smaller threshold saves more performance
-	// Naval threshold higher as it causes ships to incorrectly sail against the wind accross the atlantic otherwise
+	# Naval threshold higher as it causes ships to incorrectly sail against the wind accross the atlantic otherwise
 	AI_NAVAL_PERFORMANCE_PATHFIND_DISTANCE_THRESHOLD = 2500 # same as above but for navies
 	AI_TRANSPORT_STRENGTH_THRESHOLD_PER_DISTANCE = 0.0004 # 2500 distance needs to have a 100% strength transport fleet
 
@@ -615,6 +713,14 @@ NAI = {
 	AI_ESTATE_SATISFACTION_TAX_TARGET = 0.5 # AI will adjust tax sliders to have this minimum estate satisfaction
 	AI_REVOKE_PRIVILEGE_STABILITY_THRESHOLD = -50 # ai needs at least this much stability left after revoking a privilege
 
+	AI_VALUE_CREATION_UTILITY = 0.1 # Conversion factor from goods value creation to gold, e.g. when building RGO in 0% control
+
+	AI_PROXIMITY_CANDIDATE_MIGRATION_UTIL = 50 # Extra util score for migrating pops to our proximity candidate
+	AI_PROXIMITY_CANDIDATE_ROAD_CONNECTION_UTIL = 0.05 # extra util score for connecting the proximity candidate to capital road
+	AI_PROXIMITY_CANDIDATE_RANK_UPGRADE_UTIL = 2 # extra score for upgrade the city rank of the proximity candidate
+	AI_LOCAL_GOVERNOR_TAX_BASE_THRESHOLD = 100 # if AI has lower than this tax base they wont bother trying to find a place for local governor
+	AI_PROXIMITY_CANDIDATE_UPDATE_CHANCE = 0.2 # 20% chance per building update to check for good locations for local governors
+
 	AI_ESTATE_SATISFACTION_TARGET_FOR_GRANTING_PRIVILEGES = 0.55 # when below this target satisfaction (excluding temp modifiers) we want to grant a privilege
 	AI_ESTATE_SATISFACTION_TARGET_FOR_REVOKING_PRIVILEGES = 0.75 # When above this target satisfaction (excluding temp modifiers) we want to revoke a privilege
 	AI_ESTATE_SATISFACTION_STABILITY_ESTIMATE = 0.3 # when evaluating if we should remove or grant a privilege we estimate estate satisfaction based on this stability
@@ -626,9 +732,15 @@ NAI = {
 	AI_DEFAULT_COUNTRY_INTERACTION_FREQUENCY = 30 # default number of days between ai checking each country interaction
 	AI_DEFAULT_CHARACTER_INTERACTION_FREQUENCY = 180 # default number of days between ai checking each character interaction
 
-	ORGANIZATION_WAR_WIN_CHANCE_TO_START = 0.4 # Values 0 - 1. If the win chance of an IO vs target is below this value, IO will not declare.
+	AI_KEEP_SPY_NETWORK_NEEDED_AMOUNT_FACTOR = 1.2
+	AI_KEEP_SPY_NETWORK_MONTHLY_DIPLOMATS_THRESHOLD = 0.1
+	AI_KEEP_SPY_NETWORK_CURRENT_DIPLOMATS_THRESHOLD = 1
+
+	ORGANIZATION_WAR_WIN_CHANCE_TO_START = 0.55 # Values 0 - 1. If the win chance of an IO vs target is below this value, IO will not declare.
 
 	LOCATION_POP_PROMOTION_SPEED_FACTOR = 20 # How much AI values quick pop promotion
+	LOCATION_POP_PROMOTION_SPEED_FACTOR_TRIBESMEN = 20 # How much AI values quick pop promotion of tribesmen
+	LOCATION_POP_PROMOTION_SPEED_FACTOR_SOLDIERS = 40 # How much AI values pop promotion modifier when location needs soldier pops
 
 	MARKET_ACCESS_IMPORTANCE = 0.15 # How much the AI values having high market access per raw tax base, measured in monthly ducats (assuming large markets)
 	MARKET_TAX_BASE_REFERENCE = 100.0 # A reference for how large markets should be, measured in raw tax base (raw = assuming 100% market access)
@@ -642,14 +754,14 @@ NAI = {
 	SHIP_RECRUITMENT_COST_FACTOR = 0.2 # multiplier for how much we care about the cost of ships vs budget
 	REGIMENT_RECRUITMENT_COST_FACTOR = 0.5 # multiplier for how much we care about the cost of regiments vs budget
 	
-	MONTHLY_MANPOWER_PER_BASE_TAX_REFERENCE = 0.02 # This is how big manpower pool AI wants based on each 100 taxbase
-	MAXIMUM_MANPOWER_MAXIMUM_VALUE = 0.5 # This is how hard they will try to reach their manpower pool target
+	MONTHLY_MANPOWER_PER_BASE_TAX_REFERENCE = 0.04 # This is how big manpower pool AI wants based on each 100 taxbase
+	MAXIMUM_MANPOWER_MAXIMUM_VALUE = 0.85 # This is how hard they will try to reach their manpower pool target
 	AI_ESSENTIAL_MANPOWER_UTILITY_VALUE = 0.25 # This is how hard they will try to reach their essential manpower pool target, which is enough to maintain their armies and have enough replenishment to rebuild them fast
 	
-	MONTHLY_SAILORS_PER_BASE_TAX_REFERENCE = 0.00016 # This much monthly_sailors per tax base will be used as "default" reference
+	MONTHLY_SAILORS_PER_BASE_TAX_REFERENCE = 0.0008 # This much monthly_sailors per tax base will be used as "default" reference
 	MONTHLY_SAILORS_DESIRE_FACTOR = 0.2
 	MONTHLY_SAILORS_MAXIMUM_VALUE = 0.04 # The maximum value the sailors scale curve can reach
-	MAXIMUM_SAILORS_MAXIMUM_VALUE = 1.2 # inherent utility scale for maximum sailor modifier
+	MAXIMUM_SAILORS_MAXIMUM_VALUE = 0.45 # inherent utility scale for maximum sailor modifier
 
 	AVERAGE_FRONTAGE = 12
 
@@ -663,18 +775,19 @@ NAI = {
 	AI_DISEASE_RESISTANCE_UTILITY = 0.05 # base utility for disease resistance
 	AI_DISEASE_RESISTANCE_AFFECTED_MULTIPLIER = 10 # multiplier for locations with ongoing diseases
 
-	AI_HEATHEN_TOLERANCE_UTILITY = 0.05 # Utility scaled on % of heathen population
-	AI_HERETIC_TOLERANCE_UTILITY = 0.05 # Utility scaled on % of heretic population
-	AI_TRUE_TOLERANCE_UTILITY = 0.05 # Utility scaled on % of true faith population
+	AI_HEATHEN_TOLERANCE_UTILITY = 0.25 # Utility scaled on % of heathen population
+	AI_HERETIC_TOLERANCE_UTILITY = 0.25 # Utility scaled on % of heretic population
+	AI_TRUE_TOLERANCE_UTILITY = 0.25 # Utility scaled on % of true faith population
 
 	PROXIMITY_DESIRE_PER_MAX_CONTROL = 0.1 # The maximum value the proximity scale curve can reach on max control
 	MAXIMUM_LOCAL_PROXIMITY_MAXIMUM_VALUE = 0.2 # The maximum proximity desire we have (inherent utility)
 	PROXIMITY_NEIGHBOURS_ON_MAX_CONTROL = 0.1 # Proximity utility per neighbors on max control
 	LOCAL_PROXIMITY_SOURCE_DESIRE = 0.1 # The local proximity source desire (currency effect)
-	AI_GLOBAL_PROXIMITY_COST_UTILITY = 0.5 # Inherent utility for global proximity speed modifier
+	AI_GLOBAL_PROXIMITY_COST_UTILITY = 5 # Inherent utility for global proximity speed modifier
 	AI_GLOBAL_INSTITUTION_GROWTH_UTILITY = 0.8 # Inherent value of global institution growth modifier
 	AI_UNLOCK_BUILDING_ADVANCE_UTIL = 5 # Base score from unlocking new builings for AI that doesnt have capital modifiers
 	AI_UNLOCK_BUILDING_ADVANCE_UTIL_PER_UPGRADE = 50 # score from unlocking a building from number of buildings upgrades per tax base
+	AI_UNLOCK_PM_ADVANCE_UTIL = 50 # score for unlocking a pm from number of buildings using it per tax base
 
 	AI_GLOBAL_BUILDING_COST_UTIL = -0.75
 	AI_GLOBAL_URBAN_BUILDING_COST_UTIL = -0.5
@@ -685,21 +798,20 @@ NAI = {
 	ROAD_MARKET_VALUE_FLOW_FACTOR_FOR_ESTATES = 0.5 # how much AI cares about building roads that increase the flow towards market capital, when estates build roads
 
 	AI_ROAD_TAX_ESTIMATE_MULTIPLIER = 1.5 # AI score multiplier for building roads towards taxbase
-	AI_POPULATION_PROPAGATION_UTIL = 300 # AI willingness to build roads towards population (% share of country) 
-	AI_TAXBASE_PROPAGATION_UTIL = 1 # AI willingness to build roads towards taxbase
+	AI_POPULATION_PROPAGATION_UTIL = 25 # AI willingness to build roads towards population (% share of country) 
+	AI_TAXBASE_PROPAGATION_UTIL = 0.5 # AI willingness to build roads towards taxbase
 
 	MONTHLY_INFLATION_COST_PER_TAX_BASE = 0.33
-	MAX_ALLOWED_INFLATION = 0.08 # Try to tune this to be the maximum inflation under which we could run a surplus. Underestimate is better than overestimate
 
 	CURRENCY_AMOUNT_BIAS_MONTHLY_DECAY = 0.96
 	AI_REVOKE_PRIVILEGE_COST_MODIFIER_UTILITY = -0.1 # Utility of the revoke privilege cost modifier
 
-	AI_GLOBAL_MARITIME_PRESENCE_DECAY_UTIL = -40
+	AI_GLOBAL_MARITIME_PRESENCE_DECAY_UTIL = -100
 	AI_GLOBAL_MARITIME_PRESENCE_MODIFIER_UTIL = 1
-	AI_GLOBAL_MARITIME_PROXIMITY_COST_UTIL = -0.03
+	AI_GLOBAL_MARITIME_PROXIMITY_COST_UTIL = -0.12
 	AI_GLOBAL_PORT_PROXIMITY_COST_UTIL = -0.02
 	AI_GLOBAL_MERCHANT_POWER_FROM_MARITIME_UTIL = 0.5
-	AI_GLOBAL_SEA_TRADE_COST_UTIL = -0.2
+	AI_GLOBAL_SEA_TRADE_COST_UTIL = 0.2
 	AI_GLOBAL_SEA_COST_UTIL = -0.01
 
 	GOVERNMENT_POWER_INHERENT_UTILITY = 0.9 # inherent util when below 70 to avoid bad situations
@@ -720,6 +832,7 @@ NAI = {
 	GRANT_PRIVILEGE_COOLDOWN = 1500 # Cooldown for an individual estate for AI to grand privilege to let the effect of the grant play out
 	GRANT_PRIVILEGE_UNUSED_TAX_COOLDOWN = 180
 	REVOKE_PRIVILEGE_COOLDOWN = 3000 # Cooldown for all estates when AI revokes a privilege 
+	AI_TOWN_RIGHTS_COOLDOWN = 350 # Cooldown after an AI grants an town right before they are allowed to make any more changes
 	ARMY_LEVY_SIZE_IMPORTANCE = 20 # normalized on taxbase
 	NAVY_LEVY_SIZE_IMPORTANCE = 5 # normalized on taxbase
 	POP_SATISFACTION_IMPORTANCE = 60.0
@@ -737,8 +850,8 @@ NAI = {
 	MINIMUM_GALLEY_THRESHOLD = 0.33 # AI needs to have at least this many % of their coast be appropriate for galleys in order for galley to be allowed
 	AI_HEAVY_SHIP_RATIO_FOR_TRANSPORTS = 0.25 # AI wants this % of heavy ships to be part of their transport fleets for safety
 
-	AI_REQUIRED_SAILORS_SURPLUS_MARGIN = 0.33 # AI needs this much % of monthly sailors reserved for reinforcements
-	AI_REQUIRED_MANPOWER_SURPLUS_MARGIN = 0.33 # AI needs this much % of monthly manpower reserved for reinforcements
+	AI_REQUIRED_SAILORS_SURPLUS_MARGIN = 0.33333 # AI needs this much % of monthly sailors reserved for reinforcements
+	AI_REQUIRED_MANPOWER_SURPLUS_MARGIN = 0.33333 # AI needs this much % of monthly manpower reserved for reinforcements
 
 	HUNT_ARMIES_MAX_RADIUS = 20
 	HUNT_ARMIES_STAY_PRIO = 0.05 # This number works like a threshold for how important tasks should be for the AI to leave base
@@ -768,9 +881,14 @@ NAI = {
 		10 8 6 5 4 3 2 2 2 2 1 1 1 1 1 1 1 1 # First (biggest) units looks 10 steps away, smaller units get less allowance. This is important for performance. If they don't find anything, they get moved to logistics to get them somewhere near
 	}
 	CARPET_SIEGE_MAX_ARMIES = 10 #carpet siege won't split down to more armies than this
+	AI_NAVAL_INVASION_PORT_PREFERENCE = 5.0 #score bonus for choosing a port as naval invasion landing point (fleet can dock there)
+	AI_NAVAL_INVASION_THREAT_WEIGHT = 0.001 #score penalty per unit of enemy combat strength at a candidate naval invasion landing point
 
-	AI_SUPPLY_LIMIT_TARGET = 0.75 # AI will try to make army stacks of this ratio of average supply limit in their country
+	AI_SUPPLY_LIMIT_TARGET = 0.95 # AI will try to make army stacks of this ratio of average supply limit in their country
 	RATIO_OVER_SUPPLY_TARGET_TO_SPLIT = 1.3 # A stack has to be this much over the supply limit target to be split in half
+	AI_GLOBAL_SUPPLY_LIMIT_UTILITY = 0.2 # AI score for global supply limit modifier
+	AI_MINIMUM_AUXILIARY_RATIO = 0.15 # minimum ratio of auxiliaries that AI will keep in their armies regardless of country bonuses
+	AI_UNIT_CATEGORY_WEIGHT_FROM_POWER = 10 # how much power modifiers to unit categories influence AI army composition
 
 	AI_GROUP_RECENTLY_REMOVED_UNIT_FORGET_CHANCE = 0.25 # chance to forget a forcefully removed unit which prevents it to be assigned again
 
@@ -783,24 +901,26 @@ NAI = {
 	RELEVANT_NAVY_MIN_RAW_STRENGTH = 0.025 # How many levies to even worth considering raising
 
 	AI_MAXIMUM_ARMY_VS_NAVY_BUDGET_ALLOCATION = 0.75 # maximum allocation budget for land vs navy based on society value
-	AI_MAINTENANCE_BUDGET_RATIO = 0.2 # How much of monthly income is allocated for maintenance budget of armies and navies
+	AI_MAINTENANCE_BUDGET_RATIO = 0.2 # How much of monthly income on maximum sliders is allocated for maintenance budget of armies and navies
 	AI_MAINTENANCE_BUDGET_RATIO_AGE_INCREASE = 0.025	#how much every age adds.
 
 	SUPPLY_DEPOT_RANGE = 2 #how far away a supply depot can be to be used by a unit
-	NAVAL_SUPPLY_RANGE = 2 #how far away a ship can be to supply an army
+	NAVAL_SUPPLY_RANGE = 1 #how far away a ship can be to supply an army
 	FOOD_STORAGE_TO_ESCORT_STRENGTH_RATIO = 0.2 #how many troops will escort supply wagons
 	GO_LOOKING_FOR_FOOD_RANGE = 6 #how far supply wagons will wander looking for food
 	GO_LOOKING_FOR_FOOD_DISTANCE_IMPORTANCE = -1 #further away is worse
 	GO_LOOKING_FOR_FOOD_AMOUNT_IMPORTANCE = 3 #more is better
-	AI_AVOID_ATTRITION_MAX_PATH_FIND_DISTANCE = 100 # further distance can cost more performance
+	AI_AVOID_ATTRITION_MAX_PATH_FIND_DISTANCE = 7 # dinstance in locations AI will look for a safe spot to avoid attrition, further distance costs more performance
 
 	BATTLE_WIN_CHANCE_SENSITIVITY = 16
 	BATTLE_WIN_CHANCE_ENEMY_BIAS = 1.1
 	BATTLE_WIN_CHANCE_GENERAL_MIL_FACTOR = 0.25 # -> 100 MIL ~ 25% bigger army
 	BATTLE_WIN_CHANCE_ADMIRAL_SKILL_FACTOR = 0.25 # -> 100 Dip ~ 25% better fleet
 	INITIATIVE_COMBAT_STRENGTH_FACTOR = 0.025 # -> 10 initiative ~25% better army
+	AI_FLANKING_COMBAT_STRENGTH_FACTOR = 0.3
 
 	BUILDING_THRESHOLD_FACTOR = 1.2 # Increase this to make AI more careful with building buildings. Don't make < 1
+	AI_HOSTILE_BORDER_MIN_SUBUNITS = 3				# Minimum subunits in a hostile army near our border before AI raises fort maintenance
 	LOCATION_BORDER_DISTANCE_RELEVANCE_THRESHOLD = 20
 	BASE_FORT_LEVEL_BENEFIT_SCALAR = 0.1
 	BASE_ZOC_BENEFIT_SCALAR = 0.1
@@ -809,6 +929,7 @@ NAI = {
 	FORT_PROTECTION_CAPITAL_MULT = 0.3
 	FORT_PROTECTION_PROVINCE_CAPITAL_MULT = 1
 	FORT_UTILITY_NO_MARKET_ACCESS = -50
+	AI_OVERLAPPING_ZOC_PENALTY_FACTOR = -2.1 # Bigger negative value means AI is more forbidden to make forts with overlapping ZOC
 	
 	HOW_MUCH_WE_CARE_ABOUT_PRIVATEERING_RIVALS = 1
 	HOW_MUCH_WE_CARE_ABOUT_PRIVATEERING_ENEMIES = 1
@@ -843,7 +964,16 @@ NAI = {
 	PEACE_OFFER_OCCUPATION_PERCENTAGE_THRESHOLD = 0.25
 	PEACE_OFFER_WARSCORE_PERCENTAGE_THRESHOLD = 0.33
 	PEACE_OFFER_WAR_ENTHUSIASM_STALE_WAR = 0.5
+	PEACE_OFFER_MISSING_IMPORTANT_TREATIES_STRENGTH_COMPARISON_MULT = 0.1
 	PEACE_OFFER_ALLY_LEAVE_WAR_ENTHUSIASM = 0.25
+	PEACE_OFFER_SEND_PEACE_ENEMY_STRENGTH_FACTOR = 0.2 # Ai will always send peace offers if the enemy side * factor is stronger than the Ai country alone.
+
+	HEAVILY_OUTNUMBERED_RATIO = 0.40       # StrengthBalance below this activates outnumbered war behavior
+	OUTNUMBERED_BATTLE_ADVANTAGE = 0.60    # when outnumbered, only chase stacks whose power is <= this fraction of our strength
+	OUTNUMBERED_TERRAIN_BONUS_MIN = 0.05   # terrain impact must be >= this for a battle to count as terrain-advantaged when outnumbered
+	OUTNUMBERED_ENTHUSIASM_WEIGHT = 2.0    # multiplier on (1 - enthusiasm) bonus to win_war_versus priority when outnumbered
+	OUTNUMBERED_SEPARABLE_WEIGHT = 1.5     # additional priority multiplier for enemies that can be directly separate-peaced when outnumbered
+	MAX_LOANS_FOR_MERCS = 3                # hard ceiling on total active loans before AI stops taking debt to hire mercenaries
 
 	AI_CIRCULAR_STRAIT_DISTANCE_THRESHOLD = 8 # when distance (in locations) to walk around a strait is smaller than this just ignore it
 	AI_STRAIT_DISTANCE_TO_ENEMY_THRESHOLD = 6 # distance (in locations) how close a strait has to be to enemy controlled area to be important
@@ -851,11 +981,28 @@ NAI = {
 	AI_FOW_FORGET_CHASE_ARMY_CHANCE = 0.33 # chance that AI will forget a chase army objective about an army that goes into fow
 
 	AI_RECOVER_MORALE_THRESHOLD = 66 # AI will stop and rest armies when their morale is below this percentage
-	AI_AWAIT_REINFORCING_ARMY_DISTANCE_MAX = 50 # above this map AI will wait for other collaborating armies before engaging their target
-	AI_AWAIT_REINFORCING_ARMY_DISTANCE_MIN = 35 # below this map distance collaborating armies are considered closed enough to start moving again
+	AI_RETREAT_DICE_MARGIN = 3             # Retreat if enemy effective dice exceeds ours by this much while morale is low
+	AI_RETREAT_DICE_MARGIN_SIEGE_RAIDER = 2 # Lower dice margin used when the active stance is siege-focused (retreat more readily)
+	AI_RETREAT_DICE_MORALE_THRESHOLD = 0.45 # Morale threshold below which dice disadvantage triggers retreat
+	AI_RETREAT_FLANK_MORALE_THRESHOLD = 0.40 # Morale threshold below which total flank exposure triggers retreat
+	AI_TERRAIN_RETREAT_THRESHOLD = 0.80       # AI retreats from battle if CalcArmyTerrainEffectiveness returns below this (1.0 = neutral, 0.80 = 20% penalty)
+	AI_NAVAL_RETREAT_STRENGTH_RATIO = 2.0     # AI naval fleet retreats if enemy total strength exceeds ours by this factor
+	AI_NAVAL_RETREAT_MORALE_THRESHOLD = 1.5   # ...and our fleet morale has dropped below this value (50% of base naval morale 3.0)
+	AI_FLANK_ADVANTAGE_FRONTAGE_RATIO = 1.25  # Terrain retreat is suppressed if our possible frontage exceeds enemy's by this ratio
+	AI_TERRAIN_EFFECTIVENESS_FLOOR = 0.50     # Minimum terrain effectiveness multiplier applied to WinChance/Score during battle selection
+	AI_AWAIT_REINFORCING_ARMY_DISTANCE_MAX = 35 # above this map AI will wait for other collaborating armies before engaging their target
+	AI_AWAIT_REINFORCING_ARMY_DISTANCE_MIN = 20 # below this map distance collaborating armies are considered closed enough to start moving again
 	AI_REINFORCE_ONGOING_BATTLE_DISTANCE = 2 # How many locations away AI will try and look to move their arimes to reinforce ongoing combat
 	AI_STICK_TO_SIEGE_TIME_FACTOR = 0.003 # extra score factor to prevent reassigning away from a sieging per day, 0.003 = 1/365 every year double score
 	AI_WAIT_FOR_JOINING_UNIT_STRENGTH_THRESHOLD = 0.33 # AI will wait for joining units if they are at least this strong of the target
+
+	AI_LAND_ARMY_MERGE_THRESHOLD    = 0.80 # Idle armies below 80% frontage fill are candidates for merging with co-located armies
+	AI_ATTACH_FRONTAGE_SCORE_WEIGHT = 0.5  # Score bonus per unit of free frontage when picking ally attach targets
+	AI_ATTACH_MIN_FRONTAGE_ROOM     = 1.0  # Don't attach to an ally army that has less than 1 frontage unit free
+	AI_FRONTAGE_FILL_TARGET         = 0.90 # Stop assigning allies to an objective once 90% of battle frontage is covered
+
+	AI_REMOVE_BUREAUCRACY_THRESHOLD = 5 # AI utility threshold needed for removing a bureaucracy
+	AI_GRANT_BUREAUCRACY_THRESHOLD = 5  # AI utility threshold needed for granting a bureaucracy
 
 	# Used for AI assignment of units to objectives
 	AI_MILITARY_ARMY_ASSIGNMENT_PROXIMITY_FACTOR = -1 # Negative score for army targets further away
@@ -888,8 +1035,33 @@ NAI = {
 	AI_ANNEX_SUBJECT_DISTANCE_THRESHOLD = 50 # How far it can be between borders until AI does not want to annex a subject
 	AI_ANNEX_SUBJECT_BORDERING_CONTROL_NEEDED = 0.35 # AI will only subjugate another country if they have at least this much bordering control
 
-	CONQUER_DESIRE_POPULATION_FACTOR = 0.25 #How the population of the location influences the conquer desire
-	CONQUER_DESIRE_TAX_BASE_FACTOR = 1 #How the tax base of the location influences the conquer desire
+	CONQUER_DESIRE_POPULATION_FACTOR = 0.025 #Multiplier on Location.GetTotalPopulation(), which is itself scaled (1 unit = 1000 actual pops); 20k pops = 0.5, 100k pops = 2.5, 1M pops = 25
+	CONQUER_DESIRE_TAX_BASE_FACTOR = 0.2 #Per-gold multiplier on potential tax base — 20g = 4, 100g = 20, 350g great-midgame = 70, no per-term cap (saturates against AI_CONQUER_DESIRE_MAX)
+	CONQUER_DESIRE_BASE_SCORE = 20 #Flat base score every candidate location gets
+	CONQUER_DESIRE_CITY_BONUS = 5 #Bonus when the location has city status
+	CONQUER_DESIRE_COASTAL_BONUS = 5 #Bonus when the location is coastal and we have no coast
+	CONQUER_DESIRE_CORE_BONUS = 100 #Bonus when the location is our core
+	CONQUER_DESIRE_CB_BONUS = 20 #Bonus when we have an active casus belli on the owner (no core). CB-age weighting deferred — flat value for now.
+	CONQUER_DESIRE_EXCLAVED_BONUS = 50 #Bonus when the location's area is surrounded by us/our subjects/impassable
+	CONQUER_DESIRE_SAME_CULTURE_BONUS = 1 #Per-rank base bonus for matching primary culture (Duchy+); scaled by rank multiplier
+	CONQUER_DESIRE_ACCEPTED_CULTURE_BONUS = 5 #Per-rank base bonus for accepted culture (Kingdom+); scaled by rank multiplier
+	CONQUER_DESIRE_COMMON_LANGUAGE_BONUS = 5 #Per-rank base bonus for shared language (Kingdom+); scaled by rank multiplier
+	CONQUER_DESIRE_CAPITAL_REGION_BONUS = 5 #Per-rank base bonus for being in our capital region (Kingdom+); scaled by rank multiplier
+	CONQUER_DESIRE_HERETIC_BONUS = 10 #Flat bonus when target location's religion differs from ours but shares our religion group; scaled by ai_conquer_desire_religion_mult country modifier
+	CONQUER_DESIRE_HEATHEN_BONUS = 20 #Flat bonus when target location's religion is in a different religion group from ours; scaled by ai_conquer_desire_religion_mult country modifier
+	CONQUER_DESIRE_AREA_COMPLETE_BONUS = 40 #Maximum area-completion bonus when we already own 100% of the area; ramps linearly from 0 at AREA_RAMP_START
+	CONQUER_DESIRE_AREA_RAMP_START = 0.6 #Ownership ratio at which area-completion bonus starts ramping up (we get nothing below this; full bonus at 100%)
+	CONQUER_DESIRE_REGION_BONUS = 30 #Maximum region-completion bonus when we already own 100% of the region; ramps linearly from 0 at REGION_RAMP_START
+	CONQUER_DESIRE_REGION_RAMP_START = 0.5 #Ownership ratio at which region-completion bonus starts ramping up
+	CONQUER_DESIRE_DISTANCE_FLOOR = 0.0 #In-range distance multiplier floor — value at distance equal to AllowedDistance (0 = hard gate, score zeroes at AllowedDistance)
+	CONQUER_DESIRE_DISTANCE_FLOOR_NEAR_HOME = 0.0 #Floor lift for cores / bordering-capital / scripted-preference loosening (0 = no lift, even cores can decay to 0)
+	CONQUER_DESIRE_DISTANCE_TAIL_FLOOR = 0.0 #Hard floor for the exponential tail beyond AllowedDistance (0 = far-away locations can decay fully)
+	CONQUER_DESIRE_DISTANCE_TAIL_DECAY = 0.5 #Multiplier applied each AllowedDistance step beyond the gate (0.5 = halve per step)
+	CONQUER_DESIRE_DISTANCE_LOOSEN_FACTOR = 1.5 #When scripted area preference > 1, distances up to this multiple of AllowedDistance retain the floor
+	CONQUER_DESIRE_DYNASTIC_UNION_MULT = 0.4 #Reach multiplier applied when target has a marriage union with us
+	CONQUER_DESIRE_DYNASTIC_MARRIAGE_MULT = 0.75 #Reach multiplier applied when target has a royal marriage with us
+	CONQUER_DESIRE_THREAT_MIN = 0.2 #Reach multiplier floor when target is overwhelmingly stronger than us
+	CONQUER_DESIRE_THREAT_MAX = 1.5 #Reach multiplier ceiling when target is overwhelmingly weaker than us
 	TARGET_SAFE_ANTAGONISM_FOR_AI = 50 #How much antagonism Ai is willing to take before getting a too much antagonism modifier
 	EXPECTED_WAR_SCORE_BASE = 25 #How much warscore Ai expects to get in a war 
 	EARLY_PEACE_TIME_MONTHS = 4 #How many months need to pass for Ai to lose the early war peace acceptance modifier
@@ -897,7 +1069,12 @@ NAI = {
 	EARLY_PEACE_TIME_FACTOR = 1.5 #How much acceptance is multiplied by the early war modifier
 	MINIMUM_WIN_CHANCE_TO_CONSIDER_DEFEAT = 0.25 # Win chance below this number will make Ai try to White Peace or give something instead of fighting on
 	MINIMUM_WAR_SCORE_TO_CONSIDER_DEFEAT = -50 # Warscore below this number will make Ai try to White Peace or give something instead of fighting on
-	POTENTIAL_COALITION_MAX_SAFE_RELATIVE_STRENGTH = 0.5 # A potential coalition will be ignored if its strength is lower than our strength times this mult
+	AI_RECENT_WAR_MONTHS = 6
+	POTENTIAL_COALITION_MAX_SAFE_RELATIVE_STRENGTH = 0.75 # A potential coalition will be ignored if its strength is lower than our strength times this mult
+	AI_DEFENSE_STRENGTH_ALLY_MULTI = 0.5 # When calculating total defensive stregth multiply allies by this
+	AI_RIVAL_THREAT_THRESHOLD = 0.6 # If threat of the potential rival is this or higher then skip it (Alarmed threshold)
+	AI_RIVAL_WARY_THRESHOLD = 0.3 # If threat is above this but below AI_RIVAL_THREAT_THRESHOLD, apply wary score penalty
+	AI_RIVAL_WARY_SCORE_MULTIPLIER = 0.3 # Score multiplier applied to rival candidates in the wary threat range
 
 	IDEAL_WARSCORE_DIFFERENCE_THRESHOLD_TO_CONSIDER_PEACE = 20 #If the current warscore is only X away from the ideal peace deal warscore, AI will try to make peace with that nation
 
@@ -963,6 +1140,7 @@ NAI = {
 	COMMON_LANGUAGE_PREFERENCE_BASE = 0.05 #How much more powerful we consider our common language when changing it - static value in case our language has 0% power
 	COURT_LANGUAGE_OVERLORDS_COURT_LANGAUGE_MODIFIER = 1.0 #How much more powerful we consider our Overlord's court language when changing it. Scaled by Subject Loyalty
 	COURT_LANGUAGE_NEGATIVE_CULTURE_OPINION_FACTOR = 0.0 # Don't adopt a language of a culture we don't like
+	LANGUAGE_DEAD_BASE_FACTOR = 0.05 # AI utility multiplier for a language when no pops in the country speak it. Lower = dead liturgical languages get crushed in court-language scoring.
 
 	MINIMUM_MONTHS_BETWEEN_EXPANSION = 12
 	SUBJUGATION_EXPANSION_FACTOR = 0.75
@@ -981,7 +1159,23 @@ NAI = {
 	ALLIANCE_SUBJUGATION_FACTOR = 1.25
 	RIVAL_CONQUEST_FACTOR = 1.25
 	RIVAL_SUBJUGATION_FACTOR = 0
-	AI_USE_CONQUER_CB_FACTOR = 25 # AI score multiplier for attacking someone where we have an available CB with better than no cb conquer cost
+	AI_USE_CONQUER_CB_FACTOR = 25 # AI score multiplier for attacking someone where we have an available CB with better or equal than no cb conquer cost
+
+	# Tier A — near-veto when a royal marriage exists and target has no heir (imminent PU window).
+	# Stacks with ROYAL_MARRIAGE_CONQUEST_FACTOR above (0.1 * 0.05 = 0.005 effective).
+	AI_DYNASTIC_RESTRAINT_HEIRLESS_MULTIPLIER = 0.05
+	# Tier B — strong restraint when our heir and their heir share a dynasty (PU set up for next succession).
+	# Stacks with ROYAL_MARRIAGE_CONQUEST_FACTOR above (0.1 * 0.25 = 0.025 effective).
+	AI_DYNASTIC_RESTRAINT_SHARED_HEIR_MULTIPLIER = 0.25
+	# Personality marriage-partner boost: heirless candidates get vScore *= (1 + DynasticBias * FACTOR).
+	# At DynasticBias = 1.0 and factor = 2.0, score triples — strong enough to overcome economic-base size differences with mid-tier partners.
+	DYNASTIC_HEIRLESS_MARRIAGE_FACTOR = 2.0
+	# CCountry::HasAtLeastComparableNavyTo threshold. Replaces a strict-superiority navy check
+	# in the AI's cross-water reachability filter. 0.5 means a country with half the enemy's
+	# navy (or more) is still allowed to consider cross-water targets; the previous gate
+	# required strict superiority and was hiding Bosphorus-style strait crossings entirely.
+	NAVY_COMPARABILITY_RATIO = 0.5
+	AI_BORDERING_CONQUEST_FACTOR = 2
 
 	DISTANT_WAR_BORDER_DISTANCE = 100
 	DISTANT_WAR_CONQUEST_FACTOR = 0.1
@@ -1033,7 +1227,7 @@ NAI = {
 	AI_MAX_PROVINCES_TO_INTEGRATE_PER_CABINET_MEMBER = 4 #How many provinces will Ai accept over their cabinet size before they start releasing subjects.
 	AI_RELEASE_SUBJECT_AREA_MINIMUM_SIZE = 6 # Minimum owner area size neede for an AI to release that area as a subject
 
-	AI_BUFFER_TAX_BASE_FACTOR = 2 # AI will save their taxbase multiplied by this for buffer for sudden expenses like event options and hiring mercs
+	AI_BUFFER_TAX_BASE_FACTOR = 3 # AI will save their taxbase multiplied by this for buffer for sudden expenses like event options and hiring mercs
 
 	AI_HIGH_OPINION_THRESHOLD = 100	#Makes ai use certain interactions with countries with that opinion, only checks Our opinion of Them
 	AI_LOW_OPINION_THRESHOLD = -100
@@ -1044,8 +1238,12 @@ NAI = {
 
 	NO_CASUS_BELLI_SELECTION_PENALTY = -100 #How less likely will Ai be to select this as the best casus belli
 	DEFAULT_CHANCE_OF_EXPANSION = 0.25 #How likely AI is to start a war plan against other nations each month
+	CHANCE_OF_EXPANSION_AGGRESSIVENESS_SCALE = 10 #How the aggressiveness_modifier is scaled when used for chance of expansion
+	PARLIAMENT_IN_SESSION_EXPANSION_CHECK_MULTIPLIER = 5 #How more likely a country is to check new expansion paths if their parliament is in session
+	PARLIAMENT_IN_SESSION_MONTHS_BETWEEN_WARS_MULTIPLIER = 0.25 #Multiplies the months between wars modifier if parliament is currently in session
 	AI_WAR_EXHAUSTION_EXPANSION_PENALTY = 0.1 # Penalty to the chance to start new wars per war exhaustion
 	AI_UNINTEGRATED_LAND_EXPANSION_PENALTY = 2 # e.g. 50% unintegrated land with value 2 = -100% chance to expand
+	AI_UNINTEGRATED_LAND_EXPANSION_PENALTY_MINIMUM = 5 # Needs at least 5 unintegrated locations to apply AI_UNINTEGRATED_LAND_EXPANSION_PENALTY
 	RANDOM_RANGE_OF_EXPANSION_SORTING_VALUES = 0.25 # -25% to 25% will be added to the sorting value of expansion targets to make it more varied
 	SAFE_AMOUNT_OF_ANTAGONISM = 30 #Ai will try not to expand above this, it's NOT their target antagonism when peacing out
 	SAFE_AMOUNT_OF_WAR_EXHAUSTION = 5 #Ai will try not to expand above this WE
@@ -1056,10 +1254,11 @@ NAI = {
 	SAFE_WIN_CHANCE_DEFEND_OBJECTIVE = 0.40 #Win chance above that will cause defend objectives to be abandoned
 	AI_VERY_SMALL_TARGET_THRESHOLD = 0.05 #If Targets tax base is lower than Actors tax base * this, apply the multiplier
 	AI_VERY_SMALL_TARGET_MULTIPLIER = 0.1 #See above, it won't make the conquest score go below the value needed to pick if the original value 
-
+	AI_GLOBAL_INTEGRATION_SPEED_UTILITY = 1 # utility for global integration speed multiplied by ratio of unintegrated land
 
 	AI_ENEMY_LAND_SUPREMACY_THRESHOLD = 3 # If enemies have this much more land armies than us and we are in a defensive war then we will hang back and defend
-	AI_REASSIGN_UNIT_THRESHOLD = 1.5 # how much more score is needed for a new objective in order for a unit to be reassigned to it
+	AI_REASSIGN_UNIT_THRESHOLD = 1.33 # how much more score is needed for a new objective in order for a unit to be reassigned to it
+	AI_MAX_RECRUIT_DISTANCE_FROM_UNIT = 500 # maximum distance allowed from where a unit recruit is started to which unit it is supposed to join into
 	MILITARY_ACCESS_MAX_OBJECTIVES = 3
 
 	THREAT_CALCULATION_BASE_VALUE = 10
@@ -1076,6 +1275,8 @@ NAI = {
 	AI_MISSION_CURRENCY_TARGET_UTILITY_MODIFIER_MORE = 0.15
 	AI_MISSION_CURRENCY_TARGET_UTILITY_MODIFIER_LESS = -0.15
 	AI_MISSION_LOCATION_TARGET_UTILITY_VALUE = 10
+
+	AI_CLAN_BUILDING_DISTANCE_PENALTY_FACTOR = 0.005 # Proximity penalty for building-based clan foreign building placement. Utility is multiplied by 1/(1 + distance * factor). At factor 0.005: distance 100 -> 0.67x, distance 200 -> 0.5x.
 
 	AI_CONQUER_DESIRE_DISTANCE_BASE = 100
 	AI_CONQUER_DESIRE_DISTANCE_PER_COUNTRY_SIZE = 0.5
@@ -1106,31 +1307,46 @@ NAI = {
 	AI_POP_FOOD_CONSUMPTION_MODIFIER_UTILITY = -0.05
 	AI_GARRISON_SIZE_UTILITY = 0.05
 	AI_DIPLOMATIC_CAPACITY_UTILITY = 0.05
-	AI_DIPLOMAT_UTILITY = 0.1 # utility for having diplomats, increased x10 when needed for import diplo actions like peacing out
-	AI_ANNEX_UTILITY = 1 # utility for base annexation speed per ongoing annexation, diminishing quadratic 
+	AI_DIPLOMAT_UTILITY = 0.0075 # utility for having diplomats, increased x10 when needed for import diplo actions like peacing out
+	AI_ANNEX_UTILITY = 0.25 # utility for base annexation speed per ongoing annexation, diminishing quadratic 
+	AI_ANNEX_UTILITY_OTHER_SUBJECTS = 0.05 #utility for base annexation speed for every other vassal not being annexed, important due to modifiers related to relatvie subject tax base on crown power
 	AI_LOCAL_TRADES_PER_BURGHER_UTILITY = 0.001
 	AI_SUBJECTS_LOYALTY_UTILITY = 0.1
 	AI_ESTATE_ROADS_UTILITY = 10
-	AI_MERCENARY_COST_UTILITY = -0.5
+	AI_MERCENARY_COST_UTILITY = -0.15
+	AI_LOGISTIC_DISTANCE_UTILITY = 0.005
+	AI_LAND_MORALE_MODIFIER_UTILITY = 0.25
+	AI_LAND_MORALE_UTILITY = 0.15
+	AI_LAND_MORALE_ATTRITION_UTILITY = -4.5
+	AI_LAND_MORALE_MOVEMENT_COST_UTILITY = -50
+
 	AI_GOVERNMENT_SIZE_UTILITY = 0.5
 	AI_SATISFACTION_RECOVERY_UTILITY = 5
 	AI_SATISFACTION_DECAY_UTILITY = -0.1
 	AI_MILITARY_TACTICS_UTILITY = 0.01
-	AI_LAND_MORALE_RECOVERY_UTILITY = 0.25
+	AI_LAND_MORALE_RECOVERY_UTILITY = 1.25
 	AI_ARMY_INITIATIVE_UTILITY = 0.01
 	AI_ARMY_DISCIPLINE_UTILITY = 0.2
+	AI_UNIT_CATEGORY_POWER_UTILITY = 0.08
+
 	AI_SCRIPTED_OBJECTIVE_INTERACTION_SCORE_BONUS = 25
 	AI_IO_RESOLUTION_PROPOSAL_RANDOM_INTERVAL = 250
 	AI_CALL_FOR_PEACE_CHANCE_MULTIPLIER = 0.25
 	AI_CONQUER_TREATY_DESIRE_FROM_WORTH_MULT = 5
 	AI_CONQUER_TREATY_DESIRE_NOT_WARGOAL_MULT = 0.5
-	AI_CHILD_EDUCATION_CHANGE_THRESHOLD = 200
+	AI_CHILD_EDUCATION_CHANGE_THRESHOLD = 5
 	AI_CONQUER_TREATY_DESIRE_WARGOAL_BASE = 2
 	AI_CONQUER_TREATY_DESIRE_SAME_PROVINCE = 3
 	AI_CONQUER_LOCATION_TREATY_BASE_SCORE = 3				# base score for AI to pick locations in war goal
 	AI_CONQUER_LOCATION_TREATY_WAR_WORTH_FACTOR = 0.5		# How much AI cares about war worth when picking locations in peace deals
 	AI_CONQUER_TREATY_DESIRE_ADJECENT = 5					# score bonus for picking neighboring locations in peace deal, other locations get 1/bonus penalty
-	AI_CONQUER_TREATY_DESIRE_POTENTIAL_BORDERGORE = 0.05 	# Score penalty for when AI is taking a location that will maybe cause bordergore
+	AI_CONQUER_TREATY_DESIRE_POTENTIAL_BORDERGORE = 0.005 	# Score penalty for when AI is taking a location that will maybe cause bordergore
+	AI_CONQUER_TREATY_DESIRE_SMALL_AREA_THRESHOLD = 5		# If an owner area is this small apply the bonus below to taking it
+	AI_CONQUER_TREATY_DESIRE_SMALL_AREA_FACTOR = 1.5		# Makes AI take small areas to prevent multiple wars against the same target
+	AI_CONQUER_TREATY_DESIRE_LOCATION_DISTANCE_DIVIDER = 250
+	AI_CONQUER_TREATY_DESIRE_LOCATION_DISTANCE_FACTOR = -0.1
+	AI_CONQUER_TREATY_DESIRE_LOCATION_DISTANCE_MAX = 1500
+
 	AI_REVOKE_CORES_DESIRE_MULT = 0.1
 	AI_CONSTRUCTIONS_PREDICTED_INCOME_MONTHS = 24			# How much more months of last median balance does the evaluator add to the utility bias for construction queue
 	AI_CONSTRUCTIONS_EMPTY_QUEUE_UPDATE_MONTHS = 6			# Cooldown for construction queue if the previous recalc resulted in an empty queue
@@ -1140,38 +1356,57 @@ NAI = {
 	AI_CONSTRUCTION_QUEUE_SIZE_MINIMUM = 10					# Minimum allowed size of the build queue if you have low amount of locations
 	AI_CONSTRUCTION_QUEUE_PARALLEL_BUILD_RATIO = 0.025 		# 1 + OwnedLocations * this = How many building candidates in AI queue will be built in a month
 	AI_CONSTRUCTION_QUEUE_PARALLEL_CHECK_RATIO = 0.05 		# 1 + OwnedLocations * this = How many building candidates in AI queue will be checked in a month
+	AI_CONSTRUCTION_QUEUE_PARALLEL_BUILD_MAX = 30			# Absolute cap on building candidates committed per firing; bounds per-spike cost for very large empires
+	AI_CONSTRUCTION_QUEUE_PARALLEL_CHECK_MAX = 60			# Absolute cap on building candidates evaluated per firing; bounds per-spike cost for very large empires
 	AI_CONSTRUCTION_DAILY_RANK_BASE_DIVISION = 4			# Max(this - CountryRank, 1) = BuildingAi will handle candidates every X months
-	AI_CONSTRUCTION_QUEUE_REPEAT_MULT = 0.75				# PrevUtility * this - AI_CONSTRUCTION_QUEUE_REPEAT_BIAS = Utility of a new candidate placed in the queue after starting a construction
-	AI_CONSTRUCTION_QUEUE_REPEAT_BIAS = 10					# See above
+	AI_LOAN_CHECK_DAYS = 3									# How often (in days) each country checks whether to repay loans or declare bankruptcy
+	CREDIT_AUTOMATION_LOAN_COVERAGE_MONTHS = 12				# Credit automation skips taking a loan if the treasury already covers this many months of the current deficit
+	AI_SELL_BONDS_NEGATIVE_BALANCE_MONTHS = 12				# AI nations will sell government bonds if their gold reserves won't be enough to cover for that many months of their current negative balance 
+	#AI_SELL_BONDS_MONTHS_NEEDED_TO_CONSTRUCT = 24 			# AI nations will sell government bonds if their gold reserves won't be enough to pay for all constructions that they have queued with that many months of positive balance
+	AI_REDEEM_BONDS_UPDATE_MONTHS = 3						# AI nations will check if they can redeem bonds every that many months
+	#AI_SELL_BONDS_FOR_CONSTRUCTIONS_UPDATE_MONTHS = 6		# AI nations will check the sell bonds action to fund their constructions only every that many months
+	AI_CONSTRUCTION_QUEUE_REPEAT_MULT = 0.9				# PrevUtility * pow(this, iteration) - AI_CONSTRUCTION_QUEUE_REPEAT_BIAS = Utility of a new candidate placed in the queue after starting a construction, each iteration of this check decreases the value
+	AI_CONSTRUCTION_QUEUE_REPEAT_BIAS = 0					# See above
 	AI_MIN_COUNTRY_RANK = 1									# Clamped min country rank for AI
 	AI_MAX_COUNTRY_RANK = 4									# Clamped max country rank for AI
-	AI_MONTHLY_DIPLOMATS_THRESHOLD_TO_BUILD_OPINION = 0.2	# Relevant country relation improvements will try to maintain that many monthly diplomats
-	AI_MAX_BUILD_OPINION_AT_ONCE = 2					
+	AI_MONTHLY_DIPLOMATS_THRESHOLD_TO_BUILD_OPINION = 0.1	# Relevant country relation improvements will try to maintain that many monthly diplomats
+	AI_MAX_BUILD_OPINION_AT_ONCE = 2					# How many relation improvements will AI countries maintain at once
+	AI_MAX_BUILD_OPINION_AT_ONCE_BUILDING_BASED_COUNTRIES = 16 # How many relation improvements will building based AI countries maintain at once
+	AI_MIN_DIPLOMATS_TO_MAINTAIN_BEFORE_IMPROVING = 2	# AI countries will try to have at least that many diplomatic actions before trying to improve relations
 	AI_BUILD_OPINION_ALLY_BIAS = 3						# Sorting bias for relevant countries if the actor is allied with them
 	AI_BUILD_OPINION_HIGH_ANTAGONISM_BIAS = 5			# Sorting bias for relevant countries if the actor has high antagonism with them
 	AI_BUILD_OPINION_NEIGHBOUR_BIAS = 0.75				# Sorting bias for relevant countries if they are neighbors with the actor
+	AI_BUILD_OPINION_BUILDING_BASED_AVERAGE_TAX_BASE_FACTOR = 1 # Sorting bias for relevant countries if the actor is a BBC based on average tax base of the recipient
+	AI_BUILD_OPINION_BUILDING_BASED_LOCATION_COUNT_FACTOR = 0.025 # Sorting bias for relevant countries if the actor is a BBC based on location count of the recipient
+	AI_BUILD_OPINION_BUILDING_BASED_CITY_COUNT_FACTOR = 0.75 # Sorting bias for relevant countries if the actor is a BBC based on location with town or a city count of the recipient
 	AI_BUILD_OPINION_GEOGRAPHY_BIAS = 0.5				# Sorting bias for relevant countries in the same geography depending on country rank (area, region, superregion)
 	AI_BUILD_OPINION_ALREADY_IMPROVED_THRESHOLD = 0.75	# Ai will skip trying to improve relations with relevant countries when the improved opinion modifier is at this fraction of the max value
 	AI_BUILD_OPINION_CURRENT_BIAS_MAX = 75				# Ai will skip trying to improve relations with relevant countries when opinion is above that
+	AI_BUILD_OPINION_MIN_REMAINING = 5					# Ai will not start improving relations with relevant countries if the remaining improve relation amount is less than that
 	AI_BUILD_OPINION_IMPROVE_UNTIL = 100				# Ai will improve relations with relevant countries (neighbors, allies) up until this opinion
-	
+	AI_INCREASE_OPINION_OBJECTIVE_SCORE = 1				# AI diplomatic priority
+	AI_REDUCE_ANTAGONISM_OBJECTIVE_SCORE = 2			# AI diplomatic priority
+
 	# Saving mode defines, used mainly when AI enters saving modes: low and high. Goal is to try to stay afloat during bankruptcies and repay loans
 	AI_HIGH_DEBT_RATIO_TO_TAX_BASE = 10					# If debt is x times larger than the tax base of a country, high saving mode is enabled
 	AI_SAVING_MODE_STABILITY_THRESHOLD = 0				# See defines below
 	AI_SAVING_MODE_LOW_STABILITY_GROWTH = 0.1			# Stability growth target when below AI_SAVING_MODE_STABILITY_THRESHOLD
 	AI_SAVING_MODE_HIGH_STABILITY_GROWTH = 0			# Stability growth target when above AI_SAVING_MODE_STABILITY_THRESHOLD
 	AI_SAVING_MODE_MONTHS_TO_REPAY_DEBT = 60			# AI will try to have a balance which would allow to repay their debts in that many months
-	AI_SAVING_MODE_GOVERNMENT_POWER_THRESHOLD = 60 			# See defines below
+	AI_SAVING_MODE_GOVERNMENT_POWER_THRESHOLD = 85 			# See defines below
 	AI_SAVING_MODE_GOVERNMENT_CRITICAL_POWER_THRESHOLD = 40 # See defines below
 	AI_SAVING_MODE_VERY_LOW_GOVERNMENT_POWER_GROWTH = 0.3 # Government power growth per month target when government power is below AI_SAVING_MODE_GOVERNMENT_CRITICAL_POWER_THRESHOLD 
 	AI_SAVING_MODE_LOW_GOVERNMENT_POWER_GROWTH = 0.15 	# Government power growth per month target when government power is below AI_SAVING_MODE_GOVERNMENT_POWER_THRESHOLD 
-	AI_SAVING_MODE_HIGH_GOVERNMENT_POWER_GROWTH = 0 	# Government power growth per month target when government power is above AI_SAVING_MODE_GOVERNMENT_POWER_THRESHOLD 
+	AI_SAVING_MODE_HIGH_GOVERNMENT_POWER_GROWTH = 0.05 	# Government power growth per month target when government power is above AI_SAVING_MODE_GOVERNMENT_POWER_THRESHOLD
 	AI_DEFAULT_IO_MAINETANCE_VALUE = 0.5 				# Default IO maintenance if it's not defined anywhere else
+	AI_DEFAULT_BUREAUCRACY_MAINETANCE_VALUE = 1.0		# Default bureaucracy maintenance if it's not defined anywhere else
+	AI_SAVING_BUREAUCRACY_MAINETANCE_VALUE = 0.7		# we're trying to save some moolah
 	AI_SAVING_MODE_COLONIAL_MAINTENANCE = 0.5 			# Static colonial maintenance when in saving mode (or lower if it would mean a negative balance)
 	AI_SAVING_MODE_EXPLORATION_MAINTENANCE = 0.5 		# Static exploration maintenance when in saving mode (or lower if it would mean a negative balance)
 	AI_SAVING_MODE_CULTURAL_MAINTENANCE = 0.25 			# Static cultural maintenance when in saving mode (or lower if it would mean a negative balance)
-	AI_SAVING_MODE_ALLOWED_INFLATION_MODIFIER_LOW = 5 	# Mult max allowed inflation by this much when in low saving mode
+	AI_SAVING_MODE_ALLOWED_INFLATION_MODIFIER_LOW = 3 # Mult max allowed inflation by this much when in low saving mode
 	AI_SAVING_MODE_ALLOWED_INFLATION_MODIFIER_HIGH = 10 # Mult max allowed inflation by this much when in high saving mode
+	MAX_ALLOWED_INFLATION = 0.02 						# AI target for inflation during normal times
 	AI_PRIVILEGE_LONG_MODIFIER_TRESHOLD = 24 			# Ai will ignore modifiers giving global estate max tax when adding privileges if the modifier will last for longer than that many months
 	AI_THREAT_STRENGTH_THRESHOLD = 0.50 				# Ai will look for allies that would put them around this fraction of their targets strength
 	AI_THREAT_TOO_HIGH_THRESHOLD = 0.875 				# Threat level (0 - 1, enemy strength divided by summed strength) at which AI will ignore a threat as it would require a big chain of allies
@@ -1187,13 +1422,25 @@ NAI = {
 
 	AI_UNLOCK_UNIT_SCORE_PER_AGE = 25 					# AI score to unlock a unit based on age difference in that category
 	AI_UNLOCK_LEVY_SCORE = 20							# AI Score to unlock levies multiplied by size of levy and size of poptype it applies to as % of country multiplied by unlocked unit score
+	AI_UNLOCK_SPECIAL_UNIT_FACTOR = 3 # score multiplier for AI to unlock techs that give special units
+	AI_UNLOCK_UNIT_QUALITY_SCORE = 100 # extra score based on quality difference between a current unit and its potential upgrade
 
 	# END OF AI TECH
 
-	AI_PEACE_CHECK_DAYS = 120
-	AI_REINFORCE_BATTLE_SIEGE_ACCUMULATION_LIMIT = 2	# AI will not leave a siege to reinforce a battle if the accumulation is above that
+	AI_PEACE_CHECK_DAYS = 90
+	AI_REINFORCE_BATTLE_SIEGE_ACCUMULATION_LIMIT = 0	# AI will not leave a siege to reinforce a battle if the accumulation is above that
 	AI_REINFORCE_BATTLE_DISTANCE_LIMIT = 3				# AI will not look for battles to reinforce that are more than that many locations away
 	AI_LOW_FOOD_PERCENTAGE_THRESHOLD = 0.25				# AI will ask for food access more often if there are units in foreign countries with food capacity percentage below this value 
+	AI_REINFORCE_BATTLE_STRENGTH_TRESHOLD = 0.55 		# AI will not reinforce battles if their side already have this strength percentage compared to all units in the battle
+	AI_REINFORCE_BATTLE_STRENGTH_HELPER_TRESHOLD = 0.1 	# AI will not reinforce battles if the help that they can send divided by total strength in the battle is less than this
+	AI_ENEMY_STRENGTH_NO_SUPPORT_ARMIES_FACTOR = 2		# AI will not add support armies objectives if their army is at least that much stronger than the enemies
+	AI_SUPPORT_ARMIES_DESIRED_STRENGTH_FACTOR = 0.33	# AI will try to use that much of their armies to support sieges and other units
+	AI_CARPET_SIEGE_MAX_ARMIES_FACTOR = 0.1				# AI will use that many armies at most times number of locations to siege when carpet sieging
+	AI_SUPPORT_ARMIES_POWER_NEEDED_FACTOR = 0.5			# AI will want to have at least that much combat power of the strongest enemy unit in units helping each siege 
+	AI_SUPPORT_ARMIES_POWER_DESIRED_FACTOR = 1			# AI will want to have ideally that much combat power of the strongest enemy unit in units helping each siege 
+	AI_HIGH_CONQUER_DESIRE_THRESHOLD = 0.5
+	AI_DICE_ROLL_COMBAT_WIN_CHANCE_FACTOR = 0.1
+	AI_ALREADY_INSULTED_FACTOR = 0.9
 }
 
 
@@ -1210,6 +1457,8 @@ NCulture = {
 	ACCEPTANCE_POP_SIZE_GLOBAL_MIN_MAX = { -0.35 0.35 }
 	ACCEPTANCE_SHARED_CULTURE_GROUP_FACTOR = -0.30 # the maximum. reduced by each unshared culture group
 	TRADITION_DECAY = -0.05
+	TRADITION_POWER_SCALE = 1000
+	INFLUENCE_POWER_SCALE = 1000
 	INFLUENCE_DECAY = -0.05
 	
 	ARTIST_INFLUENCE_GAIN_FACTOR = 2
@@ -1246,6 +1495,9 @@ NCulture = {
 	ASSIMILATION_ACTOR_HAS_MARKET_LANGUAGE_MODIFIER = 0.2
 	ASSIMILATION_TARGET_HAS_MARKET_LANGUAGE_MODIFIER = -0.2
 
+	ASSIMILATION_BURGHER_MARKET_LANGUAGE_MIN_MULTIPLIER = 0.01	# Burghers whose language matches the market language assimilate at (1 - market_access), floored at this value, instead of being blocked outright
+
+	ASSIMILATION_PRIMARY_CULTURE_MODIFIER = -1.0 # The primary culture is slowest to assimilate
 	ASSIMILATION_ACCEPTED_CULTURE_MODIFIER = -0.75 # Accepted cultures are slower to assimilate because we already give them extra rights
 	ASSIMILATION_TOLERATED_CULTURE_MODIFIER = -0.25 
 
@@ -1270,6 +1522,7 @@ NCharacter = {
 	AI_MAX_FEMALE_MARRIAGE_AGE = 30
 	
 	OLD_AGE_MONTH_CHANCE = 3.0		#100 is dice roll
+	MAX_CHARACTER_AGE = 100			# hard cap; characters die when they reach this age
 	
 	MAX_PREGNANCY_AGE = 40		#blocked above this
 	PREGNANCY_AGE_THRESHOLD = 35
@@ -1288,11 +1541,15 @@ NCharacter = {
 
 	CHILD_TRAIT_AGE = 3
 	
-	YEARS_OF_RULING_FIRST_TRAIT = 1	
+	YEARS_OF_RULING_FIRST_TRAIT = 1
 	YEARS_OF_RULING_SECOND_TRAIT = 10
 	YEARS_OF_RULING_THIRD_TRAIT = 25
 	
-	LEADER_COMBAT_TRAIT_GAIN_CHANCE = 0.2
+	
+	CABINET_TRAIT_GAIN_CHANCE = 2 # monthly chance vs d100 to get a trait
+	
+
+	LEADER_COMBAT_TRAIT_GAIN_CHANCE = 0.5	#dice 100 less than Chance * Tradition gained in battle
 	
 	EDUCATION_AGE = 3
 	MAX_AGE_SETUP_ERROR_LOG = 100
@@ -1340,7 +1597,6 @@ NPop = {
 	NEGATIVE_FOOD_ON_FOOD_DEMAND = 0.5
 	
 	DEVELOPMENT_SCALE_ON_DEMAND = 0.05
-	KNOWN_GOODS_FOR_DEMAND_THRESHOLD = 50
 	POP_NEEDS_INCOME_SCALE = 1.33
 	DISPLAY_SIZE = 1000
 	GARRISON_MANPOWER_LOSS_IMPACT = 0.5
@@ -1352,7 +1608,7 @@ NPop = {
 	ESTATE_SATISFACTION_OFFSET = 0.5
 	ESTATE_SATISFACTION_SCALE = 2.0
 	SCALE_ESTATE_NON_ACCEPTED = 0.5
-	GOODS_PRICE_SATISFACTION_SCALE = -0.1
+	GOODS_PRICE_SATISFACTION_SCALE = -0.05
 	LACK_OF_GOODS_SATISFACTION_SCALE = -0.5
 	ESTATE_LOSING_MONEY_SCALE_ON_GOODS_PRICE = 2.0		#
 	
@@ -1367,15 +1623,12 @@ NPop = {
 	
 	MIN_SIZE_TO_BLOCK_PROMOTION = 0.5
 	
-	POP_JOB_SURPLUS_SCALE_CAP = 10
+	POP_JOB_SURPLUS_SCALE_CAP = 5
 	
-	REBEL_JOIN_MIN_THRESHOLD = 0.05
-	REBEL_LEAVE_MIN_THRESHOLD = 0.1
+	REBEL_JOIN_MIN_THRESHOLD = 0.05 #less satisfaction than this and they'll 100% start a rebellion (usually higher, pop_join_rebel_threshold is 0.2 by default)
+	REBEL_LEAVE_MIN_THRESHOLD = 0.1 #at a minimum, more satisfaction than this and they'll stop rebelling (it'll usually be higher, pop_leave_rebels_threshold is 0.35 by default)
 	
 	REBEL_DANGER_THRESHOLD = 0.95
-	
-	PERFORMANCE_UPDATE_DEMANDS_MIN = 0 # We try to update all pop demands within a year, but this sets a minimum of pops per day
-	PERFORMANCE_UPDATE_DEMANDS_MAX = 100 # We try to update all pop demands within a year, but this sets a maximum of pops per day
 	
 	POP_MINORITY_SIMILAR_THRESHOLD	= 4		#if more or equal of this of pops of type in location, join either same culture or religion
 	POP_MINORITY_JUST_MERGE_THRESHOLD	= 8		#if more or equal of this of pops of type in location, join largest
@@ -1400,7 +1653,37 @@ NEstate = {
 	COMPARATIVE_WEALTH_POWER_CAP = 1.0
 	
 	POWER_TO_SATISFACTION_PENALTY = -0.5
-	
+
+	ESTATE_CULTURE_ACCEPTED_SATISFACTION      = -0.05
+	ESTATE_CULTURE_TOLERATED_SATISFACTION     = -0.10
+	ESTATE_CULTURE_DISCRIMINATED_SATISFACTION = -0.20
+	ESTATE_RELIGION_TOLERANCE_SCALE           =  0.0025
+
+	ESTATE_CULTURE_ACCEPTED_POWER             = -0.05
+	ESTATE_CULTURE_TOLERATED_POWER            = -0.10
+	ESTATE_CULTURE_DISCRIMINATED_POWER        = -0.20
+
+	ESTATE_DISCRIMINATED_CULTURE_POWER_ALERT_THRESHOLD = 0.10
+	ESTATE_TOLERATED_CULTURE_POWER_ALERT_THRESHOLD     = 0.20
+	ESTATE_DISCRIMINATED_CULTURE_POWER_ERROR_THRESHOLD = 0.30
+
+
+	BUILDING_DESTRUCTION_IMPACT = -0.20
+
+	# How aggressively pop demand contracts when the estate's income falls short of its expense.
+	# At wealth-impact = 0 (no income), demand is multiplied by (1 - POP_DEMAND_DEFICIT_SCALE).
+	POP_DEMAND_DEFICIT_SCALE = 0.5
+
+	ESTATE_CULTURE_RELIGION_CHANGE_COOLDOWN_MONTHS = 60 # reduce flipflopping
+
+	ESTATE_DOMINANCE_CULTURE_PRIMARY_WEIGHT       = 1.20
+	ESTATE_DOMINANCE_CULTURE_ACCEPTED_WEIGHT      = 1.00
+	ESTATE_DOMINANCE_CULTURE_TOLERATED_WEIGHT     = 0.50
+	ESTATE_DOMINANCE_CULTURE_DISCRIMINATED_WEIGHT = 0.25
+	ESTATE_DOMINANCE_RELIGION_TOLERANCE_SCALE     = 1.00
+	ESTATE_DOMINANCE_RELIGION_MIN_WEIGHT          = 0.10
+	ESTATE_DOMINANCE_OVERRIDE_THRESHOLD           = 1.10
+
 }
 
 NLocation = {
@@ -1411,6 +1694,11 @@ NLocation = {
 	
 	RGO_LOAD_TIME_FRACTION = 0.33		#33% of cap, if pop can afford it.
 	RGO_LOAD_TIME_MAX_PEASANT_PERCENTAGE = 0.1 #max % of peasants
+	
+	
+	LOAD_TIME_VILLAGE_MAX_SIZE_FRACTION = 0.2
+	
+	LOAD_TIME_TOWN_SCALE_SETUP = 0
 	
 	LOOT_MONTHS = 12
 	
@@ -1469,20 +1757,25 @@ NMarket = {
 	MARITIME_PRESENCE_POWER_ON_POP_SCALE = 100		# divides on this.
 	
 	
-	BURGHER_TRADE_IMPACT_ON_SUPPLY_SCALE = 0.25
+	BURGHER_TRADE_IMPACT_ON_SUPPLY_SCALE = 0.1
 	TRADE_IMPACT_ON_SUPPLY_SCALE = 0.75
 
 	BURGHER_TRADE_IMPACT_ON_DEMAND_SCALE = 0.25
 	TRADE_IMPACT_ON_DEMAND_SCALE = 0.75
 	
 	MIN_PRICE_IMPACT = -0.33
-	MAX_PRICE_IMPACT = 1.5
+	MAX_PRICE_IMPACT = 3.0
+
+	DEMAND_ELASTICITY_COEFFICIENT = 0.40	# demand drops 40% per 100% above default price; replaced per-tier when pop needs tiers (1.5) lands
+	DEMAND_ELASTICITY_FLOOR = 0.35			# minimum demand as fraction of base, regardless of price
 	
 	FOOD_CAPACITY_FACTOR = 1.0
 	
 	FOOD_PRICE = 0.05
 	FOOD_PRICE_IMPACT_ON_PRICES = 0.25
 	FOOD_PROPORTION_TO_PRESERVE_IN_MARKET_IF_POSSIBLE = 0.25
+	FOOD_PROVINCE_LOCAL_RESERVE_RATIO = 0.75 # provinces share food above this fraction of their capacity with the market
+	FOOD_PASS2_MAX_MONTHS_OF_DEFICIT = 3.0 # cap for pass 2 food allocation: max monthly natural deficit multiples a province can absorb per tick
 
 	MARKET_BASE_ACCESS = 1 # 100%
 	# multiplicative
@@ -1493,6 +1786,14 @@ NMarket = {
 	
 	MARKET_DOWNSTREAM_FACTOR = 0.5 # downstream is great!
 	MARKET_UPSTREAM_FACTOR = 0.9	#better upstream than not..
+
+	# Withering markets: a market with <= MARKET_WITHERING_LOCATION_THRESHOLD locations that has been
+	# at or below the threshold for MARKET_WITHERING_GRACE_MONTHS months AND is outclassed for at least
+	# MARKET_WITHERING_OUTCLASSED_FRACTION of its locations gets flagged as withering. AI gets a destroy
+	# bias and a player-facing event fires on the on_market_withering_started on_action.
+	MARKET_WITHERING_LOCATION_THRESHOLD = 5
+	MARKET_WITHERING_GRACE_MONTHS = 24
+	MARKET_WITHERING_OUTCLASSED_FRACTION = 0.5
 	
 	# additive
 	MARKET_NO_PORT_EXTRA_DISTANCE = 0.1 # Absolute access penalty for going between land and sea without port
@@ -1527,8 +1828,10 @@ NMarket = {
 
 	MARKET_FOOD_STOCKPILE_TRESHOLD_MONTHS = 24.0
 
-	MARKET_MIN_STOCKPILE_TO_ALLOW_EXTRA_TRADE = 0.5
-	MARKET_STOCKPILE_PERCENTAGE_FOR_EXTRA_TRADE = 0.05
+	MARKET_MIN_STOCKPILE_TO_ALLOW_EXTRA_TRADE = 0.5 # At this stockpile percentage, it will start adding supply from stockpile
+	MARKET_STOCKPILE_FULL_EXTRA_TRADE_THRESHOLD = 0.75 # The supply from stockpile increases linearly, maxing out at this value
+	MARKET_STOCKPILE_PERCENTAGE_FOR_EXTRA_TRADE = 0.05 # When supply reaches MARKET_STOCKPILE_FULL_EXTRA_TRADE_THRESHOLD, it will add maximum of this value.
+	STOCKPILE_TRADE_IMPACT_ON_SUPPLY_SCALE = 0 # How much of the stockpile bleed (the extra-trade supply produced when stockpile > MARKET_MIN_STOCKPILE_TO_ALLOW_EXTRA_TRADE) counts toward price-formation supply. 0 = stockpile fill never suppresses price; only feeds trade routing.
 
 	MARKET_WASTED_MANUAL_TRADE_CAPACITY_TRESHOLD = 0.1
 }
@@ -1540,18 +1843,42 @@ NEconomy = {
 	ECONOMICAL_BASE_FROM_TRADE_VALUE = 0.2
 	ECONOMICAL_BASE_FROM_TRADE_PROFIT = 0.2
 	ECONOMICAL_BASE_INTEREST = 0.25
+	ECONOMICAL_BASE_FROM_FOREIGN_BUILDINGS = 1.0
 	ECONOMICAL_BASE_FROM_SUBJECT = 0.05
 	ECONOMICAL_BASE_SCALE_FROM_EACH_INSTITUTION = 0.066
 	ECONOMICAL_BASE_ALL_HAS_TRADE = no		#if no, only building based countries, if yes, all countries
+	ECONOMICAL_BASE_GROWTH_SHORT_TERM_YEARS = 5	# years back for short-term eco growth rate
+	ECONOMICAL_BASE_GROWTH_LONG_TERM_YEARS  = 50	# years back for long-term eco growth rate
 
+	PRICE_SCALE_FROM_ECO_BASE = 0.1
+
+	
 	MINTING_GOODS_LEVEL = 0.01
+	
+	GOODS_RGO_BASE_COST = 0.5
+	GOODS_RGO_PRICE_SCALE = 0.25
+
+	
+	COURT_SPENDING_FRACTON = 0.1
+	DIPLOMATIC_SPENDING_FRACTION = 0.1
 
 	PRIVATEER_STEAL_MONEY_FACTOR = 0.01
+	PRIVATEER_OPINION_INCOME_FLOOR = 5.0			# Min monthly income (ducats) used as anchor when scaling the place-privateers opinion hit; prevents tiny/bleeding countries from blowing up the divisor.
+	PRIVATEER_OPINION_FULL_IMPACT_FRACTION = 0.10	# Fraction of victim's monthly income stolen by a single placement that yields the full opinion_placed_privateers bias value. Smaller plunder scales linearly down to zero.
 
-	ESTATE_LOAN_SIZE = 0.5		
+	ESTATE_LOAN_SIZE = 0.5
 	MIN_ESTATE_LOAN = 2
 	ESTATE_LOAN_DURATION_IN_MONTHS = 60	#5 years minimum
 	ESTATE_LOAN_MIN_INTEREST = 0.01
+	BOND_SIZE = 2.0
+	MIN_BOND_SIZE = 10
+
+	# transfer_gold_from_estate caps the requested transfer at this fraction of the source estate's gold pool,
+	# so the action can never empty the estate's treasury in one click. Used by Request Emergency Loan.
+	BURGHER_GRANT_MAX_FRACTION = 0.5
+	# transfer_gold_from_estate refuses to pay out if the capped amount falls below this floor — avoids
+	# trivial grants showing up as actionable in the UI.
+	BURGHER_GRANT_MIN_TRANSFER = 5.0
 
 	OVER_FORT_LIMIT_MULTIPLIER = 1.0
 	OVER_FORT_LIMIT_ERROR_LOG = 1.0 # If setup country is this far above its fort level, throw an error
@@ -1559,16 +1886,24 @@ NEconomy = {
 	ARTIST_SALARY_BASE_FACTOR = 0.025
 	
 	UPGRADE_PRICE_MODIFIER = -0.25
-	
-	
+
+
 	CHANCE_FOR_SUBUNIT_LOSS_AT_BANKRUPTCY = 25
 	CHANCE_FOR_BUILDING_REDUCTION_AT_BANKRUPTCY = 10
 	BANKRUPTCY_STAB_LOSS = -50
 	BANKRUPTCY_INFLATION_CHANGE_PERCENT = -0.25
 	BANKRUPTCY_DURATION_IN_MONTHS = 60
-	
+
+	CREDITWORTHINESS_INTEREST_PER_UNIT = 0.1            # Max interest delta at max deviation from neutral (0.5); scales linearly
+	CREDITWORTHINESS_BANKRUPTCY_DRAIN = 0.5             # Drain applied to effective creditworthiness on bankruptcy (0-1 scale)
+	CREDITWORTHINESS_BANKRUPTCY_YEARLY_RECOVERY = 0.005 # Units of drain recovered per year (0-1 scale, ~0.5 over 100 years)
+	CREDITWORTHINESS_REPAY_BONUS = 0.02                 # Bonus per loan repaid on time (0-1 scale)
+	CREDITWORTHINESS_EXTENSION_PENALTY = 0.03           # Penalty per loan auto-extended (borrower couldn't repay)
+	CREDITWORTHINESS_WAR_CREDITOR_PENALTY = 0.15        # Penalty for declaring war on a country you owe money to
+	CREDITWORTHINESS_MONTHLY_PULL_RATE = 0.1            # Fraction of the gap to target closed each month
+
 	BANKRUPTCY_CONTROL_CHANGE_PERCENT = -0.33
-	
+
 	SUPPLY_AND_DEMAND_STABILITY_OFFSET_CONSTANT = 1 # added to supply and demand when calculating market price, higher value means lower price volatility
 
 	UNPROFITABLE_BUILDING_WORKERS_LAID_OFF_PERCENTAGE = 10 #percentage of workers that an unprofitable, unsubsidised building will lay off per month
@@ -1582,12 +1917,18 @@ NEconomy = {
 	
 	
 	PRODUCTION_EFFIENCY_BONUS_PER_LEVEL = 0.01
-	
+
+	ESTABLISHMENT_SYSTEM_ENABLED = no		# Master switch for the building establishment ramp system. When no, buildings open at 100% throughput, no PE bonus, no Crowded Establishment penalty, no AI per-location cap.
+	ESTABLISHMENT_THROUGHPUT_THRESHOLD = 0.5	# establishment fraction [0-1] below which throughput is reduced; above it PE bonus applies
+	STARTUP_MAX_PE_BONUS = 0.30		# PE bonus rate per unit of establishment fraction above threshold; max PE = (1 - threshold) * this
+	STARTUP_DECAY_RATE = 1.0		# establishment progress lost per month when building is closed
+	ESTABLISHMENT_UPGRADE_TRANSFER_FRACTION = 0.5	# fraction [0-1] of the obsoleted building's establishment inherited by the new building when an upgrade path creates it
+	ESTABLISHMENT_PROFIT_CAP_PER_LEVEL = 3.0	# gold/month/level at which a building's profit grants the maximum establishment-speed bonus
+	ESTABLISHMENT_MAX_PROFIT_BONUS = 1.0		# maximum extra establishment-speed multiplier from full profit (1.0 means up to 2x speed)
+
 	PATROL_THE_SEAS_THRESHOLD = 90		#patrol until this maritime (0-100)
 	
 	REFUND_FACTOR = 0.8
-	
-	BUILDING_UPKEEP_FACTOR = 0.2
 	
 	INFLATION_MINTING_GOLD_DEMANDS_FACTOR = 1.0
 	INFLATION_RGO_IMPACT_FACTOR = 0.01
@@ -1603,7 +1944,11 @@ NEconomy = {
 	GOV_POWER_INVEST_FACTOR = 2.0
 
 	
-	
+	POP_MOVEMENT_UPSTREAM_MODIFIER = 0.2 #moving upstream is still better than over land
+	POP_MOVEMENT_DOWNSTREAM_MODIFIER = 0.3 #moving downstream is easy peasy
+	POP_MOVEMENT_RIVER_CROSSING_MODIFIER = -0.2 #crossing a river :\
+	POP_MOVEMENT_SEA_CROSSING_MODIFIER = -0.5 #way more hassle
+
 	
 	ESTATE_BUILD_MAX_CONTROL_THRESHOLD = 0.75
 	DESTROY_ESTATE_BUILD_MIN_CONTROL_THRESHOLD = 0.75
@@ -1615,9 +1960,7 @@ NEconomy = {
 	MOTHBALL_MAINTENANCE_FACTOR = 0.5
 	PRISONERS_MAINTENANCE_FACTOR = 0.3
 	
-	SOUND_TOLL_FACTOR = 0.25
-	
-	BURGHER_MAX_TRADE_RANGE = 1000
+	SOUND_TOLL_FACTOR = 0.10
 	
 	TRADE_BURGHER_PROFIT_SCALE = 0.1
 	
@@ -1635,8 +1978,9 @@ NEconomy = {
 	TRADE_PATH_UPSTREAM_COST_MULTIPLIER = -0.2 #moving upstream is still better than over land
 	TRADE_PATH_DOWNSTREAM_COST_MULTIPLIER = -0.5 #moving downstream is easy peasy
 	TRADE_PATH_RIVER_CROSSING_COST_MULTIPLIER = 0.3 #crossing a river :\
-	TRADE_SEA_MULTIPLIER = 0.2 #moving through sea is cheaper
-	TRADE_PORT_COST = 10 #fixed cost of loading/unloading boats
+	TRADE_SEA_MULTIPLIER = 0.3 #moving through sea is cheaper
+	TRADE_SEA_MARITIME_IMPACT = -0.5
+	TRADE_PORT_COST = 5 #fixed cost of loading/unloading boats
 
 	LOCATION_DEPOPULATION_ALERT_MONTHS = 60
 	TRADE_PATH_TRAVEL_COST_MULT = 10
@@ -1651,18 +1995,32 @@ NDiplomacy = {
 	
 	REMOVE_RIVAL_COOLDOWN = 60 # months
 	
+	SPYNETWORK_VS_RIVAL = 0.25
 	
 	BASE_THREAT = 0.1
 	THREAT_DISTANCE_FACTOR_FOR_RIVAL = 0.002
+	THREAT_DISTANCE_SIZE_SCALING = 0.1 # how much steeper distance attenuates a rival's threat per unit of size disparity (their economy / ours - 1); 0 restores flat distance for all
+	THREAT_DISTANCE_SIZE_SCALING_MAX = 5.0 # cap on the size-disparity distance multiplier, so a vastly larger rival's distance bites at most this many times harder than an equal's
+	THREAT_COMPONENT_DENOMINATOR_FLOOR_FRACTION = 0.5 # each threat axis is normalized by max( our stat, this fraction of their stat ), so a tiny country dividing by its own near-zero base can no longer explode the relative comparison
+	THREAT_COMPONENT_CAP = 1.5 # hard ceiling on each positive threat axis (economy / military / population), so no single comparison alone can push a country into Alarmed
 	THREAT_BORDER_PERCENTAGE_FACTOR_FOR_RIVAL = 0.1
 	THREAT_FACTOR_WHEN_REDUCING = 0.25
-	
-	PROFESS_TRUST_REPUTATION_COST = 3
+	DISPOSITION_BREAKDOWN_MAX_LOCATIONS = 5 # max coveted locations listed in the AI disposition breakdown tooltip
+	DISPOSITION_THREAT_HYSTERESIS = 0.15 # deadband below the threat thresholds (1.0 wary / 2.0 alarmed) a disposition must fall past before leaving that state, to stop monthly flicker
+	DISPOSITION_OPPORTUNITY_HYSTERESIS = 0.1 # same deadband below the 0.5 opportunity / rivalry gates
+	DISPOSITION_FRIENDLY_OPINION_THRESHOLD = 75 # an otherwise-indifferent pair reads as friendly once opinion reaches this (OPINION range is -200..200)
+	DISPOSITION_FRIENDLY_TRUST_THRESHOLD = 75 # ...or once trust reaches this (TRUST range is 0..100, equilibrium 50)
+	DISPOSITION_FRIENDLY_HYSTERESIS = 5 # deadband below the friendly opinion/trust thresholds a pair must fall past before leaving the friendly state
+	DISPOSITION_MESSAGE_RELEVANCE_RATIO = 2.0 # a non-neighbor with no relations is named in the disposition-change digest only if its economy is at least this multiple of the player's
+	NOTABLE_DISPOSITIONS_MAX = 5 # max stances listed in a foreign country's "notable stances" panel block
 
 	MULTIPLE_ANNEX_PENALTY = -0.5
+	SUBJECT_LOYALTY_ANNEXATION_SPEED_FACTOR = 0.2
 
 	SUBJECTS_STRENGTH_THRESHOLD = 0.25
 	SUBJECTS_STRENGTH_SCALE = -2		# default value
+	LOYALTY_FROM_INDEPENDENCE_MOVEMENT_SCALE = 10	# how much each unit of relative IO strength reduces loyalty
+	LOYALTY_FROM_INDEPENDENCE_MOVEMENT_MAX = 20		# maximum loyalty reduction from independence movement strength
 
 	GOOD_RELATION_THRESHOLD_FOR_BUILDINGS = 100
 	
@@ -1691,28 +2049,42 @@ NDiplomacy = {
 	TOO_DISLOYAL_THRESHOLD = 50
 	DISLOYAL_REVENUE_SCALE = -0.02
 	
+	
 	CALL_FOR_PEACE_THRESHOLD_MONTHS = 60
 	CALL_FOR_PEACE_WARSCORE_LIMIT = 67
+	CALL_FOR_PEACE_FROM_UNCONDITIONAL_SURRENDER = 3
+	UNCONDITIONAL_SURRENDER_MONTHS = 2 #Months before unconditional surrender starts having an effect on Call for Peace. Set to negative values to disable feature.
+	UNCONDITIONAL_SURRENDER_MIN_MONTHS = 12 #cannot surrender before the war is this long
+	UNCONDITIONAL_SURRENDER_WARSCORE_LIMIT = -90 #AI won't surrender unless it's this bad.
+	MINIMUM_STRENGTH_TO_AVOID_UNCONDITIONAL_SURRENDER = 0.15
+	ACCEPTABLE_BALANCE_DEFAULT = 1.2
+	UNCONDITIONAL_SURRENDER_HOPELESS_STRENGTH_COMPARISON = 20 #if they have 20 times the army strength you do, wave the white flag
 
 	STABILITY_BLOCK_THRESHOLD = -50
 	
 	STAB_HIT_GOOD_PEACE = -10
+	SELL_CORE_STABILITY_COST = -20 # Stability lost per core location sold diplomatically
+	SELL_CORE_REBEL_MODIFIER_YEARS = 10 # Duration in years of the rebel growth modifier after selling a core
 	
 	#additive base values
 	ANTAGONISM_BASE_PER_LOCATION = 0.4 #fixed for any location
 	ANTAGONISM_BASE_PER_LOCATION_DEVELOPMENT = 0.04 #multiplied by dev
 	ANTAGONISM_BASE_PER_LOCATION_LOG_DEVELOPMENT = 0.4 #multiplied by a log2 scale of dev
-	ANTAGONISM_BASE_ATTACKER_GREAT_POWER_SCORE_MULTIPLIER = 0.01	# +50% cap, multiplied by attacker's GP score to provide antagonism increase
-	ANTAGONISM_BASE_DEFENDER_GREAT_POWER_SCORE_MULTIPLIER = 0.01	# -50% cap, multiplied by defender's GP score to provide antagonism reduction
-	ANTAGONISM_BASE_AE_INCREASE_FOR_NON_TARGET_MODIFIER = 0.33 # AE increase for countries that are not main targets of the war
+	ANTAGONISM_BASE_ATTACKER_GREAT_POWER_SCORE_MULTIPLIER = 0.01	# multiplied by attacker's GP score to provide antagonism increase
+	ANTAGONISM_BASE_ATTACKER_GREAT_POWER_SCORE_MAX = 0.25			# max antagonism bonus from attacker GP score
+	ANTAGONISM_BASE_DEFENDER_GREAT_POWER_SCORE_MULTIPLIER = 0.01	# multiplied by defender's GP score to provide antagonism reduction
+	ANTAGONISM_BASE_DEFENDER_GREAT_POWER_SCORE_MAX = 0.50			# max antagonism reduction from defender GP score
+	ANTAGONISM_BASE_AE_INCREASE_FOR_NON_TARGET_MODIFIER = 0.15 # AE increase for countries that are not main targets of the war
 
 	#modify the base value of antagonism for the location
-	ANTAGONISM_BASE_MODIFIER_WE_ARE_OVERLORD = 0.9
+	ANTAGONISM_BASE_MODIFIER_WE_ARE_BBC = -0.85
+	ANTAGONISM_BASE_MODIFIER_WE_ARE_OVERLORD = -0.9
 	ANTAGONISM_BASE_MODIFIER_WE_ARE_THE_TARGET = 0.5
 	ANTAGONISM_BASE_MODIFIER_EPICENTRE_DISTANCE_FACTOR = 0.75 #0.75 per 100 distance
 
 	#these modify dropped antagonism bombs
 	ANTAGONISM_ADDITIONAL_MODIFIER_SAME_OVERLORD = 0.5
+	ANTAGONISM_ADDITIONAL_MODIFIER_NON_COBELLIGERENT = 0.2
 	ANTAGONISM_ADDITIONAL_MODIFIER_SAME_CULTURE = 0.4
 	ANTAGONISM_ADDITIONAL_MODIFIER_SAME_CULTURE_GROUP = 0.2
 	ANTAGONISM_ADDITIONAL_MODIFIER_INFIDEL_CONQUEST = 0.4 		#different religion group conquered same religion province
@@ -1725,7 +2097,7 @@ NDiplomacy = {
 	ANTAGONISM_ADDITIONAL_MODIFIER_SAME_DIALECT = 0.25
 	ANTAGONISM_ADDITIONAL_MODIFIER_SAME_LANGUAGE = 0.2
 	ANTAGONISM_ADDITIONAL_MODIFIER_SAME_LANGUAGE_FAMILY = 0.05
-	ANTAGONISM_ADDITIONAL_MODIFIER_PENALTY_PRE_EXISTING_ANTAGONISM = 0.00 #how much any existing antagonism impacts future antagonism gains
+	ANTAGONISM_ADDITIONAL_MODIFIER_PENALTY_PRE_EXISTING_ANTAGONISM = 0.005 #how much any existing antagonism impacts future antagonism gains
 	ANTAGONISM_ADDITIONAL_MODIFIER_PERCENT_ABOVE_GP_SCORE_FOR_DONT_CARE = 1.5 #if we're at least 2.5x as powerful as them, we don't care so much about what they do
 	ANTAGONISM_ADDITIONAL_MODIFIER_GP_SCORE_MULTIPLIER_MAX = 0.25 #max amount of extra antagonism for being close in gp score
 	ANTAGONISM_ADDITIONAL_MODIFIER_GP_SCORE_MULTIPLIER_MIN = -0.25 #min amount of extra antagonism for being close in gp score
@@ -1757,15 +2129,13 @@ NDiplomacy = {
 	
 	PEACE_SEPERATE_BLOCK_MONTHS = 12
 
-	PEACE_COST_MODIFIER_FOR_REVOLT_WAR = -0.95 # Applied against a revolt war opponent
-	
-	
-	PEACE_COST_MODIFIER_UNOCCUPIED_FORT = 1.0
-
-	PEACE_COST_MODIFIER_FOR_NON_TARGET = 0.66 # Applied for countries that are not the main targets of the war
-	PEACE_COST_MODIFIER_FOR_SAME_CULTURE = -0.10 # Applied if dominant culture in location is the same as taker's primary culture
-	PEACE_COST_MODIFIER_FOR_SAME_RELIGION = -0.10 # Applied if dominant religion in location is the same as taker's religion
-	PEACE_COST_MODIFIER_FOR_POWER_PROJECTION_DIFFERENCE = 0.001 #modifies the cost of taking a location through power projection difference
+	PEACE_COST_EFFICIENCY_FOR_REVOLT_WAR = 5.0 # Applied against a revolt war opponent
+	PEACE_COST_EFFICIENCY_UNOCCUPIED_FORT = -0.33
+	PEACE_COST_EFFICIENCY_FOR_SAME_CULTURE = 0.10 # Applied if dominant culture in location is the same as taker's primary culture
+	PEACE_COST_EFFICIENCY_FOR_SAME_RELIGION = 0.10 # Applied if dominant religion in location is the same as taker's religion
+	PEACE_COST_EFFICIENCY_FOR_POWER_PROJECTION_DIFFERENCE = 0.001 #modifies the cost of taking a location through power projection difference
+	PEACE_COST_EFFICIENCY_FOR_NON_TARGET = -0.5
+	PEACE_COST_EFFICIENCY_VS_RIVAL = 0.33
 
 	PEACE_LOAN_SIZE_MULTIPLIER_FOR_MAX_WARSCORE_GOLD = 5 #how many times the country's loan size can be taken for the max war score amount
 	PEACE_MAX_WARSCORE_FOR_GOLD = 25 #most war score that can be used to take gold
@@ -1788,7 +2158,7 @@ NDiplomacy = {
 	
 	OPINION_MIN = -200
 	OPINION_MAX = 200
-	TRUST_MIN = -100
+	TRUST_MIN = 0
 	TRUST_MAX = 100
 	ANTAGONISM_MIN = 0
 	ANTAGONISM_BIAS_MIN = -100
@@ -1818,12 +2188,11 @@ NDiplomacy = {
 	BATTLE_RESULT_SCALE = 25
 	BATTLE_RESULT_CAP = 25
 
-	
-	TRUCE_YEARS = 3
-	SCALED_TRUCE_YEARS = 5
+	TRUCE_YEARS = 5
+	SCALED_TRUCE_YEARS = 10
 	REVANCHISM_MONTHLY_DECAY = 0.833
 	
-	CASUS_BELLI_MONTHS = 60
+	CASUS_BELLI_MONTHS = 120
 	
 	ANTAGONISM_IMPACT_ON_OPINION = -4
 
@@ -1852,12 +2221,14 @@ NDiplomacy = {
 	OPINION_GREAT_RELATIONS = 100 #Threshold for great relations -2 stab hit.
 	OPINION_NO_WAR = 150 #Threshold for AI, being unable to declare war because one's own opinion of enemy is too high.
 	LOYALTY_FROM_OPINION = 0.15 #how much subject loyalty we get from opinion of overlord
-	
+	LOYALTY_FROM_TRUST = 0.1 #how much subject loyalty we get from trust of overlord
+
 	IMPROVE_RELATION_SUBJECT_FACTOR = 2 #Subjects have a maximum this times higher.
-	MAX_WARSCORE_REDUCTION = -0.99 # Warscore reduction cannot go below -95%
 	
 	
 	CULTURE_WAR_IMPACT = 10
+	CULTURE_WAR_IMPACT_ON_SPY_NETWORK = 0.5
+	SPY_NETWORK_MIN_MODIFIER = 0.1
 
 	FAVORS_DECAY = -0.0
 	CURRY_FAVORS = 0.5
@@ -1871,24 +2242,39 @@ NDiplomacy = {
 	SPY_NETWORK_SIEGE_EFFECT = 0.2
 	SPY_NETWORK_AE_EFFECT = -0.1
 	MONTHLY_SPYNETWORK = 1
+
+	TRUST_EQUILIBRIUM = 50
+	TRUST_MONTHLY_DECAY = -0.5
+	TRUST_MONTHLY_RECOVERY = 0.05
+	TRUST_MONTHLY_RECOVERY_FROM_DIPLOMATIC_REPUTATION = 0.005
+	TRUST_CHANGE_DECLARE_WAR = -20
+	TRUST_CHANGE_BREAK_TRUCE_DEFENDER = -30
+	TRUST_CHANGE_BREAK_TRUCE_IN_RANGE = -5
+	TRUST_CHANGE_CALL_TO_ARMS_REJECTED = -25
+
+	IMMEDIATE_TRUST_FACTOR_FROM_PROFESS_TRUST = 0.5
+	PROFESS_TRUST_COOLDOWN_MONTHS = 24
+	MARITIME_EXIT_WEIGHT = 20
+	MARITIME_PATH_WEIGHT = 50
+	MARITIME_ARRIVAL_WEIGHT = 20
+	MARITIME_MARITIME_MAX = 20
+	MARITIME_PATH_MAX = 500
+	LAND_PATH_AREA_COST = 20
+
+
+	TRUST_BROKEN_TRUCE = 10
 	
 	INFILTRATE_ADMINISTRATION_DURATION = 24
 	
-	BASE_GREAT_POWER = 4
-	MIN_TOTAL_RANKS_PER_GREAT_POWER = 400
-	MAX_TOTAL_RANKS_PER_GREAT_POWER = 800
-	
-	GREAT_POWER_GAIN_PERCENTAGE = 0.70
-	GREAT_POWER_DROP_PERCENTAGE = 0.65
-
-	MONTHS_OF_TEETERING_BEFORE_GP_STATUS_LOST = 12	#1 year of grace period when you are about to lose great power status
+	GREAT_POWER_POINTS_THRESHOLD = 40		# GP points needed to be a Great Power
+	REGIONAL_POWER_POINTS_THRESHOLD = 20	# GP points needed to be a Regional Power
+	GREAT_POWER_AREA_WEALTH_DIVISOR = 5		# median_tax_base / this = unit for area point scaling (median area = 5 pts)
 	
 	HEGEMONY_LOST_MONTHS = 120
 	HEGEMONY_GRACE_PERIOD = 12	#1 year of grace period when someone is contesting you in the hegemony
 	HEGEMONY_ACTIVE_UNTIL_REPLACED = yes	#if set to no, the hegemony will immediately lose this status once the grace period is over instead of having to wait for a competing country to replace them
 	HEGEMONY_MONTHLY_PROGRESS = 1
 	
-	RANK_PEACE_COST_TIER_DIFF = 0.10
 	
 	ROYAL_MARRIAGE_BASE = 2
 	ROYAL_MARRIAGE_PRESTIGE_DIFF_FACTOR = 0.01
@@ -1972,16 +2358,69 @@ NDiplomacy = {
 	SETUP_NUM_RELATIONS_OVER_LIMIT_ERROR = 0.5 # If setup country has this % of diplomatic relations over the limit, throw an error
 
 	LIBERATE_SLAVES_BASE_COST = 5
-	LIBERATE_SLAVES_MAX_COST = 25
+	LIBERATE_SLAVES_MAX_COST = 50				# Cap raised from 25 to 50; with the per-treaty pop cap (LIBERATE_SLAVES_MAX_POP_TRANSFER_FRACTION) this stays affordable across scales while no longer letting a single 25-warscore treaty repatriate an entire enslaved population.
 	LIBERATE_SLAVES_POPULATION_DIVISOR = 10000
+	LIBERATE_SLAVES_MAX_POP_TRANSFER_FRACTION = 0.1	# Maximum fraction of the Taker's current total population that a single Liberate Slaves peace treaty may transfer. Closes CAESAR-67681 (Vijayanagar vs. Delhi pop-dump exploit).
 
 	ASK_FOR_MONEY_ALERT_ADVANCE_MONTHS = 60			# How many months in advance to notify that action will be available. Negative number disables the alert entirely
 
 	POSITIVE_OPINION_FROM_ENFORCED_PEACE_WARSCORE = -10 # If the country protected with enforced peace had lower warscore than this, actor will get positive opinion from their side
+
+	# Intel fog thresholds — spy network level required to reveal each data tier
+	INTEL_THRESHOLD_RULER_STATS       = 5
+	INTEL_THRESHOLD_LEGITIMACY        = 5
+	INTEL_THRESHOLD_WAR_EXHAUSTION    = 5
+	INTEL_THRESHOLD_COUNTRY_MODIFIERS = 5
+	INTEL_THRESHOLD_ESTATES_POWER     = 5
+	INTEL_THRESHOLD_AI_PERSONALITY    = 5
+	INTEL_THRESHOLD_LOCATION_POP_BREAKDOWN    = 5
+	INTEL_THRESHOLD_LOCATION_SATISFACTION    = 5
+	INTEL_THRESHOLD_LOCATION_LITERACY    = 5
+	INTEL_THRESHOLD_LOCATION_EMPLOYMENT    = 5
+	INTEL_THRESHOLD_LOCATION_INTEGRATION    = 5
+	INTEL_THRESHOLD_LOCATION_MODIFIERS    = 5
+	INTEL_THRESHOLD_LOCATION_DISEASE    = 5
+	INTEL_THRESHOLD_LOCATION_MIGRATION    = 5
+	INTEL_THRESHOLD_LOCATION_ENFRANCHISEMENT    = 5
+	INTEL_THRESHOLD_INCOME            = 15
+	INTEL_THRESHOLD_TAX_BASE          = 15
+	INTEL_THRESHOLD_MANPOWER          = 15
+	INTEL_THRESHOLD_SAILORS           = 15
+	INTEL_THRESHOLD_STABILITY         = 15
+	INTEL_THRESHOLD_LOCATION_TAX_BASE         = 15
+	INTEL_THRESHOLD_LOCATION_RGO_WORKERS         = 15
+	INTEL_THRESHOLD_LOCATION_RAW_MATERIALS         = 15
+	INTEL_THRESHOLD_LOCATION_FOOD_OUTPUT         = 15
+	INTEL_THRESHOLD_LOCATION_DEVELOPMENT         = 15
+	INTEL_THRESHOLD_LOCATION_PROSPERITY         = 15
+	INTEL_THRESHOLD_LOCATION_TRADE_VOLUMES         = 15
+	INTEL_THRESHOLD_ARMY_SIZE         = 25
+	INTEL_THRESHOLD_LEVY_STRENGTH     = 25
+	INTEL_THRESHOLD_NAVY_STRENGTH     = 25
+	INTEL_THRESHOLD_NAVY_LEVY_STRENGTH = 25
+	INTEL_THRESHOLD_FORT_COUNT        = 25
+	INTEL_THRESHOLD_TOTAL_POPULATION  = 25
+	INTEL_THRESHOLD_ARMY_TRADITION    = 25
+	INTEL_THRESHOLD_NAVY_TRADITION    = 25
+	INTEL_THRESHOLD_COMBAT_MODIFIERS  = 25
+	INTEL_THRESHOLD_LOCATION_GARRISON  = 25
+	INTEL_THRESHOLD_LOCATION_FORT_LEVEL  = 25
+	INTEL_THRESHOLD_LOCATION_SUPPLY_LIMIT  = 25
+	INTEL_THRESHOLD_LOCATION_LEVIES  = 25
+	INTEL_THRESHOLD_LOCATION_CONSTRUCTIONS  = 25
+	INTEL_THRESHOLD_LOCATION_AVAILABLE_SLOTS  = 25
+	INTEL_THRESHOLD_LOCATION_ATTRITION  = 25
+	INTEL_THRESHOLD_LOCATION_WAR_WORTH  = 25
+	INTEL_THRESHOLD_LOCATION_OWNERSHIP  = 25
+	INTEL_THRESHOLD_LOCATION_MOVEMENT_RESISTANCE  = 25
+	INTEL_THRESHOLD_LOCATION_FOOD_DECAY  = 25
 }
 
 NWar = {
 	MAX_WAR_SCORE = 100
+	
+	
+	OCCUPATION_VALUE_SCALE = 2.0		#at 1.0 you need 100% of the occupied land to get 100% warscore, higher requires less..
 
 	PARTICIPATION_SCORE_BLOCKADE = 0.001 			# Per development & ship, once each month
 	PARTICIPATION_SCORE_BATTLE = 0.03 				# Per regiment or ship engaged in battle
@@ -2018,6 +2457,8 @@ NWar = {
 	FAVOR_GAIN_FOR_LAND = 10 # Favors gained for giving land (scales with how much they actually got relative to participation)
 	TRUST_PENALTY_FOR_NO_LAND = 20 # Trust penalty for not being given as much land as they expected in peace deal (scales with how much they actually got relative to participation)
 	BROKE_LAND_PROMISE_YEARS = 30
+	BROKE_LAND_PROMISE_IN_RANGE_TRUST_CHANGE = -5
+	DECLINE_CANNOT_REJOIN_WAR_MONTHS = 6
 	OPINION_PENALTY_FOR_NO_LAND = 1
 	PENALTY_FOR_NO_LAND_NOT_PROMISED_MULT = 0.5
 	MINIMUM_CONTRIBUTION_NOT_PROMISED_LAND = 0.2
@@ -2025,12 +2466,16 @@ NWar = {
 	EXPECTED_GAINS_PROMISED_LAND = 0.75
 	EXPECTED_GAINS_NOT_PROMISED_LAND = 0.5
 
-	DURATION_BEFORE_PURGING_WARS_IN_DAYS = 365
 	YEARS_SINCE_LAST_WAR_ACTION_BEFORE_WHITE_PEACE = 3
 	YEARS_BEFORE_WHITE_PEACE_ALERT_ADVANCE = 1
+	DURATION_BEFORE_PURGING_WARS_IN_DAYS = 365
 	PEACE_REVOKE_CORE_MULT = 0.25
+	PEACE_REMOVE_PROVINCE_FROM_INTERNATIONAL_ORGANIZATION = 0.25
 
 	PEACE_RETURN_CORE_MULT = 0.5
+	
+	BUILDING_DESTROY_GOLD_VALUE = 0.1		# percent of building cost
+	BUILDING_DESTROY_CHANCE = 50		#chance of 100
 }
 
 NWorkOfArt = {
@@ -2049,6 +2494,13 @@ NWorkOfArt = {
 	NAME_SAINTS = {
 		name_george name_michael name_peter name_john name_james name_mark name_lucas name_matthew name_gabriel name_simeon name_gregory
 	}
+
+	QUALITY_FACTOR_MIN = 0.3
+	QUALITY_FACTOR_MAX = 1.7
+	AGE_GOLD_CAP = 3.0
+	AGE_CULTURE_CAP = 2.5
+	BASE_TRADITION_SCALAR = 5.0
+	BASE_INFLUENCE_SCALAR = 5.0
 }
 
 NDynasty = {
@@ -2061,9 +2513,12 @@ NDynasty = {
 	LIVING_SIZE_THRESHOLD_FOR_MARRY_IMPORTANT = 21
 
 	CALC_DYNASTY_HEAD_SCORE_MALE = 25				# Ignore this if country has Gender Equality
-	CALC_DYNASTY_HEAD_SCORE_RULER = 50				# We also add the Great Power Score of all the countries the character rules
-	CALC_DYNASTY_HEAD_SCORE_HEIR = 20				# Only if not also a ruler
+	CALC_DYNASTY_HEAD_SCORE_RULER = 10000				# We also add the Great Power Score of all the countries the character rules
+	CALC_DYNASTY_HEAD_SCORE_HEIR = 1000				# Only if not also a ruler
 	CALC_DYNASTY_HEAD_SCORE_ESTATE = 100			# if the character's estate type has 'priority_for_dynasty_head = yes'
+	CALC_DYNASTY_HEAD_SCORE_SUBJECT = 0.1				# If is subject
+
+	DYNASTIC_POWER_ONLY_DYNASTY_SEAT = 0.05			# multiplier to the dynasty power contribution from a country which has only the dynasty seat
 }
 
 NColony = {
@@ -2098,10 +2553,21 @@ NInternationalOrganization = {
 	MONTHS_TO_DISBAND_FROM_BIAS = 3 #how many months to let a bias imbalance build up before disbanding the IO
 }
 
+NImperialCircle = {
+	FORMATION_PERIOD_MONTHS = 24                  # How long HRE members have to join a circle before formation locks
+	CANDIDATE_AREA_HRE_LOCATION_PERCENT = 0.5     # Minimum fraction of an area's locations that must be HRE-owned for a circle to form there
+	MIN_VOTING_POWER_THRESHOLD = 10               # Raw voting-power cutoff for merge cascade: circles below this absolute power get absorbed into the smallest adjacent circle during formation
+	MAX_VOTING_POWER_CAP = 0.35                   # No single circle may exceed this share of total HRE voting power
+	CIRCLE_DORMANCY_THRESHOLD = 2                 # A circle with fewer than this many active members is dormant
+}
+
 NWeather = {
 	FRONT_DEGRADATION_DISTANCE_FOR_TOPOGRAPHY = 125 #every FRONT_DEGRADATION_DISTANCE_FOR_TOPOGRAPHY pixels moved, the strength of the weather front changes by weather_front_strength_change_percent on locations underneath the front
 	CYCLONE_DEGRADATION_DISTANCE_FOR_TOPOGRAPHY = 125 #every CYCLONE_DEGRADATION_DISTANCE_FOR_TOPOGRAPHY pixels moved, the strength of the cyclone changes by weather_cyclone_strength_change_percent on locations underneath the cyclone
 	TORNADO_DEGRADATION_DISTANCE_FOR_TOPOGRAPHY = 125 #every TORNADO_DEGRADATION_DISTANCE_FOR_TOPOGRAPHY pixels moved, the strength of the tornado changes by weather_tornado_strength_change_percent on locations underneath the tornado
+	FRONT_DEGRADATION_PER_PIXEL_OF_LATITUDE = 0 #every pixel of latitude moved away from the equator, strength will go down by FRONT_DEGRADATION_PER_PIXEL_OF_LATITUDE
+	CYCLONE_DEGRADATION_PER_PIXEL_OF_LATITUDE = 0 #every pixel of latitude moved away from the equator, strength will go down by FRONT_DEGRADATION_PER_PIXEL_OF_LATITUDE
+	TORNADO_DEGRADATION_PER_PIXEL_OF_LATITUDE = 0 #every pixel of latitude moved away from the equator, strength will go down by FRONT_DEGRADATION_PER_PIXEL_OF_LATITUDE
 	PIXEL_COUNT_FOR_AVERAGE_LOCATION = 1600
 	PERCENT_DIFFERENCE_BETWEEN_GOOD_AND_BAD_SIDE_OF_CYCLONE = 50
 }
@@ -2111,19 +2577,24 @@ NReligion = {
 	PERIPHORA_DAYS_PER_LOCATION = 30
 	RELIGIOUS_FIGURE_CHANCE_OF_MOVING = 0.01
 	CORE_THRESHOLD = 0.5
+	OMEN_LENGTH_MONTHS = 120
+}
+
+NSpreadable = {
+	ESTIMATED_TRAVELLERS_TO_NEIGHBOURING_LOCATIONS = 0.06
+	ESTIMATED_PEOPLE_PER_UNIT_MERCHANT_CAPACITY = 0.012
+	ESTIMATED_TRAVELLERS_TO_CAPITAL = 0.06
+	ESTIMATED_TRAVELLERS_TO_MARKET_CENTRE = 0.06
+	ESTIMATED_MIXING_WITH_UNITS = 0.06
+	ESTIMATED_MIXING_WITHIN_UNITS = 0.35
 }
 
 NDisease = {
 	MAX_DISEASE_PERCENTAGE = 1
-	ESTIMATED_TRAVELLERS_TO_NEIGHBOURING_LOCATIONS = 0.05
-	ESTIMATED_PEOPLE_PER_UNIT_MERCHANT_CAPACITY = 0.01
-	ESTIMATED_TRAVELLERS_TO_CAPITAL = 0.05
-	ESTIMATED_TRAVELLERS_TO_MARKET_CENTRE = 0.05
-	ESTIMATED_MIXING_WITH_UNITS = 0.05
-	ESTIMATED_MIXING_WITHIN_UNITS = 0.3
 	PANDEMIC_LOCATIONS = 1000
 	SEVERE_LOCATIONS = 500
 	MODERATE_LOCATIONS = 200
+	STAGNATION_LENGTH_DAYS = 1000
 	PANDEMIC_MIN_DEATHS = 50000 #50M
 	SEVERE_MIN_DEATHS = 1000 #1M
 	MODERATE_MIN_DEATHS = 50 #50k
