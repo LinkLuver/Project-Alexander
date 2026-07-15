@@ -1,15 +1,42 @@
 ﻿# CORE TRIGGERS
-
 portrait_clothing_trigger = {
 	gfx_culture_applicable = $CULTURE_FLAG$
+}
+
+portrait_country_clothing_trigger = {
+	employer ?= {
+		gfx_culture_applicable = $CULTURE_FLAG$
+	}
 }
 
 portrait_religion_clothing_trigger = {
 	gfx_culture_applicable = $RELIGION_FLAG$
 }
 
-# SITUATIONAL TRIGGERS
+# AGE TRIGGERS
+portrait_early_trigger = {
+	OR = {
+		birth_age = age:age_0_diadochi
+		birth_age = age:age_1_hellenistic
+	}
+}
 
+portrait_mid_trigger = {
+	OR = {
+		birth_age = age:age_2_empires
+		#birth_age = age:age_4_reformation
+	}
+}
+
+portrait_late_trigger = {
+	OR = {
+		always = no
+		#birth_age = age:age_5_absolutism
+		#birth_age = age:age_6_revolutions
+	}
+}
+
+# SITUATIONAL TRIGGERS
 portrait_is_hre_elector_trigger = {
 	trigger_if = {
 		limit = { exists = this } # To check if this is an actual character
@@ -17,7 +44,6 @@ portrait_is_hre_elector_trigger = {
 			is_ruler = yes
 			any_ruling_countries = {
 				government_type = government_type:monarchy
-				country_rank_level >= 2 # duchy or above
 				exists = international_organization:hre
 				has_special_status_in_international_organization = {
 					type = special_status:elector
@@ -230,11 +256,19 @@ portrait_high_nobility_trigger = {
 			exists = this
 			is_ruler = no
 			is_married = yes
+			num_of_spouses >= 1
 		}
 		any_spouse ?= {
-			is_alive = yes
 			is_ruler = yes
-			any_ruling_countries = { country_rank_level = 2 }
+			any_ruling_countries = { 
+				OR = {
+					country_rank_level = 2
+					AND = {
+						country_rank_level >= 3
+						government_type = government_type:republic
+					}
+				}
+			}
 		}
 		portrait_clothing_trigger = { CULTURE_FLAG = $CULTURE_GFX$ }
 	}
@@ -254,14 +288,23 @@ portrait_high_nobility_trigger = {
 			exists = this
 		}
 		any_ruling_countries = {
-			country_rank_level = 2
+			OR = {
+				country_rank_level = 2
+				AND = { # level 3 republics can't wear royal outfit so they'd fallback on low nobility trigger
+					country_rank_level >= 3
+					government_type = government_type:republic
+				}
+			}
 			NOR = {	
 				government_type = government_type:theocracy
 				is_leader_of_international_organization = international_organization:hre
 			}
 		}
 		NOR = {
-			any_ruling_countries = { country_rank_level > 2	} # makes sure that this is the highest title
+			any_ruling_countries = { # makes sure that this is the highest title but for republics
+				country_rank_level > 2
+				NOT = { government_type = government_type:republic }
+			}
 			has_estate = estate_type:clergy_estate
 		}
 		portrait_clothing_trigger = { CULTURE_FLAG = $CULTURE_GFX$ }
@@ -299,30 +342,58 @@ portrait_royalty_trigger = {
 			exists = this
 			is_ruler = no
 			is_married = yes
+			num_of_spouses >= 1
 		}
 		any_spouse ?= {
-			is_alive = yes
 			is_ruler = yes
-			any_ruling_countries = { country_rank_level = 3 }
-		}
-		portrait_clothing_trigger = { CULTURE_FLAG = $CULTURE_GFX$ }
-	}
-	trigger_else_if = { # Ruler
-		limit = { 
-			exists = this
-		}
-		any_ruling_countries = {
-			OR = {
+			any_ruling_countries = {
 				country_rank_level = 3
-				any_international_organizations_member_of = {
-					international_organization_type = international_organization_type:high_kingship
-					exists = leader_country
-					leader_country ?= prev
+				NOR = {
+					government_type = government_type:theocracy
+					government_type = government_type:republic
 				}
 			}
-			NOT = { government_type = government_type:theocracy }
 		}
-		portrait_clothing_trigger = { CULTURE_FLAG = $CULTURE_GFX$ }
+		portrait_country_clothing_trigger = { CULTURE_FLAG = $CULTURE_GFX$ }
+	}
+	trigger_else_if = { # Ruler
+		limit = {
+			exists = this
+		}
+		OR = {
+			any_ruling_countries = {
+				OR = {
+					country_rank_level = 3
+					any_international_organizations_member_of = {
+						international_organization_type = international_organization_type:high_kingship
+						exists = leader_country
+						leader_country ?= prev
+					}
+				}
+				NOR = {
+					government_type = government_type:theocracy
+					government_type = government_type:republic
+				}
+			}
+			AND = {
+				character_is_co_ruler_trigger = yes
+				owner ?= {
+					OR = {
+						country_rank_level = 3
+						any_international_organizations_member_of = {
+							international_organization_type = international_organization_type:high_kingship
+							exists = leader_country
+							leader_country ?= prev
+						}
+					}
+					NOR = {
+						government_type = government_type:theocracy
+						government_type = government_type:republic
+					}
+				}
+			}
+		}
+		portrait_country_clothing_trigger = { CULTURE_FLAG = $CULTURE_GFX$ }
 	}
 	trigger_else = { always = no }
 }
@@ -333,30 +404,103 @@ portrait_imperial_trigger = {
 			exists = this
 			is_ruler = no
 			is_married = yes
+			num_of_spouses >= 1
 		}
 		any_spouse ?= {
-			is_alive = yes
 			is_ruler = yes
 			any_ruling_countries = {
 				OR = {
 					country_rank_level = 4
 					is_leader_of_international_organization = international_organization:hre
 				}
+				NOR = {
+					government_type = government_type:theocracy
+					government_type = government_type:republic
+				}
 			}
 		}
-		portrait_clothing_trigger = { CULTURE_FLAG = $CULTURE_GFX$ }
+		portrait_country_clothing_trigger = { CULTURE_FLAG = $CULTURE_GFX$ }
 	}
 	trigger_else_if = { # Ruler
 		limit = {
 			exists = this
 		}
-		any_ruling_countries = {
-			OR = {
-				country_rank_level = 4
-				is_leader_of_international_organization = international_organization:hre
+		OR = {
+			any_ruling_countries = {
+				OR = {
+					country_rank_level = 4
+					is_leader_of_international_organization = international_organization:hre
+				}
+				NOR = {
+					government_type = government_type:theocracy
+					government_type = government_type:republic
+				}
+			}
+			AND = {
+				character_is_co_ruler_trigger = yes
+				owner ?= {
+					OR = {
+						country_rank_level = 4
+						any_international_organizations_member_of = {
+							international_organization_type = international_organization_type:high_kingship
+							exists = leader_country
+							leader_country ?= prev
+						}
+					}
+					NOR = {
+						government_type = government_type:theocracy
+						government_type = government_type:republic
+					}
+				}
 			}
 		}
-		portrait_clothing_trigger = { CULTURE_FLAG = $CULTURE_GFX$ }
+		portrait_country_clothing_trigger = { CULTURE_FLAG = $CULTURE_GFX$ }
 	}
 	trigger_else = { always = no }
+}
+
+## SPECIFIC TRIGGERS
+portrait_is_patriarch_trigger = {
+	trigger_if = {
+		limit = { exists = this }
+		portrait_clergy_trigger = { RELIGION_GFX = eastern_christian_gfx }
+		OR = {
+			any_ruling_countries = { country_rank_level >= 3 }
+			has_variable = is_patriarch
+			has_variable = is_pentarch
+		}
+	}
+}
+
+## DISEASES
+portrait_bubonic_plague_trigger = {
+	has_trait = bubonic_plague_trait
+}
+
+portrait_disfigurement_trigger = {
+	has_trait = disfigured
+}
+
+portrait_healthy_trigger = {
+	has_trait = healthy
+}
+
+portrait_hunchback_trigger = {
+	has_trait = hunchback
+}
+
+portrait_illness_trigger = {
+	has_trait = sickly
+}
+
+portrait_pox_scars_trigger = {
+	has_trait = pockmarked_trait
+}
+
+portrait_smallpox_trigger = {
+	has_trait = smallpox_trait
+}
+
+portrait_scarred_trigger = {
+	has_trait = scarred
 }
