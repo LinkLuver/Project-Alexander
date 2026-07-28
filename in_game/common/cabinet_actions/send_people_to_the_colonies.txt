@@ -1,0 +1,139 @@
+﻿send_people_to_the_colonies = {
+	ability = adm
+	
+	allow_multiple = yes
+	
+	potential = {
+		is_rebel_country = no
+	}
+	
+	allow = {
+		total_population >= 5
+		any_subject = {
+			is_subject_type = colonial_nation
+			count > 0
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target
+		cache_targets = yes
+		name = "send_people_to_the_colonies_select_province"
+		none_available_msg_key = "send_people_to_the_colonies_source_no_provinces"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		enabled = {
+			population > 1
+		}
+		map_color = define:NMapColors|MAP_COLOR_HIGH
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target_1
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_targets = yes
+		name = "send_people_to_the_colonies_select_colony"
+		none_available_msg_key = "send_people_to_the_colonies_no_countries"
+		column = {
+			data = name
+		}
+		visible = {
+			is_subject_type = colonial_nation
+		}
+		map_color = define:NMapColors|MAP_COLOR_HIGH
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		source = target_1
+		target_flag = target_2
+		name = "send_people_to_the_colonies_select_destination_province"
+		none_available_msg_key = "send_people_to_the_colonies_destination_no_provinces"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+		}
+		enabled = {
+			population < scope:target.population 
+		}
+		map_color = define:NMapColors|MAP_COLOR_HIGH
+	}
+
+	on_activate = {
+		if = {
+			limit = {
+				exists = scope:target
+				exists = scope:target_2
+			}
+			add_migration = {
+				owner = scope:actor
+				from = scope:target.province_definition
+				to = scope:target_2.province_definition
+				amount = {
+					value = 0.100
+					multiply = {
+						value = 1
+						if = {
+							limit = {
+								exists = scope:cabinet
+							}
+							add = "scope:cabinet.effective_skill"
+						}
+					}
+				}
+				months = -1
+			}
+		}
+	}
+
+	on_deactivate = {
+		if = {
+			limit = {
+				exists = scope:target
+				exists = scope:target_2
+			}
+			remove_migration = {
+				owner = scope:actor
+				from = scope:target.province_definition
+				to = scope:target_2.province_definition
+			}
+		}
+	}
+
+	country_modifier = {
+	}
+
+	is_finished = {
+		trigger_if = {
+			limit = {
+				exists = scope:target
+				exists = scope:target_2
+			}
+			or = {
+				scope:target_2.population >= scope:target.population 
+				scope:target = {
+					any_location_in_province = {
+						population < 1
+					}
+				}
+			}
+		}
+	}
+}

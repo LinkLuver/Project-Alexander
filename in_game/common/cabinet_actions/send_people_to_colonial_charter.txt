@@ -1,0 +1,91 @@
+﻿send_people_to_colonial_charter = {
+	ability = adm
+	allow_multiple = yes
+	potential = {
+		is_rebel_country = no
+	}
+	allow = {
+		total_population >= 5
+		has_colonial_charters = yes
+	}
+	
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target
+		name = "send_people_to_colonial_charter_select_province"
+		none_available_msg_key = "send_people_to_colonial_charter_no_provinces"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			province_definition = {
+				not = { has_colonial_charter = scope:actor }
+			}
+		}
+		enabled = {
+			population > 1
+		}
+		map_color = define:NMapColors|MAP_COLOR_HIGH
+	}
+
+	select_trigger = {
+		looking_for_a = colonial_charter
+		source = actor
+		target_flag = target_1
+		name = "send_people_to_colonial_charter_select_colonial_charter"
+		none_available_msg_key = "send_people_to_colonial_charter_no_colonial_charters"
+		column = {
+			data = name
+		}
+		visible = {
+			not = { province_definition = scope:target.province_definition }
+			NOT = {
+				cabinet_already_performing_same_task_on_target = {
+					cabinet_action = send_people_to_colonial_charter
+					interaction_target = target_1
+				}
+			}
+		}
+		map_color = define:NMapColors|MAP_COLOR_HIGH
+		map_mode = select_target_colonial
+	}
+
+	on_activate = {
+		scope:target_1 ?= {
+			add_additional_migration = {
+				province = scope:target
+				cabinet = root
+			}
+		}
+	}
+
+	on_deactivate = {
+		scope:target_1 ?= {
+			remove_additional_migration = {
+				province = scope:target
+				cabinet = root
+			}
+		}
+	}
+
+	country_modifier = {
+	}
+
+	is_finished = {
+		trigger_if = {
+			limit = {
+				exists = scope:target
+				exists = scope:target_1
+			}
+			scope:target = {
+				any_location_in_province = {
+					population < 1
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,76 @@
+﻿recovery_effort = {
+	ability = dip
+	
+	allow_multiple = yes
+
+	potential = {
+		num_locations > 0 
+	}
+
+	allow = {
+	}
+	
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target
+		name = "recovery_effort_select_province"
+		none_available_msg_key = "recovery_effort_no_provinces"
+		column = {
+			data = name
+		}
+		column = {
+			data = prosperity
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			any_location_in_province = {
+				prosperity < 0
+			}
+			NOT = { cabinet_already_performing_same_task_on_target = { cabinet_action = recovery_effort interaction_target = target } }
+		}
+		enabled = {
+			any_location_in_province = {
+				prosperity < 0
+			}
+		}
+		map_color = {
+			lerp = {
+				min_color = define:NMapColors|MAP_COLOR_LOW
+				max_color = define:NMapColors|MAP_COLOR_HIGH
+				factor = {
+					value = prosperity
+					divide = 100
+				}
+			}
+		}
+	}
+	
+	is_finished = {
+		scope:target = {
+			any_location_in_province = {
+				prosperity >= 0
+				count = all
+			}
+		}
+	}
+
+	location_modifier = {
+		local_devastation_recovery = 0.05
+		local_population_growth = 0.001
+	}
+
+	map_marker = {
+		show_for_owner = yes
+	}
+	
+	progress = {
+		scope:target = {
+			value = lowest_prosperity
+			add = 1
+		}
+	}
+}
