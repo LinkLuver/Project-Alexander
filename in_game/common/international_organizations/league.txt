@@ -1,22 +1,52 @@
 league = {
-	unique = yes
+	expel_members_who_are_attackers_at_war_with_other_members = yes
 	expel_members_who_are_targets_of_other_members = no
 	disband_if_no_leader = no
 	show_leave_message = no
+	annulled_by_peace_treaty = yes
+	has_parliament = yes
+	parliament_type = league_assembly 
 
 	has_leader_country = no
-	land_ownership_rule = league_land_ownership
+	#land_ownership_rule = league_land_ownership
 	gives_military_access_to_all_when_at_war = yes
+
+
+	joins_defensive_wars_as_co_belligerent = yes	
+
+	laws = {
+		 league_legal_jurisdiction = league_complete_autonomy
+		 league_representation = league_among_equals
+		 #league_foundation_law = league_koinon_foundation
+		 league_currency = league_independent_currency
+	}
+	special_statuses_implemented = { league_hegemon }
+
 	can_declare_war = {
-		always = yes
+		trigger_if = {
+			limit = { scope:attacker ?= { is_member_of_international_organization = scope:recipient } }
+			scope:defender ?= { NOT = { is_member_of_international_organization = scope:recipient } }
+		}
+		trigger_else = {
+			always = yes
+		}
 	}
 
 	create_visible_trigger = {
-		always = no
+		is_subject = no
 	}
 
 	invite_visible_trigger = {
-		always = no
+		always = yes
+	}
+
+	join_defensive_wars_auto_call = {
+		exists = scope:target
+		scope:target ?= {
+			not = {
+				is_member_of_international_organization = root
+			}
+		}
 	}
 	can_declare_war = {
 		trigger_if = {
@@ -38,11 +68,59 @@ league = {
 		}
 	}
 	can_join_trigger = {
-		scope:recipient = {
-			international_organization_has_law = law:sc_membership_regulation
-		}
+		#can only be in one of these
+		is_subject = no
 		is_rebel_country = no
+		not = {
+			is_member_of_international_organization_of_type = {
+				type = league
+			}
+		}
+		# A country cannot join or be invited into a defensive league while it is itself at war.
+		# This prevents forming or expanding a league after a war has already been declared in order
+		# to drag fresh members into the ongoing war.
+		at_war = no
+		trigger_if = {
+			limit = {
+				exists = scope:recipient
+			}
+			scope:recipient = {
+				not = {
+					custom_tooltip = {
+						text = hre_num_of_emperor_comfort_policies_active_$value$_tt #update
+						any_international_organization_member = {
+							save_temporary_scope_as = io_member
+							OR = {
+								has_blocked_treaties = root
+								is_rival_of = root
+								is_enemy_of = root
+								# Same relations floor that alliances enforce (see alliance_can_exist):
+								# opinion must be non-negative in BOTH directions between the joiner and every member.
+								opinion = { target = root value < 0 }
+								root = { opinion = { target = scope:io_member value < 0 } }
+								# No existing member may be at war (can't recruit into an ongoing war).
+								at_war = yes
+							}
+						}
+					}
+				}
+			}
+		}
+		trigger_else = {
+			not = { has_blocked_treaties = scope:actor }
+			scope:actor = {
+				not = { has_blocked_treaties = root }
+				not = { is_rival_of = root }
+				not = { is_enemy_of = root }
+				# Founding partner must be at peace (see above).
+				at_war = no
+				# Relations floor, both directions (mirrors alliance_can_exist).
+				opinion = { target = root value >= 0 }
+				root = { opinion = { target = scope:actor value >= 0 } }
+			}
+		}
 	}
+	
 	can_leave_trigger = {
 		always = no
 	}
@@ -51,7 +129,277 @@ league = {
 
 	}
 	variables = {
-		
+		#cohesion = {
+		imperial_authority = {
+			format = "IMPERIAL_AUTHORITY_DISPLAY"
+			change_format = "VARIABLE_CHANGE_FORMAT"
+			min = 0
+			max = 100
+			#monthly_change = {
+			#	add = {
+			#		desc = "game_concept_opinion"
+			#		scope:recipient = {
+			#			every_international_organization_member = {
+			#				limit {
+			#					opinion = {target = root 100 }
+			#				}
+			#				root = {
+			#					add = {
+			#						value = this_opinion_of_prev
+			#						multiply = 0.2
+			#					}
+			#				}
+			#			}
+			#		}
+			#	}
+			#}
+		}
+	}
+	
+	join_diplo_chance = {
+		opinion = 0.25
+	}
 
+	ai_desire_to_join = {
+
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = -50
+		}
+
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			#any rivals in here?
+			add = {
+				desc = "game_concept_rival"
+				scope:recipient = {
+					every_international_organization_member = {
+						limit = {
+							or = {
+								is_rival_of = root
+								root = {
+									is_rival_of = prev
+								}
+							}
+						}
+						add = {
+							value = -100
+						}
+					}
+				}
+			}
+
+			add = {
+				desc = "game_concept_trust"
+				scope:recipient = {
+					every_international_organization_member = {
+						save_temporary_scope_as = member
+						root = {
+							value = "trust(scope:member)"
+							divide = 5
+						}
+					}
+					divide = "scope:recipient.total_members"
+				}
+			}
+
+			add = {
+				desc = "game_concept_opinion"
+				scope:recipient = {
+					every_international_organization_member = {
+						root = {
+							add = {
+								value = this_opinion_of_prev
+								multiply = 0.2
+							}
+						}
+					}
+				}
+			}
+            add = {
+                desc = "COALITION_GRADE_ANTAGONISM_TOWARDS_MEMBERS"
+                value = {
+					scope:recipient = {
+						every_international_organization_member = {
+							add = {
+								every_country_with_coalition_grade_antagonism_against_us = {
+									limit = {
+										not = { is_subject_or_below_of = prev }
+									}
+									subtract = {
+										value = military_strength
+									}
+								}
+								divide = military_strength
+								multiply = 10
+							}
+						}
+					}
+					
+                }
+            }
+			if = {
+				limit = {
+					scope:recipient = {
+						total_members > 0
+					}
+				}
+				subtract = {
+					desc = "ORGANIZATION_SIZE"
+					value = "scope:recipient.total_members"
+					multiply = 5
+					add = {
+						value = 0
+						scope:recipient = {
+							every_international_organization_member = {
+								add = country_economical_base
+							}
+						}
+						divide = "scope:actor.country_economical_base"
+						multiply = 40	
+						max = 200					
+					}
+				}
+				add = {
+					desc = "AVERAGE_ECONOMICAL_BASE"
+					value = 0
+					scope:recipient = {
+						every_international_organization_member = {
+							add = country_economical_base
+						}
+					}
+					divide = "scope:recipient.total_members"
+					#avg great power score compared to new country. If smaller we wanna join, if bigger we don't
+					subtract = root.country_economical_base
+					multiply = 3
+					max = 25
+					min = -100
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				exists = scope:actor
+			}
+			add = {
+				desc = "AVERAGE_ECONOMICAL_BASE"
+				value = 0			
+				add = scope:actor.country_economical_base
+				#avg great power score compared to new country. If smaller we wanna join, if bigger we don't
+				subtract = root.country_economical_base
+				multiply = 3
+				max = 25
+				min = -100
+			}
+			add = {
+				desc = "game_concept_opinion"
+				scope:actor = {
+					root = {
+						add = {
+							value = this_opinion_of_prev
+							multiply = 0.2
+						}
+					}
+				}
+			}
+			add = {
+				desc = "game_concept_trust"
+				root = {
+					value = "trust(scope:actor)"
+					divide = 5
+				}
+			}
+		}
+
+		#distance
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			add = {
+				desc = "DISTANCE_FROM_FRANCE_LEADER"
+				value = "border_distance_to(scope:actor)"
+				multiply = -0.15
+				min = -1000
+			}
+		}
+		else_if = {
+			limit = {
+				exists = scope:actor
+			}
+			add = {
+				desc = "DISTANCE_FROM_FRANCE_LEADER"
+				value = "border_distance_to(scope:actor)"
+				multiply = -0.2
+				min = -1000
+			}
+			if = {
+				limit = {
+					country_economical_base > 0
+					scope:actor.country_economical_base > 0
+				}
+				add = {
+					desc = "GREAT_POWER_RATIO"
+					if = {
+						limit = {
+							country_economical_base > scope:actor.country_economical_base
+						}
+						value = country_economical_base
+						divide = scope:actor.country_economical_base
+						multiply = -5
+					}
+					else = {
+						value = scope:actor.country_economical_base
+						divide = country_economical_base
+					}
+				}
+			}
+			scope:actor = {
+				add = {
+					desc = "COALITION_GRADE_ANTAGONISM_TOWARDS_THEM"
+					value = {
+						every_country_with_coalition_grade_antagonism_against_us = {
+							limit = {
+								not = { is_subject_or_below_of = prev }
+							}
+							subtract = {
+								value = military_strength
+							}
+						}
+						divide = military_strength
+						multiply = 10
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:actor
+			}
+			add = {
+				desc = "game_concept_antagonism"
+				scope:actor = {
+					value = prev_antagonism_towards_this
+					multiply = -1
+				}
+			}
+		}
+
+		if = {
+			limit = { num_locations < 8 }
+			add = {
+				desc = "WE_ARE_SMALL"
+				value = 25
+			}
+		}
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
 	}
 }

@@ -1,4 +1,4 @@
-league_foundation_law = {
+﻿league_foundation_law = {
 	type = international_organization
 	law_category = foundation
 	potential = { 
@@ -29,6 +29,14 @@ league_foundation_law = {
 		#Temporary military alliance against a specific enemy. Once formed it has high base cohesion, but there are limits to who is invited similar to the koinon. Limited to tribes, they lose massive amounts of cohesion upon the leader's death. Historical examples: Vercingetorix’s Confederation, The Caledonian Confederacy, The Marcomannic Confederation. The leader of this league is the country leader of the strongest member country, for life.
 	}
 	league_Etruscan_Dodecapolis= {
+		unique = yes
+		allow = {
+
+		}
+		potential = {
+			always = no
+			culture = { has_culture_group = culture_group:etruscan_group } #TODO: FIX this was not working
+		}
 		#A mix of a Koinon and Amphictyony. Starts at Hegemonic Dictate law. The leader of the league is an elected theocrat and his city state becomes the next hegemon (Available to anyone with etruscan main culture).
 	} 
 	
@@ -37,15 +45,25 @@ league_foundation_law = {
 league_representation = {
 	type = international_organization
 	law_category = administrative
+	custom_tags = { forbids_no_policy }
 	potential = { international_organization_type = international_organization_type:league }
 
 	league_among_equals ={
+
 
 	}
 	league_proportional_voting = {
 
 	}
 	league_hegemon_will = {
+		allow = {
+			#international_organization_has_law = law:league_hegemonic_dictate
+			hre_num_of_emperor_comfort_policies_active = { value = 1 }
+			
+		}
+		international_organization_modifier = {
+			league_comfort_policies_counter = 1
+		}
 
 	}
 
@@ -53,22 +71,43 @@ league_representation = {
 league_legal_jurisdiction = {
 	type = international_organization
 	law_category = administrative
+	custom_tags = { forbids_no_policy }
 	potential = { international_organization_type = international_organization_type:league }
+	has_levels = yes
 
 	league_complete_autonomy ={
+		level = 1
 
 	}
 	league_dikai = {
+		level = 2
 
+		international_organization_modifier = {
+			enforced_internal_peace = yes
+		}
 	}
 	league_hegemon_authority = {
+		level = 3
 
+		country_modifier = {
+			potential_trigger = {
+				# hegemon Modifier
+				is_leader_of_international_organization = scope:recipient
+			}
+			#put modifier here
+			#
+		}
+		international_organization_modifier = {
+			league_comfort_policies_counter = 1
+			enforced_internal_peace = yes
+		}
 	}
 	
 }
 league_assembly_location = {
 	type = international_organization
 	law_category = administrative
+	custom_tags = { forbids_no_policy }
 	potential = { 
 		international_organization_type = international_organization_type:league 
 		international_organization_has_law = law:legal_jurisdiction
@@ -99,6 +138,7 @@ league_assembly_location = {
 league_treasury_location = {
 	type = international_organization
 	law_category = administrative
+	custom_tags = { forbids_no_policy }
 	potential = { 
 		international_organization_type = international_organization_type:league 
 		international_organization_has_law = law:legal_jurisdiction
@@ -128,8 +168,13 @@ league_military_assistance = {
 	}
 	league_military_cooperation = {
 		allow = {
+
 			international_organization_has_policy = policy:league_dikai
 			international_organization_has_policy = policy:league_hegemon_authority
+		}
+		international_organization_modifier = {
+			league_comfort_policies_counter = 1
+			#unlock_contribute_to_organization_treasury = yes
 		}
 	}
 }
@@ -542,20 +587,177 @@ league_mutual_offense = {
 		international_organization_has_law = law:league_military_assistance
 		international_organization_has_policy = policy:military_cooperation
 	}
+	allow = {
+		#international_organization_lifetime >= 5
+	}
 
 	league_possible_offense = {
+		level = 1
+
 		join_offensive_wars_can_call = {
 			always = yes
 		}
 	}
 	league_duty_for_offense = {
+		level = 2
 		join_offensive_wars_auto_call = {
 			always = yes
 		}
 	}
 	league_assured_offense = {
+		level = 3
 		join_offensive_wars_always = {
 			always = yes
 		}
 	}
+}
+#army
+league_federal_army = {
+	type = international_organization
+	law_category = military
+	custom_tags = { forbids_no_policy }
+	has_levels = yes
+	potential = { 
+		international_organization_type = international_organization_type:league 
+		international_organization_has_law = law:league_military_assistance
+		international_organization_has_policy = policy:military_cooperation
+	}
+	allow = {
+	}
+
+	league_no_common_army = {
+		level = 1
+
+	}
+	league_mercenary_reliance = {
+		level = 2
+
+		#Members contribute more gold than usual to attract and recruit more mercenaries
+	}
+	league_army = {
+		level = 3
+		manpower = yes
+
+		country_modifier = {
+			potential_trigger = {
+				is_leader_of_international_organization = scope:recipient
+			}
+			max_manpower = 5
+		}
+		international_organization_modifier = {
+			league_comfort_policies_counter = 1
+			hre_imperial_armory_level = 3
+		}
+		#Members contribute manpower and gold to create a standing league army
+	}
+}
+
+
+#socioecomonic
+league_currency = {
+	type = international_organization
+	law_category = socioeconomic
+	custom_tags = { forbids_no_policy }
+	has_levels = yes
+
+	potential = {}
+
+	allow = { }
+
+	league_independent_currency ={
+		level = 1
+
+	}
+	league_common_mint = {
+		level = 2
+
+	}
+	league_hegemons_coin ={
+		level = 3
+
+		country_modifier = {
+			potential_trigger = {
+				# hegemon Modifier
+				is_leader_of_international_organization = scope:recipient
+			}
+			#put modifier here
+			minting_inflation_threshold = 0.1
+			minting_income_factor = 0.1
+		}
+	}
+
+}
+league_taxation = {
+	type = international_organization
+	has_levels = yes
+	law_category = socioeconomic
+	custom_tags = { forbids_no_policy }
+	potential = {}
+	no_contribution = {
+
+	}
+	league_phoros = {
+
+	}
+	league_ship_contribution ={
+
+	}
+	league_hegemon_dues ={
+
+	}
+
+}
+#centralization
+league_centralization = {
+	type = international_organization
+	custom_tags = { forbids_no_policy }
+	has_levels = yes
+	law_category = centralization
+	potential = {
+
+	}
+
+	league_loose_assembly = {
+		level = 1
+
+	}
+	league_synedrion = {
+		level = 2
+
+	}
+	league_hegemonic_dictate = {
+		level = 3
+		international_organization_modifier = {
+			league_comfort_policies_counter = 1
+			#unlock_contribute_to_organization_treasury = yes
+		}
+
+	}
+	league_unification = {
+		level = 4
+		on_activate = {
+			#hre_on_reform_level_passed_effect = { law_imperial_authority_cost = imperial_authority_rebellious_law }
+			leader_country = {
+				trigger_event_non_silently = { 
+					id = pa_league.100
+				}
+			}
+		}
+		allow = {
+			league_num_of_hegemon_comfort_policies_active = { value = 5 }
+
+			international_organization_has_law = law:league_taxation
+			international_organization_has_law = law:league_currency
+			international_organization_has_law = law:league_legal_jurisdiction
+			international_organization_has_law = law:league_representation
+
+			international_organization_has_policy = policy:league_hegemon_dues
+			international_organization_has_policy = policy:league_hegemons_coin
+			international_organization_has_policy = policy:league_hegemon_will
+			international_organization_has_policy = policy:league_hegemon_authority
+
+		}
+
+	}
+
 }

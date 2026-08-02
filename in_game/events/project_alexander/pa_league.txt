@@ -1,0 +1,97 @@
+﻿namespace = pa_league
+
+pa_league.100 = {
+	type = country_event
+	title = pa_league.100.title
+	desc = pa_league.100.desc
+	outcome = neutral
+
+ 	illustration_tags = {
+ 		10 = happy
+ 		10 = interior 
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		save_scope_as = target_country
+		save_ruler_regent_as_target_character = yes
+		random_international_organization = {
+			limit = {
+				international_organization_type = international_organization_type:league
+				leader_country = root
+			}
+			save_scope_as = target_io
+		}
+	}
+
+	option = {
+		name = hre.102.a
+		#For the tooltip
+		show_as_tooltip = {
+			change_country_tag = HRE
+		}
+		#The actual effect as we do not want the DHE to die
+
+		if = {
+			limit = { exists = scope:target_io }
+			custom_tooltip = {
+				text = hre_unify_the_empire_tt
+				if = {
+					limit = {
+						exists = scope:target_country
+					}
+					scope:target_io = {
+						every_international_organization_owned_location = {
+							limit = {
+								has_owner = yes
+								OR = {
+									owner = root
+									owner = { is_neighbor_of = root }
+								}
+								NOT = { is_core_of = root }
+							}
+							add_core = scope:target_country
+						}
+						every_international_organization_member = {
+							limit = { NOT = { this = scope:target_country } }
+							trigger_event_silently = { id = pa_league.101 }
+						}	
+						set_variable = {
+							name = imperial_authority
+							value = 0
+						}		# doesn't matter, but this is just to suppress error log.
+					}
+				}
+			}
+			
+			destroy_international_organization = { target = scope:target_io }
+			
+		}
+		set_country_rank = country_rank:rank_empire
+	}
+}
+
+# ...and for member states
+pa_league.101 = {
+	type = country_event
+	title = pa_league.101.title
+	desc = pa_league.101.desc
+	outcome = neutral
+
+ 	illustration_tags = {
+ 		10 = happy
+ 		10 = interior
+ 	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = hre.103.a
+		scope:target_country = {
+			annex_country_diplomatically = { country = root }
+		}
+	}
+}
+}
