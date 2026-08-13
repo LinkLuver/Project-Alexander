@@ -3,6 +3,7 @@ achaemenid_argead = {
 	expel_members_who_are_targets_of_other_members = no
 	disband_if_no_leader = no
 	show_leave_message = no
+	circles_are_active = yes # idk if this works 
 
 	has_leader_country = no
 	land_ownership_rule = achaemenid_argead_land_ownership
@@ -19,7 +20,10 @@ achaemenid_argead = {
 	}
 
 	can_join_trigger = {
-		always = no
+		OR = {
+			is_neighbor_of_international_organization = scope:recipient
+			any_owned_location = { is_owned_by_international_organization = scope:recipient }
+		}
 	}
 	can_leave_trigger = {
 		always = no
@@ -28,9 +32,29 @@ achaemenid_argead = {
 		always = no
 	}
 	variables = {
+		#achaemenid_argead_io_resource
+	}
+
+	monthly_effect = {
+		hidden_effect = {
+			every_international_organization_owned_location = {
+				limit = {
+					is_capital = yes
+					owner = {
+						not = { is_member_of_international_organization = root }
+						country_can_join_international_organization = root
+					}
+				}
+				root = {
+					add_country_to_international_organization = prev.owner
+				}
+			}
+
 		
+		}	
 
 	}
+
 	special_statuses_implemented = {
 		unrecognised_emperor
 		emperor
