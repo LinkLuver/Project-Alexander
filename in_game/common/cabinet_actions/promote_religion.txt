@@ -1,0 +1,148 @@
+﻿promote_religion = {
+	ability = mil
+	
+	allow_multiple = yes
+	
+	potential = {
+		num_locations > 0 
+	}
+	
+	allow = {
+		religious_unity < 1.0
+		trigger_if = {
+			limit = {
+				has_country_modifier = sco_the_first_congregation
+			}
+			NOT = { religion = religion:catholic }
+		}
+		OR = {
+			modifier:global_nobles_conversion_blocked = no
+			modifier:global_burghers_conversion_blocked = no
+			modifier:global_clergy_conversion_blocked = no
+			modifier:global_peasants_conversion_blocked = no
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		target_flag = target_religion
+		#for the AI we have an optimisation to only look through religions that are present. Human can look at all...but will have some disabled
+		source_ai_override = actor
+		source_flags_ai_override = include_any_present
+		name = "promote_religion_select_religion"
+		none_available_msg_key = "convert_religion_no_religions"
+		column = {
+			data = name
+		}
+		column = {
+			data = religion_percentage_in_country
+		}
+		default_sort = religion_percentage_in_country
+		visible = {
+			group = scope:actor.religion.group
+			is_religion_enabled = yes
+			OR = {
+				scope:actor.religion = root
+				scope:actor = {
+					religion_percentage_in_country = {
+						religion = root
+						value >= 0.01
+					}
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target_province
+		name = "promote_religion_select_province"
+		none_available_msg_key = "promote_religion_no_provinces"
+		column = {
+			data = name
+		}
+		column = {
+			data = province_religion_percentage
+		}
+		column = {
+			data = population
+		}
+		default_sort = province_religion_percentage
+		visible = {
+			any_location_in_province = {
+				OR = {
+					NOT = { dominant_religion = owner.religion }
+					local_religious_unity < 1.0
+				}
+			}
+			NOT = { cabinet_already_performing_same_task_on_target = { cabinet_action = promote_religion interaction_target = target_province } }
+		}
+		map_color = {
+			lerp = {
+				min_color = define:NMapColors|MAP_COLOR_LOW
+				max_color = define:NMapColors|MAP_COLOR_HIGH
+				factor = "province.religion_percentage(scope:target_religion)"
+			}
+		}
+	}
+
+	is_finished = {
+		scope:target_province = {
+			"religion_percentage(scope:target_religion)" = 1.0
+		}
+	}
+
+	on_activate = {
+		if = {
+			limit = {
+				exists = scope:target_province
+			}
+			scope:target_province = {
+				set_variable = {
+					name = promoting_religion
+					value = scope:target_religion
+				}
+			}
+		}
+	}
+
+	on_deactivate = {
+		if = {
+			limit = {
+				exists = scope:target_province
+			}
+			scope:target_province = {
+				remove_variable = promoting_religion
+			}
+		}
+	}
+
+	location_modifier = {
+		local_pop_conversion_speed = 0.04
+		local_migration_attraction = -0.15
+	}
+
+	progress = {
+		scope:target_province = {
+			value = "religion_percentage(scope:target_religion)"
+		}
+	}
+
+	map_marker = {
+		show_for_owner = yes
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "Wrong religion"
+			if = {
+				limit = {
+					exists = scope:target_religion
+					scope:target_religion != scope:actor.religion				
+				}
+				value = -1000
+			}
+		}
+	}
+}

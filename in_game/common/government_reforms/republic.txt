@@ -1,0 +1,280 @@
+﻿noble_elite = {
+	major = yes
+	government = republic
+
+	
+	country_modifier = {
+		global_nobles_estate_power = 0.1
+		levy_combat_efficiency_modifier = 0.05
+		country_cabinet_efficiency = 0.10
+		monthly_towards_aristocracy = societal_value_monthly_move
+	}
+
+	years = 2
+}
+
+sortition = {
+	government = republic
+
+	country_modifier = {
+		global_burghers_estate_power = 0.1
+		tax_income_efficiency = medium_tax_income_efficiency_bonus
+		monthly_towards_plutocracy = societal_value_monthly_move
+	}
+
+	years = 2
+}
+
+merchant_republic = {
+	major = yes
+	government = republic
+
+	country_modifier = {
+		global_merchant_capacity_modifier = 0.50
+		trade_income = 0.20
+		global_foreign_build_buildings_efficiency = 1.0
+
+		merchant_maintenance_efficiency = 0.50
+		global_integration_speed_modifier = -0.25
+		court_language_is_market_language_importance_modifier = 15
+
+	}
+
+	years = 2
+}
+
+peasant_republic_reform = {
+	major = yes
+	government = republic
+
+	potential = { country_has_estate = estate_type:peasants_estate }
+
+	allow = {
+		OR = {
+			AND = {
+				"estate_power(estate_type:peasants_estate)" > 0.1
+				societal_value:serfdom_vs_free_subjects > 80
+			}
+
+			#This is added for countries that should be given access to this through an event etc
+			has_reform = government_reform:peasant_republic_reform
+		}
+	}
+
+	country_modifier = {
+		global_peasants_estate_power = 1
+		global_nobles_estate_power = -0.25
+		base_peasants_estate_power_modifier = 9.0
+		base_nobles_estate_power_modifier = -0.9
+		global_raw_material_output = 0.33
+		peasants_estate_target_satisfaction = medium_permanent_target_satisfaction
+		nobles_estate_target_satisfaction = small_permanent_target_satisfaction_penalty
+		monthly_towards_decentralization = societal_value_monthly_move
+		monthly_towards_free_subjects = societal_value_monthly_move
+		peasants_estate_can_participate_in_parliament = yes
+		government_reform_slots = 1
+		court_language_is_common_language_importance_modifier = 15
+	}
+
+	years = 3
+}
+
+pirate_brethren_reform = {
+	major = yes
+	government = republic
+
+	potential = {
+		has_unlocked_government_reform_trigger = { type = pirate_brethren_reform }
+	}
+
+	locked = {
+		always = yes
+	}
+
+	country_modifier = {
+		can_hire_privateers = yes
+		monthly_towards_naval = societal_value_large_monthly_move
+		navy_maintenance_efficiency = 0.5
+		court_language_is_common_language_importance_modifier = 15
+		government_reform_slots = 1
+	}
+
+	on_activate = {
+		change_heir_selection = heir_selection:pirate_elective
+	}
+
+	on_deactivate = {
+		if = {
+			limit = {
+				is_wokou_nation = yes
+			}
+			remove_list_global_variable = {
+				name = wokou_nation_list
+				target = this
+			}
+		}	
+	}
+
+	months = 3
+}
+
+formalized_measures = {
+	government = republic
+	#age = age_3_discovery
+	
+	country_modifier = {
+		estate_enrichment = -0.1
+		tax_income_efficiency = large_tax_income_efficiency_bonus
+		monthly_towards_individualism = societal_value_monthly_move
+	}
+
+	years = 2
+}
+
+dynastic_signoria_reform = {
+	content_priority = 1000
+	major = yes
+	government = republic
+
+	potential = {
+		OR = {
+			court_language = language:north_italian_language
+			court_language = language:south_italian_language
+		}
+	}
+
+	allow = {
+		OR = {
+			"estate_power(estate_type:crown_estate)" > 0.3
+
+			#Starting tags that are already hereditary
+			has_or_had_tag = MLO
+			has_or_had_tag = FER
+			has_or_had_tag = PAD
+			has_or_had_tag = RAV
+			has_or_had_tag = VER
+			has_or_had_tag = RIM
+		}
+	}
+
+	locked = {
+		OR = {
+			has_estate_privilege = estate_privilege:visconti_city_states
+			"estate_power(estate_type:crown_estate)" <= 0.5
+			"estate_power(estate_type:nobles_estate)" >= 0.5 
+		}
+	}
+	
+	on_activate = {
+		change_heir_selection = heir_selection:signoria_selection
+	}
+	
+	country_modifier = {
+		government_reform_slots = 1
+		nobles_estate_levy_size = 0.1
+		replace_cabinet_member_cost_modifier = -0.1
+		monthly_prestige = 0.1
+		estate_enrichment = -0.1
+	}
+
+	years = 2
+}
+
+signoria_reform = {
+	major = yes
+	government = republic
+
+	potential = {
+		OR = {
+			court_language = language:north_italian_language
+			court_language = language:south_italian_language
+		}
+	}
+
+	allow = {
+	}
+
+	locked = {
+	}
+	
+	on_activate = {
+		change_heir_selection = heir_selection:podesta_elective
+	}
+	
+	country_modifier = {
+		global_crown_estate_power = -0.1
+		improve_relation_impact = 0.1
+		replace_cabinet_member_cost_modifier = -0.1
+		monthly_towards_decentralization = societal_value_monthly_move
+	}
+
+	years = 2
+}
+
+revolutionary_republic = {
+	major = yes
+	unique = yes
+	government = republic
+	months = 6
+	potential = { is_revolutionary = yes }
+	locked = {
+		is_locked_mechanic = {
+			mechanic = government_reform
+			type = revolutionary_republic
+		}
+	}
+	country_modifier = {
+		monthly_towards_free_subjects = societal_value_large_monthly_move
+		global_nobles_estate_power = -1
+		nobles_estate_target_satisfaction = huge_permanent_target_satisfaction_penalty
+		government_reform_slots = 1
+		government_size = 1
+	}
+}
+
+revolutionary_autocracy = {
+	major = yes
+	unique = yes
+	government = republic
+	months = 6
+	potential = { is_revolutionary = yes }
+	locked = {
+		is_locked_mechanic = {
+			mechanic = government_reform
+			type = revolutionary_autocracy
+		}
+	}
+	country_modifier = {
+		monthly_republican_tradition = -0.03
+		global_crown_estate_power = 0.5
+		government_reform_slots = 1
+		government_size = 1
+		monthly_towards_absolutism = societal_value_monthly_move
+	}
+}
+
+hanseatic_merchant_federation = {
+	content_priority = 1100
+	unique = yes
+	government = republic
+
+	potential = {
+		has_or_had_tag = HSA
+		country_type = building
+	}
+
+	locked = {
+		country_type = building
+	}
+
+	country_modifier = {
+		cannot_be_subjugated = yes
+		global_burghers_estate_power = -0.5
+		merchant_maintenance_efficiency = 0.50
+		allows_hanseatic_federation_buildings = yes
+		legislative_efficiency = -0.5
+		court_language_is_market_language_importance_modifier = 15
+	}
+
+	years = 2
+}

@@ -1,0 +1,81 @@
+﻿rebel_crackdown = {
+	ability = mil
+
+	allow_multiple = yes
+	
+	potential = {
+	}
+
+	allow = {
+		num_rebels > 0
+	}	
+	
+	select_trigger = {
+		looking_for_a = rebels
+		source = actor
+		interaction_source_list = {
+			scope:actor = {
+				every_rebel = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target
+		name = "rebel_crackdown_select_rebel"
+		none_available_msg_key = "rebel_crackdown_no_rebels"
+		column = {
+			data = name
+		}
+		column = {
+			data = rebel_progress
+		}
+		column = {
+			data = monthly_progress
+		}
+		column = {
+			data = rebel_size
+		}
+		visible = {
+			NOT = { cabinet_already_performing_same_task_on_target = { cabinet_action = rebel_crackdown interaction_target = target } }
+		}
+	}
+
+	rebel_modifier = {
+		rebel_monthly_progress = -0.0025
+	}
+
+	progress = {
+		scope:target ?= {
+			value = rebel_progress
+		}
+	}
+
+	map_marker = {
+		show_for_owner = yes
+	}
+
+	ai_will_do = {
+		value = -1
+
+		add = {
+			if = {
+				limit = {
+					scope:target ?= {
+						rebel_progress > 0.3
+					}
+				}
+
+				scope:target ?= {
+					value = rebel_size
+					multiply = 150
+					multiply = rebel_progress
+
+					if = {
+						limit = { scope:actor.total_population > 0 }
+						divide = scope:actor.total_population
+					}
+				} 
+			}
+		}
+	}
+}
