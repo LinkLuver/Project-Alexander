@@ -1,0 +1,1050 @@
+﻿#For situation scopes and everything related to situations
+# Generic stuff
+#Supports the following situations
+# rise_of_timur
+enable_situation_effect = {
+	custom_description = {
+		text = enable_situation_effect
+		value = situation:$type$
+		set_global_variable = {
+			name = enabled_situation_$type$
+			value = yes
+		}
+	}
+}
+disable_situation_effect = {
+	custom_description = {
+		text = disable_situation_effect
+		value = situation:$type$
+		remove_global_variable = enabled_situation_$type$
+	}
+}
+
+flag_situation_event = {
+	$situation$ = {
+		set_variable = situation_event_$event$_fired
+	}
+}
+
+join_situation_faction = {
+	$international_organization$ = {
+		add_country_to_international_organization = $target$
+	}
+	hidden_effect = {
+		$target$ = {
+			set_variable = {
+				name = $join_variable$
+				value = $international_organization$
+				years = $join_years$
+			}
+			if = {
+				limit = {
+					has_variable = $leave_variable$
+					var:$leave_variable$ = $international_organization$
+				}
+				remove_variable = $leave_variable$
+			}
+		}
+	}
+}
+leave_situation_faction = {
+	if = {
+		limit = { $target$ = { is_member_of_international_organization = $international_organization$ } }
+		$international_organization$ = {
+			if = {
+				limit = {
+					international_organization_has_leader = yes
+					exists = leader_country
+					leader_country = $target$
+				}
+				set_local_variable = io_revote
+			}
+			remove_country_from_international_organization = $target$
+			if = {
+				limit = { has_local_variable = io_revote }
+				update_leader_country = yes
+				remove_local_variable = io_revote
+			}
+		}
+	}
+	hidden_effect = {
+		$target$ = {
+			set_variable = {
+				name = $leave_variable$
+				value = $international_organization$
+				years = $leave_years$
+			}
+			if = {
+				limit = {
+					has_variable = $join_variable$
+					var:$join_variable$ = $international_organization$
+				}
+				remove_variable = $join_variable$
+			}
+		}
+	}
+}
+
+#####################################
+# Red Turban Rebellions				#
+#####################################
+rtr_change_allegiance_points = {
+	custom_description = {
+		text = rtr_change_allegiance_points
+		value = $value$
+		if = {
+			limit = { NOT = { has_variable = rtr_yuan_allegiance } }
+			set_variable = {
+				name = rtr_yuan_allegiance
+				value = 0
+			}
+		}
+		change_variable = {
+			name = rtr_yuan_allegiance
+			add = $value$
+		}
+		if = {
+			limit = { has_variable = rtr_yuan_allegiance }
+			if = {
+				limit = { var:rtr_yuan_allegiance > 100 }
+				set_variable = {
+					name = rtr_yuan_allegiance
+					value = 100
+				}
+			}
+			if = {
+				limit = { var:rtr_yuan_allegiance < -100 }
+				set_variable = {
+					name = rtr_yuan_allegiance
+					value = -100
+				}
+			}
+		}
+	}
+}
+rtr_recreate_middle_kingdom = {
+	custom_tooltip = {
+		text = rtr_recreate_middle_kingdom.tt
+		trigger_event_non_silently = flavor_chi.115
+		if = {
+			limit = { NOT = { exists = international_organization:middle_kingdom } }
+			create_international_organization = {
+				type = international_organization_type:middle_kingdom
+			}
+			set_up_proper_china_for_middle_kingdom = yes
+		}
+		international_organization:middle_kingdom ?= {
+			leader_country ?= {
+				every_subject = {
+					limit = { is_subject_type = tusi }
+					overlord = { cancel_subject = prev }
+				}
+			}
+			add_country_to_international_organization = prev
+			set_leader_country = prev
+		}
+		change_celestial_authority = { value = celestial_authority_very_strong_bonus }
+		if = {
+			limit = { NOT = { has_bureaucracy_of_type = bureaucracy_type:six_boards_bureaucracy } }
+			if = {
+				limit = { NOT = { has_advance = chi_bureaucracy_advance } }
+				research_advance = advance_type:chi_bureaucracy_advance
+			}
+			add_bureaucracy = bureaucracy_type:six_boards_bureaucracy
+			every_current_bureaucracy = {
+				limit = { bureaucracy_type = bureaucracy_type:six_boards_bureaucracy }
+				set_entrenchment = 60
+				set_maintenance = 0.50
+			}
+		}
+		save_scope_as = country_to_pass_to_scripted_effect
+		rtr_core_all_of_china_effect = { country = scope:country_to_pass_to_scripted_effect }
+		every_present_culture_in_country = {
+			limit = {
+				has_culture_group = culture_group:chinese_group
+				NOR = {
+					is_primary_or_accepted_in = prev
+					is_tolerated_in = prev
+				}
+			}
+			prev = { add_tolerated_culture = prev }
+		}
+	}
+}
+
+rtr_core_all_of_china_effect = {
+	custom_description = {
+		text = rtr_core_all_of_china
+		object = $country$
+		sub_continent:east_asia = {
+			every_location_in_sub_continent = {
+				limit = {
+					is_ownable = yes
+					is_owned_by_international_organization = international_organization:middle_kingdom
+				}
+				add_core = $country$
+				if = {
+					limit = { owner = $country$ }
+					change_integration_level = core
+				}
+			}
+		}
+	}
+	custom_description = {
+		text = rtr_gain_annex_cb_on_china
+		object = $country$
+		rtr_grant_annexation_cb_in = { geography = region:east_china_region country = $country$ }
+		rtr_grant_annexation_cb_in = { geography = region:north_china_region country = $country$ }
+		rtr_grant_annexation_cb_in = { geography = region:south_china_region country = $country$ }
+		rtr_grant_annexation_cb_in = { geography = region:west_china_region country = $country$ }
+	}
+}
+
+rtr_grant_annexation_cb_in = {
+	$geography$ = {
+		every_country_with_capital_in_geography = {
+			limit = {
+				NOT = { this = $country$ }
+				NOT = { is_subject_or_below_of = $country$ }
+			}
+			$country$ = { add_casus_belli = { target = prev type = casus_belli:cb_chinese_unification } }
+		}
+	}
+}
+
+#####################################
+# Nanbokuchou Situation 			#
+#####################################
+
+nanbokuchou_change_sides_effect = {
+	if = {
+		limit = { has_variable = supports_northern_court }
+		custom_tooltip = {
+			text = nanbokuchou.1.e
+			remove_variable = supports_northern_court
+			set_variable = { name = supports_southern_court value = yes }
+			remove_list_global_variable = { name = nanbokuchou_northern_supporters target = this }
+			add_to_global_variable_list = { name = nanbokuchou_southern_supporters target = this }
+			situation:nanbokuchou = {
+				set_vote = {
+					voter = prev
+					resolution = resolution:nanbokuchou_resolution
+					vote = c:STC
+					locked = yes
+				}
+			}
+		}
+	}
+	else = {
+		custom_tooltip = {
+			text = nanbokuchou.1.d
+			remove_variable = supports_southern_court
+			set_variable = { name = supports_northern_court value = yes }
+			remove_list_global_variable = { name = nanbokuchou_southern_supporters target = this }
+			add_to_global_variable_list = { name = nanbokuchou_northern_supporters target = this }
+			situation:nanbokuchou = {
+				set_vote = {
+					voter = prev
+					resolution = resolution:nanbokuchou_resolution
+					vote = c:NTC
+					locked = yes
+				}
+			}
+		}
+	}
+}
+
+nanbokuchou_declare_neutrality_effect = {
+	custom_tooltip = {
+		text = nanbokucho_neutrality
+		if = {
+			limit = { has_variable = supports_northern_court }
+			remove_variable = supports_northern_court
+			remove_list_global_variable = { name = nanbokuchou_northern_supporters target = this }
+		}
+		if = {
+			limit = { has_variable = supports_southern_court }
+			remove_variable = supports_southern_court
+			remove_list_global_variable = { name = nanbokuchou_southern_supporters target = this }
+		}
+		add_to_global_variable_list = { name = nanbokuchou_neutral_countries target = this }
+		situation:nanbokuchou = {
+			set_vote = {
+				voter = prev
+				resolution = resolution:nanbokuchou_resolution
+				locked = yes
+			}
+		}
+	}
+}
+
+#####################################
+# Rise of Timur Situation 			#
+#####################################
+rot_increase_kill_counter = {
+	if = {
+		limit = {
+			exists = $variable$
+			situation:rise_of_timur = { situation_is_active = yes }
+		}
+		situation:rise_of_timur = {
+			change_variable = {
+				name = timur_$type$_kill_counter
+				add = $variable$
+			}
+			change_variable = {
+				name = timur_total_kill_counter
+				add = $variable$
+			}
+		}
+	}
+}
+
+on_timurid_occupy_location_effect = {
+	if = {
+		limit = {
+			can_fire_situation_event = {
+				situation = situation:rise_of_timur
+				event = rot_fall_of_delhi
+			}
+			scope:target_location = location:delhi
+		}
+		trigger_event_non_silently = rise_of_timur.11
+	}
+	if = {
+		limit = {
+			can_fire_situation_event = {
+				situation = situation:rise_of_timur
+				event = rot_capturing_the_ottoman_sultan
+			}
+			has_ruler = yes
+			scope:previous_owner = { has_ruler = yes }
+			OR = {
+				AND = {
+					modifier:auto_conquer_at_war = no
+					scope:target_location = { is_capital = yes }
+				}
+				scope:target_location.province_definition = scope:previous_owner.capital.province_definition
+			}
+			OR = {
+				AND = {
+					NOT = { is_situation_active = situation:rise_of_the_ottomans }
+					scope:previous_owner = {
+						has_variable = rise_of_the_ottomans_winner_variable
+					}
+				}
+				AND = {
+					situation:rise_of_the_ottomans = {
+						situation_is_active = yes
+						has_variable = strongest_beylik_variable
+					}
+					scope:previous_owner = situation:rise_of_the_ottomans.var:strongest_beylik_variable
+				}
+			}
+		}
+		trigger_event_non_silently = rise_of_timur.1040
+	}
+}
+
+#####################################
+# Rise of the Ottomans				#
+#####################################
+rise_of_the_ottomans_recalculate_top_3 = {
+	if = {
+		limit = {
+			any_in_global_list = {
+				variable = eligible_beylik_list
+				OR = {
+					NOT = { country_exists = this }
+					is_subject = yes
+				}
+			}
+		}
+		every_in_global_list = {
+			variable = eligible_beylik_list
+
+			limit = { 
+				OR = {
+					NOT = { country_exists = this }
+					is_subject = yes
+				}
+			}
+
+			save_temporary_scope_as = target_country
+			remove_list_global_variable = { 
+				name = eligible_beylik_list 
+				target = scope:target_country
+			}
+		}
+	}
+	ordered_in_global_list = {  
+		variable = eligible_beylik_list
+		limit = { is_subject = no }
+		order_by = {
+			
+			add = {
+				value = military_strength
+			}
+			add = {
+				value = country_tax_base
+			}
+		} 
+		max = 1
+		check_range_bounds = no 
+		situation:rise_of_the_ottomans = {
+			set_variable = {
+				name = strongest_beylik_variable
+				value = prev
+			}
+			set_variable = {
+				name = strongest_strongest_beylik_total_score_variable
+				value = {
+					add = var:strongest_beylik_variable.military_strength
+					add = var:strongest_beylik_variable.country_tax_base 
+				}
+			}
+		}
+	}
+	
+	if = {
+		limit = {
+			global_variable_list_size = {
+				name = eligible_beylik_list
+				value > 1
+			}
+		}
+		ordered_in_global_list = {	#2nd strongest  
+			variable = eligible_beylik_list
+			limit = { 
+				this != situation:rise_of_the_ottomans.var:strongest_beylik_variable 
+				is_subject = no
+			}
+			order_by = {
+				
+				add = {
+					value = military_strength
+				}
+				add = {
+					value = country_tax_base
+				}
+			} 
+			max = 1
+			check_range_bounds = no
+			situation:rise_of_the_ottomans = {
+				set_variable = {
+					name = second_strongest_strongest_beylik_variable
+					value = prev
+				}
+				set_variable = {
+					name = second_strongest_strongest_beylik_total_score_variable
+					value = {
+						add = var:second_strongest_strongest_beylik_variable.military_strength
+						add = var:second_strongest_strongest_beylik_variable.country_tax_base 
+					}
+				}
+			}
+		}
+	}
+	else = {
+		situation:rise_of_the_ottomans = {
+			remove_variable = second_strongest_strongest_beylik_variable
+			remove_variable = second_strongest_strongest_beylik_total_score_variable
+		}
+	}
+
+	if = {
+		limit = {
+			global_variable_list_size = {
+				name = eligible_beylik_list
+				value > 2
+			}
+		}
+		ordered_in_global_list = { #3rd Strongest 
+			variable = eligible_beylik_list
+			limit = { 
+				this != situation:rise_of_the_ottomans.var:strongest_beylik_variable 
+				this != situation:rise_of_the_ottomans.var:second_strongest_strongest_beylik_variable 
+				is_subject = no
+			}
+			order_by = {
+				
+				add = {
+					value = military_strength
+				}
+				add = {
+					value = country_tax_base
+				}
+			} 
+			max = 1
+			check_range_bounds = no 
+			situation:rise_of_the_ottomans = {
+				set_variable = {
+					name = third_strongest_strongest_beylik_variable
+					value = prev
+				}
+				set_variable = {
+					name = third_strongest_strongest_beylik_total_score_variable
+					value = {
+						add = var:third_strongest_strongest_beylik_variable.military_strength
+						add = var:third_strongest_strongest_beylik_variable.country_tax_base
+					}
+				}
+			}
+		}
+	}
+	else = {
+		situation:rise_of_the_ottomans = {
+			remove_variable = third_strongest_strongest_beylik_variable
+			remove_variable = third_strongest_strongest_beylik_total_score_variable
+		}
+	}
+}
+
+
+
+
+#####################################
+# Treaty of Tordesillas				#
+#####################################
+
+distribute_world = {
+	situation:treaty_of_tordesillas = {
+		#Divide the non claimed parts of the world
+		#Ex:
+		#This next trigger is TRUE
+		#location:kururupu = { #Brasil
+		#	is_east_of = location:marien #Hispaniola
+		#}
+		var:var_line_location.province_definition = {
+			every_east_of_province_definition = {
+				limit = {
+					#Only land provinces
+					any_location_in_province_definition = {
+						is_land = yes
+					}
+					NOR = {
+						any_location_in_province_definition = {
+							has_owner = yes
+							owner = {
+								is_country_religion_pagan = no
+							}
+						}
+						situation:treaty_of_tordesillas.var:var_west_country ?= {
+							has_colonial_claim = prev
+						}
+						situation:treaty_of_tordesillas.var:var_east_country ?= {
+							has_colonial_claim = prev
+						}
+					}
+					is_geographically_correct = yes
+				}
+				situation:treaty_of_tordesillas.var:var_east_country = {
+					add_colonial_claim = {
+						province_definition = prev
+						reason = claim_reason_treaty_of_tordesillas
+						category = same_religion
+					}
+				}
+			}
+			every_west_of_province_definition = {
+				limit = {
+					#Only land provinces
+					any_location_in_province_definition = {
+						is_land = yes
+					}
+					NOR = {
+						any_location_in_province_definition = {
+							has_owner = yes
+							owner = {
+								is_country_religion_pagan = no
+							}
+						}
+						situation:treaty_of_tordesillas.var:var_west_country ?= {
+							has_colonial_claim = prev
+						}
+						situation:treaty_of_tordesillas.var:var_east_country ?= {
+							has_colonial_claim = prev
+						}
+					}
+					is_geographically_correct = yes
+				}
+				situation:treaty_of_tordesillas.var:var_west_country = {
+					add_colonial_claim = {
+						province_definition = prev
+						reason = claim_reason_treaty_of_tordesillas
+						category = same_religion
+					}
+				}
+			}
+		}
+	}
+}
+
+transfer_claims = {
+	$country_losing_claims$ = {
+		every_colonial_claim_province_definition = {
+			remove_colonial_claim = this
+			
+			$country_gaining_claims$ = {
+				add_colonial_claim = {
+					province_definition = prev
+					reason = claim_reason_treaty_of_tordesillas
+					category = same_religion
+				}
+			}
+		}
+	}
+}
+
+replaceCountryInTordesillas = {
+
+	#Transfer all claims to the new country
+	transfer_claims = {
+		country_losing_claims = $replaced$
+		country_gaining_claims = $replacer$
+	}
+	#Variable replacement
+	if = {
+		limit = {					
+			$replaced$ = situation:treaty_of_tordesillas.var:var_east_country
+		}
+		situation:treaty_of_tordesillas = {							
+			set_variable = {
+				name = var_east_country
+				value = $replacer$
+			}
+		}
+	}
+	else = {
+		situation:treaty_of_tordesillas = {							
+			set_variable = {
+				name = var_west_country
+				value = $replacer$
+			}
+		}
+	}
+}
+
+
+claim_non_conflicting_owned_areas = {
+	$the_owner$ = {
+		save_temporary_scope_as = owner_scope
+		every_subject_or_below = {
+			limit = {
+				capital.continent = continent:america
+				NOT = { country_type = building }
+			}
+			every_owned_location = {					
+				limit = {
+					continent = continent:america
+					population > 0
+					area = {
+						#No other catholic has a colony here
+						any_ownable_location_in_area = {
+							count = 0
+							has_owner = yes
+							NOT = {
+								is_owned_or_owned_by_subjects_or_below_of = scope:owner_scope
+							}
+						}
+					}
+				}
+				area = {
+					every_province_definition_in_area = {
+						scope:owner_scope = {
+							add_colonial_claim = {
+								province_definition = prev
+								reason = claim_reason_treaty_of_tordesillas
+								category = same_religion
+							}
+						}
+					}
+				}
+			}					
+		}
+		every_owned_location = {
+			limit = {
+				continent = continent:america
+				population > 0
+				area = {
+					#No other catholic has a colony here
+					any_ownable_location_in_area = {
+						count = 0
+						has_owner = yes
+						NOT = {
+							is_owned_or_owned_by_subjects_or_below_of = scope:owner_scope
+						}
+					}
+				}
+			}
+			area = {
+				every_province_definition_in_area = {
+					scope:owner_scope = {
+						add_colonial_claim = {
+							province_definition = prev
+							reason = claim_reason_treaty_of_tordesillas
+							category = same_religion
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+sengoku_reevaluate_strongest_daimyos = {
+	clear_global_variable_list = sengoku_strong_daimyo_list
+	remove_variable = sengoku_threatening_daimyo
+	remove_variable = sengoku_second_threatening_daimyo
+	remove_variable = sengoku_third_threatening_daimyo
+	remove_variable = sengoku_fourth_threatening_daimyo
+	remove_variable = sengoku_fifth_threatening_daimyo
+	international_organization:japanese_shogunate = {
+		ordered_international_organization_member = {
+			order_by = {
+				add = {
+					value = country_total_army_levy_size
+				}
+				multiply = country_rank_level
+				add = {
+					value = army_size
+					multiply = 10
+				}
+				add = {
+					value = country_total_navy_levy_size
+					divide = 2
+				}
+				add = {
+					value = monthly_income_trade_and_tax
+					divide = 10
+				}
+				if = {
+					limit = { is_great_power = yes }
+					add = 100
+				}
+			} 
+			limit = {
+				this != international_organization:japanese_shogunate.leader_country
+			}
+			max = 1
+			check_range_bounds = no 
+			situation:sengoku = {
+				set_variable = {
+					name = sengoku_threatening_daimyo
+					value = prev
+				}
+			}
+			add_to_global_variable_list = {
+				name = sengoku_strong_daimyo_list
+				target = this
+			}
+		}
+		ordered_international_organization_member = {
+			order_by = {
+				add = {
+					value = country_total_army_levy_size
+				}
+				multiply = country_rank_level
+				add = {
+					value = army_size
+					multiply = 10
+				}
+				add = {
+					value = country_total_navy_levy_size
+					divide = 2
+				}
+				add = {
+					value = monthly_income_trade_and_tax
+					divide = 10
+				}
+				if = {
+					limit = { is_great_power = yes }
+					add = 100
+				}
+			} 
+			limit = {
+				this != international_organization:japanese_shogunate.leader_country
+			}
+			position = 1
+			check_range_bounds = no 
+			situation:sengoku = {
+				set_variable = {
+					name = sengoku_second_threatening_daimyo
+					value = prev
+				}
+			}
+			add_to_global_variable_list = {
+				name = sengoku_strong_daimyo_list
+				target = this
+			}
+		}
+		ordered_international_organization_member = {
+			order_by = {
+				add = {
+					value = country_total_army_levy_size
+				}
+				multiply = country_rank_level
+				add = {
+					value = army_size
+					multiply = 10
+				}
+				add = {
+					value = country_total_navy_levy_size
+					divide = 2
+				}
+				add = {
+					value = monthly_income_trade_and_tax
+					divide = 10
+				}
+				if = {
+					limit = { is_great_power = yes }
+					add = 100
+				}
+			} 
+			limit = {
+				this != international_organization:japanese_shogunate.leader_country
+			}
+			position = 2
+			check_range_bounds = no 
+			situation:sengoku = {
+				set_variable = {
+					name = sengoku_third_threatening_daimyo
+					value = prev
+				}
+			}
+			add_to_global_variable_list = {
+				name = sengoku_strong_daimyo_list
+				target = this
+			}
+		}
+		ordered_international_organization_member = {
+			order_by = {
+				add = {
+					value = country_total_army_levy_size
+				}
+				multiply = country_rank_level
+				add = {
+					value = army_size
+					multiply = 10
+				}
+				add = {
+					value = country_total_navy_levy_size
+					divide = 2
+				}
+				add = {
+					value = monthly_income_trade_and_tax
+					divide = 10
+				}
+				if = {
+					limit = { is_great_power = yes }
+					add = 100
+				}
+			} 
+			limit = {
+				this != international_organization:japanese_shogunate.leader_country
+			}
+			position = 3
+			check_range_bounds = no 
+			situation:sengoku = {
+				set_variable = {
+					name = sengoku_fourth_threatening_daimyo
+					value = prev
+				}
+			}
+			add_to_global_variable_list = {
+				name = sengoku_strong_daimyo_list
+				target = this
+			}
+		}
+		ordered_international_organization_member = {
+			order_by = {
+				add = {
+					value = country_total_army_levy_size
+				}
+				multiply = country_rank_level
+				add = {
+					value = army_size
+					multiply = 10
+				}
+				add = {
+					value = country_total_navy_levy_size
+					divide = 2
+				}
+				add = {
+					value = monthly_income_trade_and_tax
+					divide = 10
+				}
+				if = {
+					limit = { is_great_power = yes }
+					add = 100
+				}
+			} 
+			limit = {
+				this != international_organization:japanese_shogunate.leader_country
+			}
+			position = 4
+			check_range_bounds = no 
+			situation:sengoku = {
+				set_variable = {
+					name = sengoku_fifth_threatening_daimyo
+					value = prev
+				}
+			}
+			add_to_global_variable_list = {
+				name = sengoku_strong_daimyo_list
+				target = this
+			}
+		}
+	}
+}
+
+iw_reset_tension_effect = {
+	custom_tooltip = {
+		text = iw_reset_tension_effect_tt
+		situation:italian_wars ?= {
+			set_variable = {
+				name = iw_tension
+				value = 0
+			}
+		}
+	}
+}
+
+iw_increase_tension_effect = {
+	custom_description = {
+		text = iw_increase_tension_effect_tt
+		value = $value$
+		situation:italian_wars ?= {
+			change_variable = {
+				name = iw_tension
+				add = $value$
+			}
+			clamp_variable = {
+				name = iw_tension
+				min = 0
+				max = 100
+			}
+		}
+	}
+}
+
+add_italian_wars_militarization_demands = {
+	every_in_global_list = {
+		variable = iw_italian_leagues_list
+		leader_country ?= {
+			capital.market = {
+				if = {
+					limit = {
+						NOT = { has_temporary_demand = demand:italian_wars_militarization }
+					}
+					add_temporary_demand = { 
+						type = demand:italian_wars_militarization 
+						years = -1
+					}
+				}
+			}
+		}
+	}
+	every_in_global_list = {
+		variable = iw_foreign_leagues_list
+		leader_country ?= {
+			capital.market = {
+				if = {
+					limit = {
+						NOT = { has_temporary_demand = demand:italian_wars_militarization }
+					}
+					add_temporary_demand = { 
+						type = demand:italian_wars_militarization 
+						years = -1
+					}
+				}
+			}
+		}
+	}
+}
+
+remove_italian_wars_militarization_demands = {
+	every_in_global_list = {
+		variable = iw_italian_leagues_list
+		leader_country ?= {
+			capital.market = {
+				if = {
+					limit = {
+						has_temporary_demand = demand:italian_wars_militarization
+					}
+					remove_temporary_demand = demand:italian_wars_militarization
+				}
+			}
+		}
+	}
+	every_in_global_list = {
+		variable = iw_foreign_leagues_list
+		leader_country ?= {
+			capital.market = {
+				if = {
+					limit = {
+						has_temporary_demand = demand:italian_wars_militarization
+					}
+					remove_temporary_demand = demand:italian_wars_militarization
+				}
+			}
+		}
+	}
+}
+
+reconcile_italian_wars_league_land = {
+	#Resync each league's recorded Italian land with what its members actually own.
+	#Safety net for locations conquered during a war/peace that on_location_changed_owner missed (see common/on_action/_hardcoded.txt).
+	every_in_global_list = {
+		variable = iw_italian_leagues_list
+
+		limit = { 
+			any_international_organization_owned_location = {
+				region = region:italy_region
+			}
+		}
+		reconcile_single_italian_wars_league_land = yes
+	}
+	every_in_global_list = {
+		variable = iw_foreign_leagues_list
+
+		limit = { 
+			any_international_organization_owned_location = {
+				region = region:italy_region
+			}
+		}
+		reconcile_single_italian_wars_league_land = yes
+	}
+}
+
+reconcile_single_italian_wars_league_land = {
+	#this = a league international organization
+	save_temporary_scope_as = iw_reconcile_league
+	#Drop recorded land whose current owner is no longer a member of this league
+	every_international_organization_owned_location = {
+		limit = {
+			OR = {
+				has_owner = no
+				owner ?= { NOT = { is_member_of_international_organization = scope:iw_reconcile_league } }
+			}
+		}
+		scope:iw_reconcile_league = {
+			remove_location_from_international_organization = prev
+		}
+	}
+	#Add any Italy-region land a current member owns that the league has not recorded yet
+	every_international_organization_member = {
+		every_owned_location = {
+			limit = {
+				region = region:italy_region
+				is_land = yes
+				is_passable = yes
+				NOT = { is_owned_by_international_organization = scope:iw_reconcile_league }
+			}
+			scope:iw_reconcile_league = {
+				add_location_to_international_organization = prev
+			}
+		}
+	}
+	
+}
