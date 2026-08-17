@@ -1,0 +1,339 @@
+﻿tribal_oldest_male = {
+	include_ruler_siblings = yes
+	through_female = no
+	allow_female = no
+	ignore_ruler = yes
+	allow_children = yes
+
+	allowed_estates = { nobles_estate }
+	heir_is_allowed = {
+	}
+	succession_effect = {
+		if = {
+			limit = {
+				government_type = government_type:steppe_horde
+				modifier:horde_unity_hit_at_ruler_death < 0
+			}
+			custom_tooltip = ON_RULER_DEATH_EFFECT_TT
+			show_as_tooltip = {
+				add_horde_unity = root.modifier:horde_unity_hit_at_ruler_death
+			}
+		}
+		else = {
+			add_legitimacy = legitimacy_mild_penalty
+		}
+	}
+
+	calc = {
+		add = {
+			desc = "HEIR_SELECTION_FATHER_IS_RULER_DESC"
+			if = {
+				limit = {
+					OR = {
+						not = { exists = root }
+						father ?= scope:target.last_valid_ruler 
+					}
+				}
+				value = 500
+			}
+		}
+
+		add = {
+			desc = "HEIR_SELECTION_GRANDFATHER_IS_RULER_DESC"
+			if = {
+				limit = {
+					OR = {
+						not = { exists = root }
+						and = {
+							exists = father
+							father.father ?= scope:target.last_valid_ruler
+						}
+					}	
+				}
+				value = 250
+			}
+		}
+
+		if = {
+			limit = {
+				exists = root
+			}
+			add = {
+				desc = "HEIR_SELECTION_OLDER_HEIR_DESC"
+				value = character_age
+			}
+			if = { 
+				limit = { modifier:blocked_from_being_ruler = yes }
+				add = {
+					desc = "HEIR_SELECTION_IS_UNSUITED_TO_RULE_DESC"
+					value = -1000 
+				}
+			}
+		}
+
+		# Here it goes the description for explaining a heir gets +1 points per year.
+		if = {
+			limit = {
+				not = { exists = root }
+			}
+			add = {
+				desc = "HEIR_SELECTION_OLDER_HEIR_DESC"
+				value = 1
+			}
+		}
+	}
+}
+
+tribal_matrilineal = {
+	include_ruler_siblings = yes
+	through_female = yes
+	allow_female = yes
+	allow_male = no
+	allow_children = yes
+	ignore_ruler = yes
+
+	use_mothers_dynasty = yes
+
+	allowed_estates = { nobles_estate }
+	heir_is_allowed = {
+	}
+	locked = { has_reform = government_reform:haudenosaunee_clan_mothers }
+
+	succession_effect = {
+		add_government_power = government_power_extreme_penalty
+	}
+
+	calc = {
+		add = {
+			desc = "HEIR_SELECTION_MOTHER_IS_RULER_DESC"
+			if = {
+				limit = {
+					OR = {
+						not = { exists = root }
+						mother ?= scope:target.last_valid_ruler
+					}
+				}
+				value = 500
+			}
+		}
+
+		add = {
+			desc = "HEIR_SELECTION_GRANDMOTHER_IS_RULER_DESC"
+			if = {
+				limit = {
+					OR = {
+						not = { exists = root }
+						and = {
+							exists = mother
+							mother.mother ?= scope:target.last_valid_ruler
+						}
+					}
+				}
+				value = 250
+			}
+		}
+
+		if = {
+			limit = {
+				exists = root
+			}
+			add = {
+				desc = "HEIR_SELECTION_OLDER_HEIR_DESC"
+				value = character_age
+			}
+			if = {
+				limit = { modifier:blocked_from_being_ruler = yes }
+				add = {
+					desc = "HEIR_SELECTION_IS_UNSUITED_TO_RULE_DESC"
+					value = -1000
+				}
+			}
+		}
+
+		# Here it goes the description for explaining a heir gets +1 points per year.
+		if = {
+			limit = {
+				not = { exists = root }
+			}
+			add = {
+				desc = "HEIR_SELECTION_OLDER_HEIR_DESC"
+				value = 1
+			}
+		}
+	}
+}
+
+ritual_selection = {
+	# Only sons of current ruler
+	# It is partly a phisical competition so teenagers and young adults have an advantage
+	# The random points represent their luck in the ritual competition
+	# The pretender with highest stats gets more points
+	# The ruler and the 1st wife favor their sons
+
+	include_ruler_siblings = no
+	all_in_dynasty = no
+	through_female = no
+	allow_female = no	
+	allow_children = yes
+	ignore_ruler = yes
+	show_candidates = yes
+
+	allowed_estates = { nobles_estate }
+	heir_is_allowed = {
+	}
+	potential = {
+		culture = { has_culture_group = culture_group:andean_group }
+	}
+
+
+	calc = {
+		# here we calculate the score for each candidate that fulfills the above parameters
+		if = {
+			limit = {
+				exists = root
+			}
+			add = {#Their luck in the competition
+				desc = "HEIR_SELECTION_RANDOM_DESC"
+				value = random_integer
+				modulo = 200
+			}
+			add = {
+				desc = "HEIR_SELECTION_ADM_DESC"
+				value = root.adm
+			}
+			add = {
+				desc = "HEIR_SELECTION_DIP_DESC"
+				value = root.dip
+			}
+			add = {
+				desc = "HEIR_SELECTION_MIL_DESC"
+				value = root.mil
+			}
+						
+			if = {
+				limit = { 
+					NOT = {
+						scope:target = {
+							any_primary_or_accepted_culture = { root.culture = this }
+						}
+					} 
+				}
+				add = {
+					desc = "HEIR_SELECTION_NON_ACCEPTED_CULTURE_DESC"
+					value = -100
+				}
+			}
+
+			if = {
+				limit = { exists = root.father }
+				
+				if = {
+					limit = {
+						root.father = scope:target.ruler
+					}
+					add = {
+						# The Father always favors one of his children
+						desc = "HEIR_SELECTION_PARENT_IS_CURRENT_RULER_DESC"
+						value = 100
+					}
+				}
+					
+			}
+
+			if = {
+				limit = { exists = root.mother }
+				
+				if = {
+					limit = {#If the mother is the Main wife
+						scope:target = {
+							ruler ?= {
+								exists = first_spouse
+							}
+						}
+						root.mother = scope:target.ruler.first_spouse
+					}
+					add = {
+						# The Main Wife always favors one of her children
+						desc = "HEIR_SELECTION_PARENT_IS_CURRENT_RULER_FIRST_WIFE_DESC"
+						value = 50
+					}
+				}
+					
+			}
+			if = {
+				limit = { 
+					root.age_in_years < 10 #Younger than 10 years old
+				}
+				add = {
+					desc = "HEIR_SELECTION_TOO_YOUNG_DESC"
+					value = -100
+				}
+					
+			}
+			if = {
+				limit = { 
+					root.age_in_years > 40 #Older than 40 years old
+				}
+				add = {
+					desc = "HEIR_SELECTION_TOO_OLD_DESC"
+					value = root.age_in_years
+					subtract = 40
+					multiply = -10 #Each year over 40 subtracts 10 points
+				}
+					
+			}
+			if = { 
+				limit = { modifier:blocked_from_being_ruler = yes }
+				add = {
+					desc = "HEIR_SELECTION_IS_UNSUITED_TO_RULE_DESC"
+					value = -1000 
+				}
+			}
+			
+		}
+
+		
+		# Here it goes the description for explaining the ability
+		if = {
+			limit = {
+				not = { exists = root }
+			}
+			add = {
+				desc = "HEIR_SELECTION_RANDOM_DESC"
+				format = "FORMAT_NO_VALUE"
+			}
+			add = {
+				desc = "HEIR_SELECTION_ADM_DESC"
+				value = 1
+			}
+			add = {
+				desc = "HEIR_SELECTION_DIP_DESC"
+				value = 1
+			}
+			add = {
+				desc = "HEIR_SELECTION_MIL_DESC"
+				value = 1
+			}
+			add = {
+				desc = "HEIR_SELECTION_NON_ACCEPTED_CULTURE_DESC"
+				value = -100
+			}
+			add = {
+				desc = "HEIR_SELECTION_PARENT_IS_CURRENT_RULER_DESC"
+				value = 100
+			}
+			add = {
+				desc = "HEIR_SELECTION_PARENT_IS_CURRENT_RULER_FIRST_WIFE_DESC"
+				value = 50
+			}
+			add = {
+				desc = "HEIR_SELECTION_TOO_YOUNG_DESC"
+				value = -100
+			}
+			add = {
+				desc = "HEIR_SELECTION_TOO_OLD_DESC"
+				value = -10 #Each year over 40 subtracts 10 points
+			}
+		}
+	}
+}
