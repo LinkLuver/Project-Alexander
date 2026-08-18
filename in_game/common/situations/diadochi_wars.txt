@@ -2,8 +2,7 @@
 	monthly_spawn_chance = monthly_spawn_chance_unique
 	
 	can_start = {
-		current_date > 450.1.1
-		current_date < 470  # idk 
+		current_year > 450
 	}
 	
 	can_end = {
@@ -15,8 +14,13 @@
 
 			}
 			### all diadochi died?
+			any_in_global_list = {
+				variable = eligible_diadochi_ruler_list
+				limit = {
+					is_alive = no
+				}
+			}
 		}
-		
 	}
 	
 	visible = {
@@ -26,27 +30,50 @@
 			has_presence_in = region:anatolia_region
 			has_presence_in = region:crescent_region
 			has_presence_in = region:persia_region
-			# has_reform = government_reform:diadochi_gov   #Diadochi gov
 		}
 	}
 	
 
 	on_start = {
+		tag:MAC = {
+			trigger_event_non_silently = {
+				id = diadochi_wars.1
+			}	
+		}
 		
+		create_international_organization = {
+			type = international_organization_type:diadochi_league_m
+			add_country_to_international_organization = tag:MAC
+			set_leader_country = tag:MAC # TODO ERROR? move to event for each tag?
+		}
+		#create_international_organization = {
+		#	type = international_organization_type:diadochi_league_t
+		#	add_country_to_international_organization = tag:TRE
+		#	set_leader_country = tag:TRE
+		#}
+		#create_international_organization = {
+		#	type = international_organization_type:diadochi_league_a
+		#	add_country_to_international_organization = tag:PRY
+		#	set_leader_country = tag:PRY
+		#}
+		#create_international_organization = {
+		#	type = international_organization_type:diadochi_league_e
+		#	add_country_to_international_organization = tag:EGY
+		#	set_leader_country = tag:EGY
+		#}
+		#create_international_organization = {
+		#	type = international_organization_type:diadochi_league_s
+		#	add_country_to_international_organization = tag:SEL
+		#	set_leader_country = tag:SEL
+		#}
+
 		every_country = {
 			limit = {
 			 	has_reform = government_reform:diadochi_gov   #Diadochi gov
 			}
 			add_to_global_variable_list = { name = eligible_diadochi_list target = this }
+			ruler = {add_to_global_variable_list = { name = eligible_diadochi_ruler_list target = this }}
 
-			#add_country_modifier = {
-			#	modifier = ai_force_annexation
-			#	years = -1
-			#	mode = add_and_extend
-			#}
-			ruler = {
-				add_to_global_variable_list = { name = eligible_diadochi_ruler_list target = this }
-			}
 		
 		}
 		ordered_in_global_list = {  
@@ -78,71 +105,78 @@
 			}
 			#trigger_event_non_silently = rise_of_the_ottomans.2
 		}
-		ordered_in_global_list = {  
-			variable = eligible_diadochi_list
-			limit = { 
-				this != situation:diadochi_wars.var:strongest_diadochi_variable 
-				is_subject = no
-			}
-			order_by = {
+		#ordered_in_global_list = {  
+		#	variable = eligible_diadochi_list
+		#	limit = { 
+		#		this != situation:diadochi_wars.var:strongest_diadochi_variable 
+		#		is_subject = no
+		#	}
+		#	order_by = {
 					
-				add = {
-					value = military_strength
-				}
-				add = {
-					value = country_tax_base
-				}
-			} 
-			max = 1
-			check_range_bounds = no 
-			situation:diadochi_wars = {
-				set_variable = {
-					name = second_strongest_strongest_diadochi_variable
-					value = prev
-				}
-				set_variable = {
-					name = second_strongest_strongest_diadochi_total_score_variable
-					value = {
-						add = var:second_strongest_strongest_diadochi_variable.military_strength
-						add = var:second_strongest_strongest_diadochi_variable.country_tax_base
-					}
-				}
-			}
-		}
-		ordered_in_global_list = {  
-			variable = eligible_diadochi_list
-			limit = {
-				this != situation:diadochi_wars.var:strongest_diadochi_variable 
-				this != situation:diadochi_wars.var:second_strongest_strongest_diadochi_variable 
-				is_subject = no
-			}
-			order_by = {
+		#		add = {
+		#			value = military_strength
+		#		}
+		#		add = {
+		#			value = country_tax_base
+		#		}
+		#	} 
+		#	max = 1
+		#	check_range_bounds = no 
+		#	situation:diadochi_wars = {
+		#		set_variable = {
+		#			name = second_strongest_strongest_diadochi_variable
+		#			value = prev
+		#		}
+		#		set_variable = {
+		#			name = second_strongest_strongest_diadochi_total_score_variable
+		#			value = {
+		#				add = var:second_strongest_strongest_diadochi_variable.military_strength
+		#				add = var:second_strongest_strongest_diadochi_variable.country_tax_base
+		#			}
+		#		}
+		#	}
+		#}
+		#ordered_in_global_list = {  
+		#	variable = eligible_diadochi_list
+		#	limit = {
+		#		this != situation:diadochi_wars.var:strongest_diadochi_variable 
+		#		this != situation:diadochi_wars.var:second_strongest_strongest_diadochi_variable 
+		#		is_subject = no
+		#	}
+		#	order_by = {
 					
-				add = {
-					value = military_strength
-				}
-				add = {
-					value = country_tax_base
-				}
-			} 
-			max = 1
-			check_range_bounds = no 
-			situation:diadochi_wars = {
-				set_variable = {
-					name = third_strongest_strongest_diadochi_variable
-					value = prev
-				}
-				set_variable = {
-					name = third_strongest_strongest_diadochi_total_score_variable
-					value = {
-						add = var:third_strongest_strongest_diadochi_variable.military_strength
-						add = var:third_strongest_strongest_diadochi_variable.country_tax_base
-					}
-				}
-			}
-		}
-		every_country = {
-		}
+		#		add = {
+		#			value = military_strength
+		#		}
+		#		add = {
+		#			value = country_tax_base
+		#		}
+		#	} 
+		#	max = 1
+		#	check_range_bounds = no 
+		#	situation:diadochi_wars = {
+		#		set_variable = {
+		#			name = third_strongest_strongest_diadochi_variable
+		#			value = prev
+		#		}
+		#		set_variable = {
+		#			name = third_strongest_strongest_diadochi_total_score_variable
+		#			value = {
+		#				add = var:third_strongest_strongest_diadochi_variable.military_strength
+		#				add = var:third_strongest_strongest_diadochi_variable.country_tax_base
+		#			}
+		#		}
+		#	}
+		#}
+		#sort_global_variable_list = {
+		#	name = dw_diadochi_leagues_list
+		#	order = {
+		#		value = total_locations_owned
+		#	}
+		#}
+		#situation:diadochi_wars = {
+		#	set_variable = { name = dw_tension value = 0 }
+		#}
 	}
 
 	on_monthly = {
@@ -152,129 +186,12 @@
 
 		diadochi_wars_recalculate_top_3 = yes
 
-		############################################################################
-		#situation:rise_of_the_ottomans.var:strongest_diadochi_variable ?= {
-		#	if = {
-		#		limit = {
-		#			NOT = { tag = TUR }
-		#			NOT = { has_variable = declined_leader_of_the_turks_variable }
-		#			NOT = { has_reform = government_reform:leader_of_the_turks }
-		#		}
-		#		#trigger_event_silently = rise_of_the_ottomans.6
-		#	}
-		#}
-		
-		
-		#random_list =  {
-		#	93 = { }
-		#	4 = {
-		#		trigger = {
-		#			var:strongest_diadochi_variable ?= {
-		#				any_owned_location = {
-		#					is_currently_being_integrated = yes
-		#				}
-		#			}
-		#		}
-		#		var:strongest_diadochi_variable ?= {
-		#			#trigger_event_non_silently = rise_of_the_ottomans.105
-		#		}
-		#	}
-		#	3 = {
-		#		trigger = {
-		#			var:strongest_diadochi_variable ?= {
-		#				has_ruler = yes
-		#				num_subjects < 2
-		#				any_neighbor_country = {
-		#					NOT = { has_variable = rise_of_the_ottomans_vassal_cooldown_variable }
-		#					is_subject = no
-		#					at_war = no
-		#					NOT = { is_subject_of = prev }
-		#					NOT = { is_rival_of = prev }
-		#					NOT = { is_enemy_of = prev }
-		#					religion = prev.religion
-		#					total_population < prev.total_population
-		#					culture.language = prev.culture.language
-		#				}
-		#			}
-		#		}
-		#		var:strongest_diadochi_variable ?= {
-		#			#trigger_event_non_silently = rise_of_the_ottomans.101
-		#		}
-		#	}
-		#}
-		#random_list = {
-		#	95 = {  }
-		#	5 = {
-		#		trigger = {
-		#			any_in_global_list = {
-		#				variable = eligible_diadochi_list
-		#				has_reform = government_reform:anatolian_beylik
-		#				any_fort_in_country = {
-		#					NOR = { 
-		#						has_location_modifier = recently_inspected_fortifications_modifier 
-		#						has_location_modifier = decaying_defenses_modifier
-		#					}
-		#				}
-		#			}
-		#		}
-		#		random_in_list = {
-		#			variable = eligible_diadochi_list
-		#			limit = {
-		#				has_reform = government_reform:anatolian_beylik
-		#				any_fort_in_country = {
-		#					NOR = { 
-		#						has_location_modifier = recently_inspected_fortifications_modifier 
-		#						has_location_modifier = decaying_defenses_modifier
-		#					}
-		#				}
-		#			}		#Castle Falls in Disrepair
-		#			#trigger_event_non_silently = rise_of_the_ottomans.300
-		#		}
-		#	}
-		#}
-		#if = {
-		#	limit = { current_year > 1337 }
-		#	random_list = {
-		#		50 = { }
-		#		25 = { 
-		#			every_in_global_list = { 
-		#				variable = eligible_diadochi_list
-		#				#trigger_event_non_silently = rise_of_the_ottomans.213 
-		#			}
-		#		}
-		#		25 = { 
-		#			every_in_global_list = { 
-		#				variable = eligible_diadochi_list
-		#				#trigger_event_non_silently = rise_of_the_ottomans.214 
-		#			}
-		#		}
-		#	}
-		#}
-		#if = {
-		#	limit = {
-		#		var:strongest_diadochi_variable ?= { num_locations > 120 }
-		#	}
-		#	var:strongest_diadochi_variable = { trigger_event_non_silently = rise_of_the_ottomans.400 }
-		#	var:strongest_diadochi_variable = {
-		#		#trigger_event_non_silently = {
-		#		#	id = rise_of_the_ottomans.215
-		#		#	days = { 10 25 }
-		#		#} 
-		#	}
-		#}
-		#if = {
-		#	limit = {
-		#		var:strongest_diadochi_variable ?= {
-		#			num_locations > 300
-		#			num_of_non_rural >= 30
-		#			owns = location:constantinople
-		#			NOT = { has_variable = roto600_variable }
-		#		}
-		#	}
-		#	#var:strongest_diadochi_variable ?= { trigger_event_non_silently = rise_of_the_ottomans.600 }
-		#}	
-
-
+		sort_global_variable_list = {
+			name = dw_diadochi_leagues_list
+			order = {
+				value = total_locations_owned
+			}
+		}
 	}
 
 
@@ -288,7 +205,87 @@
 	}
 
 	map_color = {
-		
+
+		# Italian League Sponsors
+		else_if = {
+			limit = {
+				owner ?= {
+					has_special_status_in_international_organization = {
+						type = special_status:italian_league_sponsor
+						international_organization = international_organization:diadochi_league_m
+					}
+				}
+			}
+			value = owner.country_color
+		}
+		else_if = {
+			limit = {
+				owner ?= {
+					has_special_status_in_international_organization = {
+						type = special_status:italian_league_sponsor
+						international_organization = international_organization:diadochi_league_t
+					}
+				}
+			}
+			value = owner.country_color
+		}
+		else_if = {
+			limit = {
+				owner ?= {
+					has_special_status_in_international_organization = {
+						type = special_status:italian_league_sponsor
+						international_organization = international_organization:diadochi_league_e
+					}
+				}
+			}
+			value = owner.country_color
+		}
+		# Italian League 1
+		else_if = {
+			limit = {
+				owner ?= {
+					OR = {
+						AND = {
+							overlord ?= { is_member_of_international_organization = international_organization:diadochi_league_m }
+							is_disloyal_subject = no
+						}
+						is_member_of_international_organization = international_organization:diadochi_league_m
+					}
+				}
+			}
+			value = map_iw_italian_1
+		}
+		# Italian League 2
+		else_if = {
+			limit = {
+				owner ?= {
+					OR = {
+						AND = {
+							overlord ?= { is_member_of_international_organization = international_organization:diadochi_league_t }
+							is_disloyal_subject = no
+						}
+						is_member_of_international_organization = international_organization:diadochi_league_t
+					}
+				}
+			}
+			value = map_iw_italian_2
+		}
+		# Italian League 3
+		else_if = {
+			limit = {
+				owner ?= {
+					OR = {
+						AND = {
+							overlord ?= { is_member_of_international_organization = international_organization:diadochi_league_e }
+							is_disloyal_subject = no
+						}
+						is_member_of_international_organization = international_organization:diadochi_league_e
+					}
+				}
+			}
+			value = map_iw_italian_3
+		}
+	}
 	}
 	
 
