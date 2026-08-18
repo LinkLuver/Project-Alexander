@@ -1,0 +1,112 @@
+﻿name_of_heir_selection = {
+	traverse_family_tree = yes # do we use the family tree to calculate who's in line
+	allow_extended_family = yes # if we traverse the family tree, allow us to take nephews and nieces added to the calculation
+	include_ruler_siblings = yes
+	all_in_country = yes # do we consider every character in the country?
+	all_in_overlord= yes # do we consider every character in our overlord?
+	all_in_dynasty = yes # do we consider every character in the current ruler's dynasty?
+	allow_children = yes # can characters under 18 be candidates? Default = no
+	through_female = yes 
+	allow_female = yes # can women be candidates? Default = no
+	allow_male = yes # can men be candidates? Default = yes. Sorry, but....history
+	ignore_ruler = yes # ignore the ruler from calculations (no for elections, yes for monarchies etc)
+	use_election = yes # do we use an election process
+	show_candidates = yes # do we show the list of candidates in the ui
+	use_mothers_dynasty = yes # do we use the mother's dynasty to calculate
+	cached = no #should we keep a list of countries that use this heir selection law centrally so we can use it to speed up scripted routines?
+	max_possible_candidates = number # max number of candidates in an election
+	term_duration = number # term duration in months (default 0)
+	allow_foreign_ruler = no #should we allow characters who are rulers of another state already? Default = yes
+
+	potential = {
+		# here we add the triggers that determine if this even appears in the interface
+	}
+
+	allowed = {
+		# if potential is fulfilled, what else do we need?
+	}
+
+	locked = {
+		# you cannot swap to another heir selection if this is true
+	}
+
+	include_other_countries = {
+		# trigger to see if characters from a foreign country can be considered for the heir selection. Try to keep the criteria tight and fast to avoid a lot of processing
+		# root = country being considered
+		# scope:target = country the inheritance is happening in
+		# Is completely skipped if empty, and is available outside of elections. Does not consider the original country
+	}
+
+	candidate_country = {
+		# trigger to see if characters from a country can be considered for election. Try to keep the criteria tight and fast to avoid a lot of processing
+		# root = country being considered
+		# scope:target = country the election is happening in
+	}
+
+	heir_is_allowed = {
+		# if trigger is fulfilled or left blank, heir is valid to select
+		# root = character
+		# scope:target = country
+	}
+
+	succession_effect = {
+		# an effect that happens right after succession occurs, but before candidates are recalculated
+		# useful scopes:
+		# root = country
+		# scope:old_ruler
+		# scope:new_ruler
+	}
+	custom_tags = { <strings> }	#A list of custom strings to use to identify that succession law
+	show_tags_in_ui = yes/no #expose the tags in the tooltips and UI
+	custom_eligibility_rules = { <strings> } #A list of custom strings which you can localize. They will then show up in the interface. Useful for heir selections with complex heir_is_allowed triggers which need custom explanations
+
+	allowed_estates = { nobles_estate clergy_estate } # candidates may only have these Estate types. If left blank it will work for all estates.
+
+	calc = {
+		# here we calculate the score for each candidate that fulfills the above parameters
+		if = {
+			limit = {
+				exists = root
+			}
+			add = {
+				desc = "HEIR_SELECTION_OLDER_HEIR_DESC"
+				value = character_age #use this over age_in_years as it includes days in case two characters are both the same age but born at different times
+			}
+		}
+
+		# Here goes the description for the general tooltip.
+		if = {
+			limit = {
+				not = { exists = root }
+			}
+			add = {
+				desc = "HEIR_SELECTION_OLDER_HEIR_DESC"
+				value = 1
+			}
+		}
+	}
+
+	sibling_score = {
+		# here we calculate the score for each sibling when we're traversing the family tree
+		if = {
+			limit = {
+				exists = root
+			}
+			add = {
+				desc = "HEIR_SELECTION_OLDER_HEIR_DESC"
+				value = character_age #use this over age_in_years as it includes days in case two characters are both the same age but born at different times
+			}
+		}
+
+		# Here goes the description for the general tooltip.
+		if = {
+			limit = {
+				not = { exists = root }
+			}
+			add = {
+				desc = "HEIR_SELECTION_OLDER_HEIR_DESC"
+				value = 1
+			}
+		}
+	}
+}
