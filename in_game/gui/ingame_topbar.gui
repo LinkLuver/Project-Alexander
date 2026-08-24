@@ -1,0 +1,1039 @@
+######################################################
+#################### META INFO #######################
+######################################################
+
+@alerts_height = 90
+@states_height = 40
+
+# this must be in sync with outliner.gui and message_log.gui
+@topbar_height = 40
+@panel_bar_height = 90
+@panel_decor_square_size = 55
+@panel_decor_width_size = 55
+@panel_decor_height_size = 90
+
+@left_panel_width = 570
+@right_panel_width = 400
+@panel_x = 0
+
+@lateralview_margin_bottom = 0
+@outliner_collapsed_width = 30
+
+# template outliner_position {
+# 	position = { 0 @[topbar_height + panel_bar_height] }
+# }
+
+template right_panel_maxmin_width {
+	min_width = @[right_panel_width + outliner_collapsed_width]
+	max_width = @[right_panel_width + outliner_collapsed_width]
+}
+
+template left_panel_maxmin_width {
+	min_width = @left_panel_width
+	max_width = @left_panel_width
+}
+
+template panel_bar_size { size = { -1 @panel_bar_height } }
+template panel_decor_size { size = { @panel_decor_width_size @panel_decor_height_size } }
+template left_topbar_section_size { size = { @[left_panel_width + panel_x - topbar_height * 0.5] -1 } }
+template right_topbar_section_size { size = { @[right_panel_width + outliner_collapsed_width + panel_x - topbar_height * 0.5] -1 } }
+template panels_margin_bottom { margin_bottom = @[topbar_height + lateralview_margin_bottom] }
+
+template lateralview_margins {
+	margin_bottom = @[topbar_height + panel_bar_height + lateralview_margin_bottom]
+}
+
+template lateralview_full_margins {
+	margin_left = @panel_x
+	margin_right = @panel_x
+	margin_top = @[topbar_height + panel_bar_height]
+	margin_bottom = @lateralview_margin_bottom
+}
+
+template lateralview_left_setup {
+	size = { @left_panel_width 100% }
+	layer = lateralview
+	allow_outside = yes
+
+	alwaystransparent = yes
+	filter_mouse = none
+
+	position = { @panel_x @[topbar_height + panel_bar_height] }
+	parentanchor = left
+
+	using = Animation_Show_Hide_UI
+	blockoverride "on_hide_ui" {
+		position_x = @[-left_panel_width]
+		alpha = 0
+	}
+
+	blockoverride "on_show_ui" {
+		position_x = @panel_x
+		alpha = 1
+	}
+}
+
+template lateralview_right_setup {
+	size = { @[right_panel_width + outliner_collapsed_width] 100% }
+	layer = lateralview
+	allow_outside = yes
+
+	alwaystransparent = yes
+	filter_mouse = none
+
+	position = { @[-panel_x] @[topbar_height + panel_bar_height] }
+	parentanchor = right
+
+	using = Animation_Show_Hide_UI
+	blockoverride "on_hide_ui" {
+		position_x = @right_panel_width
+		alpha = 0
+	}
+
+	blockoverride "on_show_ui" {
+		position_x = @[-panel_x]
+		alpha = 1
+	}
+}
+
+types IngameTypes
+{
+	## ERROR PLATYPUS!
+	type error_platypus = container {
+		using = Animation_Show_Hide_UI_Lobby
+
+		button = {
+			name = "error_button"
+			texture = "gfx/interface/component_overlay/error_platy.dds"
+			tooltipwidget = {
+				BasicFunctionalTooltip = {
+					blockoverride "tooltip_content" {
+						TooltipTextBlock = {
+							textcontext = "[ErrorTooltip]"
+						}
+					}
+				}
+			}
+
+			action_tooltip = {
+				click_type = left
+				click_mode = single
+				click_modifier = default
+				title = "ERROR_CLICK_DEFAULT"
+				on_action = "[OpenErrorLog]"
+			}
+
+			action_tooltip = {
+				click_type = right
+				click_mode = single
+				click_modifier = default
+				title = "ERROR_CLICK_RIGHT"
+				on_action = "[ToggleLogViewer]"
+			}
+
+			action_tooltip = {
+				click_type = left
+				click_mode = single
+				click_modifier = ctrl
+				title = "ERROR_CLICK_CTRL"
+				on_action = "[OpenErrorLog]"
+			}
+
+			@error_platypus_height = 110
+			size = { 90 @error_platypus_height }
+
+			widget = {
+				parentanchor = bottom|hcenter
+				using = bg_contextual_tooltip
+				using = bg_tooltip_frame
+				blockoverride "tooltip_bg_color" {}
+				blockoverride "tooltip_locked_visible" {}
+
+				text_single = {
+					name = "error_text"
+					autoresize = yes
+					resizeparent = yes
+					align = center
+					margin = { 20 5 }
+
+					text = "[NumberOfErrors] + [FIRRecordedFramesCount|e]"
+				}
+			}
+		}
+	}
+
+	# type top_bar_states = hbox {
+	# 	layoutpolicy_vertical = expanding
+	# 	margin = { 0 2 }
+	# 	visible = "[InGameTopbar.GetPlayer.Exists]"
+	# 	datamodel = "[InGameTopbar.GetEstates]"
+	# 	item = {
+	# 		hbox = {
+	# 			visible = "[Not(ObjectsEqual(InGameTopbar.GetPlayer.GetGovernment.GetEstateFromKey('crown_estate').GetType, EstatesItem.GetEstate.GetType))]"
+	# 			size = { 80 -1 }
+	# 			using = layoutpolicy_expanding
+	# 			alwaystransparent = no
+	# 			filter_mouse = all
+
+	# 			margin = { 5 0 }
+	# 			using = bg_estates_frame_top_bar
+
+	# 			background = {
+	# 				texture = "gfx/interface/colors/black.dds"
+	# 				texture_density = 2
+	# 				color = "[EstatesItem.GetEstate.GetType.GetMapColor]"
+	# 				modify_texture = {
+	# 					using = color_grey_texture
+	# 				}
+	# 				modify_texture = {
+	# 					using = overlay_cloth_texture
+	# 					blend_mode = overlay
+	# 					alpha = 0.2
+	# 				}
+	# 			}
+
+	# 			background = {
+	# 				texture = "gfx/interface/component_tiles/square_tile.dds"
+	# 				texture_density = 2
+	# 				alpha = 0.3
+
+	# 				modify_texture = {
+	# 					using = color_black_texture
+	# 					blend_mode = multiply
+	# 				}
+
+	# 				modify_texture = {
+	# 					texture = "gfx/interface/component_masks/mask_fade_horizontal_sides.dds"
+	# 					blend_mode = alphamultiply
+	# 				}
+	# 			}
+
+	# 			datacontext = "[EstatesItem.GetEstate]"
+	# 			button  = {
+	# 				name = "estates satisfaction button"
+	# 				size = { 100% 100% }
+	# 				ignore_layout = yes
+
+	# 				action_tooltip = {
+	# 					click_type = left
+	# 					click_mode = single
+	# 					title = "ADD_NEW_PRIVILEGE"
+	# 					on_action = "[EstatesItem.AddNewPrivilege]"
+	# 				}
+
+	# 				tooltipwidget = {
+	# 					using = Estate_tooltip
+	# 				}
+
+	# 				action_tooltip = {
+	# 					click_type = right
+	# 					click_mode = single
+
+	# 					title = "ESTATE_TAX_MANAGE"
+	# 					on_action = "[OpenLateralView('economy')]"
+	# 				}
+
+	# 			}
+
+	# 			vbox = {
+	# 				layoutpolicy_horizontal = expanding
+	# 				layoutpolicy_vertical = expanding
+	# 				spacing = 2
+
+	# 				expand = {}
+
+	# 				hbox = {
+	# 					layoutpolicy_horizontal = expanding
+	# 					margin_right = 10
+	# 					spacing = 5
+
+	# 					#ESTATE ICON
+	# 					icon = {
+	# 						size = { 24 24 }
+
+	# 						block "resource_icon" {
+	# 							texture = "[GetEstateIcon(EstatesItem.GetEstate.GetType)]"
+	# 						}
+	# 					}
+
+	# 					hbox = {
+	# 						visible = no
+	# 						layoutpolicy_horizontal = expanding
+	# 						spacing = 4
+	# 						text_single = {
+	# 							raw_text = "[EstatesItem.GetEstate.GetRelativePower|0%]@power!"
+	# 							using = Font_Size_Medium
+	# 							align = left|nobaseline
+	# 							autoresize = yes
+	# 							fontsize = 12
+	# 						}
+
+	# 						expand = {}
+	# 					}
+
+	# 					hbox = {
+	# 						text_single = {
+	# 							visible = "[EstatesItem.GetEstate.HasMonthlySatisfactionChange]"
+	# 							text = "[EstatesItem.GetEstate.GetMonthlySatisfactionChange|+=%2]"
+	# 							using = Font_Size_Small
+	# 							align = center|nobaseline
+	# 							autoresize = yes
+	# 							fontsize = 12
+	# 						}
+
+	# 						widget = {
+	# 							size = { 16 16 }
+	# 							visible = "[Not(EstatesItem.GetEstate.HasMonthlySatisfactionChange)]"
+
+	# 							using = bg_circle_piechart_big
+	# 							blockoverride "inner_circle_piechart" {}
+
+	# 							widget = {
+	# 								size = {100% 100%}
+	# 								parentanchor = center
+	# 								icon = {
+	# 									name = "sad face"
+	# 									parentanchor = center
+	# 									position = {0 1}
+	# 									visible = "[LessThanOrEqualTo_CFixedPoint(Estate.GetSatisfaction,'(CFixedPoint)0.25')]"
+	# 									size = { 15 15 }
+	# 									texture = "gfx/interface/icons/flat_icons/sad.dds"
+	# 									texture_density = 2
+	# 									# using = color_red
+	# 								}
+
+	# 								icon = {
+	# 									name = "neutral face"
+	# 									parentanchor = center
+	# 									position = {0 1}
+	# 									visible = "[BetweenInclusiveOfMax_CFixedPoint(Estate.GetSatisfaction,'(CFixedPoint)0.25', '(CFixedPoint)0.5')]"
+	# 									size = { 15 15 }
+	# 									texture = "gfx/interface/icons/flat_icons/neutral.dds"
+	# 									texture_density = 2
+	# 									# using = color_yellow
+	# 								}
+
+	# 								icon = {
+	# 									name = "happy face"
+	# 									parentanchor = center
+	# 									position = {0 1}
+	# 									visible = "[GreaterThan_CFixedPoint(Estate.GetSatisfaction,'(CFixedPoint)0.5')]"
+	# 									size = { 15 15 }
+	# 									texture = "gfx/interface/icons/flat_icons/happy.dds"
+	# 									texture_density = 2
+	# 									# using = color_light_green
+	# 								}
+	# 							}
+
+	# 							widget = {
+	# 								parentanchor = bottom|right
+	# 								position = { -2 -8 }
+	# 								icon = {
+	# 									visible = "[EqualTo_CFixedPoint(Estate.GetMonthlySatisfactionChange, '(CFixedPoint)0')]"
+
+	# 									size = { 11 11 }
+	# 									mirror = vertical
+
+	# 									texture = "gfx/interface/icons/flat_icons/equal.dds"
+
+	# 									modify_texture = {
+	# 										using = color_gold_texture
+	# 									}
+	# 								}
+
+	# 								icon = {
+	# 									visible = "[LessThan_CFixedPoint(Estate.GetMonthlySatisfactionChange, '(CFixedPoint)0')]"
+
+	# 									size = { 11 11 }
+	# 									mirror = vertical
+
+	# 									texture = "gfx/interface/icons/flat_icons/arrow.dds"
+
+	# 									modify_texture = {
+	# 										using = color_red_texture
+	# 									}
+	# 								}
+	# 							}
+	# 							widget = {
+	# 								parentanchor = top|right
+	# 								position = { -2 -2 }
+	# 								icon = {
+	# 									visible = "[GreaterThan_CFixedPoint(Estate.GetMonthlySatisfactionChange, '(CFixedPoint)0')]"
+
+	# 									size = { 10 10 }
+
+	# 									texture = "gfx/interface/icons/flat_icons/arrow.dds"
+
+	# 									modify_texture = {
+	# 										using = color_light_green_texture
+	# 									}
+	# 								}
+	# 							}
+	# 						}
+	# 					}
+	# 				}
+
+	# 				hbox = {
+	# 					layoutpolicy_horizontal = expanding
+	# 					progressbar = {
+	# 						visible = "[GreaterThan_CFixedPoint(EstatesItem.GetEstate.GetSatisfaction, '(CFixedPoint)0.5')]"
+	# 						layoutpolicy_horizontal = expanding
+	# 						size = { -1 6 }
+	# 						using = progress_bar_green_alt
+	# 						min = 0
+	# 						max = 1
+	# 						value = "[FixedPointToFloat(EstatesItem.GetEstate.GetSatisfaction)]"
+	# 						direction = horizontal
+	# 					}
+
+	# 					progressbar = {
+	# 						visible = "[Not(GreaterThan_CFixedPoint(EstatesItem.GetEstate.GetSatisfaction, '(CFixedPoint)0.5'))]"
+	# 						layoutpolicy_horizontal = expanding
+	# 						size = { -1 6 }
+	# 						using = progress_bar_red_alt
+	# 						min = 0
+	# 						max = 1
+	# 						value = "[FixedPointToFloat(EstatesItem.GetEstate.GetSatisfaction)]"
+	# 						direction = horizontal
+	# 					}
+	# 				}
+
+	# 				expand = {}
+
+	# 			}
+	# 		}
+	# 	}
+	# }
+}
+
+widget = {
+	size = { 100% 100% }
+	name = "ingame_topbar"
+	layer = topbar
+
+	widget = {
+		visible = "[And5(Not(IsPauseMenuShown), IsGamePaused, LeftView.IsShown, LeftView.IsSideAttached, Not(IsLateralViewFullScreen))]"
+		size = {100% 100%}
+		alwaystransparent = yes
+
+		background = {
+			margin_left = @[-left_panel_width]
+			texture_density = 2
+			texture = "gfx/interface/component_masks/mask_vignette.dds"
+			alpha = 0.7
+			modify_texture = {
+				using = color_black_texture
+				blend_mode = multiply
+			}
+		}
+
+		icon = {
+			size = { @left_panel_width 100% }
+			texture_density = 2
+			using = color_black_texture
+			alpha = 0.4
+		}
+
+		state = {
+			name = _show
+			using = Animation_FadeIn_Quick
+		}
+
+		state = {
+			name = _hide
+			using = Animation_FadeOut_Quick
+		}
+
+		using = Animation_Show_Hide_UI
+		blockoverride "on_hide_ui" {
+			duration = 0.1
+			alpha = 0
+		}
+
+		blockoverride "on_show_ui" {
+			duration = 2
+			alpha = 1
+		}
+	}
+
+	widget = {
+		visible = "[Or(IsPauseMenuShown, And3(IsGamePaused, Not(LeftView.IsShown), Not(IsLateralViewFullScreen)))]"
+		size = {100% 100%}
+		alwaystransparent = yes
+
+		background = {
+			texture_density = 2
+			texture = "gfx/interface/component_masks/mask_vignette.dds"
+			alpha = 0.7
+			modify_texture = {
+				using = color_black_texture
+				blend_mode = multiply
+			}
+		}
+
+		state = {
+			name = _show
+			using = Animation_FadeIn_Quick
+		}
+
+		state = {
+			name = _hide
+			using = Animation_FadeOut_Quick
+		}
+
+		using = Animation_Show_Hide_UI
+		blockoverride "on_hide_ui" {
+			duration = 0.1
+			alpha = 0
+		}
+
+		blockoverride "on_show_ui" {
+			duration = 2
+			alpha = 1
+		}
+	}
+
+	vbox = {
+		visible = "[Not(TutorialHasVar('intro_hide_ui_0'))]"
+		margin_left = @[left_panel_width  + panel_x * 2 + panel_decor_square_size + 2]
+		margin_right = @[right_panel_width + outliner_collapsed_width + panel_x * 2 + panel_decor_square_size + 2]
+		margin_top = @topbar_height
+
+		maximumsize = { -1 130 }
+
+		using = Animation_Show_Hide_UI
+		blockoverride "on_hide_ui" {
+			position_y = @[-topbar_height * 2]
+			alpha = 0
+		}
+
+		blockoverride "on_show_ui" {
+			position_y = 0
+			alpha = 1
+		}
+
+		### Alerts
+		alert_manager = {
+			using = layoutpolicy_expanding
+			size = { -1 @alerts_height }
+		}
+	}
+
+	topbar = {
+		size = { 100% @topbar_height }
+
+		using = Animation_Show_Hide_UI
+		blockoverride "on_hide_ui" {
+			position_y = @[-topbar_height]
+			alpha = 0
+		}
+
+		blockoverride "on_show_ui" {
+			position_y = 0
+			alpha = 1
+		}
+	}
+
+	left_panel = {
+		parentanchor = left
+		size = { @left_panel_width 100% }
+		position = { @panel_x @topbar_height }
+
+		using = Animation_Show_Hide_UI
+		blockoverride "on_hide_ui" {
+			position_x = @[-left_panel_width]
+			alpha = 0
+		}
+
+		blockoverride "on_show_ui" {
+			position_x = @panel_x
+			alpha = 1
+		}
+	}
+
+	right_panel = {
+		parentanchor = right
+		size = { @[right_panel_width + outliner_collapsed_width] 100% }
+		position = { @[-panel_x] @topbar_height }
+
+		using = Animation_Show_Hide_UI
+		blockoverride "on_hide_ui" {
+			position_x = @right_panel_width
+			alpha = 0
+		}
+
+		blockoverride "on_show_ui" {
+			position_x = @[-panel_x]
+			alpha = 1
+		}
+	}
+
+	error_platypus = {
+		visible = "[And3(HasErrors, Not(Or(IsLateralViewFullScreen, IsLateralViewMenuFullScreen)), Not(IsLobbyOpen))]"
+		parentanchor = bottom|right
+
+		@error_platypus_y = 0
+		position = { @[-right_panel_width - panel_x * 2 - 100 ] @error_platypus_y }
+
+		using = Animation_Show_Hide_UI
+		blockoverride "on_hide_ui" {
+			position_y = @error_platypus_height
+			alpha = 0
+		}
+
+		blockoverride "on_show_ui" {
+			position_y = @error_platypus_y
+			alpha = 1
+		}
+	}
+
+	widget = {
+		visible = "[GameIsMultiplayer]"
+		parentanchor = bottom|left
+		widgetanchor = bottom|left
+		@mp_button_y = -5
+		@mp_button_hide_y = 20
+		position = { 5 @mp_button_y }
+		size = { 35 35 }
+
+		using = Animation_Show_Hide_UI
+		blockoverride "on_hide_ui" {
+			position_y = @mp_button_hide_y
+			alpha = 0
+		}
+
+		blockoverride "on_show_ui" {
+			position_y = @mp_button_y
+			alpha = 1
+		}
+
+		# ui_direction_button = {
+		# 	using = bg_circle
+		# 	parentanchor = left|vcenter
+		# 	visible = "[And(Not(IsMultiplayerChatShown), Not(LeftView.IsShown))]"
+		# 	size = { 20 20 }
+		# 	onclick = "[ToggleMultiplayerChat]"
+		# 	tooltipwidget = {
+		# 		LeftClickButtonTooltip = {
+		# 			blockoverride "onclick_text" { text = "[GetMultiplayerChat.GetTooltip]" }
+		# 		}
+		# 	}
+		# 	texture = "gfx/interface/buttons/flats/up.dds"
+		# }
+
+		# ui_direction_button = {
+		# 	using = bg_circle
+		# 	parentanchor = left|vcenter
+		# 	visible = "[And(IsMultiplayerChatShown, Not(LeftView.IsShown))]"
+		# 	size = { 20 20 }
+		# 	onclick = "[ToggleMultiplayerChat]"
+		# 	tooltipwidget = {
+		# 		LeftClickButtonTooltip = {
+		# 			blockoverride "onclick_text" { text = "[GetMultiplayerChat.GetTooltip]" }
+		# 		}
+		# 	}
+		# 	texture = "gfx/interface/buttons/flats/down.dds"
+		# }
+		button = {
+			visible = "[And(Not(LeftView.IsShown), Not(TutorialHasVar('intro_hide_ui_4')))]"
+			parentanchor = left|vcenter
+			size = { 30 30 }
+
+			action_tooltip = {
+				title = "[GetMultiplayerChat.GetTooltip]"
+				on_action = "[ToggleMultiplayerChat]"
+			}
+			tooltipwidget = { BasicFunctionalTooltip = {} }
+
+
+			block "button_texture" {
+				texture = "gfx/interface/buttons/round_button_texture_alt.dds"
+				texture_density = 2
+			}
+
+			modify_texture = {
+				using = color_new_gold_texture
+				blend_mode = overlay
+				alpha = 1
+			}
+
+			modify_texture = {
+				using = overlay_stone_texture
+				blend_mode = overlay
+				alpha = 1
+			}
+
+			block "navigational_bg" {
+				background = {
+					texture = "gfx/interface/buttons/bg_button_light.dds"
+					texture_density = 2
+					modify_texture = {
+						using = color_intense_brown_texture
+						blend_mode = add
+					}
+					modify_texture = {
+						using = color_super_dark_brown_texture
+						blend_mode = multiply
+						alpha = 0.6
+					}
+				}
+			}
+
+			icon = {
+				size = { 75% 75% }
+				parentanchor = center
+				texture = "gfx/interface/icons/players.dds"
+				using = button_panel_tab_icon_effect
+				blockoverride "icon_effect_visible" {visible = "[IsMultiplayerChatShown]"}
+			}
+
+			# Regular chat badge (blue, smaller)
+			icon = {
+				parentanchor = top|right
+				visible = "[And(MPChatNewMessage, Not(MPChatNewWhisper))]"
+				size = { 14 14 }
+				alwaystransparent = yes
+				texture = "gfx/interface/buttons/checkbox_bg_round.dds"
+				modify_texture = {
+					using = color_progress_blue_texture
+				}
+				glow = {
+					name = "drop_shadow"
+					glow_radius = 4
+					color = {0.0 0.0 0.0 1.0}
+				}
+			}
+
+			# DM badge (orange, slightly larger)
+			icon = {
+				parentanchor = top|right
+				visible = "[MPChatNewWhisper]"
+				size = { 16 16 }
+				alwaystransparent = yes
+				texture = "gfx/interface/buttons/checkbox_bg_round.dds"
+				modify_texture = {
+					using = color_mid_orange_texture
+				}
+				glow = {
+					name = "drop_shadow"
+					glow_radius = 6
+					color = {0.0 0.0 0.0 1.0}
+				}
+			}
+		}
+	}
+
+	# DM toast: appears above the chat button when an unread whisper arrives
+	card_list_button = {
+		visible = "[And(GameIsMultiplayer, MPChatNewWhisper)]"
+		parentanchor = bottom|left
+		widgetanchor = bottom|left
+		position = { 0 -48 }
+		size = { 360 60 }
+		action_tooltip = {
+			title = "[GetMultiplayerChat.GetTooltip]"
+			on_action = "[ToggleMultiplayerChat]"
+		}
+		tooltipwidget = { BasicFunctionalTooltip = {} }
+
+
+		hbox = {
+			parentanchor = left|vcenter
+			spacing = 6
+			margin = { 8 0 }
+			alwaystransparent = yes
+
+			icon = {
+				size = { 30 30 }
+				texture = "gfx/interface/icons/players.dds"
+				alwaystransparent = yes
+			}
+
+			vbox = {
+				spacing = 2
+				alwaystransparent = yes
+
+				text_single = {
+					text = "[MPChatLastWhisperSender]"
+					fontsize = 12
+					max_width = 214
+					default_format = "#subtle_name"
+					elide = right
+					align = left
+					alwaystransparent = yes
+				}
+
+				hbox = {
+					text_single = {
+						text = "[MPChatLastWhisperMessage]"
+						fontsize = 11
+						max_width = 314
+						elide = right
+						alwaystransparent = yes
+					}
+
+					text_single = {
+						visible = "[MPChatHasExtraWhispers]"
+						raw_text = "(+[MPChatUnreadWhisperCount])"
+						fontsize = 10
+						alwaystransparent = yes
+					}
+				}
+			}
+		}
+	}
+
+	# control_groups = {
+	# 	name = "control_groups"
+	# 	visible = "[Not(TutorialHasVar('intro_hide_ui_7'))]"
+	# 	@control_groups_y = -110
+	# 	position = { 0 @control_groups_y }
+
+	# 	widget = {
+	# 		# TODO: We need clean up control group 1 when we tutorial gets at this point.
+	# 		widgetid = intro_has_added_control_group
+	# 		datacontext = "[InGameTopbar.AccessControlGroups.AccessGroup('(int32)0')]"
+	# 		visible = "[Or(GroupItem.IsCountry, GroupItem.IsLocation)]"
+	# 	}
+
+	# 	using = Animation_Show_Hide_UI
+	# 	blockoverride "on_hide_ui" {
+	# 		position_y = 0
+	# 		alpha = 0
+	# 	}
+
+	# 	blockoverride "on_show_ui" {
+	# 		position_y = @control_groups_y
+	# 		alpha = 1
+	# 	}
+	# }
+
+	widget = {
+		widgetid = intro_has_added_control_group
+		datacontext = "[InGameTopbar.AccessControlGroups.AccessGroup('(int32)0')]"
+		visible = "[Or(GroupItem.IsCountry, GroupItem.IsLocation)]"
+	}
+
+	bottomview = {
+		using = Animation_Show_Hide_UI
+
+		blockoverride "panel_setup" {
+			visible = "[Not(Or(IsLateralViewFullScreen, IsLateralViewMenuFullScreen))]"
+			visible_at_creation = no
+		}
+
+		blockoverride "pre_panel" {
+			allow_outside = yes
+
+			mapmodes_collapsed_window = {
+				name = "mapmodes_collapsed_window"
+				visible = "[Not(TutorialHasVar('intro_hide_ui_1'))]"
+				allow_outside = yes
+			}
+
+			widget = {
+				visible = "[Not(Or3(MapModeSelectorVars.Exists('hover'), MapModeSelectorVars.Exists('action'), IsMapModeMenuPinned))]"
+				parentanchor = hcenter|top
+				widgetanchor = hcenter|bottom
+				position = { 0 -45 }
+				allow_outside = yes
+
+				state = {
+					name = _show
+					alpha = 0
+					next = show_wait
+				}
+
+				state = {
+					name = show_wait
+					duration = 0.2
+					alpha = 0
+					next = show_final
+				}
+
+				state = {
+					name = show_final
+					duration = 0.2
+					bezier = { 0.0 1.0 0.0 1.0 }
+					alpha = 1
+				}						
+			
+				state = {
+					name = _hide
+					alpha = 0
+				}
+
+				vbox = {
+					set_parent_size_to_minimum = yes
+					allow_outside = yes
+					spacing = 10
+					bottomtotop = yes
+					control_groups = {}
+					mapmode_current_button = {
+						allow_outside = yes
+						mapmodes_color_ledger = {
+							visible = "[And(HasMapColorLedger, And(MapModeSelectorVars.Exists('color_ledger'), Not(Or3(MapModeSelectorVars.Exists('hover'), MapModeSelectorVars.Exists('action'), IsMapModeMenuPinned))))]"
+							parentanchor = right|bottom
+							widgetanchor = left|bottom
+							position = { 10 0 }
+						}
+					}
+				}
+			}
+
+			mapmodes_button_color_ledger_map_marker = {
+				blockoverride "button_ledger_map_marker_position_visible" {
+					position = { -140 0 }
+					visible = "[And(Not(TutorialHasVar('intro_hide_ui_1')), Not(Or3(MapModeSelectorVars.Exists('hover'), MapModeSelectorVars.Exists('action'), IsMapModeMenuPinned)))]"
+				}
+			}
+
+			mapmodes_button_color_ledger = {
+				allow_outside = yes
+				mapmodes_color_ledger = {
+					visible = "[And(HasMapColorLedger, And(MapModeSelectorVars.Exists('color_ledger_bottom'), Not(Or3(MapModeSelectorVars.Exists('hover'), MapModeSelectorVars.Exists('action'), IsMapModeMenuPinned))))]"
+					parentanchor = left|top
+					widgetanchor = left|bottom
+					position = { 0 -10 }
+				}
+			}
+		}
+
+		blockoverride "panel_content" {
+			maximumsize = { 675 85 }
+			mapmodes_window = {
+				allow_outside = yes
+				name = "mapmodes_window"
+				widgetid = "mapmodes_window"
+
+				blockoverride "mapmodes_window_extra" {
+					widget = {
+						visible = "[And(Not(MapModeSelectorVars.Exists('tab')), Or3(MapModeSelectorVars.Exists('hover'), MapModeSelectorVars.Exists('action'), IsMapModeMenuPinned))]"
+						parentanchor = hcenter|top
+						widgetanchor = hcenter|bottom
+						position = { 0 -5 }
+						allow_outside = yes
+
+						state = {
+							name = _show
+							duration = 0.3
+							bezier = { 0.0 1.0 0.0 1.0 }
+							alpha = 1
+						}
+					
+						state = {
+							name = _hide
+							duration = 0.1
+							bezier = { 1.0 0.0 1.0 0.0 }
+							alpha = 0
+						}
+
+						vbox = {
+							set_parent_size_to_minimum = yes
+							allow_outside = yes
+							spacing = 10
+							bottomtotop = yes
+							control_groups = {}
+							mapmode_current_button = {
+								allow_outside = yes
+								mapmodes_color_ledger = {
+									visible = "[And(HasMapColorLedger, And(MapModeSelectorVars.Exists('color_ledger'), Not(MapModeSelectorVars.Exists('action'))))]"
+									parentanchor = right|bottom
+									widgetanchor = left|bottom
+									position = { 10 0 }
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		blockoverride "post_panel" {
+			mapmodes_button_color_ledger = {
+				allow_outside = yes
+				blockoverride "button_ledger_position_visible" {
+					position = { 340 0 }
+					parentanchor = hcenter|top
+					widgetanchor = hcenter|bottom
+					visible = "[And(Not(TutorialHasVar('intro_hide_ui_1')), Or3(MapModeSelectorVars.Exists('hover'), MapModeSelectorVars.Exists('action'), IsMapModeMenuPinned))]"
+				}
+				mapmodes_color_ledger = {
+					visible = "[And(HasMapColorLedger, And(MapModeSelectorVars.Exists('color_ledger_bottom'), Or3(MapModeSelectorVars.Exists('hover'), MapModeSelectorVars.Exists('action'), IsMapModeMenuPinned)))]"
+					parentanchor = left|top
+					widgetanchor = left|bottom
+					position = { 0 -10 }
+				}
+			}
+			
+			# mapmodes_button_color_ledger_map_marker = {
+			# 	blockoverride "button_ledger_map_marker_position_visible" {
+			# 		position = { -340 0 }
+			# 		visible = "[And(Not(TutorialHasVar('intro_hide_ui_1')), Or3(MapModeSelectorVars.Exists('hover'), MapModeSelectorVars.Exists('action'), IsMapModeMenuPinned))]"
+			# 	}
+			# }
+		}
+	}
+
+	flowcontainer  = {
+		visible = "[Not(TutorialHasVar('intro_hide_ui_4'))]"
+		position = { 0 160 }
+		parentanchor = top|hcenter
+		ignoreinvisible = yes
+
+		using = Animation_Show_Hide_UI
+
+		paused_indicator = {
+			visible = "[And7(IsGamePaused, Not(IsSaving), Not(IsWritingDumps), Not(IsRecalculatingCacheData), Not(IsPlayerHotjoining), Not(IsDisconnecting), Not(IsLobbyOpen))]"
+		}
+
+		saving_indicator = {
+			visible = "[And(IsSaving, Not(IsLobbyOpen))]"
+		}
+
+		oos_indicator = {
+			visible = "[And(IsWritingDumps, Not(IsLobbyOpen))]"
+		}
+
+		recalculate_indicator = {
+			visible = "[And3(IsRecalculatingCacheData, GameIsMultiplayer, Not(IsLobbyOpen))]"
+		}
+
+		player_joining_indicator = {
+			visible = "[And6(IsPlayerHotjoining, Not(IsRecalculatingCacheData), Not(IsWritingDumps), Not(IsSaving), Not(IsDisconnecting), Not(IsLobbyOpen))]"
+		}
+
+		disconnecting_indicator = {
+			visible = "[And5(IsDisconnecting, Not(IsSaving), Not(IsWritingDumps), Not(IsRecalculatingCacheData), Not(IsLobbyOpen))]"
+		}
+	}
+
+	EnterGameCoA = {
+		name = "flag_animation"
+	}
+}
+
+widget = {
+	visible = "[Not(TutorialHasVar('intro_hide_ui_4'))]"
+	name = "lateralview_left_layer"
+	using = lateralview_left_setup
+}
+
+widget = {
+	name = "lateralview_right_layer"
+	using = lateralview_right_setup
+}
+
+widget = {
+	name = "lateralview_fullscreen_layer"
+	size = { 100% 100% }
+	layer = lateralview
+	allow_outside = yes
+
+	alwaystransparent = yes
+	filter_mouse = none
+
+	using = Animation_Show_Hide_UI
+}
+
+### END OF "ingame_topbar"
