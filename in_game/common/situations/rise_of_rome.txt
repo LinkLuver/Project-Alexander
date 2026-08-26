@@ -1,0 +1,107 @@
+﻿rise_of_rome = {
+	monthly_spawn_chance = monthly_spawn_chance_unique
+	hint_tag = hint_rise_of_rome
+
+	content_trigger = {
+		OR = {
+			tag = ROM
+		}
+	}
+	
+	can_start = {
+		current_date > 450.12.1
+		country_exists = c:ROM
+		c:ROM = {
+			has_ruler = yes
+		}
+		current_date < 470
+	}
+	
+	can_end = {
+		#rise_of_rome_end_trigger = yes
+	}
+	
+	visible = {
+		OR = {
+			has_presence_in = region:italy_region
+			tag = CAR
+			tag = EPI
+		}
+	}
+	
+
+	on_start = {
+
+		c:ROM = {
+			# adds extra aggression to Rome
+			add_country_modifier = {
+				modifier = ai_force_annexation
+				years = -1
+				mode = add_and_extend
+			}
+			#trigger_event_non_silently = rise_of_rome.1
+		}
+
+		every_country = {
+			limit = {
+				OR = {
+					has_presence_in = region:italy_region
+					tag = CAR
+					tag = EPI
+				}
+			}
+			#trigger_event_non_silently = rise_of_rome.2
+		}
+	}
+
+	on_monthly = {
+		if = {
+			limit = {
+				c:ROM ?= {
+					num_locations > 100
+					owns = location:rome
+				}
+			}
+			#c:ROM ?= { trigger_event_non_silently = rise_of_rome.3 }
+		}	
+	}
+
+
+	on_ending = {
+		if = {
+			limit = {
+				NOT = { country_exists = c:ROM }
+			}
+			every_country = {
+				limit = { can_see_situation = situation:rise_of_rome }
+				#trigger_event_non_silently = rise_of_rome.4
+			}
+		}
+		else_if = {
+			limit = {
+				current_year > 500
+			}
+			every_country = {
+				limit = {
+					can_see_situation = situation:rise_of_rome
+				}
+				#trigger_event_non_silently = rise_of_rome.5
+			}
+		}
+		c:ROM ?= {
+			remove_area_preference = rome_expansion_italy
+		}
+	}
+
+	tooltip = {
+
+	}
+
+	map_color = {
+		
+	}
+
+	secondary_map_color = {
+
+	}
+}
