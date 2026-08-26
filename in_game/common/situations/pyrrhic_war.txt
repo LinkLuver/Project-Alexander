@@ -1,0 +1,389 @@
+﻿pyrrhic_war = {
+	monthly_spawn_chance = monthly_spawn_chance_unique
+	hint_tag = pyrrhic_war
+	
+	can_start = {
+		country_exists = c:ROM
+		country_exists = c:EPI
+		current_date > 470.1.1
+		current_date < 490.1.1
+		
+		c:ROM = {
+			has_ruler = yes
+		}
+		c:EPI = {
+			has_ruler = yes
+		}
+		
+		c:ROM = {
+			#has_presence_in = province: - need to add here southern Italian provinces when they're done
+		}
+	}
+	
+	can_end = {
+		#pyrrhic_war_end_trigger = yes
+	}
+	
+	visible = {
+		capital ?= { 
+			OR = {
+				has_presence_in = region:italy_region
+				has_presence_in = region:balkan_region
+			}
+		}
+	}
+	
+
+	on_start = {
+		every_country = {
+			limit = {
+				NOT = { tag = ROM }
+				NOT = { tag = EPI }
+				exists = capital
+				OR = {
+					has_presence_in = region:italy_region
+					has_presence_in = region:balkan_region
+				}
+			}
+		
+			trigger_event_non_silently = pyrrhic_war.1
+		}
+		c:ROM = { 
+			trigger_event_non_silently = pyrrhic_war.2 
+			add_country_modifier = { modifier = pyrrhic_war_impact years = -1 mode = add }
+			add_opinion_mutual_effect = {
+				modifier = opinion_phyrric_enemies
+				target = c:EPI
+			}
+		}
+		c:EPI = { 
+			trigger_event_non_silently = pyrrhic_war.3
+			add_country_modifier = { modifier = pyrrhic_war_impact years = -1 mode = add }
+		}
+	}
+
+	on_monthly = {
+		random_list = {
+			1 = { c:ROM = { trigger_event_non_silently = pyrrhic_war.211 } }
+			1 = { c:EPI = { trigger_event_non_silently = pyrrhic_war.211 } }
+			99 = {}
+		}
+		custom_tooltip = {
+			text = hundred_years_war_monthly
+			random_list = {
+			
+				# give cb to Rome
+				20 = {
+					trigger = {
+						c:ROM ?= {
+							NOT = {	has_casus_belli_on = c:EPI	}
+							NOT = {	has_truce_with = c:EPI	}
+							NOT = {	is_at_war_with = c:EPI	}
+							has_ruler = yes
+						}
+					}
+					c:ROM = {	trigger_event_non_silently = pyrrhic_war.10 }
+				}
+
+				# give cb to Epiros
+				20 = {
+					trigger = {
+						c:EPI ?= {
+							NOT = {	has_casus_belli_on = c:ROM	}
+							NOT = {	has_truce_with = c:ROM	}
+							NOT = {	is_at_war_with = c:ROM	}
+							has_ruler = yes
+						}
+					}
+					c:EPI = {	trigger_event_non_silently = pyrrhic_war.11 }
+				}
+				
+				
+				# attempt a war for Rome
+				20 = {
+					trigger = {
+						c:ROM ?= {
+							has_casus_belli_on = c:EPI
+							NOT = {	has_truce_with = c:EPI	}
+							NOT = {	is_at_war_with = c:EPI	}
+							at_war = no
+							manpower_percentage > 0.75
+							war_exhaustion_percentage < 0.1
+							relative_strength = {
+								target = c:EPI
+								value > 0.45
+							}
+						}
+					}
+					c:ROM = { trigger_event_non_silently = pyrrhic_war.20 }
+				}
+
+				# attempt a war for Epiros
+				20 = {
+					trigger = {
+						c:EPI ?= {
+							has_casus_belli_on = c:ROM
+							NOT = {	has_truce_with = c:ROM	}
+							NOT = {	is_at_war_with = c:ROM	}
+							at_war = no
+							manpower_percentage > 0.75
+							war_exhaustion_percentage < 0.1
+							relative_strength = {
+								target = c:ROM
+								value > 0.45
+							}
+						}
+					}
+					c:EPI = { trigger_event_non_silently = pyrrhic_war.21 }
+				}
+				200 = {}
+				
+			}
+		}
+	}
+
+
+	on_ended = {
+		c:ROM = { 
+			remove_country_modifier = pyrrhic_war_impact
+			remove_opinion_mutual_effect = {
+				modifier = opinion_phyrric_enemies
+				target = c:EPI
+			}
+			remove_casus_belli = {
+				target = c:EPI
+				type = casus_belli:cb_pyrrhic_war
+			}
+		}
+		c:EPI = { 
+			remove_country_modifier = pyrrhic_war_impact
+			remove_casus_belli = {
+				target = c:ROM
+				type = casus_belli:cb_pyrrhic_war_epi
+			}
+		}
+	
+	
+		if = {
+			limit = {
+				c:EPI = {
+					owns = location:rome
+				}
+			}
+			every_country = {
+				limit = {
+					OR = {
+						has_presence_in = region:italy_region
+						has_presence_in = region:balkan_region
+					}
+				}
+				trigger_event_non_silently = pyrrhic_war.100
+			}
+		}
+		else_if = {
+			limit = {
+				c:ROM ?= {
+					num_locations > 100
+					owns = location:rome
+				}
+			}
+			every_country = {
+				limit = {
+					OR = {
+						has_presence_in = region:italy_region
+						has_presence_in = region:balkan_region
+					}
+				}
+				trigger_event_non_silently = pyrrhic_war.101
+			}
+		}
+	}
+
+	tooltip = {
+		if = {
+			limit = { owner ?= c:EPI }
+			custom_tooltip = this_is_epirus_tt
+		}
+		else_if = {
+			limit = { owner ?= c:ROM }
+			custom_tooltip = this_is_rome_tt
+		}
+		else_if = {
+			limit = {
+				owner ?= {
+					AND = {
+						is_subject_or_below_of = c:EPI
+						subject_loyalty >= 50
+					}
+				}
+			}
+			custom_tooltip = loyal_member_of_the_epirote_side_tt
+		}
+		else_if = {
+			limit = {
+				owner ?= {
+					AND = {
+						is_subject_or_below_of = c:EPI
+						is_disloyal_subject = yes
+					}
+				}
+			}
+			custom_tooltip = disloyal_member_of_the_epirote_side_tt
+		}
+		else_if = {
+			limit = {
+				owner ?= {
+					AND = {
+						is_subject_or_below_of = c:ROM
+						subject_loyalty >= 50
+					}
+				}
+			}
+			custom_tooltip = loyal_member_of_the_roman_side_tt
+		}
+		else_if = {
+			limit = {
+				owner ?= {
+					AND = {
+						is_subject_or_below_of = c:ROM
+						is_disloyal_subject = yes
+					}
+				}
+			}
+			custom_tooltip = disloyal_member_of_the_roman_side_tt
+		}
+		else_if = {
+			limit = {
+				owner ?= { 
+					is_allied_with = { target =  c:EPI }
+					NOT = { is_allied_with = { target =  c:ROM }}
+				}
+			}
+			custom_tooltip = this_is_ally_of_epiros_tt
+		}
+		else_if = {
+			limit = {
+				owner ?= { 
+					is_allied_with = { target =  c:ROM }
+					NOT = { is_allied_with = { target =  c:EPI }}
+				}
+			}
+			custom_tooltip = this_is_ally_of_rome_tt
+		}
+		else_if = {
+			limit = {
+				owner ?= { 
+					is_allied_with = { target = c:ROM }
+					is_allied_with = { target = c:EPI }
+				}
+			}
+			custom_tooltip = this_is_ally_of_both_tt
+		}
+	}
+
+	map_color = {
+		if = {
+			limit = {
+				owner ?= c:EPI
+			}
+			value = map_EPI
+		}
+		else_if = {
+			limit = {
+				owner ?= {
+					is_subject_or_below_of = c:EPI
+					subject_loyalty > 50
+				}
+			}
+			value = map_EPI
+		}
+		else_if = {
+			limit = {
+				owner ?= {
+					is_subject_or_below_of = c:ROM
+					subject_loyalty > 50
+				}
+			}
+			value = map_ROM
+		}
+		else_if = {
+			limit = {
+				owner ?= c:ROM
+			}
+			value = map_ROM
+		}
+		else_if = {
+			limit = {
+				owner ?= { is_allied_with = { target =  c:EPI }}
+			}
+			value = root.owner.country_color
+		}
+		else_if = {
+			limit = {
+				owner ?= {
+					is_allied_with = { target =  c:ROM }
+				}
+			}
+			value = root.owner.country_color
+		}
+		else = {
+			value = define:NMapColors|DEFAULT_COLOR
+		}
+	}
+	
+	legend_key = { 
+		desc = "ROM"
+		color = map_ROM
+	}
+	legend_key = { 
+		desc = "EPI"
+		color = map_EPI
+	}
+
+	secondary_map_color = {
+		if = {
+			limit = {
+				owner ?= c:EPI
+			}
+			value = map_EPI
+		}
+		else_if = {
+			limit = {
+				owner ?= c:ROM
+			}
+			value = map_ROM
+		}
+		else_if = {
+			limit = {
+				owner ?= {
+					is_allied_with = { target =  c:EPI }
+					NOT = { is_allied_with = { target =  c:ROM }}
+				}
+			}
+			value = map_EPI
+		}
+		else_if = {
+			limit = {
+				owner ?= { is_subject_or_below_of = c:EPI }
+			}
+			value = map_EPI
+		}
+		else_if = {
+			limit = {
+				owner ?= { is_subject_or_below_of = c:ROM }
+			}
+			value = map_ROM
+		}
+		else_if = {
+			limit = {
+				owner ?= { 
+					is_allied_with = { target =  c:ROM }
+					NOT = { 
+						is_allied_with = { target =  c:EPI }
+					}
+				}
+			}
+			value = map_ROM
+		}
+	}
+}
