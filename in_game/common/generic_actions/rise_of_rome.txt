@@ -1,0 +1,97 @@
+claim_rome_italy = {
+ 	type = situation
+	show_message = no
+	potential = {
+	}
+
+ 	allow = {
+		scope:actor = {
+			at_war = no
+			has_raised_levies = no
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	ai_tick = monthly
+	ai_tick_frequency = 3
+	price = price:rto_press_claims_price
+
+	cooldown = {
+		type = press_claims_cooldown_key
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		interaction_source_list = {
+			situation:rise_of_rome = {
+				add_to_list = source
+			}
+		}
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:rise_of_rome = this
+			situation_is_active = yes
+			tag = ROM
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = province
+		target_flag = target
+		name = "choose_province"
+		none_available_msg_key = "no_provinces_available"
+		column = { data = owner_flag }
+		column = { data = name }
+		column = { data = population }
+		visible = {
+			scope:actor = { can_declare_war_on = root.owner }
+			trigger_if = {
+				limit = {
+					scope:actor ?= { 
+						num_locations < 120 
+						tag = ROM
+					}
+				}
+				region = region:italy_region
+			}
+			trigger_else = {
+			}
+			any_location_in_province = {
+				is_neighbor_of = scope:actor
+			}
+			NOT = {
+				owner = {
+					OR = {
+						this = scope:actor
+						overlord ?= scope:actor
+						overlord ?= { is_subject_of = scope:actor }
+						has_mutual_scripted_relation = {
+							type = relation_type:alliance
+							target = scope:actor
+						}
+					}
+				}
+			}
+		}
+	}
+
+ 	effect = {
+ 		scope:actor = {
+ 			if = {
+ 				limit = {
+ 					exists = scope:target
+ 				}
+ 				add_casus_belli = { target = scope:target.owner type = casus_belli:cb_conquer_province province = scope:target }
+ 			}
+ 			else = {
+ 				custom_tooltip = rot_plan_invasion_tt
+ 			}
+ 		}
+ 	}
+ }
