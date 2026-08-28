@@ -5,7 +5,10 @@
 	allow_children = yes
 	ignore_ruler = yes
 	potential = {
-
+		#NOR = { #P:A
+		#	succession_law = heir_selection:fratricide_succesion
+		#	succession_law = heir_selection:unigeniture
+		#}
 	}
 	allowed_estates = { nobles_estate }
 	heir_is_allowed = {
@@ -79,7 +82,10 @@ absolute_cognatic_primogeniture = {
 	allow_children = yes
 	ignore_ruler = yes
 	potential = {
- 
+		#NOR = { #P:A
+		#	succession_law = heir_selection:fratricide_succesion
+		#	succession_law = heir_selection:unigeniture
+		#}
 	}
 	allowed_estates = { nobles_estate }
 	heir_is_allowed = {
@@ -123,7 +129,10 @@ salic_law = {
 	}
 
 	potential = {
- 
+		#NOR = { #P:A
+		#	succession_law = heir_selection:fratricide_succesion
+		#	succession_law = heir_selection:unigeniture
+		#}
 	}
 
 	traverse_family_tree = yes
@@ -183,7 +192,10 @@ semi_salic_law = {
 	traverse_family_tree = yes
 
 	potential = {
- 
+		#NOR = { #P:A
+		#	succession_law = heir_selection:fratricide_succesion
+		#	succession_law = heir_selection:unigeniture
+		#}
 	}
 
 	sibling_score = {
@@ -235,7 +247,7 @@ partition_inheritance = {#https://en.wikipedia.org/wiki/Partible_inheritance
 	#but on_new_ruler an event will pop up granting stability and 
 	#removing control, depending on the amount of brothers of the new ruler
 	#the intent being to represent the "partition" of the country without
-	#creating new tags
+	#creating new tags #P:A TODO I dislike this, particularly for tribes
 	include_ruler_siblings = yes
 	through_female = no
 	allow_female = no
@@ -248,7 +260,10 @@ partition_inheritance = {#https://en.wikipedia.org/wiki/Partible_inheritance
 	}
 
 	potential = {
- 
+		#NOR = { #P:A
+		#	succession_law = heir_selection:fratricide_succesion
+		#	succession_law = heir_selection:unigeniture
+		#}
 	}
 
 	locked = {
@@ -314,191 +329,9 @@ partition_inheritance = {#https://en.wikipedia.org/wiki/Partible_inheritance
 	}
 }
 
-
-mamluk_succesion = {
-	include_ruler_siblings = yes
-	allow_female = no
-	through_female = no
-	allow_children = yes
-	ignore_ruler = yes # ignore the ruler from calculations (no for elections, yes for monarchies etc)
-	traverse_family_tree = yes
-	
-	allowed_estates = { nobles_estate }
-
-	heir_is_allowed = {
-	}
-
-	potential = {
-		# here we add the triggers that determine if this even appears in the interface
-		has_reform = government_reform:mamluk_government
-	}
-
-	locked = {
-		# you cannot swap to another heir selection if this is true
-		has_reform = government_reform:mamluk_government
-	}
-
-	succession_effect = {
-		# an effect that happens right after succession occurs, but before candidates are recalculated
-		# useful scopes:
-		# root = country
-		# scope:old_ruler
-		# scope:new_ruler
-
-		if = {
-			limit = {
-				#Is there a $mamluk$ cabinet member that might want power for themselves?
-				any_cabinet_character = {
-					religion = root.religion
-					has_estate = estate_type:nobles_estate
-					modifier:blocked_from_being_ruler = no
-					is_regent = no
-					has_trait = mamluk
-					total_abilities > 200
-					total_abilities > scope:new_ruler.total_abilities
-				}	
-			}
-			trigger_event_non_silently = {
-				id = succession.2 #$mamluk$ succession
-			}
-		}
-		if = {
-			limit = {
-				scope:new_ruler = {
-					NOT = {has_trait = mamluk}
-				}	
-			}
-			add_legitimacy = legitimacy_extreme_penalty
-		}
-		
-	}
-
-
-	sibling_score = {
-
-		if = {
-			limit = {
-				exists = root
-			}
-			add = {
-				desc = "HEIR_SELECTION_OLDER_HEIR_DESC"
-				value = root.character_age
-			}
-			add = {
-				desc = "HEIR_SELECTION_ADM_DESC"
-				value = root.adm
-			}
-			add = {
-				desc = "HEIR_SELECTION_DIP_DESC"
-				value = root.dip
-			}
-			add = {
-				desc = "HEIR_SELECTION_MIL_DESC"
-				value = root.mil
-			}
-			
-			if = {
-				limit = { exists = root.father }
-				
-				if = {
-					limit = {
-						any_parent = {
-							this = scope:target.ruler
-						}
-					}
-					add = {
-						desc = "HEIR_SELECTION_PARENT_IS_CURRENT_RULER_DESC"
-						value = 100
-					}
-				}
-			}
-			
-			if = {
-				limit = { 
-					OR = {
-						is_general = yes
-						is_admiral = yes
-					}
-				}
-				add = {
-					desc = "HEIR_SELECTION_GENERAL_OR_ADMIRAL_DESC"
-					value = 50
-				}
-			}
-			
-			if = {
-				limit = { 
-					OR = {
-						has_trait_category = general
-						has_trait_category = admiral
-					}
-				}
-				add = {
-					desc = "HEIR_SELECTION_GENERAL_OR_ADMIRAL_TRAIT_DESC"
-					value = 50
-				}
-			}
-			
-			if = {
-				limit = {
-					has_trait = mamluk
-				}
-				add = {
-					desc = "HEIR_SELECTION_MAMLUK_DESC"
-					value = 100
-				}
-			}
-			if = { 
-				limit = { modifier:blocked_from_being_ruler = yes }
-				add = {
-					desc = "HEIR_SELECTION_IS_UNSUITED_TO_RULE_DESC"
-					value = -1000 
-				}
-			}
-		}
-
-		
-		# Here it goes the description for explaining the ability
-		if = {
-			limit = {
-				not = { exists = root }
-			}
-			add = {
-				desc = "HEIR_SELECTION_PARENT_IS_CURRENT_RULER_DESC"
-				value = 100
-			}
-			add = {
-				desc = "HEIR_SELECTION_OLDER_HEIR_DESC"
-				value = 1
-			}
-			add = {
-				desc = "HEIR_SELECTION_ADM_DESC"
-				value = 1
-			}
-			add = {
-				desc = "HEIR_SELECTION_DIP_DESC"
-				value = 1
-			}
-			add = {
-				desc = "HEIR_SELECTION_MIL_DESC"
-				value = 1
-			}
-			add = {
-				desc = "HEIR_SELECTION_GENERAL_OR_ADMIRAL_DESC"
-				value = 50
-			}
-			add = {
-				desc = "HEIR_SELECTION_MAMLUK_DESC"
-				value = 100
-			}
-			add = {
-				desc = "HEIR_SELECTION_GENERAL_OR_ADMIRAL_TRAIT_DESC"
-				value = 50
-			}
-		}
-	}
-}
-
+#P:A Removed fratricide_succesion
+#P:A Removed unigeniture
+#P:A Removed mamluk_succesion
 
 youngest_son_of_ruler = {
 	through_female = no
@@ -512,7 +345,10 @@ youngest_son_of_ruler = {
 	traverse_family_tree = yes
 
 	potential = {
- 
+		#NOR = { #P:A
+		#	succession_law = heir_selection:fratricide_succesion
+		#	succession_law = heir_selection:unigeniture
+		#}
 	}
 	
 	sibling_score = {
@@ -1009,7 +845,10 @@ favorite_son_elective_succession = {
 	traverse_family_tree = yes
 
 	potential = {
- 
+		#NOR = { #P:A
+		#	succession_law = heir_selection:fratricide_succesion
+		#	succession_law = heir_selection:unigeniture
+		#}
 	}
 	sibling_score = {
 		if = {
@@ -1299,7 +1138,10 @@ matrilineal_salic_law = {
 	all_in_dynasty = yes
 
 	potential = {
- 
+		#NOR = { #P:A
+		#	succession_law = heir_selection:fratricide_succesion
+		#	succession_law = heir_selection:unigeniture
+		#}
 	}
 	sibling_score = {
 		if = {
