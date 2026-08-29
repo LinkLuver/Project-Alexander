@@ -1,0 +1,542 @@
+﻿namespace = rise_of_rome
+
+######################################
+# The start of the situation events
+######################################
+
+rise_of_rome.1 = {
+	type = country_event
+	category = situation_event
+
+	title = rise_of_rome.1.title
+	desc = rise_of_rome.1.desc
+	outcome = neutral
+	#image = "gfx/interface/illustrations/situation/rise_of_rome.dds"
+	immediate = {
+	}
+
+	option = {
+		name = rise_of_rome.1.a
+		if = {
+			limit = { 
+				country_exists = c:LCA
+			}
+			add_truce_with = {
+				target = c:LCA
+			}
+		}
+		if = {
+			limit = { 
+				country_exists = c:SAM
+			}
+			add_truce_with = {
+				target = c:SAM
+			}
+		}
+	}
+}
+
+rise_of_rome.2 = {
+	type = country_event
+	category = situation_event
+	#image = "gfx/interface/illustrations/situation/rise_of_rome.dds"
+	title = rise_of_rome.2.title
+	desc = rise_of_rome.2.desc		# same desc
+	outcome = neutral
+	immediate = {
+		ruler_or_regent = { save_scope_as = target_character }
+		save_scope_as = target_country
+	}
+
+	option = {
+		name = rise_of_rome.2.a
+
+	}
+}
+
+
+
+######################################
+# The end of the situation events
+######################################
+rise_of_rome.3 = {
+	type = country_event
+
+	title = rise_of_rome.3.title
+	desc = rise_of_rome.3.desc
+	outcome = neutral
+	
+	immediate = {
+		save_scope_as = target_country
+		ruler_or_regent = { save_scope_as = target_character }
+	}
+
+	option = {
+		name = rise_of_rome.3.a
+		add_stability = stability_mild_bonus
+	}
+
+}
+
+rise_of_rome.4 = {
+	type = country_event
+	category = situation_event
+
+	title = rise_of_rome.4.title
+	desc = rise_of_rome.4.desc
+	outcome = neutral
+
+	immediate = {
+		save_scope_as = target_country
+		ruler_or_regent = { save_scope_as = target_character }
+	}
+
+	option = {
+		name = rise_of_rome.4.a
+
+	}
+}
+
+
+rise_of_rome.5 = {
+	type = country_event
+	category = situation_event
+
+	title = rise_of_rome.5.title
+	desc = rise_of_rome.5.desc
+	outcome = neutral
+
+	immediate = {
+		set_variable = rise_of_rome_winner_variable
+	}
+
+	option = {
+		name = rise_of_rome.5.a
+		#add_reform = government_reform:rome_ascendant
+		#unlock_government_reform_effect = { type = rome_ascendant }
+		#unlock_policy_effect = { type = roman_colonia }
+		#add_policy = policy:roman_colonia
+	}
+}
+
+
+
+######################################
+# Interaction Events
+######################################
+
+rise_of_rome.106 = {
+	type = country_event
+	category = situation_event
+
+	title = rise_of_rome.106.title
+	desc = rise_of_rome.106.desc
+	outcome = neutral
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		scope:target = {
+			save_scope_as = target_country2
+			set_variable = {
+				name = recently_gave_territory
+				years = 5
+			}
+		}
+		scope:target_2 = {
+			save_scope_as = target_location
+		}
+		create_character = {
+			culture = c:ROM.culture
+			religion = c:ROM.religion
+			age = 18
+			female = no
+			estate = estate_type:nobles_estate
+			create_in_limbo = yes
+			save_scope_as = target_character_4
+		}
+		scope:target_1 = {
+			save_scope_as = target_character3
+		}
+		scope:actor = {
+			save_scope_as = target_country1
+			ruler ?= {
+				save_scope_as = target_character
+				dynasty ?= { save_scope_as = target_dynasty }
+			}
+		}
+	}
+
+	option = {	#Yes
+		name = rise_of_rome.106.a
+
+		ai_chance = {
+			factor = 75
+		}
+
+		hidden_effect = {
+			scope:target_character_4 = {
+				if = {
+					limit = { country_exists = scope:target_country2 }
+					move_country = scope:target_country2
+				}
+				else = { move_country = c:ROM }
+			}
+		}
+		scope:target_location = {
+			change_location_owner = c:ROM
+			change_integration_level = integrated
+		}
+		make_subject_of = { target = c:ROM type = subject_type:vassal }
+		add_truce_with = { target = c:ROM }
+		add_opinion_mutual_effect = {
+			target = c:ROM
+			modifier = opinion_roman_ally
+		}
+		add_trust_equilibrium = {
+			modifier = trust_roman_ally
+			target = c:ROM
+		}
+		c:ROM = {
+			add_trust_equilibrium = {
+				modifier = trust_roman_ally
+				target = scope:target_country2
+			}
+		}
+	}
+
+	option = {
+		name = rise_of_rome.106.b
+		ai_chance = {
+			factor = 25
+		}
+		add_opinion_mutual_effect = {
+			target = c:ROM
+			modifier = belligerent_diplomacy
+		}
+		add_prestige = prestige_weak_bonus
+		c:ROM = {
+			add_casus_belli = {
+				type = casus_belli:cb_insulted_us
+				target = root
+			}
+		}
+	}
+}
+
+rise_of_rome.108 = {
+	type = country_event
+	category = situation_event
+
+	title = rise_of_rome.108.title
+	desc = rise_of_rome.108.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+	immediate = {
+		c:ROM.ruler_or_regent ?= { save_scope_as = target_character }
+		ruler_or_regent ?= { save_scope_as = target_character2 }
+		save_scope_as = target_country
+		c:ROM ?= {
+			ordered_character = {
+				limit = {
+					is_ruler = no
+					is_heir = no
+					is_regent = no
+					is_female = no
+				}
+				order_by = total_abilities
+				max = 1
+				check_range_bounds = no
+				save_scope_as = target_character3
+			}
+		}
+
+	}
+
+	option = {	#Increase opinion
+		name = rise_of_rome.108.a
+
+		c:ROM ?= {
+			add_opinion_mutual_effect = {
+				target = scope:target_country
+				modifier = belligerent_diplomacy
+			}
+		}
+	}
+
+	option = {	#Money in exchange for a truce
+		name = rise_of_rome.108.b
+
+		c:ROM ?= {
+			set_variable = beylik_requests_money_var
+			trigger_event_non_silently = rise_of_rome.112
+		}
+
+	}
+
+	option = {	#Nevermind.
+		name = rise_of_rome.108.d
+
+		add_government_power = government_power_mild_bonus
+	}
+}
+
+#Official sponsorship
+rise_of_rome.111 = {
+	type = country_event
+	category = situation_event
+	title = rise_of_rome.111.title
+	desc = rise_of_rome.111.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+
+	option = {	#Yes
+		name = rise_of_rome.109.a
+
+		ai_chance = {
+			factor = 10
+		}
+		add_government_power = government_power_extreme_penalty
+		if = {
+			limit = { exists = scope:target_country }
+			add_opinion_mutual_effect = {
+				target = scope:target_country
+				modifier = belligerent_diplomacy
+			}
+			scope:target_country = {
+				add_country_modifier = {
+					modifier = sovereign_of_anatolia
+					years = 10
+					mode = replace
+				}
+				set_variable = got_modifier_var
+			}
+		}
+	}
+
+	option = {	#No
+		name = rise_of_rome.109.b
+		ai_chance = {
+			factor = 5
+		}
+
+		add_government_power = government_power_weak_bonus
+		if = {
+			limit = { exists = scope:target_country }
+			add_opinion_mutual_effect = {
+				target = scope:target_country
+				modifier = refused_diplomatic_offer
+			}
+		}
+	}
+	after = {
+		if = {
+			limit = { has_variable = beylik_requests_official_sponsorship_var }
+			remove_variable = beylik_requests_official_sponsorship_var
+		}
+		scope:target_country = { trigger_event_non_silently = rise_of_rome.110 }
+	}
+}
+#Money in exchange for a truce
+rise_of_rome.112 = {
+	type = country_event
+	category = situation_event
+
+	title = rise_of_rome.112.title
+	desc = rise_of_rome.112.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	option = {	#Yes
+		name = rise_of_rome.109.a
+
+		ai_chance = {
+			factor = 10
+		}
+		add_government_power = government_power_extreme_penalty
+		if = {
+			limit = { exists = scope:target_country }
+			add_opinion_mutual_effect = {
+				target = scope:target_country
+				modifier = belligerent_diplomacy
+			}
+			add_truce_with = { target = scope:target_country }
+		}
+
+		change_gold_effect = { scale = 6 }
+		if = {
+			limit = { exists = scope:target_country }
+			scope:target_country = {
+				add_gold = {
+					value = root.monthly_income_total
+					multiply = -6
+				}
+				trigger_event_non_silently = rise_of_rome.110
+			}
+		}
+
+	}
+
+	option = {	#No
+		name = rise_of_rome.109.b
+		ai_chance = {
+			factor = 5
+		}
+
+		add_government_power = government_power_weak_bonus
+		if = {
+			limit = { exists = scope:target_country }
+			add_opinion_mutual_effect = {
+				target = scope:target_country
+				modifier = refused_diplomatic_offer
+			}
+			scope:target_country = {
+				trigger_event_non_silently = rise_of_rome.113
+			}
+		}
+	}
+}
+
+rise_of_rome.110 = {
+	type = country_event
+	category = situation_event
+
+	title = rise_of_rome.110.title
+	desc = rise_of_rome.110.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+	option = {
+		name = rise_of_rome.110.a
+		show_as_tooltip = {
+			add_gold = {
+				value = c:ROM.monthly_income_total
+				multiply = -6
+			}
+			add_truce_with = { target = c:ROM }
+		}
+	}
+}
+
+rise_of_rome.113 = {
+	type = country_event
+	category = situation_event
+
+	title = rise_of_rome.113.title
+	desc = rise_of_rome.113.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+	option = {
+		name = rise_of_rome.113.a
+		show_as_tooltip = {
+			c:ROM = {
+				add_opinion_mutual_effect = {
+					target = scope:target_country
+					modifier = refused_diplomatic_offer
+				}
+			}
+		}
+		add_government_power = government_power_weak_penalty
+	}
+}
+
+
+rise_of_rome.216 = {
+	type = country_event
+	category = situation_event
+	title = rise_of_rome.216.title
+	desc = rise_of_rome.216.desc
+	outcome = neutral
+
+	illustration_tags = {
+		10 = happy
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+
+		ordered_province = {
+			limit = {
+				culture_percentage = {
+					culture = root.culture
+					value > 0.5
+				}
+				religion_percentage = {
+					religion = root.religion
+					value > 0.5
+				}
+			}
+			order_by = {
+				value = population
+				if = {	#Considerably less likely to choose the same province twice to avoid depopulation
+					limit = { has_variable = previously_recently_used_migration_province_variable }
+					multiply = 0.5
+				}
+			}
+			save_scope_as = target_province_origin
+			set_variable = {
+				name = previously_recently_used_migration_province_variable
+				years = 20	#In 20 years we can reuse this province as a migration origin
+			}
+		}
+	}
+
+	option = {
+		name = rise_of_rome.216.a
+
+		add_migration = {
+			owner = root
+			from = scope:target_province_origin.province_definition
+			to = scope:target_province_destination.province_definition
+			culture = root.culture
+			religion = root.religion
+			amount = {
+				value = scope:target_province_origin.population
+				multiply = 0.001
+			}
+			months = 120
+		}
+
+		scope:target_province_destination = {
+			if = {
+				limit = { has_province_modifier = cultural_intermixing_modifier }
+				add_province_modifier = {
+					modifier = cultural_intermixing_modifier
+					years = 2
+					mode = add_and_extend
+				}
+
+				custom_tooltip = target_province_destination_already_has_tt
+			}
+			else = {
+				add_province_modifier = {
+					modifier = cultural_intermixing_modifier
+					years = 5
+					mode = add_and_extend
+				}
+			}
+		}
+	}
+}
