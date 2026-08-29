@@ -1,13 +1,17 @@
 claim_rome_italy = {
- 	type = situation
+	type = situation
 	show_message = no
 	potential = {
+		scope:actor = {
+			tag = ROM
+		}
 	}
 
- 	allow = {
+	allow = {
 		scope:actor = {
 			at_war = no
 			has_raised_levies = no
+			tag = ROM
 		}
 	}
 
@@ -40,7 +44,7 @@ claim_rome_italy = {
 			tag = ROM
 		}
 	}
-	
+
 	select_trigger = {
 		looking_for_a = province
 		target_flag = target
@@ -81,17 +85,353 @@ claim_rome_italy = {
 		}
 	}
 
- 	effect = {
- 		scope:actor = {
- 			if = {
- 				limit = {
- 					exists = scope:target
- 				}
- 				add_casus_belli = { target = scope:target.owner type = casus_belli:cb_conquer_province province = scope:target }
- 			}
- 			else = {
- 				custom_tooltip = rot_plan_invasion_tt
- 			}
- 		}
- 	}
- }
+	effect = {
+		scope:actor = {
+			if = {
+				limit = {
+					exists = scope:target
+				}
+				add_casus_belli = { target = scope:target.owner type = casus_belli:cb_conquer_province province = scope:target }
+			}
+			else = {
+				custom_tooltip = rot_plan_invasion_tt
+			}
+		}
+	}
+}
+
+seek_relations_with_the_romans = {
+	type = situation
+	show_message = no	
+	potential = {
+		scope:actor = {
+			has_presence_in = region:italy_region
+		}
+		country_exists = c:ROM
+		c:ROM ?= {
+			is_subject = no
+			owns = location:rome
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			relative_strength = {
+				target = c:ROM
+				value < 0.5
+			}
+			government_power > 40
+			NOT = { is_at_war_with = c:ROM }
+			NOT = { tag = ROM }
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	price = price:seek_relations_with_the_byzantines_price
+	select_trigger = {
+		looking_for_a = situation
+		interaction_source_list = {
+			situation:rise_of_rome = {
+				add_to_list = source
+			}
+		}
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:rise_of_rome = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			trigger_event_non_silently = rise_of_rome.108
+		}
+	}
+	cooldown = { type = seek_relations_with_the_romans_cooldown_key years = 5 }
+	ai_will_do = {
+		add = 0
+	}
+}
+
+offer_roman_alliance = { 
+	type = situation
+	show_message = no
+	potential = {
+		scope:actor = {
+			tag = ROM
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			at_war = no
+			has_regent = no
+			tag = ROM
+		}	
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	ai_tick = monthly
+	ai_tick_frequency = 6
+	
+	price = price:offer_diplomatic_protection_price
+
+	select_trigger = {
+		looking_for_a = situation
+		interaction_source_list = {
+			situation:rise_of_rome = {
+				add_to_list = source
+			}
+		}
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:rise_of_rome = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		#source_global_list = eligible_beylik_list
+		cache_interaction_source_list = yes
+		target_flag = target
+		name = "choose_a_country"
+		none_available_msg_key = "no_suitable_countries"
+		column = {
+			data = name
+		}
+		visible = {
+			has_presence_in = region:italy_region
+			this != scope:actor
+			NOT = { is_rival_of = scope:actor }
+			NOT = { is_enemy_of = scope:actor }
+			at_war = no
+			is_subject = no
+			is_neighbor_of = scope:actor
+			relative_strength = {
+				target = scope:actor
+				value <= 0.1
+			}
+			NOT = { 
+				has_variable = recently_gave_territory
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		source = target
+		target_flag = target_2
+		name = "request_location_in_exchange"
+		none_available_msg_key = "no_locations_available"
+		column = {
+			data = name
+		}
+		visible = {
+			is_neighbor_of = scope:actor
+			is_capital = no
+			controller = scope:target
+		}
+	}
+	cooldown = { type = offer_diplomatic_protection_key years = 1 }
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+				exists = scope:target_1
+				exists = scope:target_2
+			}
+			custom_tooltip = {
+				text = exchange_location_for_alliance_tt
+				scope:target = {
+					trigger_event_non_silently = rise_of_rome.106
+				}
+			}
+		}
+		else = { custom_tooltip = no_link_exchange_location_for_alliance_tt }
+	}
+	
+	ai_will_do = {
+		add = -10
+	}
+}
+
+invite_latin_migration = {
+	type = situation
+	show_message = no
+	potential = {
+		scope:actor = {
+			tag = ROM
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			any_province = {
+				culture_percentage = {
+					culture = scope:actor.culture
+					value > 0.5
+				}
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	ai_tick = monthly
+	ai_tick_frequency = 6
+	price = price:rto_press_claims_price
+
+	cooldown = {
+		type = invite_latin_migration
+		years = 2
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		interaction_source_list = {
+			situation:rise_of_rome = {
+				add_to_list = source
+			}
+		}
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:rise_of_rome = this
+			situation_is_active = yes
+			tag = ROM
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = culture
+		target_flag = target_culture
+		source = actor
+		name = "promote_culture_select_culture"
+		none_available_msg_key = "promote_culture_no_culture"
+		column = {
+			data = name
+		}
+		column = {
+			data = culture_percentage_in_country
+		}
+		default_sort = culture_percentage_in_country
+		visible = {
+			root = scope:actor.culture
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		target_flag = target_province_destination
+		name = "choose_province"
+		none_available_msg_key = "no_provinces_available"
+		column = { data = name }
+		column = { data = population }
+		column = { data = province_culture_percentage }
+		visible = {
+			owner ?= scope:actor
+			culture_percentage = {
+				culture = scope:actor.culture
+				value < 0.5
+			}
+		}
+		enabled = {
+			any_location_in_province = {
+				NOT = { integration_level = core }
+			}
+		}
+	}
+	effect = { 
+		if = {
+			limit = {
+				exists = scope:target_province_destination
+			}
+			scope:actor = { trigger_event_non_silently = rise_of_rome.216 }
+		}
+		else = {
+			custom_tooltip = ror_latin_migration_tt
+		}
+	}
+
+	ai_will_do = {
+		add = 15
+		if = {
+			limit = { exists = scope:target_province_destination }
+			subtract = 35
+
+			scope:target_province_destination = {
+				every_location_in_province = {
+					limit = { integration_level = core }
+
+					subtract = {
+						value = 10
+						desc = "We have a core here"
+					}
+				}
+			}
+				
+			add = {	#More likely to migrate towards high tax base provinces
+				desc = "[target_province_destination.GetName] [tax_base|e]" 
+				value = scope:target_province_destination.province_tax_base
+				multiply = 1
+			}
+			add = {
+				desc = "[target_province_destination.GetName] [control|e]"
+				value = 10
+				multiply = scope:target_province_destination.province_average_control
+			}
+			add = {
+				desc = "[target_province_destination.GetName] [population|e]"
+				value = scope:target_province_destination.population
+				multiply = 100
+				divide = scope:actor.total_population
+			}
+			if = {
+				limit = {
+					scope:target_province_destination = {
+						culture_percentage = {
+							culture = scope:actor.culture
+							value > 0
+						}
+					}
+				}
+				add = {
+					desc = "[target_province_destination.GetName] [target_culture.GetName]"
+					value = "scope:target_province_destination.culture_percentage(scope:target_culture)"
+					divide = 0.01
+				}
+			}
+			else = {
+				add = {
+					desc = "[target_province_destination.GetName] [target_culture.GetName]"
+					value = 20
+				}
+			}
+			if = {
+				limit = {
+					scope:target_province_destination = { has_province_modifier = cultural_intermixing_modifier }
+				}
+
+				add = {
+					desc = "cultural_intermixing_modifier"
+					value = -50
+				}
+			}
+		}
+	}
+}
