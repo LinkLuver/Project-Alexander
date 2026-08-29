@@ -2,11 +2,12 @@
 	monthly_spawn_chance = monthly_spawn_chance_unique
 	
 	can_start = {
-		current_year > 450
+		current_year >= 450
 	}
 	
 	can_end = {
 		# diadochi_wars_end_trigger = yes
+		current_date > 460 
 		OR = {
 			current_date > 500  
 			not = {
@@ -14,68 +15,58 @@
 
 			}
 			### all diadochi died?
-			any_in_global_list = {
-				variable = eligible_diadochi_ruler_list
-				limit = {
-					is_alive = no
-				}
-			}
+			#any_in_global_list = {
+			#	variable = eligible_diadochi_ruler_list
+			#	limit = {
+			#		is_alive = no
+			#	}
+			#}
 		}
 	}
 	
 	visible = {
-		OR = {
-			has_presence_in = region:balkan_region
-			has_presence_in = region:egypt_region
-			has_presence_in = region:anatolia_region
-			has_presence_in = region:crescent_region
-			has_presence_in = region:persia_region
-		}
+		is_in_scripted_geography = scripted_geography:alexanders_empire = yes
 	}
 	
 
 	on_start = {
-		tag:MAC = {
-			trigger_event_non_silently = {
-				id = diadochi_wars.1
-			}	
-		}
-		
-		create_international_organization = {
-			type = international_organization_type:diadochi_league_m
-			add_country_to_international_organization = tag:MAC
-			set_leader_country = tag:MAC # TODO ERROR? move to event for each tag?
-		}
-		#create_international_organization = {
-		#	type = international_organization_type:diadochi_league_t
-		#	add_country_to_international_organization = tag:TRE
-		#	set_leader_country = tag:TRE
-		#}
-		#create_international_organization = {
-		#	type = international_organization_type:diadochi_league_a
-		#	add_country_to_international_organization = tag:PRY
-		#	set_leader_country = tag:PRY
-		#}
-		#create_international_organization = {
-		#	type = international_organization_type:diadochi_league_e
-		#	add_country_to_international_organization = tag:EGY
-		#	set_leader_country = tag:EGY
-		#}
-		#create_international_organization = {
-		#	type = international_organization_type:diadochi_league_s
-		#	add_country_to_international_organization = tag:SEL
-		#	set_leader_country = tag:SEL
-		#}
-
 		every_country = {
 			limit = {
 			 	has_reform = government_reform:diadochi_gov   #Diadochi gov
 			}
+			trigger_event_non_silently = {
+				id = diadochi_wars.1
+			}	
 			add_to_global_variable_list = { name = eligible_diadochi_list target = this }
 			ruler = {add_to_global_variable_list = { name = eligible_diadochi_ruler_list target = this }}
-
-		
 		}
+		
+		create_international_organization = {
+			type = international_organization_type:diadochi_league_m
+			add_country_to_international_organization = c:MAC
+			set_leader_country = c:MAC 
+		}
+		create_international_organization = {
+			type = international_organization_type:diadochi_league_t
+			add_country_to_international_organization = c:TRE
+			set_leader_country = c:TRE
+		}
+		#create_international_organization = {
+		#	type = international_organization_type:diadochi_league_a
+		#	add_country_to_international_organization = c:PRY
+		#	set_leader_country = c:PRY
+		#}
+		create_international_organization = {
+			type = international_organization_type:diadochi_league_e
+			add_country_to_international_organization = c:EGY
+			set_leader_country = c:EGY
+		}
+		#create_international_organization = {
+		#	type = international_organization_type:diadochi_league_s
+		#	add_country_to_international_organization = c:SEL
+		#	set_leader_country = c:SEL
+		#}
+
 		ordered_in_global_list = {  
 			variable = eligible_diadochi_list
 			limit = { is_subject = no }
@@ -184,7 +175,7 @@
 		###########See in_game\common\scripted_effects\situation_effects############
 		#####This effectively recalculates the top 3 positions in the situation#####
 
-		diadochi_wars_recalculate_top_3 = yes
+		#diadochi_wars_recalculate_top_3 = yes
 
 		sort_global_variable_list = {
 			name = dw_diadochi_leagues_list
@@ -205,43 +196,8 @@
 	}
 
 	map_color = {
-
-		# Italian League Sponsors
-		else_if = {
-			limit = {
-				owner ?= {
-					has_special_status_in_international_organization = {
-						type = special_status:italian_league_sponsor
-						international_organization = international_organization:diadochi_league_m
-					}
-				}
-			}
-			value = owner.country_color
-		}
-		else_if = {
-			limit = {
-				owner ?= {
-					has_special_status_in_international_organization = {
-						type = special_status:italian_league_sponsor
-						international_organization = international_organization:diadochi_league_t
-					}
-				}
-			}
-			value = owner.country_color
-		}
-		else_if = {
-			limit = {
-				owner ?= {
-					has_special_status_in_international_organization = {
-						type = special_status:italian_league_sponsor
-						international_organization = international_organization:diadochi_league_e
-					}
-				}
-			}
-			value = owner.country_color
-		}
-		# Italian League 1
-		else_if = {
+		# macadon League 1
+		if = {
 			limit = {
 				owner ?= {
 					OR = {
@@ -255,7 +211,7 @@
 			}
 			value = map_iw_italian_1
 		}
-		# Italian League 2
+		# thrace League 2
 		else_if = {
 			limit = {
 				owner ?= {
@@ -270,7 +226,7 @@
 			}
 			value = map_iw_italian_2
 		}
-		# Italian League 3
+		# egypt League 3
 		else_if = {
 			limit = {
 				owner ?= {
@@ -285,9 +241,5 @@
 			}
 			value = map_iw_italian_3
 		}
-	}
-	}
-	
-
-	
+	}	
 }

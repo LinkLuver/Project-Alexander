@@ -1,202 +1,270 @@
+
+types ItalianWarsTypes {
+	type tension_threshold_icon = widget  {
+		ignore_layout = yes
+		block "tension_threshold_icon_position" { position = { 385 4 } }
+		size = { 34 38 }
+
+		icon = {
+			parentanchor = center
+			size = { 34 34 }
+			block "tension_threshold_texture" {
+				texture = "gfx/interface/progressbars/yellow_circle_bg.dds"
+			}
+			text_single = {
+				margin_left = 1
+				maximumsize = { 26 18 }
+				autoresize = yes
+				parentanchor = center
+				fontsize = 13
+				block "tension_threshold_text" {}
+			}
+		}
+	}
+
+	type italian_wars_member_country_row = situation_member_country_row {
+
+		blockoverride "situation_member_leader_bg" {
+			background = {
+				visible = "[GetUniqueInternationalOrganization(ItalianWarsCountryItem.GetLeagueTypeKey).IsIOLeaderCountry(ItalianWarsCountryItem.GetCountry)]"
+				using = color_purple_texture
+				margin = { 1 1 }
+				margin_bottom = 2
+				alpha = 0.4
+			}
+		}
+
+		blockoverride "situation_member_country_row_rank" {
+			button = {
+				size = { 26 26 }
+				texture = "[ItalianWarsCountryItem.GetLeagueIcon]"
+				texture_density = 2
+				datacontext = "[GetUniqueInternationalOrganization(ItalianWarsCountryItem.GetLeagueTypeKey)]"
+				action_tooltip = {
+					title = "OPEN_IO"
+					on_action = "[OpenInternationalOrganizationView(InternationalOrganization.Self)]"
+				}
+				tooltipwidget = { BasicFunctionalTooltip = {} }
+			}
+			divider_flavor_01 = { size = {8 -1} }
+		}
+
+		blockoverride "situation_member_country_datacontext" {
+			datacontext = "[ItalianWarsCountryItem.GetCountry]"
+		}
+		blockoverride "situation_member_gp" {}
+		blockoverride "situation_member_opinion" {}
+		blockoverride "situation_member_extra_columns" {
+			divider_flavor_01 = { size = { 8 -1 } }
+			action_button_regular = {
+				visible = yes
+				size = { 60 25 }
+				fontsize = 13
+				text = "bribe_voter_short"
+				actor = "[SituationView.GetPlayer]"
+				parameter = {
+					parameter_name = "recipient"
+					parameter_value = "[ItalianWarsCountryItem.GetCountry]"
+				}
+				left_click_and_hold_action = { action_name = "italian_wars_bribe_country" }
+				enabled = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, And(Not(ItalianWarsCountryItem.IsInSameLeagueAsPlayer), UIAction.IsEnabled))]"
+				tooltipwidget = {
+					ContextualTooltipType = {
+						blockoverride "title_text" { text = "italian_wars_bribe_country" }
+						blockoverride "concept_link" { text = "[action|E]" }
+						blockoverride "tooltip_content" {
+							TooltipFlavorTextBlock = {
+								visible = "[Not(ItalianWarsCountryItem.IsInSameLeagueAsPlayer)]"
+								blockoverride "text" { text = "italian_wars_bribe_country_desc" }
+							}
+							TooltipRowList = {
+								visible = "[Not(StringIsEmpty(UIAction.GetEffects))]"
+								textcontext = "[UIAction.GetEffects]"
+							}
+							TooltipRowList = {
+								visible = "[Not(StringIsEmpty(UIAction.GetConditions))]"
+								textcontext = "[UIAction.GetConditions]"
+							}
+							TooltipTextBlock = {
+								visible = "[ItalianWarsCountryItem.IsInSameLeagueAsPlayer]"
+								blockoverride "text" { text = "IW_INVITE_TARGET_IN_LEAGUE_TT" }
+							}
+							TooltipTextBlock = {
+								visible = "[And(Not(SituationView.IsPlayerItalianWarsLeagueLeader), And(Not(ItalianWarsCountryItem.IsInSameLeagueAsPlayer), StringIsEmpty(UIAction.GetConditions)))]"
+								blockoverride "text" { text = "IW_BRIBE_NOT_LEAGUE_LEADER_TT" }
+							}
+						}
+					}
+				}
+			}
+			divider_flavor_01 = { size = { 8 -1 } }
+			action_button_regular = {
+				visible = "[Not(ObjectsEqual(Country.Self, SituationView.GetPlayer))]"
+				size = { 60 25 }
+				fontsize = 13
+				text = "IW_INVITE_SHORT"
+				actor = "[SituationView.GetPlayer]"
+				left_action = {
+					action_name = "invite_to_international_organization"
+					action_direction = "offer"
+					parameter = {
+						parameter_name = "international_organization"
+						parameter_value = "[SituationView.GetItalianWarsPlayerLeagueIO]"
+					}
+					parameter = {
+						parameter_name = "recipient"
+						parameter_value = "[ItalianWarsCountryItem.GetCountry]"
+					}
+				}
+				enabled = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, UIAction.IsEnabled)]"
+				tooltipwidget = {
+					ContextualTooltipType = {
+						blockoverride "title_text" { text = "IW_INVITE_TO_LEAGUE_TITLE" }
+						blockoverride "concept_link" { text = "[action|E]" }
+						blockoverride "title_icon_texture" {
+							texture = "gfx/interface/icons/location_icons/diplomacy.dds"
+						}
+						blockoverride "tooltip_content" {
+							# Cases 1 & 2: leader, target not in league (action is valid regardless of other requirements)
+							TooltipFlavorTextBlock = {
+								visible = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, UIAction.IsVisible)]"
+								blockoverride "text" { text = "[UIAction.GetDescription]" }
+							}
+							TooltipRowList = {
+								visible = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, And(UIAction.IsVisible, Not(StringIsEmpty(UIAction.GetEffects))))]"
+								textcontext = "[UIAction.GetEffects]"
+							}
+							TooltipRowList = {
+								visible = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, And(UIAction.IsVisible, Not(StringIsEmpty(UIAction.GetConditions))))]"
+								textcontext = "[UIAction.GetConditions]"
+							}
+							# Case 4: leader, but target is already a member of our league
+							TooltipTextBlock = {
+								visible = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, Not(UIAction.IsVisible))]"
+								blockoverride "text" { text = "IW_INVITE_TARGET_IN_LEAGUE_TT" }
+							}
+							# Case 3: member but not the leader
+							TooltipTextBlock = {
+								visible = "[And(SituationView.IsPlayerInItalianWarsLeague, Not(SituationView.IsPlayerItalianWarsLeagueLeader))]"
+								blockoverride "text" { text = "IW_INVITE_NOT_LEAGUE_LEADER_TT" }
+							}
+							# Case 5: not in any Italian Wars league
+							TooltipTextBlock = {
+								visible = "[Not(SituationView.IsPlayerInItalianWarsLeague)]"
+								blockoverride "text" { text = "IW_INVITE_NOT_IN_LEAGUE_TT" }
+							}
+						}
+					}
+				}
+			}
+
+			divider_flavor_01 = { size = { 8 -1 } }
+			hbox = {
+				minimumsize = { 55 -1 }
+				maximumsize = { 55 -1 }
+				tooltipwidget = {
+					ContextualTooltipType = {
+						blockoverride "title_text" { text = "IW_INVITE_ACCEPTANCE_TITLE" }
+						blockoverride "title_icon_texture" {
+							texture = "gfx/interface/icons/location_icons/diplomacy.dds"
+						}
+						blockoverride "tooltip_content" {
+							TooltipTextBlock = {
+								visible = "[ItalianWarsCountryItem.IsInSameLeagueAsPlayer]"
+								blockoverride "text" { text = "IW_INVITE_TARGET_IN_LEAGUE_TT" }
+							}
+							TooltipTextBlock = {
+								visible = "[And(SituationView.IsPlayerInItalianWarsLeague, Not(SituationView.IsPlayerItalianWarsLeagueLeader))]"
+								blockoverride "text" { text = "IW_INVITE_NOT_LEAGUE_LEADER_TT" }
+							}
+							TooltipTextBlock = {
+								visible = "[Not(SituationView.IsPlayerInItalianWarsLeague)]"
+								blockoverride "text" { text = "IW_INVITE_NOT_IN_LEAGUE_TT" }
+							}
+							TooltipScrolledStringPairList = {
+								ontextcontextchanged = "[SetStringPairListWithTitleFromTextContext(PdxGuiWidget.AccessSelf)]"
+								visible = "[Not(StringIsEmpty(ItalianWarsCountryItem.GetInviteAcceptanceTooltip))]"
+								blockoverride "block_scrollarea" { maximumsize = { -1 200 } }
+								textcontext = "[ItalianWarsCountryItem.GetInviteAcceptanceTooltip]"
+							}
+						}
+					}
+				}
+				text_single = {
+					visible = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, Not(ItalianWarsCountryItem.IsInSameLeagueAsPlayer))]"
+					align = center
+					text = "[ItalianWarsCountryItem.GetInviteAcceptanceScore|+=2]"
+				}
+				text_single = {
+					visible = "[Not(And(SituationView.IsPlayerItalianWarsLeagueLeader, Not(ItalianWarsCountryItem.IsInSameLeagueAsPlayer)))]"
+					align = center
+					text = "-"
+				}
+			}
+
+			divider_flavor_01 = { size = { 8 -1 } }
+			text_single = {
+				minimumsize = { 30 -1 }
+				maximumsize = { 30 -1 }
+				align = center
+				text = "[ItalianWarsCountryItem.GetItalyLocationCount]"
+				tooltipwidget = {
+					ContextualTooltipType = {
+						blockoverride "title_text" { text = "IW_ITALY_LOCATION_COUNT_TITLE" }
+						blockoverride "title_icon_texture" {
+							texture = "gfx/interface/icons/diplomatic_status/war.dds"
+						}
+						blockoverride "tooltip_content" {
+							TooltipTextBlock = {
+								blockoverride "text" {
+									text = "IW_ITALY_LOCATION_COUNT_TT"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
 situation_panel = {
 
 	##################################### TOP HEADER #####################################
-
-	# blockoverride "situation_header_extra"{ visible = no }
-	#To show the start date properly, we may want to reactivate this in the future, in case 
-	#we want to move the start date of each situation elsewhere
-	##################################### MAIN IMAGE #####################################
-
-	blockoverride "situation_panel_image" {
-		using = one_country_header_template
-		
-		blockoverride "CountryContext" {
-			datacontext = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('strongest_diadochi_variable').GetCountry]"
-		}
-		# blockoverride "history_button_anchor" {}
-		blockoverride "character_portrait_anchor" {
-			parentanchor = bottom|left
-		}
-		blockoverride "character_religion_visibility" {
-			visible = no
-		}
-		blockoverride "character_name_maximumsize" {
-			maximumsize = { 270 -1 }
-		}
-		blockoverride "country_header_extra" {
-			hbox = {
-				layoutpolicy_horizontal = expanding
-				layoutpolicy_vertical = expanding
-				margin = { 10 10 }
-				spacing = 8
-				expand = {}
+	blockoverride "situation_top_subheader_content" {
+		hbox = {
+			layoutpolicy_horizontal = expanding
+			background = {
+				texture = "gfx/interface/progressbars/tension_header_bg.dds"
 			}
-		}
-	}
-	
-	##################################### TAB NAME #####################################
-
-	
-
-	##################################### SUBHEADER #####################################
-
-	#Default
-	
-	blockoverride "situation_subheader_content"{}
-
-	##################################### MAIN CONTENT #####################################
-
-	#INVOLVED COUNTRIES
-	blockoverride "situation_panel_main_content" {
-		#LEADER COUNTRY
-		situation_card_expandable = {
-			blockoverride "header_button_onclick" {
-				onclick = "[LateralView.Vars.Toggle( 'requirements_toggled' )]"
-			}
-			blockoverride "header_text" {
-				text = "END_REQUIREMENTS"
-			}
-			blockoverride "header_icon" {
-				texture = "gfx/interface/icons/disasters/end_requirements_green.dds"
-			}
-			blockoverride "bottom_content" {
-				TooltipRequirementsList = {
-					textcontext = "[SituationView.GetActiveSituation.GetSituation.GetEndConditions]"
-				}
-			}
-			blockoverride "visible_hint" {}
-			blockoverride "onaction_hint" {
-				action_tooltip = {
-					title = "OPEN_HINT"
-					#on_action = "[OpenLateralViewWithParams('hints', 'selected_hint = hint_rise_of_the_ottomans')]" #TODO NEW TIP
-				}
-			}
-			blockoverride "bottom_content_onclick" {
-				visible = "[LateralView.Vars.Exists( 'requirements_toggled' )]"
-			}
-			blockoverride "icon_replace_visible_yes" {
-				visible = "[LateralView.Vars.Exists( 'requirements_toggled' )]"
-			}
-			blockoverride "icon_replace_visible_not" {
-				visible = "[Not(LateralView.Vars.Exists( 'requirements_toggled' ))]"
-			}
-		}
-
-		situation_card_expandable = {
-			blockoverride "header_icon" {
-				datacontext = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('strongest_diadochi_variable').GetCountry]"
-
-				country_flag_small_plus = {
-					size = { 50 30 }
-				}
-			}
-			blockoverride "header_text" {
-				margin_left = 25
-				align = nobaseline
-				text = "DDW_LEADER_COUNTRY"
-
-				tooltipwidget = {
-					ContextualTooltipType = {
-						datacontext = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('strongest_diadochi_variable').GetCountry]"
-						blockoverride "title_icon" {
-							country_flag_small = {
-							}
-						}
-						blockoverride "title_text" {
-							text = "DDW_LEADER_COUNTRY_SCORE_TITLE_TT"
-						}
-						blockoverride "concept_link" {
-							text = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('strongest_diadochi_variable').GetCountry.GetName]"
-						}
-						
-						blockoverride "tooltip_content" {
-							datacontext = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('strongest_diadochi_variable').GetCountry]"
-							TooltipStringPairList = {
-							
-								blockoverride "block_title" {
-									text = "DDW_GRAPH_TITLE_TT"
-								}
-								
-								textcontext ="DDW_LEADER_COUNTRY_SCORE_TT"
-								
-							}
-							TooltipFlavorTextBlock = {
-								blockoverride "text" {
-									text = "DDW_LEADER_COUNTRY_SCORE_FLAVOR_TT"
-								}
-							}
-						}
-						blockoverride "tooltip_ui_action_block" {
-							TooltipUIActionBlock = {
-								visible = no
-								datacontext = "[ExtraTooltipInfo.GetUIAction]"
-							}
-						}
-					}
-				}
-			}
-			blockoverride "bottom_content" {
-				text_multi = {
-					margin = {15 0}
-					layoutpolicy_horizontal = expanding
-					max_width = 400
-					autoresize = yes
-					text = "STRONGEST_BEYLIK_BONUS_TOOLTIP"
-				}
-			}
-		}
-
-		situation_fancy_two_line_card = {
-			block "card_datacontext" { }	#We need two countries here, not one, so we will have to define both individually
-			visible = "[Not(IsDataModelEmpty(GetGlobalList('eligible_diadochi_list')))]"
 			
-			#Left - Second strongest country
-			blockoverride "left_flag" {}
-			blockoverride "left_bottom_flag" {
-				country_flag_small_plus = {
-					datacontext = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('second_strongest_strongest_diadochi_variable').GetCountry]"
-					visible = "[Country.IsValid]"
+			hbox = {
+				size = { 60 28 }
+				margin = { 6 5 }
+				icon = {
+					size = { 26 26 }
+					texture = "gfx/interface/icons/situations/italian_wars_icon.dds"
 				}
-			}
-			blockoverride "left_top_text" {
-				visible = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('second_strongest_strongest_diadochi_variable').GetCountry.IsValid]"
-				text = "DDW_SECOND_COUNTRY"
-				using = Font_Size_Small
-			}
-			blockoverride "left_bottom_text" {
-				visible = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('second_strongest_strongest_diadochi_variable').GetCountry.IsValid]"
-				text = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('second_strongest_strongest_diadochi_total_score_variable').GetValue|2]"
-				using = Font_Size_Big
+				text_single = {
+					autoresize = yes
+					minimumsize = { 24 -1 }
+					maximumsize = { 24 -1 }
+					fontsize = 13
+					raw_text = "[FixedPointToInt(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue)]%"
+				}
 				tooltipwidget = {
 					ContextualTooltipType = {
-						datacontext = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('second_strongest_strongest_diadochi_variable').GetCountry]"
-						blockoverride "title_icon" {
-							country_flag_small = {
-								datacontext = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('second_strongest_strongest_diadochi_variable').GetCountry]"
-							}
+						blockoverride "title_icon_texture" {
+							texture = "gfx/interface/icons/situations/tension.dds"
 						}
 						blockoverride "title_text" {
-							text = "DDW_SECOND_COUNTRY_SCORE_TITLE_TT"
+							text = "IW_TENSION_LABEL"
 						}
-						blockoverride "concept_link" {
-							text = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('second_strongest_strongest_diadochi_variable').GetCountry.GetName]"
-						}
-						
 						blockoverride "tooltip_content" {
-							
-							TooltipStringPairList = {
-							
-								blockoverride "block_title" {
-									text = "DDW_GRAPH_TITLE_TT"
-								}
-								
-								textcontext ="DDW_SECOND_COUNTRY_SCORE_TT"
-
-								
-							}
-							TooltipFlavorTextBlock = {
+							TooltipTextBlock = {
 								blockoverride "text" {
-									text = "DDW_SECOND_COUNTRY_SCORE_FLAVOR_TT"
+									text = "iw_tension_explain_tt"
 								}
 							}
 						}
@@ -204,60 +272,177 @@ situation_panel = {
 				}
 			}
 
-			#Right - Third strongest country
-			blockoverride "right_flag" {}
-			blockoverride "right_bottom_flag" {
-				country_flag_small_plus = {
-					datacontext = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('third_strongest_strongest_diadochi_variable').GetCountry]"
-					visible = "[Country.IsValid]"
+			hbox = {
+				using = bg_cabinet_card_frame
+				margin = { 4 4 }
+				using = situation_disaster_progressbar_with_thresholds
+				blockoverride "progressbar_with_thresholds_size" {
+					size = { 450 10 }
 				}
-			}
-			blockoverride "right_top_text" {
-				visible = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('third_strongest_strongest_diadochi_variable').GetCountry.IsValid]"
-				text = "DDW_THIRD_COUNTRY"
-			}
-			blockoverride "right_bottom_text" {
-				using = Font_Size_Big
-				visible = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('third_strongest_strongest_diadochi_variable').GetCountry.IsValid]"
-				text = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('third_strongest_strongest_diadochi_total_score_variable').GetValue|2]"
-				tooltipwidget = {
-					datacontext = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('third_strongest_strongest_diadochi_variable').GetCountry]"
-					ContextualTooltipType = {
-						datacontext = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('third_strongest_strongest_diadochi_variable').GetCountry]"
+				blockoverride "progress_bar_min_max" {
+					min = 0
+					max = 25
+				}
+				blockoverride "progress_bar_progresstexture_low" { progresstexture = "gfx/interface/progressbars/progress_bar_yellow.dds" }
+				blockoverride "progress_bar_value_low" {
+					value = "[Min_float(FixedPointToFloat(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue), '(float)25')]"
+				}	
 
-						blockoverride "title_icon" {
-							country_flag_small = {}
-						}
+				blockoverride "progress_bar_size_mid" {
+					position = { 25% 0 }
+					size = { 30% 100% }
+				}
+				blockoverride "progress_bar_progresstexture_mid" { progresstexture = "gfx/interface/progressbars/progress_bar_yellange.dds" }
+				blockoverride "progress_bar_value_mid" {
+					value = "[Max_float(Subtract_float(Min_float(FixedPointToFloat(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue), '(float)50'), '(float)25'), '(float)0')]"
+				}
 
-						blockoverride "title_text" {
-							text = "DDW_THIRD_COUNTRY_SCORE_TITLE_TT"
-						}
+				blockoverride "progress_bar_size_high" {
+					position = { 50% 0 }
+					size = { 30% 100% }
+				}
+				blockoverride "progress_bar_progresstexture_high" { progresstexture = "gfx/interface/progressbars/progress_bar_orange.dds" }
+				blockoverride "progress_bar_value_high" {
+					value = "[Max_float(Subtract_float(Min_float(FixedPointToFloat(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue), '(float)75'), '(float)50'), '(float)0')]"
+				}
 
-						blockoverride "concept_link" {
-							text = "[SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('third_strongest_strongest_diadochi_variable').GetCountry.GetName]"
-						}
-						
-						blockoverride "tooltip_content" {
-							
-							TooltipStringPairList = {
-								blockoverride "block_title" {
-									text = "DDW_GRAPH_TITLE_TT"
-								}
-							
-								textcontext = "DDW_THIRD_COUNTRY_SCORE_TT"
-							}
+				blockoverride "progress_threshold_bar_extra" {
+					widget = {
+						parentanchor = left|top
+						position = { 75% 0 }
+						size = { 25% 100% }
 
-							TooltipFlavorTextBlock = {
-								blockoverride "text" {
-									text = "DDW_THIRD_COUNTRY_SCORE_FLAVOR_TT"
-								}
-							}
+						progressbar = {
+							size = { 100% 100% }
+							noprogresstexture = "gfx/interface/icons/unit_view/moral_bar_transparent.dds"
+							progresstexture = "gfx/interface/progressbars/progress_bar_red_alt.dds"
+							texture_density = 2
+							spriteType = Corneredstretched
+							spriteborder = { 12 0 }
+							min = 0
+							max = 25
+							value = "[Max_float(Subtract_float(FixedPointToFloat(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue), '(float)75'), '(float)0')]"
 						}
 					}
+				}
+			}
+			expand = {}
+		}
+
+		tension_threshold_icon = {
+			blockoverride "tension_threshold_icon_position" { position = { 162 4 } }
+			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue, '(CFixedPoint)25')]"
+			blockoverride "tension_threshold_text" { text = "iw_first_tension_threshold" }
+			tooltipwidget = {
+				SimpleContextualStringPairTooltipType = {
+					blockoverride "title_icon" {
+						icon = {
+							using = tooltip_title_icon_size
+							texture = "gfx/interface/icons/situations/italian_wars_icon.dds"
+						}
+					}
+					lowpriotextcontext = iw_tension_25_tt
+				}
+			}
+		}
+		tension_threshold_icon = {
+			blockoverride "tension_threshold_icon_position" { position = { 276 4 } }
+			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue, '(CFixedPoint)50')]"
+			blockoverride "tension_threshold_texture" { texture = "gfx/interface/progressbars/orange_circle_bg.dds" }
+			blockoverride "tension_threshold_text" { text = "iw_second_tension_threshold" }
+			tooltipwidget = {
+				SimpleContextualStringPairTooltipType = {
+					blockoverride "title_icon" {
+						icon = {
+							using = tooltip_title_icon_size
+							texture = "gfx/interface/icons/situations/italian_wars_icon.dds"
+						}
+					}
+					lowpriotextcontext = iw_tension_50_tt
+				}
+			}
+		}
+		tension_threshold_icon = {
+			blockoverride "tension_threshold_icon_position" { position = { 388 4 } }
+			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue, '(CFixedPoint)75')]"
+			blockoverride "tension_threshold_texture" { texture = "gfx/interface/progressbars/red_circle_bg.dds" }
+			blockoverride "tension_threshold_text" { text = "iw_third_tension_threshold" }
+			tooltipwidget = {
+				SimpleContextualStringPairTooltipType = {
+					blockoverride "title_icon" {
+						icon = {
+							using = tooltip_title_icon_size
+							texture = "gfx/interface/icons/situations/italian_wars_icon.dds"
+						}
+					}
+					lowpriotextcontext = iw_tension_75_tt
+				}
+			}
+		}
+		tension_threshold_icon = {
+			blockoverride "tension_threshold_icon_position" { position = { 502 4 } }
+			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue, '(CFixedPoint)100')]"
+			blockoverride "tension_threshold_texture" { texture = "gfx/interface/progressbars/empty_circle_bg.dds" }
+			blockoverride "tension_threshold_text" { text = "iw_fourth_tension_threshold" }
+			tooltipwidget = {
+				SimpleContextualStringPairTooltipType = {
+					blockoverride "title_icon" {
+						icon = {
+							using = tooltip_title_icon_size
+							texture = "gfx/interface/icons/situations/italian_wars_icon.dds"
+						}
+					}
+					lowpriotextcontext = iw_tension_100_tt
 				}
 			}
 		}
 	}
 
-	# blockoverride "action_group_header" { using = bg_war_situation_main_header }
 }
+
+
+#template biggest_country_from_biggest_foreign_io {
+#	# this gives us the biggest IO
+#	datacontext_from_model = {
+#		datamodel = "[GetGlobalList('iw_foreign_leagues_list')]"
+#		index = 0
+#	}
+#	# this gives us the first member country
+#	datacontext_from_model = {
+#		datamodel = "[Scope.GetInternationalOrganization.GetMembers]"
+#		index = 0
+#	}
+#}
+
+#template biggest_country_from_biggest_italian_io {
+#	# this gives us the biggest IO
+#	datacontext_from_model = {
+#		datamodel = "[GetGlobalList('iw_italian_leagues_list')]"
+#		index = 0
+#	}
+#	# this gives us the first member country
+#	datacontext_from_model = {
+#		datamodel = "[Scope.GetInternationalOrganization.GetMembers]"
+#		index = 0
+#	}
+#}
+
+#template dw_league_entry_tooltip {
+#	ContextualTooltipType = {
+#		blockoverride "title_text" { raw_text = "[ItalianWarsLeaguePieSlice.GetTitle]" }
+#		blockoverride "title_icon_texture" { texture = "[ItalianWarsLeaguePieSlice.GetIcon]" }
+#		blockoverride "tooltip_content" {
+#			TooltipTextBlock = {
+#				blockoverride "text" { text = "[SelectLocalization(ItalianWarsLeaguePieSlice.HasIO, 'IW_PIE_SLICE_TT', 'IW_PIE_SLICE_NOT_OWNED_TT')]" }
+#			}
+#			TooltipTextBlock = {
+#				visible = "[ItalianWarsLeaguePieSlice.HasIO]"
+#				blockoverride "text" { text = "[ItalianWarsLeaguePieSlice.GetVictoryTooltipKey]" }
+#			}
+#			TooltipTextBlock = {
+#				visible = "[ItalianWarsLeaguePieSlice.HasIO]"
+#				blockoverride "text" { text = "[ItalianWarsLeaguePieSlice.GetStalemateTooltipKey]" }
+#			}
+#		}
+#	}
+#}

@@ -1,17 +1,118 @@
+join_a_league = {
+	type = situation
+
+	ai_tick = monthly
+	ai_tick_frequency = 1
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	potential = {
+		scope:actor ?= {
+			is_in_scripted_geography = scripted_geography:alexanders_empire = yes
+		}
+	}
+
+	allow = {
+		scope:actor ?= {
+			trigger_if = {
+				limit = {
+					NOT = { tag = PAP }
+				}
+				is_in_scripted_geography = scripted_geography:alexanders_empire = yes
+
+			}
+			
+			at_war = no
+			custom_tooltip = {
+				text = is_not_leader_of_any_leagues_tt
+				is_leader_of_any_diadochi_wars_league = no
+			}
+		}
+	}
+	price = price:join_diadochi_wars_price
+
+	cooldown = {
+		type = join_a_league
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		interaction_source_list = {
+			situation:diadochi_wars = {
+				add_to_list = source
+			}
+		}
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:diadochi_wars = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = target
+		interaction_source_list = {
+			international_organization:diadochi_league_m ?= { add_to_list = source }
+			international_organization:diadochi_league_t ?= { add_to_list = source }
+			international_organization:diadochi_league_e ?= { add_to_list = source } #TODO OTHERS
+			
+			#international_organization:diadochi_league_a ?= { add_to_list = source }
+			#international_organization:diadochi_league_s ?= { add_to_list = source } #TODO OTHERS
+
+		}
+		name = "join_league_choose_text"
+		none_available_msg_key = "join_a_league_no_ios"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:actor ?= {
+				can_join_international_organization = root
+			}
+		}
+		enabled = {
+			scope:actor = { 
+				NOT = { is_member_of_international_organization = scope:target }
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				add_country_to_international_organization = scope:actor
+			}
+		}
+	}
+	ai_will_do = {
+	}
+
+}
+
+
 
  claim_diadochi = {
  	type = situation
 
  	price = 100
- 	potential = {
- 		is_member_of_international_organization = international_organization:achaemenid_argead
- 	}
- 	allow = {
- 		scope:actor = {
- 			is_member_of_international_organization = international_organization:achaemenid_argead
- 			at_war = no
- 		}
- 	}
+	potential = {
+		exists = situation:diadochi_wars
+		scope:actor = { is_member_of_international_organization = international_organization:achaemenid_argead }
+	}
+	allow = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:achaemenid_argead
+			at_war = no
+		}
+	}
 	
  	select_trigger = {
  		looking_for_a = country
