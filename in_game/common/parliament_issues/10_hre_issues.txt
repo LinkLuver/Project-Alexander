@@ -1,0 +1,545 @@
+﻿hre_law_debate = {
+	type = international_organization
+	show_message = no	#The resolution will already spawn a message
+	special_status = emperor
+	potential = {
+	}
+	allow = {
+	}
+	chance = 0	#Triggered via policy_vote resolution
+	on_debate_passed = {
+		#Only really relevant for the UI, the actual logic happens in the policy_vote resolution
+		show_as_tooltip = {
+			end_vote = {
+				resolution = resolution:policy_vote
+				vote = var:io_law_target
+			}
+		}
+	}
+	on_debate_failed = {
+		show_as_tooltip = {
+			fail_vote = {
+				resolution = resolution:policy_vote
+			}
+		}
+	}
+	wants_this_parliament_issue_bias = {
+		# The actual logic for wanting to vote on a law happens in the policy_vote resolution
+		# This issue is more a dummy so that the Emperor can influence and mass persuade the HRE to vote.
+		add = {
+			desc = "VOTE_BASE_VALUE"
+			value = 0
+		}
+	}
+}
+
+hre_request_additional_military_support = {
+	type = international_organization
+	special_status = emperor
+	potential = {
+		international_organization_has_policy = policy:golden_bull_policy
+	}
+	allow = {
+		NOT = { has_cooldown = hre_request_additional_military_support }
+	}
+	chance = 10
+	selectable_for = {
+		is_leader_of_international_organization = scope:recipient
+	}
+	on_debate_passed = {
+		hidden_effect = {
+			add_cooldown = {
+				type = hre_request_additional_military_support
+				years = 10
+			}
+		}
+		leader_country ?= {
+			save_scope_as = leader_country_scope
+		}
+		if = {
+			limit = { exists = scope:leader_country_scope }
+			transfer_yearly_gold_from_all_members = {
+				value = 0.01
+				target = scope:leader_country_scope
+			}
+			transfer_yearly_manpower_from_all_members = {
+				value = 0.05
+				target = scope:leader_country_scope
+			}
+		}
+	}
+	on_debate_failed = {
+		hre_parliament_debate_failed_effect = yes
+	}
+	wants_this_parliament_issue_bias = {
+		if = {
+			limit = { scope:recipient = { international_organization_has_leader = yes } }
+			# Negative base Value --> Need some positive values for acceptance
+			# Negative base Value --> Need some positive values for acceptance
+			add = {
+				desc = "VOTE_BASE_VALUE"
+				value = -400
+			}
+
+			# Default precalculated modifier (Opinion, IA, Dynasty, etc.)
+			add = hre_default_opinion_check
+
+			# Any member of the hre is at war with outsiders and protected by the emperor
+			if = {
+				limit = {
+					scope:recipient = {
+						any_international_organization_member = {
+							at_war = yes
+							any_enemy_war_leader = {
+								NOT = { is_member_of_international_organization = scope:recipient }
+							}
+							# Emperor is at war together with prince in defense of the empire
+							any_country_together_in_war_with = { 
+								is_leader_of_international_organization = international_organization:hre
+							}
+						}
+					}
+				}
+				add = {
+					desc = "IO_ATTACKED_BY_OUTSIDERS"
+					value = 50
+				}
+			}
+		}
+		else = {
+			add = {
+				desc = "VOTE_BASE_VALUE"
+				value = 0
+			}
+		}
+	}
+}
+
+hre_roman_month = {
+	type = international_organization
+	special_status = emperor
+	potential = {
+		international_organization_has_policy = policy:golden_bull_policy
+	}
+	allow = {
+		NOT = { has_cooldown = hre_roman_month }
+	}
+	chance = 10
+	selectable_for = {
+		is_leader_of_international_organization = scope:recipient
+	}
+	on_debate_passed = {
+		hidden_effect = {
+			add_cooldown = {
+				type = hre_roman_month
+				years = 10
+			}
+		}
+		leader_country ?= {
+			save_scope_as = leader_country_scope
+		}
+		if = {
+			limit = { exists = scope:leader_country_scope }
+			transfer_yearly_gold_from_all_members = {
+				value = 0.05
+				target = scope:leader_country_scope
+			}
+		}
+		apply_modifier_on_all_members_excluding_leader = {
+			modifier = pi_hre_increased_imperial_tax_modifier
+			years = 10
+			tooltip = hre_roman_month_modifier_effect
+		}
+	}
+	on_debate_failed = {
+		hre_parliament_debate_failed_effect = yes
+	}
+	wants_this_parliament_issue_bias = {
+		if = {
+			limit = { scope:recipient = { international_organization_has_leader = yes } }
+			# Negative base Value --> Need some positive values for acceptance
+			add = {
+				desc = "VOTE_BASE_VALUE"
+				value = -400
+			}
+			# Default precalculated modifier (Opinion, IA, Dynasty, etc.)
+			add = hre_default_opinion_check
+		}
+		else = {
+			add = {
+				desc = "VOTE_BASE_VALUE"
+				value = 0
+			}
+		}
+	}
+}
+
+hre_demand_internal_peace = {
+	type = international_organization
+	special_status = emperor
+	potential = {
+		OR = {
+			international_organization_has_policy = policy:landfriede_rank_2_policy
+			international_organization_has_policy = policy:landfriede_rank_3_policy
+			international_organization_has_policy = policy:landfriede_rank_4_policy
+		}
+	}
+	allow = {
+		OR = {
+			international_organization_has_policy = policy:landfriede_rank_2_policy
+			international_organization_has_policy = policy:landfriede_rank_3_policy
+			international_organization_has_policy = policy:landfriede_rank_4_policy
+		}
+		NOT = { has_cooldown = hre_demand_internal_peace }
+	}
+	chance = 10
+	selectable_for = {
+		is_leader_of_international_organization = scope:recipient
+	}
+	on_debate_passed = {
+		hidden_effect = {
+			add_cooldown = {
+				type = hre_demand_internal_peace
+				years = 10
+			}
+		}
+		custom_tooltip = {
+			text = hre_demand_internal_peace_tt
+			every_international_organization_member = {
+				limit = {
+					any_current_war = {
+						attacker_leader = prev
+						defender_leader = {
+							is_member_of_international_organization = root
+						}
+					}
+				}
+				every_current_war = {
+					limit = {
+						attacker_leader = prev
+						defender_leader = {
+							is_member_of_international_organization = root
+						}
+					}
+					white_peace = this
+				}
+			}
+		}
+		if = {
+			limit = { international_organization_has_policy = policy:landfriede_rank_2_policy }
+			add_international_organization_modifier = {
+				modifier = enforced_internal_peace
+				mode = replace
+				years = 3
+			}
+			every_international_organization_member = {
+				limit = { is_leader_of_international_organization = root }
+				add_country_modifier = { modifier = hre_internal_peace_enforced years = 3 mode = replace }
+			}
+		}
+		else_if = {
+			limit = { international_organization_has_policy = policy:landfriede_rank_3_policy }
+			add_international_organization_modifier = {
+				modifier = enforced_internal_peace
+				mode = replace
+				years = 5
+			}
+			every_international_organization_member = {
+				limit = { is_leader_of_international_organization = root }
+				add_country_modifier = { modifier = hre_internal_peace_enforced years = 5 mode = replace }
+			}
+		}
+		else_if = {
+			limit = { international_organization_has_policy = policy:landfriede_rank_4_policy }
+			add_international_organization_modifier = {
+				modifier = enforced_internal_peace
+				mode = replace
+				years = 10
+			}
+			every_international_organization_member = {
+				limit = { is_leader_of_international_organization = root }
+				add_country_modifier = { modifier = hre_internal_peace_enforced years = 10 mode = replace }
+			}
+		}
+	}
+	on_debate_failed = {
+		hre_parliament_debate_failed_effect = yes
+	}
+	wants_this_parliament_issue_bias = {
+		if = {
+			limit = { scope:recipient = { international_organization_has_leader = yes } }
+			# Negative base Value --> Need some positive values for acceptance
+			add = {
+				desc = "VOTE_BASE_VALUE"
+				value = -375
+			}
+
+			# Default precalculated modifier (Opinion, IA, Dynasty, etc.)
+			add = hre_default_opinion_check
+
+			# If country is at war with another HRE member as war leader they want to continue their war (if they are not loosing)
+			if = {
+				limit = {
+					is_member_of_international_organization = root
+					at_war = yes
+					any_current_war = {
+						prev = { 
+							is_war_leader_of = prev 
+							war_score_in_war = {
+								war = prev
+								value >= -50
+							}
+						}
+						any_war_participant = {
+							is_war_leader_of = prev
+							is_member_of_international_organization = root
+						}
+					}
+				}
+				add = {
+					desc = "POLICY_BIAS_IN_WAR_REFUSE_LANDFRIEDE"
+					value = -1000
+				}
+			}
+		}
+		else = {
+			add = {
+				desc = "VOTE_BASE_VALUE"
+				value = 0
+			}
+		}
+	}
+}
+
+hre_establish_perpetual_diet = {
+	type = international_organization
+	special_status = free_city
+	chance = 100
+	selectable_for = {
+		is_leader_of_international_organization = scope:recipient
+	}
+	potential = {
+		international_organization_has_unlocked_parliament_issue_trigger = { type = hre_establish_perpetual_diet }
+	}
+	on_debate_passed = {
+		international_organization_lock_parliament_issue_effect = { type = hre_establish_perpetual_diet }
+		custom_tooltip = {
+			text = hre_establish_perpetual_diet_tt
+			if = {
+				limit = { exists = parliament_seat }
+				set_variable = { name = hre_diet_location value = parliament_seat }
+				parliament_seat ?= {
+					set_variable = { name = diet_location value = yes }
+					trigger_event_silently = { id = hre.6 }
+				}
+			}
+			else = {
+				random_international_organization_owned_location = {
+					limit = {
+						root = { has_location = prev }
+						is_capital = yes
+						OR = {
+							AND = {
+								owner = { is_elector = yes }
+								development = 20
+							}
+							development = 30
+							location:regensburg = this
+							location:augsburg = this
+							location:ulm = this
+						}
+					}
+					set_variable = { name = diet_location value = yes }
+					trigger_event_silently = { id = hre.6 }
+				}
+			}
+		}
+	}
+	on_debate_failed = {
+		hre_parliament_debate_failed_effect = yes
+	}
+	wants_this_parliament_issue_bias = {
+		if = {
+			limit = { scope:recipient = { international_organization_has_leader = yes } }
+			# Negative base Value --> Need some positive values for acceptance
+			add = {
+				desc = "VOTE_BASE_VALUE"
+				value = -150
+			}
+			# Default precalculated modifier (Opinion, IA, Dynasty, etc.)
+			add = hre_default_opinion_check
+		}
+		else = {
+			add = {
+				desc = "VOTE_BASE_VALUE"
+				value = 0
+			}
+		}
+	}
+}
+
+hre_force_emperor_to_abdicate = {
+	type = international_organization
+	special_status = elector
+	chance = 100
+	selectable_for = {
+		NOT = { is_leader_of_international_organization = scope:recipient }
+		OR = {
+			has_special_status_in_international_organization = { type = special_status:elector international_organization = root }
+			has_special_status_in_international_organization = { type = special_status:archbishop_elector international_organization = root }
+		}
+	}
+	potential = {
+		international_organization_has_unlocked_parliament_issue_trigger = { type = hre_force_emperor_to_abdicate }
+		international_organization_has_leader = yes
+	}
+	on_debate_passed = {
+		leader_country ?= {
+			ruler_or_heir_if_regent ?= {
+				add_character_modifier = {
+					modifier = abdicated_from_the_imperial_throne
+					years = -1
+					mode = add
+				}
+			}
+		}
+		international_organization_chooses_new_leader = this
+	}
+	on_debate_failed = {
+		every_country_with_special_status_of_type = {
+			type = elector
+			add_prestige = prestige_severe_penalty
+		}
+		every_country_with_special_status_of_type = {
+			type = archbishop_elector
+			add_prestige = prestige_severe_penalty
+		}
+	}
+	wants_this_parliament_issue_bias = {
+		if = {
+			limit = { scope:recipient = { international_organization_has_leader = yes } }
+			# Negative base Value --> Need some positive values for acceptance
+			add = {
+				desc = "VOTE_BASE_VALUE"
+				value = 25
+			}
+			# Default precalculated modifier (Opinion, IA, Dynasty, etc.), multipied with -1 as we don't want to harm the emperor if like him actually..
+			add = {
+				value = hre_default_opinion_check
+				multiply = -1
+			}
+		}
+		else = {
+			add = {
+				desc = "VOTE_BASE_VALUE"
+				value = 0
+			}
+		}
+	}
+}
+hre_circle_levy_request = {
+	type = international_organization
+	special_status = emperor
+	potential = {
+		international_organization:hre = { circles_are_active = yes }
+	}
+	allow = {
+		NOT = { has_cooldown = hre_circle_levy_request }
+	}
+	chance = 10
+	selectable_for = {
+		is_leader_of_international_organization = scope:recipient
+	}
+	on_debate_passed = {
+		hidden_effect = {
+			add_cooldown = {
+				type = hre_circle_levy_request
+				years = 10
+			}
+		}
+		leader_country ?= {
+			save_scope_as = hre_emperor_scope
+		}
+		international_organization:hre = {
+			every_imperial_circle = {
+				limit = { NOT = { is_dormant_imperial_circle = yes } }
+				every_circle_member = {
+					limit = {
+						NOT = { is_leader_of_international_organization = international_organization:hre }
+					}
+					add_manpower = { value = -1 }
+				}
+				circle_leader ?= {
+					add_country_modifier = {
+						modifier = distributed_circle_levy
+						years = 1
+					}
+				}
+			}
+		}
+		if = {
+			limit = { exists = scope:hre_emperor_scope }
+			scope:hre_emperor_scope = {
+				change_imperial_authority = { value = 5 }
+			}
+		}
+	}
+	on_debate_failed = {
+		hre_parliament_debate_failed_effect = yes
+	}
+	wants_this_parliament_issue_bias = {
+		add = {
+			desc = "VOTE_BASE_VALUE"
+			value = 25
+		}
+	}
+}
+
+hre_enforce_circle_landfriede = {
+	type = international_organization
+	special_status = emperor
+	potential = {
+		international_organization:hre = {
+			circles_are_active = yes
+			international_organization_has_policy = policy:landfriede_policy
+		}
+	}
+	allow = {
+		NOT = { has_cooldown = hre_enforce_circle_landfriede }
+	}
+	chance = 8
+	selectable_for = {
+		is_leader_of_international_organization = scope:recipient
+	}
+	on_debate_passed = {
+		hidden_effect = {
+			add_cooldown = {
+				type = hre_enforce_circle_landfriede
+				years = 5
+			}
+		}
+		international_organization:hre = {
+			every_imperial_circle = {
+				limit = {
+					NOT = { is_dormant_imperial_circle = yes }
+					has_circle_leader = yes
+				}
+				circle_leader ?= {
+					add_country_modifier = {
+						modifier = circle_landfriede_enforcer
+						years = 2
+					}
+				}
+			}
+		}
+	}
+	on_debate_failed = {
+		hre_parliament_debate_failed_effect = yes
+	}
+	wants_this_parliament_issue_bias = {
+		add = {
+			desc = "VOTE_BASE_VALUE"
+			value = 20
+		}
+	}
+}

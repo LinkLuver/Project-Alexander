@@ -1,0 +1,800 @@
+﻿
+expand_hunting_operations = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		expand_rgo_hunting_cost_modifier = -0.33
+		global_rgo_build_time = -0.2
+	}
+
+	allow = {
+		has_any_rgo_of_goods_method = hunting
+		any_owned_location = {
+			raw_material = {
+				goods_method = hunting
+			}
+			is_full_expanded_rgo = no
+		}
+	}
+
+	chance = {
+		add = 1
+		add = {
+			if = {
+				limit = {
+					societal_value:capital_economy_vs_traditional_economy > 30
+				}
+				value = 2
+			}
+		}
+		multiply = {
+			if = {
+				limit = {
+					societal_value:capital_economy_vs_traditional_economy < -60
+				}
+				value = 0.5
+			}
+			else = {
+				value = 1	#We need that else or otherwise the whole chance is multiplied with 0
+			}
+		}
+	}
+	
+	on_debate_passed = {
+		ordered_owned_location = {
+			limit = {
+                raw_material = {
+                    goods_method = hunting
+                }
+				is_full_expanded_rgo = no
+			}
+			order_by = population
+			max = {
+				value = num_provinces
+				multiply = 0.05
+				add = 1
+			}
+			change_max_raw_material_workers = 1
+			change_prosperity = prosperity_mild_bonus
+		}
+	}
+
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+}
+
+expand_gathering_operations = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		expand_rgo_gathering_cost_modifier = -0.33
+		global_rgo_build_time = -0.2
+	}
+
+	allow = {
+		has_any_rgo_of_goods_method = gathering
+		any_owned_location = {
+			raw_material = {
+				goods_method = gathering
+			}
+			is_full_expanded_rgo = no
+		}
+	}
+
+	chance = {
+		add = 1
+		add = {
+			if = {
+				limit = {
+					societal_value:capital_economy_vs_traditional_economy > 30
+				}
+				value = 2
+			}
+		}
+		multiply = {
+			if = {
+				limit = {
+					societal_value:capital_economy_vs_traditional_economy < -60
+				}
+				value = 0.5
+			}
+			else = {
+				value = 1	#We need that else or otherwise the whole chance is multiplied with 0
+			}
+		}
+	}
+	
+	on_debate_passed = {
+		ordered_owned_location = {
+			limit = {
+                raw_material = {
+                    goods_method = gathering
+                }
+				is_full_expanded_rgo = no
+			}
+			order_by = population
+			max = {
+				value = num_provinces
+				multiply = 0.05
+				add = 1
+			}
+			change_max_raw_material_workers = 1
+			change_prosperity = prosperity_mild_bonus
+		}
+	}
+
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+}
+
+sponsor_training_fields = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		global_manpower_modifier = 0.5
+	}
+
+	allow = {
+		has_advance = training_fields_advance
+		NOR = {
+			has_advance = regimental_camp_advance
+			has_advance = conscription_center_advance
+		}
+		any_owned_rural_location = {
+			owner = { has_primary_or_accepted_culture = prev.dominant_culture }
+			NOR = {
+				has_building = building_type:training_fields
+				has_building = building_type:regimental_camp
+				has_building = building_type:conscription_center
+			}
+		}
+	}
+	chance = {
+		add = 1
+		add = {
+			if = {
+				limit = {
+					total_effective_building_levels:training_fields < 6
+				}
+				value = 5
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					max_manpower > 0.5
+					manpower_percentage < 0.5
+				}
+				add = 2
+			}
+		}
+		multiply = {
+			if = {
+				limit = {
+					max_manpower > 0.5
+					manpower_percentage >= 0.8
+				}
+				value = 0.5
+			}
+			else = {
+				value = 1	#We need that else or otherwise the whole chance is multiplied with 0
+			}
+		}
+	}
+	
+	on_debate_passed = {
+		ordered_owned_location = {
+			order_by = population
+			max = {
+				value = num_provinces
+				multiply = 0.1
+				add = 1
+			}
+			check_range_bounds = no
+			limit = {
+				owner = { has_primary_or_accepted_culture = prev.dominant_culture }
+				NOR = {
+					has_building = building_type:training_fields
+					has_building = building_type:regimental_camp
+					has_building = building_type:conscription_center
+				}
+				location_rank = location_rank:rural_settlement
+			}
+			construct_building = {
+				building_type = building_type:training_fields
+				cost_multiplier = 0.5
+				cost_multiplier_reason = "game_concept_parliament_issue"
+			}
+		}
+	}
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+}
+
+sponsor_regimental_camp = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		global_manpower_modifier = 0.5
+		monthly_towards_quantity = societal_value_huge_monthly_move #moves value by 3 over the duration
+	}
+
+	allow = {
+		has_advance = regimental_camp_advance
+		NOT = {
+			has_advance = conscription_center_advance
+		}
+		any_owned_rural_location = {
+			owner = { has_primary_or_accepted_culture = prev.dominant_culture }
+			NOR = {
+				has_building = building_type:regimental_camp
+				has_building = building_type:conscription_center
+			}
+		}
+	}
+	chance = {
+		add = 1
+		add = {
+			if = {
+				limit = {
+					total_effective_building_levels:regimental_camp < 6
+				}
+				value = 5
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					max_manpower > 0.5
+					manpower_percentage < 0.5
+				}
+				add = 2
+			}
+		}
+		multiply = {
+			if = {
+				limit = {
+					max_manpower > 0.5
+					manpower_percentage >= 0.8
+				}
+				value = 0.5
+			}
+			else = {
+				value = 1	#We need that else or otherwise the whole chance is multiplied with 0
+			}
+		}
+	}
+	
+	on_debate_passed = {
+		ordered_owned_location = {
+			order_by = population
+			max = {
+				value = num_provinces
+				multiply = 0.1
+				add = 1
+			}
+			check_range_bounds = no
+			limit = {
+				owner = { has_primary_or_accepted_culture = prev.dominant_culture }
+				NOR = {
+					has_building = building_type:regimental_camp
+					has_building = building_type:conscription_center
+				}
+				location_rank = location_rank:rural_settlement
+			}
+			construct_building = {
+				building_type = building_type:regimental_camp
+				cost_multiplier = 0.5
+				cost_multiplier_reason = "game_concept_parliament_issue"
+			}
+		}
+	}
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+}
+
+sponsor_conscription_center = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		global_manpower_modifier = 0.5
+		monthly_towards_quantity = societal_value_huge_monthly_move #moves value by 3 over the duration
+	}
+
+	allow = {
+		has_advance = conscription_center_advance
+	}
+	chance = {
+		add = 1
+		add = {
+			if = {
+				limit = {
+					total_effective_building_levels:conscription_center < 6
+				}
+				value = 5
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					max_manpower > 0.5
+					manpower_percentage < 0.5
+				}
+				add = 2
+			}
+		}
+		multiply = {
+			if = {
+				limit = {
+					max_manpower > 0.5
+					manpower_percentage >= 0.8
+				}
+				value = 0.5
+			}
+			else = {
+				value = 1	#We need that else or otherwise the whole chance is multiplied with 0
+			}
+		}
+	}
+	
+	on_debate_passed = {
+		ordered_owned_location = {
+			order_by = population
+			max = {
+				value = num_provinces
+				multiply = 0.1
+				add = 1
+			}
+			check_range_bounds = no
+			limit = {
+				NOT = { has_building = building_type:conscription_center }
+			}
+			construct_building = {
+				building_type = building_type:conscription_center
+				cost_multiplier = 0.5
+				cost_multiplier_reason = "game_concept_parliament_issue"
+			}
+		}
+	}
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+}
+
+expand_officer_lists = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		peasants_estate_target_satisfaction = huge_permanent_target_satisfaction
+		peasants_estate_satisfaction_recovery = 0.025
+	}
+
+	allow = {
+		NOT = { has_estate_privilege = estate_privilege:noble_leaders_only }
+	}
+
+	chance = {
+		add = 1
+		add = {
+			if = {
+				limit = {
+					NOT = {
+						any_character = {
+							NOT = { mil > 50 }
+						}
+					}
+				}
+				value = 2
+			}
+		}
+	}
+	
+	on_debate_passed = {
+		create_character = {
+			estate = estate_type:peasants_estate
+			adm = { 20 70 }
+			dip = { 20 70 }
+			mil = { 40 80 }
+		}
+		
+	}
+
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}	
+}
+
+support_peasant_cabinet = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		country_cabinet_efficiency = 0.2
+		global_monthly_literacy = 0.05
+	}
+
+	allow = {
+		any_character = {
+			in_cabinet = yes
+			has_estate = estate_type:peasants_estate
+		}
+		NOR = {
+			current_age = age_4_reformation
+			current_age = age_5_absolutism
+			current_age = age_6_revolutions
+		}
+	}
+
+	chance = {
+		add = 1
+		add = {
+			if = {
+				limit = {
+					has_advance = government_size_renaissance
+				}
+				value = 2
+			}
+		}
+		multiply = {
+			if = {
+				limit = {
+					societal_value:serfdom_vs_free_subjects < 0
+				}
+				value = 0.5
+			}
+			else = {
+				value = 1	#We need that else or otherwise the whole chance is multiplied with 0
+			}
+		}
+	}
+	
+	on_debate_passed = {
+		random_cabinet_character = {
+			limit = {
+				has_estate = estate_type:peasants_estate
+			}
+			add_adm = 5
+			add_dip = 5
+			add_mil = 5
+		}
+		change_societal_value = {
+			type = serfdom_vs_free_subjects
+			value = societal_value_move_to_right
+		}
+	}
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+}
+
+expand_food_stockpiles = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		food_purchase_efficiency = 1
+	}
+
+	allow = {
+		any_province = {
+			province_food_percentage < 0.5
+			any_location_in_province = {
+				OR = {
+					location_rank = location_rank:town
+					location_rank = location_rank:city
+					location_rank = location_rank:megalopolis
+				}
+			}
+		}
+	}
+
+	chance = {
+		add = 1
+		add = {
+			if = {
+				limit = {
+					any_province = {
+						province_food_percentage < 0.25
+						any_location_in_province = {
+							OR = {
+								location_rank = location_rank:town
+								location_rank = location_rank:city
+								location_rank = location_rank:megalopolis
+							}
+						}
+					}
+				}
+				value = 2
+			}
+		}
+		multiply = {
+			if = {
+				limit = {
+					societal_value:serfdom_vs_free_subjects < 0
+				}
+				value = 0.5
+			}
+			else = {
+				value = 1	#We need that else or otherwise the whole chance is multiplied with 0
+			}
+		}
+	}
+	
+	on_debate_passed = {
+		ordered_owned_location = {
+			order_by = province.province_food_percentage
+			max = {
+				value = num_provinces
+				multiply = -0.1
+				add = 1
+			}
+			limit = {
+				NOT = { has_building = building_type:granary }
+				OR = {
+					location_rank = location_rank:town
+					location_rank = location_rank:city
+					location_rank = location_rank:megalopolis
+				}
+			}
+			construct_building = {
+				building_type = building_type:granary
+				cost_multiplier = 0.5
+				cost_multiplier_reason = "game_concept_parliament_issue"
+			}
+		}
+	}
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+}
+
+#Revolution-Related
+
+curb_central_authority = {
+	estate = peasants_estate
+
+	potential = {
+		always = no	#Handled through special events
+	} 
+
+	modifier_when_in_debate = {
+		monthly_legitimacy = -2
+        monthly_republican_tradition = -2
+	}
+
+	allow = {
+		OR = {
+			government_type = government_type:monarchy
+			government_type = government_type:republic
+		}
+		any_active_disaster = { disaster_type = disaster_type:revolution_disaster }
+	}
+
+	chance = {
+		add = -1000
+	}
+
+	on_debate_passed = {
+		add_country_modifier = {
+			modifier = reduced_central_authority
+			years = 10
+			mode = add_and_extend
+		}
+	}
+
+	on_debate_failed = {
+		if = {
+			limit = {
+				any_rebel = {
+					rebel_progress > 0
+					rebel_progress < 0.9 
+					rebel_name_key = revolutionary_rebel
+				}
+			}
+			random_rebel = {  
+				limit = {
+					rebel_progress > 0
+					rebel_progress < 0.9 
+					rebel_name_key = revolutionary_rebel
+				}  
+				add_rebel_progress = 0.05
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_extreme_penalty }
+		add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_extreme_penalty }
+	}
+}
+
+revoke_privilege_of_the_nobles = {
+	estate = peasants_estate
+
+	potential = {
+		always = no	#Handled through special events
+	}
+
+	modifier_when_in_debate = {
+		nobles_estate_target_satisfaction = insane_permanent_target_satisfaction_penalty
+	}
+
+	allow = {
+		OR = {
+			government_type = government_type:monarchy
+			government_type = government_type:republic
+		}
+		any_active_disaster = { disaster_type = disaster_type:revolution_disaster }
+		"estate(estate_type:nobles_estate)" = { num_privileges > 3 }
+	}
+
+	chance = {
+		add = -1000
+	}
+
+	on_debate_passed = {
+		custom_tooltip = {
+			text = random_noble_privilege_revoked_tt
+			random_estate_privilege = {
+				limit = { estate_type = estate_type:nobles_estate }
+				root = {
+					revoke_estate_privilege = prev
+				}
+			}
+		}
+		
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_extreme_penalty }
+		change_societal_value = { 
+			type = aristocracy_vs_plutocracy 
+			value = societal_value_large_move_to_right
+		}
+	}
+
+	on_debate_failed = {
+		if = {
+			limit = {
+				any_rebel = {
+					rebel_progress > 0
+					rebel_progress < 0.9 
+					rebel_name_key = revolutionary_rebel
+				}
+			}
+			random_rebel = {  
+				limit = {
+					rebel_progress > 0
+					rebel_progress < 0.9 
+					rebel_name_key = revolutionary_rebel
+				}  
+				add_rebel_progress = 0.05
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_extreme_penalty }
+		add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_extreme_penalty }
+	}
+}
+
+reduce_peasant_taxation = {
+	estate = peasants_estate
+
+	potential = {
+		always = no	#Handled through special events
+	}
+
+	modifier_when_in_debate = {
+		monthly_towards_liberalism = 1
+		global_crown_estate_power = -0.5
+	}
+
+	allow = {
+		OR = {
+			government_type = government_type:monarchy
+			government_type = government_type:republic
+		}
+		any_active_disaster = { disaster_type = disaster_type:revolution_disaster }
+		estate_tax_percentage:peasants_estate > 0.1
+	}
+
+	chance = {
+		add = -1000
+	}
+
+	on_debate_passed = {
+		add_country_modifier = {
+			modifier = peasants_estate_less_tax_burden
+			years = 10
+			mode = add_and_extend
+		}
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_extreme_penalty }
+		change_societal_value = { 
+			type = serfdom_vs_free_subjects 
+			value = societal_value_large_move_to_right
+		}
+	}
+
+	on_debate_failed = {
+		if = {
+			limit = {
+				any_rebel = {
+					rebel_progress > 0
+					rebel_progress < 0.9 
+					rebel_name_key = revolutionary_rebel
+				}
+			}
+			random_rebel = {  
+				limit = {
+					rebel_progress > 0
+					rebel_progress < 0.9 
+					rebel_name_key = revolutionary_rebel
+				}  
+				add_rebel_progress = 0.05
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_extreme_penalty }
+		add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_extreme_penalty }
+	}
+}
+
+establish_a_constitution = {
+	estate = peasants_estate
+
+	potential = {
+		always = no	#Handled through special events
+	}
+
+
+	modifier_when_in_debate = {
+		monthly_towards_liberalism = 1
+		global_crown_estate_power = -0.5
+		monthly_peasants_estate_rebel_growth = -0.02
+		monthly_burghers_estate_rebel_growth = -0.02
+	}
+
+	allow = {
+		government_type = government_type:monarchy
+		any_active_disaster = { disaster_type = disaster_type:revolution_disaster }
+		OR = {
+			"estate_power(estate_type:crown_estate)" < 0.2
+			government_power < 20
+		}
+		NOT = {
+			parliament_type = parliament_type:constitutional_parliament
+		}
+	}
+
+	chance = {
+		add = -1000
+	}
+
+	on_debate_passed = {
+		set_parliament_type = parliament_type:constitutional_parliament
+
+		if = {
+			limit = {
+				NOT = { has_reform = government_reform:constitutional_state }
+			}
+			hidden_effect = { unlock_government_reform_effect = { type = constitutional_state } }
+			add_reform = government_reform:constitutional_state
+		}
+	}
+
+	on_debate_failed = {
+		if = {
+			limit = {
+				any_rebel = {
+					rebel_progress > 0
+					rebel_progress < 0.9 
+					rebel_name_key = revolutionary_rebel
+				}
+			}
+			random_rebel = {  
+				limit = {
+					rebel_progress > 0
+					rebel_progress < 0.9 
+					rebel_name_key = revolutionary_rebel
+				}  
+				add_rebel_progress = 0.05
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_extreme_penalty }
+		add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_extreme_penalty }
+	}
+}

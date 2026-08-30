@@ -1,0 +1,56 @@
+﻿union_enforce_law_implementation = {
+	type = international_organization
+	special_status = senior_partner
+	potential = {
+		modifier:union_integration_level > 0
+		has_not_consistent_integration_level = yes
+		NOT = {
+			any_international_organization_member = {
+				years_in_international_organization = {
+					international_organization = root
+					value < MIN_YEARS_IN_ORGANIZATION_REQUIRED
+				}
+			}
+		}
+	}
+	allow = {
+	}
+	chance = 100	#The only parliament issue within the Union
+	on_debate_passed = {
+		custom_tooltip = {
+			text = union_enforce_law_implementation_at
+			if = {
+				limit = { modifier:union_integration_level > 0 }
+				every_international_organization_member = {
+					limit = { has_not_union_integration_level_as_union = yes }
+					set_individual_integration_level = {
+						international_organization = root
+						value = union.modifier:union_integration_level
+					}
+				}
+			}
+			else = {
+				every_international_organization_member = {
+					limit = { has_not_union_integration_level_as_union = yes }
+					set_individual_integration_level = {
+						international_organization = root
+						value = 0
+					}
+				}
+			}
+		}
+		if = {
+			limit = { modifier:union_integration_level > 0 }
+			apply_all_union_policy_effects = { level = modifier:union_integration_level }
+		}
+	}
+	on_debate_failed = {
+		every_country_with_special_status_of_type = {
+			type = senior_partner
+			add_cooldown = {
+				type = union_enforcement_parliament_failed_cd
+				years = 3
+			}
+		}
+	}
+}

@@ -1,0 +1,621 @@
+﻿
+baronial_burghs_rights = {
+	estate = burghers_estate
+
+	modifier_when_in_debate = {
+		town_upgrade_cost_modifier = -0.2
+	}
+	allow = {
+		OR = {
+			has_or_had_tag = SCO
+			culture = culture:scottish
+		}
+		NOR = {
+			current_age = age_1_traditions
+			current_age = age_2_renaissance
+		}
+	}
+
+	on_debate_passed = {
+		ordered_owned_location = {
+			order_by = population
+			limit = {
+				OR = {
+					location_rank = location_rank:town
+					location_rank = location_rank:city
+					location_rank = location_rank:megalopolis
+				}
+			}
+			
+			max = {
+				value = num_provinces
+				multiply = 0.1
+				add = 1
+			}
+			change_development  = development_severe_bonus
+		}
+		if = {
+			limit = {
+				current_age_or_later = { age = age_4_reformation }
+			}
+			change_societal_value = { type = mercantilism_vs_free_trade value = societal_value_tiny_move_to_left }
+		}
+	}
+
+	on_debate_failed = {
+		if = {
+			limit = {
+				current_age_or_later = { age = age_4_reformation }
+			}
+			change_societal_value = { type = mercantilism_vs_free_trade value = societal_value_tiny_move_to_right }
+		}
+		parliament_debate_failed_effect = yes
+	}
+
+	chance = 1
+}
+
+ecclesiastical_burghs_rights = {
+	estate = clergy_estate
+
+	modifier_when_in_debate = {
+		town_upgrade_cost_modifier = -0.2
+	}
+	allow = {
+		OR = {
+			has_or_had_tag = SCO
+			culture = culture:scottish
+		}
+		NOR = {
+				current_age = age_1_traditions
+				current_age = age_2_renaissance
+		}
+	}
+
+	on_debate_passed = {
+		ordered_owned_location = {
+			order_by = population
+			limit = {
+				OR = {
+					location_rank = location_rank:town
+					location_rank = location_rank:city
+					location_rank = location_rank:megalopolis
+				}
+			}
+			
+			max = {
+				value = num_provinces
+				multiply = 0.1
+				add = 1
+			}
+			change_development  = development_severe_bonus
+		}
+		change_societal_value = { type = spiritualist_vs_humanist value = societal_value_tiny_move_to_left }
+	}
+
+	on_debate_failed = {
+		change_societal_value = { type = spiritualist_vs_humanist value = societal_value_tiny_move_to_right }
+		parliament_debate_failed_effect = yes
+	}
+
+	chance = 1
+}
+
+compulsory_education_nobles = {
+	estate = nobles_estate
+
+	modifier_when_in_debate = {
+		global_monthly_literacy = 0.2
+	}
+	allow = {
+		OR = {
+			has_or_had_tag = SCO
+			culture = culture:scottish
+		}
+		has_advance = university_advance
+		NOT = { has_variable = compulsory_education_nobles_passed }
+	}
+
+	on_debate_passed = {
+		unlock_policy_effect = { type = scottish_noble_education }
+		change_societal_value = { type = traditionalist_vs_innovative value = societal_value_tiny_move_to_right }
+		change_societal_value = { type = spiritualist_vs_humanist value = societal_value_tiny_move_to_right }
+		set_variable = compulsory_education_nobles_passed
+	}
+
+	on_debate_failed = {
+		change_societal_value = { type = traditionalist_vs_innovative value = societal_value_tiny_move_to_left }
+		change_societal_value = { type = spiritualist_vs_humanist value = societal_value_tiny_move_to_left }
+		parliament_debate_failed_effect = yes
+	}
+
+	chance = 50
+}
+
+presbyterian_education = {
+	estate = clergy_estate
+
+	modifier_when_in_debate = {
+		monthly_towards_humanist = societal_value_large_monthly_move
+		monthly_towards_free_subjects = societal_value_large_monthly_move
+	}
+	allow = {
+		OR = {
+			has_or_had_tag = SCO
+			culture = culture:scottish
+		}
+		religion = religion:calvinist
+		NOT = { has_variable = presbyterian_education_passed }
+	}
+
+	on_debate_passed = {
+		unlock_policy_effect = { type = scottish_presbyterian_education }
+		change_societal_value = { type = traditionalist_vs_innovative value = societal_value_tiny_move_to_right }
+		change_societal_value = { type = serfdom_vs_free_subjects value = societal_value_tiny_move_to_right }
+		set_variable = presbyterian_education_passed
+	}
+
+	on_debate_failed = {
+		change_societal_value = { type = traditionalist_vs_innovative value = societal_value_tiny_move_to_left }
+		change_societal_value = { type = serfdom_vs_free_subjects value = societal_value_tiny_move_to_left }
+		parliament_debate_failed_effect = yes
+	}
+
+	chance = 50
+}
+
+found_college_of_justice = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		monthly_towards_centralization = societal_value_large_monthly_move
+		change_policy_cost_modifier = -0.1
+	}
+	allow = {
+		OR = {
+			has_or_had_tag = SCO
+			culture = culture:scottish
+		}
+		NOR = {
+			current_age = age_1_traditions
+			current_age = age_2_renaissance
+		}
+		NOT = { has_variable = college_of_justice_founded }
+	}
+
+	on_debate_passed = {
+		unlock_policy_effect = { type = scottish_civil_law }
+		set_variable = college_of_justice_founded
+	}
+
+	on_debate_failed = {
+		change_societal_value = { type = centralization_vs_decentralization value = societal_value_minor_move_to_left }
+		parliament_debate_failed_effect = yes
+	}
+
+	chance = 50
+}
+
+establish_the_signoria_of_venice = {
+	estate = nobles_estate
+
+	modifier_when_in_debate = {
+
+	}
+	allow = {
+		has_or_had_tag = VEN
+		has_reform = government_reform:council_of_forty
+		NOT = { has_unlocked_government_reform_trigger = { type = signoria_of_venice } }
+		has_unlocked_parliament_issue_trigger = { type = establish_the_signoria_of_venice }
+	}
+	on_debate_passed = {
+		remove_reform = government_reform:council_of_forty
+		unlock_government_reform_effect = {
+			type = signoria_of_venice
+		}
+		add_reform = government_reform:signoria_of_venice
+		change_societal_value = { type = serfdom_vs_free_subjects value = societal_value_tiny_move_to_left }
+	}
+	on_debate_failed = {
+		change_societal_value = { type = serfdom_vs_free_subjects value = societal_value_tiny_move_to_left }
+		parliament_debate_failed_effect = yes
+	}
+	chance = 50
+}
+
+appease_english_population = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		diplomatic_capacity = 1
+	}
+	allow = {
+		has_or_had_tag = NED
+		has_unlocked_parliament_issue_trigger = {
+			type = appease_english_population
+		}
+		OR = {
+			c:GBR = {
+				OR = {
+					in_union_with = ROOT
+					is_subject_of = ROOT
+				}
+			}
+			c:ENG = {
+				OR = {
+					in_union_with = ROOT
+					is_subject_of = ROOT
+				}
+			}
+		}
+	}
+	on_debate_passed = {
+		if = {
+			limit = {
+				c:GBR = {
+					OR = {
+						in_union_with = ROOT
+						is_subject_of = ROOT
+					}
+				}
+			}
+			c:GBR = {
+				add_liberty_desire = -10
+				add_opinion = {
+					target = ROOT
+					modifier = opinion_appeased_english_in_parliament
+				}
+			}
+			add_opinion = {
+				target = c:GBR
+				modifier = opinion_appeased_english_in_parliament
+			}
+		}
+		if = {
+			limit = {
+				c:ENG = {
+					OR = {
+						in_union_with = ROOT
+						is_subject_of = ROOT
+					}
+				}
+			}
+			c:ENG = {
+				add_liberty_desire = -10
+				add_opinion = {
+					target = ROOT
+					modifier = opinion_appeased_english_in_parliament
+				}
+			}
+			add_opinion = {
+				target = c:ENG
+				modifier = opinion_appeased_english_in_parliament
+			}
+		}
+	}
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+	chance = 10
+}
+
+increase_control_in_britain = {
+	estate = crown_estate
+
+	modifier_when_in_debate = {
+		global_monthly_control = 0.01
+	}
+	allow = {
+		has_or_had_tag = NED
+		has_unlocked_parliament_issue_trigger = {
+			type = increase_control_in_britain
+		}
+		has_presence_in = region:great_britain_region
+		culture_group_percentage_in_country = {
+			culture_group = culture_group:british_group
+			value > 0.1
+		}
+	}
+	on_debate_passed = {
+		ordered_owned_non_rural_location = {
+			limit = {
+				OR = {
+					region = region:great_britain_region 
+					culture_group_percentage = {
+						culture_group = culture_group:british_group
+						value > 0
+					}
+				} 
+				is_province_capital = yes
+			}
+			order_by = {
+				add = population
+				multiply = local_control
+			}
+			max = {
+				value = num_provinces
+				multiply = "root.estate_power(estate_type:crown_estate)"
+			}
+			province = {
+				add_province_modifier = {
+					modifier = increasing_local_authority
+					years = modifier_duration_years_long
+					mode = replace
+				}
+			}
+		}
+	}
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+	chance = 10
+}
+
+tolerance_of_non_hindus = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		monthly_towards_humanist = societal_value_minor_monthly_move
+	}
+	allow = {
+		has_unlocked_parliament_issue_trigger = {
+			type = tolerance_of_non_hindus
+		}
+		religion = religion:hindu
+		
+		religious_unity < 0.95
+	}
+	on_debate_passed = {
+		custom_tooltip = {
+			text = VIJ_ALL_NON_HINDU_POPS_GAIN_SATISFACTION
+			every_pop = {
+				limit = {
+					owner = root
+					NOT = { religion = root.religion }
+				}
+				add_pop_satisfaction = pop_satisfaction_severe_bonus
+			}
+		}
+	}
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+	chance = 25
+}
+
+increase_non_hindu_control = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		monthly_towards_spiritualist = societal_value_huge_monthly_move
+	}
+	allow = {
+		has_unlocked_parliament_issue_trigger = {
+			type = increase_non_hindu_control
+		}
+		religion = religion:hindu
+		
+		religious_unity < 0.95
+	}
+	on_debate_passed = {
+		custom_tooltip = {
+			text = VIJ_ALL_NON_HINDU_POPS_LOCATIONS_GAIN_CONTROL
+			every_owned_location = {
+				limit = { local_religious_unity < 0.95 }
+				change_control = control_mild_bonus
+			}
+		}
+	}
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+	chance = 25
+}
+
+dlh_famine_reductions = {
+	estate = peasants_estate
+
+	modifier_when_in_debate = {
+		food_purchase_efficiency = 0.5
+	}
+	allow = {
+		OR = {
+			any_cabinet_character ?= {
+				has_variable = dlh_famine_reduction_flag
+			}
+			ruler_or_regent ?= {
+				has_variable = dlh_famine_reduction_flag
+			}
+		}
+		any_market_center_in_country = { market_food_percentage < 0.9 }
+	}
+	on_debate_passed = {
+		add_estate_satisfaction = {
+			type = estate_type:peasants_estate
+			value = estate_satisfaction_mild_bonus
+		}
+		ordered_market_center_in_country = {
+			limit = { market_food_percentage < 0.9 }
+
+			order_by = {
+				value = market_food_percentage
+				multiply = -1
+			}
+
+			max = 2
+
+			ordered_location_in_market = {
+				limit = { 
+					is_province_capital = yes
+					owner ?= root 
+				}
+				order_by = {
+					value = province.province_food_percentage
+					multiply = -1
+				}
+
+				max = 2
+
+				province = {
+					add_province_modifier = {
+						modifier = expanded_food_production_modifier
+						years = modifier_duration_years_long
+						mode = replace
+					}
+				}
+			}
+		}
+	}
+	on_debate_failed = {
+		parliament_debate_failed_effect = yes
+	}
+	chance = 25
+}
+
+new_model_army_pi = {
+	estate = crown_estate
+
+	potential = { has_variable = allow_new_model_army_pi_variable }
+
+	modifier_when_in_debate = {
+		land_morale_modifier = 0.1
+		naval_morale_modifier = 0.1
+	}
+	on_debate_passed = {
+		change_societal_value = { 
+			type = quality_vs_quantity 
+			value = societal_value_huge_move_to_left 
+		}
+		add_army_tradition = army_tradition_ultimate_bonus
+	}
+	on_debate_failed = {
+		add_stability = stability_extreme_penalty
+	}
+	chance = 1000
+}
+
+edict_of_nantes_issue = {
+	estate = crown_estate
+
+	modifier_when_in_debate = {
+		monthly_war_exhaustion = -0.25
+		pop_leave_rebels_threshold = 0.2
+	}
+	allow = { always = no }
+	on_debate_passed = {
+		custom_tooltip = {
+			text = end_the_french_wars_religion_tt
+			if = {
+				limit = { 
+					NOT = { has_variable = enable_fra_tolerance_edicts }
+				}
+				set_variable = enable_fra_tolerance_edicts
+			}
+			unlock_policy_effect = { type = edict_of_nantes }
+		}
+		add_policy = policy:edict_of_nantes
+	}
+	on_debate_failed = {
+		add_stability = stability_extreme_penalty
+	}
+	chance = 0
+}
+
+mug_promote_rajput_officials = {
+	estate = nobles_estate
+
+	modifier_when_in_debate = {
+		dhimmi_estate_target_satisfaction = huge_permanent_target_satisfaction
+		dhimmi_estate_satisfaction_recovery = 0.025
+	}
+	allow = { 
+		has_unlocked_parliament_issue_trigger = {
+			type = mug_promote_rajput_officials
+		}	
+	}
+	on_debate_passed = {
+		random_accepted_culture = {
+			limit = {
+				language = language:rajasthani_language
+			}
+			save_scope_as = target_culture
+		}
+		custom_tooltip = {
+			text = promote_rajput_officials_passed_tt
+			create_character = {
+				estate = estate_type:dhimmi_estate
+				culture = scope:target_culture
+				religion = religion:hindu
+				adm = { 30 60 }
+				dip = { 20 50 }
+				mil = { 50 80 }
+			}
+		}
+	}
+	on_debate_failed = {
+		add_stability = stability_mild_penalty
+	}
+	chance = 25
+}
+
+hussite_army_reform = {
+	estate = crown_estate
+
+	modifier_when_in_debate = {
+		stability_investment = huge_stability_investment_penalty
+		monthly_legitimacy = -1
+		monthly_republican_tradition = -1
+		monthly_devotion = -1
+	}
+	allow = { has_country_modifier = hussite_military_reform_modifier }
+	on_debate_passed = {
+		change_societal_value = { 
+			type = offensive_vs_defensive 
+			value = societal_value_huge_move_to_left 
+		}
+		unlock_policy_effect = { type = reformed_hussite_armies_policy }
+	}
+	on_debate_failed = {
+		change_societal_value = { 
+			type = offensive_vs_defensive 
+			value = societal_value_huge_move_to_right
+		}
+		add_stability = stability_extreme_penalty
+	}
+	chance = 100
+}
+
+lit_measures_against_romuva = {
+	estate = clergy_estate
+
+	modifier_when_in_debate = {
+		global_pop_conversion_speed = 0.025
+	}
+	allow = { 
+		has_unlocked_parliament_issue_trigger = {
+			type = lit_measures_against_romuva
+		}
+		"religion_percentage_in_country(religion:romuva)" > 0.05
+		is_situation_active = situation:reformation
+		religion != religion:romuva
+	 }
+	on_debate_passed = {
+		custom_tooltip = {
+			text = lit_5_percent_of_pops_convert_to_our_religion_tt
+			every_pop = {
+				limit = {
+					owner ?= root
+					religion = religion:romuva
+				}
+				split_pop = {
+					fraction = 0.05
+					religion = root.religion
+				}
+			}
+		}
+	}
+	on_debate_failed = {
+		add_stability = stability_extreme_penalty
+	}
+	chance = 50
+}
