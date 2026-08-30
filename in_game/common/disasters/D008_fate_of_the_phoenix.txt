@@ -1,0 +1,104 @@
+﻿fate_of_the_phoenix = {
+	content_priority = 700
+	image = "gfx/interface/illustrations/disaster/fate_of_the_phoenix.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_unique
+
+	can_start = {
+		tag = BYZ
+		current_age = age_1_traditions
+		has_dlc = "d008_fate_of_the_phoenix"
+		current_year < 1338
+	}
+	
+	can_end = {
+		fate_of_the_phoenix_end_trigger = yes
+	}
+
+	modifier = {
+		hire_mercenary_premium_cost_modifier = 0.5
+		global_bureaucracy_maintenance_efficiency = 0.2
+		casus_belli_creation_speed_modifier = 0.2
+	}
+	
+	on_start = {
+
+		set_variable = {
+			name = strongest_belik_variable
+			value = situation:rise_of_the_ottomans.var:strongest_beylik_variable.ruler_or_regent
+		}
+		
+
+		trigger_event_non_silently = fate_of_the_phoenix.1
+
+		c:SER = { trigger_event_non_silently = fate_of_the_phoenix.1 }
+		c:BUL = { trigger_event_non_silently = fate_of_the_phoenix.1 }
+		c:TUR = { trigger_event_non_silently = fate_of_the_phoenix.1 }
+
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = fate_of_the_phoenix.13
+				days = { 30 120 }
+			}
+		}
+	}
+
+	on_end = {
+		remove_variable = strongest_belik_variable
+
+		if = {
+			limit = {
+				NOT = { is_situation_active = situation:rise_of_the_ottomans }
+				num_locations_owned_or_owned_by_subjects_or_below > 145
+			}
+			trigger_event_non_silently = fate_of_the_phoenix.14
+		}
+		else = { trigger_event_non_silently = fate_of_the_phoenix.15 }
+
+		remove_variable = reform_infantry_variable
+		remove_variable = reform_cavalry_variable
+		remove_variable = reform_thema_headquarters_variable
+		remove_variable = reform_galley_variable
+		remove_variable = reform_merchant_fleet_variable
+		remove_variable = reform_school_of_admirals_variable
+	}
+	
+	on_monthly = {
+
+		set_variable = {
+			name = strongest_belik_variable
+			value = situation:rise_of_the_ottomans.var:strongest_beylik_variable.ruler_or_regent
+		}
+		
+		random_list = {
+			5 = { custom_tooltip = an_event_occurs_tt }
+			95 = { custom_tooltip = no_event_occurs_tt }
+		}
+		hidden_effect = {
+			random_list = {
+				95 = {}
+				1 = { trigger_event_silently = fate_of_the_phoenix.6 }		#Far-Away Province Declines our Authority // Release or Crush ? // 
+				1 = { trigger_event_silently = fate_of_the_phoenix.9 }		#Desertion from Standing Army
+				2 = { trigger_event_silently = fate_of_the_phoenix.10 }	#Emergence of a Loyal Strategos
+			}
+
+			random_list = {
+				90 = { }
+				10 = { 
+					random_neighbor_country = {
+						limit = { 
+							NOT = { has_casus_belli_on = root }
+							can_declare_war_on = root 
+							OR = {
+								is_rival_of = root
+								is_enemy_of = root
+								is_at_war_with = root
+							}
+						}
+						trigger_event_silently = fate_of_the_phoenix.7	#Neighbor Notified of our Poor Condition (they get claims?) 
+					}
+				}
+			}
+		}
+	}
+}

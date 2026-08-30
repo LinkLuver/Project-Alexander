@@ -1,0 +1,266 @@
+﻿castilian_civil_war = {
+
+	image = "gfx/interface/illustrations/disaster/castilian_civil_war.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_ultimate_high
+
+	fire_only_once = yes
+
+	can_start = {
+		tag = CAS
+		has_any_active_disaster = no
+		government_type = government_type:monarchy
+		in_civil_war = no
+		ruler_or_regent ?= {
+			this != character:cas_alfonso_xi_burgundy
+			OR = {
+				this = character:cas_pedro_i_burgundy
+				dynasty ?= dynasty:burgundy_castile_dynasty
+			}
+		}
+		any_character = {
+			NOR = {
+				is_ruler = yes
+				is_heir = yes
+			}
+			father ?= character:cas_alfonso_xi_burgundy
+			mother ?= character:cas_leonor_guzman
+			OR = {
+				is_eligible_heir = root
+				AND = {
+					has_character_modifier = bastard
+					is_legally_male = yes
+					is_adult = yes
+				}
+			}
+		}
+		OR = {
+			legitimacy < 40
+			stability < 15
+		}
+	}
+	
+	can_end = {
+		succession_crisis_end_trigger = yes
+	}
+	modifier = {
+		monthly_pretender_rebel_growth = 0.01
+		global_crown_estate_power = -0.2
+		global_estate_target_satisfaction = larger_permanent_target_satisfaction_penalty
+		blocked_from_creating_subjects = yes
+	}
+	
+	on_start = {
+		add_country_modifier = {
+			modifier = ai_succession_disaster_targets
+			years = -1
+			mode = add_and_extend
+		}
+
+		if = {
+			limit = {
+				has_ruler = yes
+				any_character = {
+					father ?= character:cas_alfonso_xi_burgundy
+					mother ?= character:cas_leonor_guzman
+					OR = {
+						is_eligible_heir = root
+						AND = {
+							has_character_modifier = bastard
+							is_legally_male = yes
+							is_adult = yes
+						}
+					}
+				}
+			}
+			set_variable = ccw_ruler_target
+		}
+		else_if = {
+			limit = {
+				has_regent = yes
+				has_heir = yes
+				heir.mother = character:cas_maria_portugal
+				heir.father = character:cas_alfonso_xi_burgundy
+				any_character = {
+					father ?= character:cas_alfonso_xi_burgundy
+					mother ?= character:cas_leonor_guzman
+					OR = {
+						is_eligible_heir = root
+						AND = {
+							has_character_modifier = bastard
+							is_legally_male = yes
+							is_adult = yes
+						}
+					}
+				}
+			}
+			set_variable = ccw_heir_target
+		}
+		trigger_event_non_silently = castilian_civil_war.1
+	}
+
+	on_end = {
+		every_character = {
+			limit = { has_character_modifier = plotting_rebellion_modifier }
+			remove_character_modifier = plotting_rebellion_modifier
+		}
+		remove_country_modifier = ai_succession_disaster_targets
+		remove_variable = pretender_rebel_character
+		clear_gui_variable = { type = pretender_rebel_character }
+		add_legitimacy = legitimacy_extreme_bonus
+		if = {
+			limit = { exists = var:succession_crisis_pretender_variable }
+			destroy_rebel = var:succession_crisis_pretender_variable
+		}
+		if = {
+			limit = { has_variable = ccw_active }
+			remove_variable = ccw_active
+			trigger_event_non_silently = castilian_civil_war.100
+		}
+		else = {
+			trigger_event_non_silently = succession_crisis.100
+		}
+	}
+	
+	on_monthly = {
+		if = {	#Castilian Civil War
+			limit = { has_variable = ccw_active }
+			hidden_effect = {
+				if = {
+					limit = { NOT = { has_variable = ccw_timer } NOT = { has_variable = ccw_has_reached_out_to_france_and_england } }
+					random = {
+						chance = 5
+						switch = {
+							trigger = has_variable
+							ccw_sided_with_legal_heir = {
+								if = {
+									limit = { country_exists = c:FRA }
+									c:FRA = {
+										save_scope_as = pretender_ally_nation
+									}
+								}
+								else = {
+									random_known_country = {
+										limit = { culture = culture:french }
+										save_scope_as = pretender_ally_nation
+									}
+								}
+							}
+							ccw_sided_with_bastard_heir = {
+								if = {
+									limit = { country_exists = c:ENG }
+									c:ENG = {
+										save_scope_as = pretender_ally_nation
+									}
+								}
+								else = {
+									random_known_country = {
+										limit = { culture = culture:english }
+										save_scope_as = pretender_ally_nation
+									}
+								}
+							}
+						}
+						if = {
+							limit = { exists = scope:pretender_ally_nation }
+							scope:pretender_ally_nation = {
+								trigger_event_silently = castilian_civil_war.1000
+							}
+						}
+						set_variable = { name = ccw_has_reached_out_to_france_and_england value = yes }
+						set_variable = { name = ccw_timer value = yes days = 365 }
+					}
+				}
+				if = {
+					limit = { NOT = { has_variable = ccw_timer } NOT = { has_variable = ccw_has_reached_out_to_aragon_and_portugal } }
+					random = {
+						chance = 5
+						switch = {
+							trigger = has_variable
+							ccw_sided_with_legal_heir = {
+								if = {
+									limit = { country_exists = c:ARA }
+									c:ARA = { save_scope_as = iberian_pretender_ally_nation }
+								}
+								else = {
+									random_known_country = {
+										limit = { OR = { culture = culture:catalan culture = culture:aragonese } }
+										save_scope_as = iberian_pretender_ally_nation
+									}
+								}
+							}
+							ccw_sided_with_bastard_heir = {
+								if = {
+									limit = { country_exists = c:POR }
+									c:POR = { save_scope_as = iberian_pretender_ally_nation }
+								}
+								else = {
+									random_known_country = {
+										limit = { culture = culture:portuguese }
+										save_scope_as = iberian_pretender_ally_nation
+									}
+								}
+							}
+						}
+						if = {
+							limit = { exists = scope:iberian_pretender_ally_nation }
+							scope:iberian_pretender_ally_nation = { trigger_event_silently = castilian_civil_war.1010 }
+						}
+						set_variable = { name = ccw_has_reached_out_to_aragon_and_portugal value = yes }
+						set_variable = { name = ccw_timer value = yes days = 365 }
+					}
+				}
+				if = {
+					limit = { NOT = { has_variable = ccw_allies_timer } NOT = { has_variable = ccw_had_100yw_ally_event } }
+					random = {
+						chance = 5
+						trigger_event_silently = castilian_civil_war.1030
+						set_variable = ccw_had_100yw_ally_event
+						set_variable = { name = ccw_allies_timer value = yes days = 365 }
+					}
+				}
+				if = {
+					limit = { NOT = { has_variable = ccw_allies_timer } NOT = { has_variable = ccw_had_iberian_ally_event } }
+					random = {
+						chance = 5
+						trigger_event_silently = castilian_civil_war.1050
+						set_variable = ccw_had_iberian_ally_event
+						set_variable = { name = ccw_allies_timer value = yes days = 365 }
+					}
+				}
+			}
+			random_list = {
+				22 = { custom_tooltip = an_event_occurs_tt }
+				78 = { custom_tooltip = no_event_occurs_tt }
+			}
+			hidden_effect = {
+				random_list = {
+					250 = {}
+					10 = { trigger_event_silently = succession_crisis.2 }
+					10 = { trigger_event_silently = succession_crisis.3 }
+					10 = { trigger_event_silently = succession_crisis.4 }
+					10 = { trigger_event_silently = succession_crisis.5 }
+					10 = { trigger_event_silently = castilian_civil_war.2 }
+					10 = { trigger_event_silently = castilian_civil_war.3 }
+					10 = { trigger = { NOT = { has_variable = ccw_had_mother_event } } trigger_event_silently = castilian_civil_war.1020 }
+				}
+			}
+		}
+		else = {	#Generic Succession Crisis
+			
+			random_list = {
+				14 = { custom_tooltip = an_event_occurs_tt }
+				86 = { custom_tooltip = no_event_occurs_tt }
+			}
+			hidden_effect = {
+				random_list = {
+					250 = {}
+					10 = { trigger_event_silently = succession_crisis.2 }
+					10 = { trigger_event_silently = succession_crisis.3 }
+					10 = { trigger_event_silently = succession_crisis.4 }
+					10 = { trigger_event_silently = succession_crisis.5 }
+				}
+			}
+		}
+	}
+}

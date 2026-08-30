@@ -1,0 +1,124 @@
+﻿rise_of_the_szlachta = {
+
+	image = "gfx/interface/illustrations/disaster/rise_of_the_szlachta.dds"
+
+	monthly_spawn_chance = monthly_spawn_chance_low
+
+	fire_only_once = yes
+
+	can_start = {
+		OR = {
+			tag = POL 
+			tag = PLC
+		}
+		in_civil_war = no
+		ruler_or_regent != character:pol_casimir_iii_piast
+		current_year > 1380
+		NOT = { has_estate_privilege = estate_privilege:golden_liberty }
+		OR = {
+			"estate_power(estate_type:nobles_estate)" > 0.25
+			societal_value:aristocracy_vs_plutocracy < -25
+		}
+		"estate_power(estate_type:crown_estate)" < 0.5
+		has_any_active_disaster = no
+	}
+	
+
+	can_end = {
+		rise_of_the_szlachta_end_trigger = yes
+	}
+	modifier = {
+		global_estate_target_satisfaction = large_permanent_target_satisfaction_penalty
+		monthly_towards_aristocracy = societal_value_minor_monthly_move
+		monthly_legitimacy = -0.25
+	}
+	
+	on_start = {
+		trigger_event_non_silently = rise_of_the_szlachta.1
+
+		#Calculate an appropriate crown power target goal
+		#This is used in the rise_of_the_szlachta_end_trigger
+		set_variable = {
+			name = target_crown_power_variable
+			value = {
+				add = {
+					value = 0.5
+					subtract = "estate_power(estate_type:crown_estate)"
+				}
+				divide = 2
+				add = "estate_power(estate_type:crown_estate)"
+				max = 0.5
+				min = 0.3
+			}
+		}
+
+		#Calculate an appropriate burgher power target goal
+		#This is used in the rise_of_the_szlachta_end_trigger
+		set_variable = {
+			name = target_burghers_power_variable
+			value = {
+				add = "estate_power(estate_type:burghers_estate)"
+				multiply = 1.2
+				add = 0.05
+				max = 0.9
+				min = 0.1
+			}
+		}
+
+		#Calculate an appropriate nobles power target goal
+		#This is used in the rise_of_the_szlachta_end_trigger
+		set_variable = {
+			name = target_nobles_power_variable
+			value = {
+				add = "estate_power(estate_type:nobles_estate)"
+				multiply = 1.2
+				add = 0.05
+				max = 0.8
+				min = 0.3
+			}
+		}
+	}
+	on_end = {
+		if = {
+			limit = { "estate_power(estate_type:crown_estate)" > var:target_crown_power_variable }
+			trigger_event_non_silently = rise_of_the_szlachta.8
+		}
+		else_if = {
+			limit = {
+				OR = {
+					AND = {
+						"estate_power(estate_type:nobles_estate)" > var:target_nobles_power_variable
+						societal_value:aristocracy_vs_plutocracy <= -99
+					}
+					has_estate_privilege = estate_privilege:golden_liberty
+				}
+			}
+			trigger_event_non_silently = rise_of_the_szlachta.6
+		}
+		else_if = {
+			limit = {
+				"estate_power(estate_type:burghers_estate)" > var:target_burghers_power_variable
+				societal_value:aristocracy_vs_plutocracy > 50
+			}
+			trigger_event_non_silently = rise_of_the_szlachta.7
+		}
+	}
+	
+	on_monthly = {
+
+		random_list = {
+			9 = { custom_tooltip = an_event_occurs_tt }
+			91 = { custom_tooltip = no_event_occurs_tt }
+		}
+
+		hidden_effect = {
+			random_list = {
+				90 = {}
+				1 = { trigger_event_silently = rise_of_the_szlachta.2 }
+				1 = { trigger_event_silently = rise_of_the_szlachta.3 }
+				1 = { trigger_event_silently = rise_of_the_szlachta.4 }
+				1 = { trigger_event_silently = rise_of_the_szlachta.5 }
+			}
+		}
+	}
+}

@@ -1,0 +1,69 @@
+﻿aspiration_for_liberty = {
+
+	image = "gfx/interface/illustrations/disaster/aspiration_for_liberty.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_low
+
+	can_start = {
+		current_age = age_6_revolutions
+		in_civil_war = no
+		has_any_active_disaster = no
+		stability < 20
+		average_country_literacy > 60
+		custom_tooltip = {
+			text = had_csd_disaster_variable_tt
+			NOT = { has_variable = had_aspiration_for_liberty_disaster_variable }
+		}
+		OR = {
+			has_parliament = no
+			parliament_type = parliament_type:autocratic_parliament
+			has_policy = absolute_rule_policy
+		}
+	}
+
+	can_end = {
+		aspiration_for_liberty_end_trigger = yes
+	}
+	modifier = {
+		global_estate_target_satisfaction = big_permanent_target_satisfaction_penalty
+		stability_investment = stability_investment_penalty
+	}
+	
+	on_start = {
+		set_variable = {
+			name = aspiration_for_liberty_target_stability_variable
+			value = {
+				add = 20
+				add = {
+					value = average_country_literacy
+					multiply = 0.33
+				}
+				max = 75
+			}
+		}
+		trigger_event_non_silently = aspiration_for_liberty.1
+	}
+
+	on_monthly = {
+		random_list = {
+			900 = { }
+			30 = { 
+				custom_tooltip = {
+					text = battles_on_foreign_grounds_tt
+					trigger_event_silently = aspiration_for_liberty.3
+				}
+			}
+			30 = { 
+				custom_tooltip = {
+					text = governmental_incompetence_event_tt
+					trigger_event_silently = aspiration_for_liberty.4
+				}
+			}
+		}
+	}
+	on_end = { 
+		trigger_event_non_silently = aspiration_for_liberty.2 
+		remove_variable = aspiration_for_liberty_target_stability_variable
+		set_variable = had_aspiration_for_liberty_disaster_variable
+	}
+}

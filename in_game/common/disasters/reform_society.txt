@@ -1,0 +1,80 @@
+﻿reform_society = {
+
+	image = "gfx/interface/illustrations/disaster/reform_society.dds"
+
+	monthly_spawn_chance = monthly_spawn_chance_unique
+
+	can_start = {
+		religion = religion:nahuatl 
+		has_any_active_disaster = no
+		custom_tooltip = {
+			text = eligible_for_reform_society_disaster_tt
+			has_variable = eligible_for_reform_society_disaster_variable
+			NOT = { has_variable = completed_nahuatl_reform_society_disaster_variable }
+		}
+	}
+	
+
+	can_end = {
+		reform_society_end_trigger = yes
+	}
+	modifier = {
+		monthly_towards_centralization = societal_value_significant_monthly_move
+		monthly_rebel_growth = 0.005
+		annexation_speed_modifier = 0.5
+	}
+	
+	on_start = {
+		trigger_event_non_silently = reform_society.1
+
+		set_variable = {
+			name = total_locations_required_variable
+			value = num_locations
+		}
+
+		every_subject = {
+			root = {
+				change_variable = {
+					name = total_locations_required_variable
+					add = {
+						value = prev.num_locations
+						multiply = 0.25
+					}
+				}
+			}
+		}
+	}
+	on_end = {
+		#This removes the variable that made us eligible for the disaster
+		remove_variable = eligible_for_reform_society_disaster_variable
+
+		#This ensures we do not get the disaster again back-to-back
+		set_variable = completed_nahuatl_reform_society_disaster_variable
+		trigger_event_non_silently = reform_society.2
+	}
+	
+	on_monthly = {
+	
+		show_as_tooltip = {
+			random_list = {
+				95 = { custom_tooltip = no_event_occurs_tt }
+				5 = { custom_tooltip = an_event_occurs_tt }
+			}
+		}
+		hidden_effect = {
+			random_list = {
+				95 = { }
+				5 = {
+					random_list = {
+						5 = { trigger_event_silently = reform_society.3 }
+						5 = { trigger_event_silently = reform_society.4 }
+						5 = { trigger_event_silently = reform_society.5 }
+						5 = { trigger_event_silently = reform_society.6 }
+						5 = { trigger_event_silently = reform_society.7 }
+						5 = { trigger_event_silently = reform_society.8 }
+					}
+				}
+			}
+		}
+	}
+}

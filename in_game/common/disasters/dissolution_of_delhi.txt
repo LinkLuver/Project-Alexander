@@ -1,0 +1,92 @@
+﻿dissolution_of_delhi = {
+
+	image = "gfx/interface/illustrations/situation/fall_of_delhi.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_low
+
+	can_start = {
+		has_any_active_disaster = no
+		tag = DLH
+		situation:fall_of_delhi = {
+			situation_is_active = yes
+			exists = "active_resolution(resolution:fall_of_delhi_resolution)"
+			trigger_if = {
+				limit = {
+					situation:fall_of_delhi ?= {
+						resolution_is_active = resolution:fall_of_delhi_resolution
+					}
+				}
+				trigger_if = {
+					limit = {
+						c:DLH = { has_variable = harsher_requirements_for_disaster }
+					}
+					custom_tooltip = {
+						text = opposers_at_least_80_sop_tt
+						situation:fall_of_delhi ?= {
+							votes_for_resolution = {
+								resolution = resolution:fall_of_delhi_resolution
+								outcome = "active_resolution(resolution:fall_of_delhi_resolution).resolution_proposer"
+								value >= 0.8
+							}
+						}
+					}
+				}
+				trigger_else = {
+					custom_tooltip = {
+						text = opposers_at_least_95_sop_tt
+						situation:fall_of_delhi ?= {
+							votes_for_resolution = {
+								resolution = resolution:fall_of_delhi_resolution
+								outcome = "active_resolution(resolution:fall_of_delhi_resolution).resolution_proposer"
+								value >= 0.95
+							}
+						}
+					}
+				}
+			}
+		}
+		stability < 50
+	}
+	
+
+	can_end = {
+		dissolution_of_delhi_end_trigger = yes
+	}
+
+	modifier = {
+		monthly_rebel_growth = 0.02
+		global_estate_target_satisfaction = medium_permanent_target_satisfaction_penalty
+		stability_investment = stability_investment_penalty
+		monthly_complacency = 0.3
+		has_complacency_effects = yes
+	}
+	
+	on_start = {
+		c:DLH = { trigger_event_non_silently = dissolution_of_delhi.1 }
+	}
+
+	on_end = {
+		c:DLH = { trigger_event_non_silently = dissolution_of_delhi.7 }
+		
+	}
+	
+	on_monthly = {
+
+		random_list = {
+			19 = { custom_tooltip = an_event_occurs_tt }
+			81 = { custom_tooltip = no_event_occurs_tt }
+		}
+		hidden_effect = {
+			random_list = {
+				3 = { trigger_event_silently = dissolution_of_delhi.2 }
+				3 = { trigger_event_silently = dissolution_of_delhi.3 }
+				3 = { trigger_event_silently = dissolution_of_delhi.4 }
+				3 = { trigger_event_silently = dissolution_of_delhi.5 }
+				3 = { trigger_event_silently = dissolution_of_delhi.6 }
+				3 = { trigger_event_silently = fall_of_delhi.8 }
+				80 = { }
+			}
+		}
+		
+	}
+}

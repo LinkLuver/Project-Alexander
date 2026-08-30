@@ -1,0 +1,77 @@
+﻿crisis_of_the_chinese_dynasty = {
+
+	image = "gfx/interface/illustrations/disaster/crisis_of_the_chinese_dynasty.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_very_high
+
+	can_start = {
+		current_age_or_later = { age = age_3_discovery }
+		is_leader_of_international_organization = international_organization:middle_kingdom
+		has_any_active_disaster = no
+		NOT = { is_situation_active = situation:red_turban_rebellions }
+		international_organization:middle_kingdom = {
+			var:celestial_authority <= 20
+		}
+		OR = {
+			stability < 0
+			government_power < 50
+		}
+	}
+	
+	can_end = {
+		crisis_of_the_chinese_dynasty_end_trigger = yes
+	}
+	modifier = {
+		monthly_celestial_authority = -0.05
+		monthly_war_exhaustion = 0.1
+		monthly_rebel_growth = 0.01
+		monthly_inflation = 0.001
+	}
+	
+	on_start = {
+		trigger_event_non_silently = crisis_of_the_chinese_dynasty.1
+	}
+	on_end = {
+		remove_variable = reformed_the_cabinet_variable
+		remove_variable = completed_tax_revision_variable
+		remove_variable = cmd_restored_stability_variable
+		remove_variable = cmd_strengthened_crown_variable
+		if = {
+			limit = {
+				NOT = { is_leader_of_international_organization = international_organization:middle_kingdom }
+			}
+			trigger_event_non_silently = crisis_of_the_chinese_dynasty.2
+		}
+		else = { trigger_event_non_silently = crisis_of_the_chinese_dynasty.3 }
+	}
+	
+	on_monthly = {
+		random_list = {
+			15 = { custom_tooltip = an_event_occurs_tt }
+			85 = { custom_tooltip = no_event_occurs_tt }
+		}
+		hidden_effect = {
+			random_list = {
+			1000 = {  }
+				100 = { 
+					custom_tooltip = {
+						text = fire_event_4_tt
+						trigger_event_silently = crisis_of_the_chinese_dynasty.4 
+					}
+				}
+				100 = { 
+					custom_tooltip = {
+						text = fire_event_5_tt
+						trigger_event_silently = crisis_of_the_chinese_dynasty.5
+					}
+				}
+			}
+			random = {
+				chance = 10
+				trigger_event_silently = {
+					id = flavor_chi.113
+				}
+			}
+		}
+	}
+}

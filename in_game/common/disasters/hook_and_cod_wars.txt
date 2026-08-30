@@ -1,0 +1,93 @@
+﻿hook_and_cod_wars = {
+
+    image = "gfx/interface/illustrations/disaster/hook_and_cod_wars.dds"
+    
+    monthly_spawn_chance = monthly_spawn_chance_unique
+    can_start = {
+		has_any_active_disaster = no
+		tag = HOL
+        has_enabled_disaster_trigger = { type = hook_and_cod_wars }
+		government_type = government_type:monarchy
+        at_war = no
+        hidden_trigger = {
+            has_variable = hacw_contender_variable_1
+            has_variable = hacw_contender_variable_2
+            NOT = { has_variable = hol_trigger_sc_instead_of_hacw }
+            var:hacw_contender_variable_1 = { is_alive = yes }
+            var:hacw_contender_variable_2 = { is_alive = yes }
+        }
+        OR = {
+            has_heir = no
+            heir ?= {
+                NOT = { has_character_modifier = hacw_rightful_ruler }
+            }
+        }
+    }
+    can_end = {
+        hook_and_cod_wars_end_trigger = yes
+    }
+    modifier = {
+		monthly_rebel_growth = 0.02
+		global_crown_estate_power = -0.2
+		global_estate_target_satisfaction = small_permanent_target_satisfaction_penalty
+    }
+    on_start = {
+		trigger_event_non_silently = hook_and_cod_wars.1100
+    }
+    on_end = {
+        trigger_event_non_silently = hook_and_cod_wars.100
+        hidden_effect = {
+            disable_disaster_effect = { type = hook_and_cod_wars }
+            set_ended_disaster_flag_effect = { type = hook_and_cod_wars }  #So that disaster is guaranteed to never fire again
+        }
+    }
+    on_monthly = {
+        random_list = {
+            20 = { custom_tooltip = an_event_occurs_tt }
+            80 = { custom_tooltip = no_event_occurs_tt }
+        }
+        hidden_effect = {
+            #update variables in case the game "forgets" our claimants for ... reasons
+            if = {
+                limit = { has_variable = hacw_contender_variable_1 has_variable = hacw_contender_variable_2 }
+                if = {
+                    limit = { NOT = { has_variable = hacw_cod_contender } has_variable = hacw_hook_contender }
+                    if = {
+                        limit = { var:hacw_hook_contender = var:hacw_contender_variable_1 }
+                        set_variable = { name = hacw_cod_contender value = var:hacw_contender_variable_2 }
+                    }
+                    else_if = {
+                        limit = { var:hacw_hook_contender = var:hacw_contender_variable_2 }
+                        set_variable = { name = hacw_cod_contender value = var:hacw_contender_variable_1 }
+                    }
+                }
+                else_if = {
+                    limit = { NOT = { has_variable = hacw_hook_contender } has_variable = hacw_cod_contender }
+                        if = {
+                            limit = { var:hacw_cod_contender = var:hacw_contender_variable_1 }
+                            set_variable = { name = hacw_hook_contender value = var:hacw_contender_variable_2 }
+                        }
+                        else_if = {
+                            limit = { var:hacw_cod_contender = var:hacw_contender_variable_2 }
+                            set_variable = { name = hacw_hook_contender value = var:hacw_contender_variable_1 }
+                        }
+                }
+                else = {
+                    set_variable = { name = hacw_hook_contender value = var:hacw_contender_variable_1 }
+                    set_variable = { name = hacw_cod_contender value = var:hacw_contender_variable_2 }
+                }
+            }
+            trigger_event_silently = hook_and_cod_wars.1200 #Check if both claimants are still alive
+            random_list = {
+                250 = {}
+                10 = { trigger_event_non_silently = hook_and_cod_wars.1 }
+                10 = { trigger_event_non_silently = hook_and_cod_wars.2 }
+                10 = { trigger_event_non_silently = hook_and_cod_wars.3 }
+                10 = { trigger_event_non_silently = hook_and_cod_wars.4 }
+                10 = { trigger_event_non_silently = hook_and_cod_wars.1300 }
+                10 = { trigger_event_non_silently = hook_and_cod_wars.1400 }
+            }
+        }
+        
+    }
+}

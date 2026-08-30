@@ -1,0 +1,110 @@
+﻿succession_crisis = {
+
+	image = "gfx/interface/illustrations/disaster/succession_crisis.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_very_low
+	can_start = {
+		has_any_active_disaster = no
+		government_type = government_type:monarchy
+		num_provinces > 2
+		trigger_if = {
+			limit = {
+				OR = {
+					has_heir = no
+					has_regent = yes
+					heir ?= { total_abilities < 150 }
+				}
+			}
+			custom_tooltip = no_heir_or_regent_or_bad_heir_tt
+			stability < 10
+			legitimacy < 50
+		}
+		trigger_else = {
+			stability < 0
+			legitimacy < 40
+		}
+		in_civil_war = no
+		trigger_if = {
+			limit = {
+				tag = HOL
+				NOT = { has_variable = hol_trigger_sc_instead_of_hacw }
+				current_later_age_3_discovery_trigger = no
+			}
+			OR = {
+				NOT = { tag = HOL }
+				custom_tooltip = {
+					text = hol_trigger_sc_instead_of_hacw_tt
+					has_variable = hol_trigger_sc_instead_of_hacw
+				}
+				current_later_age_3_discovery_trigger = yes
+			}
+		}
+		trigger_if = {
+			limit = { tag = BYZ }
+			current_year > 1350
+		}
+		trigger_if = {
+			limit = { tag = CHI }
+			current_year > 1350
+		}
+	}
+	
+	can_end = {
+		succession_crisis_end_trigger = yes
+	}
+	modifier = {
+		monthly_pretender_rebel_growth = 0.01
+		global_crown_estate_power = -0.2
+		global_estate_target_satisfaction = larger_permanent_target_satisfaction_penalty
+		blocked_from_creating_subjects = yes
+	}
+	
+	on_start = { 
+		add_country_modifier = {
+			modifier = ai_succession_disaster_targets
+			years = -1
+			mode = add_and_extend
+		}
+
+		trigger_event_non_silently = succession_crisis.1 
+	}
+	
+	on_end = {
+		every_character = {
+			limit = { has_character_modifier = plotting_rebellion_modifier }
+			remove_character_modifier = plotting_rebellion_modifier
+		}
+		remove_country_modifier = ai_succession_disaster_targets
+		remove_variable = pretender_rebel_character
+		clear_gui_variable = { type = pretender_rebel_character }
+		add_legitimacy = legitimacy_extreme_bonus
+		if = {
+			limit = { exists = var:succession_crisis_pretender_variable }
+			destroy_rebel = var:succession_crisis_pretender_variable
+		}
+		if = {
+			limit = { has_variable = ccw_active }
+			remove_variable = ccw_active
+			trigger_event_non_silently = castilian_civil_war.100
+		}
+		else = {
+			trigger_event_non_silently = succession_crisis.100
+		}
+	}
+	
+	on_monthly = {
+		random_list = {
+			14 = { custom_tooltip = an_event_occurs_tt }
+			86 = { custom_tooltip = no_event_occurs_tt }
+		}
+		hidden_effect = {
+			random_list = {
+				250 = {}
+				10 = { trigger_event_silently = succession_crisis.2 }
+				8 = { trigger_event_silently = succession_crisis.3 }
+				8 = { trigger_event_silently = succession_crisis.4 }
+				10 = { trigger_event_silently = succession_crisis.5 }
+			}
+		}
+	}
+}

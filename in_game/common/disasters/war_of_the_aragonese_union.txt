@@ -1,0 +1,70 @@
+﻿war_of_the_aragonese_union_disaster = {
+
+	image = "gfx/interface/illustrations/disaster/war_of_the_aragonese_union_disaster.dds"
+
+	monthly_spawn_chance = monthly_spawn_chance_unique
+
+	can_start = {
+		tag = ARA
+		has_any_active_disaster = no
+		NOT = { has_variable = war_of_the_aragonese_union_happened }
+
+		#This disaster is activated by the war_of_the_aragonese_union_disaster.210 event
+		has_variable = aragon_ruler_brother_fleeing_flag
+	}
+	
+	can_end = {
+		war_of_the_aragonese_union_disaster_end_trigger = yes
+	}
+	modifier = {
+		global_estate_target_satisfaction = medium_permanent_target_satisfaction_penalty
+		monthly_legitimacy = -0.1
+		stability_cost_efficiency = -0.5
+		monthly_nobles_estate_rebel_growth  = 0.002
+		monthly_burghers_estate_rebel_growth = 0.002
+	}
+	
+	on_start = {
+		create_rebel = {
+			category = estate
+			estate = nobles_estate
+			name = union_of_aragon_name
+			save_scope_as = union_of_aragon
+		}
+		set_variable = {
+			name = union_of_aragon_rebels_variable
+			value = scope:union_of_aragon
+		}
+
+		trigger_event_non_silently = war_of_the_aragonese_union_disaster.1
+	}
+	on_end = {
+		destroy_rebel ?= var:union_of_aragon_rebels_variable
+
+		trigger_event_non_silently = war_of_the_aragonese_union_disaster.3
+		
+		set_variable = {
+			name = war_of_the_aragonese_union_happened
+			value = yes
+		}
+	}
+	
+	on_monthly = {
+		random_list = {
+			50 = { custom_tooltip = an_event_occurs_tt }
+			50 = { custom_tooltip = no_event_occurs_tt }
+		}
+		hidden_effect = {
+			var:union_of_aragon_rebels_variable ?= {
+				save_scope_as = union_of_aragon
+			}
+			random_list = {
+				50 = {}
+				10 ={ trigger_event_silently = war_of_the_aragonese_union_disaster.4 }
+				20 ={ trigger_event_silently = war_of_the_aragonese_union_disaster.5 }
+				10 ={ trigger_event_silently = war_of_the_aragonese_union_disaster.6 }
+				10 ={ trigger_event_silently = war_of_the_aragonese_union_disaster.8 }
+			}
+		}
+	}
+}

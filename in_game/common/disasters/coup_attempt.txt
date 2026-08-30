@@ -1,0 +1,78 @@
+﻿coup_attempt = {
+
+	image = "gfx/interface/illustrations/disaster/coup_attempt.dds"
+
+	monthly_spawn_chance = monthly_spawn_chance_very_low
+
+	can_start = {
+		NOT = { current_age = age_1_traditions }
+		government_type = government_type:monarchy
+		government_power < 30
+		any_estate = {
+			estate_type != estate_type:crown_estate
+			power > "root.estate_power(estate_type:crown_estate)"
+		}
+		"estate_power(estate_type:crown_estate)" < 0.5
+		in_civil_war = no
+		custom_tooltip = {
+			text = recently_had_coup_attempt_inconclusive_tt
+			NOT = { has_variable = recently_had_coup_attempt_inconclusive_or_negative_variable }
+		}
+		has_any_active_disaster = no
+	}
+	
+	can_end = { coup_attempt_end_trigger = yes }
+	modifier = {
+		global_crown_estate_power = -0.25
+		country_cabinet_efficiency = -0.2
+		court_spending_efficiency = -0.2
+	}
+	
+	on_start = {
+		trigger_event_non_silently = coup_attempt.1
+	}
+	on_end = {
+		if = {
+			limit = { government_type = government_type:monarchy }
+			if = {
+				limit = {
+					OR = {
+						had_disaster_for_years = {
+							disaster_type = scope:disaster
+							years >= 5
+						}
+						has_variable = recently_had_coup_attempt_inconclusive_or_negative_variable
+						any_character = {
+							has_variable = potential_conspirator_variable
+							is_ruler_of = root
+						}
+					}
+				}
+				trigger_event_non_silently = coup_attempt.100 #Inconclusive Ending
+			}
+			else = { trigger_event_non_silently = coup_attempt.101 } #Conspirators eliminated or restored Legitimacy
+		}
+		else = { trigger_event_non_silently = coup_attempt.200 } #Weird Ending
+
+		every_character = {
+			limit = { has_variable = potential_conspirator_variable }
+			remove_variable = potential_conspirator_variable
+		}
+	}
+	
+	on_monthly = {
+		random_list = {
+			175 = { custom_tooltip = an_event_occurs_tt }
+			825 = { custom_tooltip = no_event_occurs_tt }
+		}
+		hidden_effect = {
+			random_list = {
+				50 = { trigger_event_silently = coup_attempt.3 }	#~5% Chance
+				50 = { trigger_event_silently = coup_attempt.2 }	#~5% Chance
+				50 = { trigger_event_silently = coup_attempt.5 }	#~5% Chance
+				50 = { trigger_event_silently = coup_attempt.8 }	#~5% Chance
+			    800 = { }											#~75% Chance
+			}
+		}
+	}
+}

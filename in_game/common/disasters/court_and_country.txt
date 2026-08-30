@@ -1,0 +1,113 @@
+﻿court_and_country = {
+
+	image = "gfx/interface/illustrations/disaster/court_and_country.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_low
+
+	can_start = {
+		hidden_trigger = { is_ai = no }
+		in_civil_war = no
+		OR = {
+			current_age = age_5_absolutism
+			current_age = age_6_revolutions
+		}
+		has_any_active_disaster = no
+		OR = {
+			"estate_power(estate_type:crown_estate)" >= 0.25
+			societal_value:absolutism_vs_liberalism < -50
+		}
+		custom_tooltip = {
+			text = had_csd_disaster_variable_tt
+			NOT = { has_variable = had_court_and_country_disaster_variable }
+		}
+	}
+	
+
+	can_end = {
+		court_and_country_end_trigger = yes
+	}
+	modifier = {
+		global_estate_target_satisfaction = large_permanent_target_satisfaction_penalty
+		pop_join_rebel_threshold = 0.1
+	}
+	
+	on_start = {
+		if = {
+			limit = { num_privileges > 4 }
+			set_variable = {
+				name = final_privilege_number_variable
+				value = {
+					add = num_privileges
+					divide = 2
+					ceiling = yes
+				}
+			}
+		}
+		else = {
+			set_variable = {
+				name = final_privilege_number_variable
+				value = 0
+			}
+		}
+		set_variable = {
+			name = final_crown_power_value_variable
+			value = {
+				add = {
+					value = 1
+					subtract = "estate_power(estate_type:crown_estate)"
+					multiply = 0.1
+				}
+				add = "estate_power(estate_type:crown_estate)"
+				min = 0.33
+				max = 0.75
+			}
+		}
+		trigger_event_non_silently = court_and_country.1
+	}
+	on_end = { 
+		trigger_event_non_silently = court_and_country.2 
+		set_variable = had_court_and_country_disaster_variable
+	}
+	
+	on_monthly = {
+		random_list = {
+			1100 = {}
+			20 = { 
+				custom_tooltip = {
+					text = court_and_country_7_tt
+					trigger_event_silently = court_and_country.7 
+				}
+			}
+			10 = {
+				custom_tooltip = {
+					text = court_and_country_8_tt
+					trigger_event_silently = court_and_country.8
+				}
+			}
+			20 = {
+				custom_tooltip = {
+					text = court_and_country_9_tt
+					trigger_event_silently = court_and_country.9
+				}
+			}
+			20 = {
+				custom_tooltip = {
+					text = court_and_country_10_tt
+					trigger_event_silently = court_and_country.10
+				}
+			}
+			20 = {
+				custom_tooltip = {
+					text = court_and_country_11_tt
+					trigger_event_silently = court_and_country.11
+				}
+			}
+			20 = {
+				custom_tooltip = {
+					text = court_and_country_12_tt
+					trigger_event_silently = court_and_country.12
+				}
+			}
+		}
+	}
+}

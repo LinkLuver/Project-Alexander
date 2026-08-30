@@ -1,0 +1,78 @@
+﻿decline_of_mali = {
+
+	image = "gfx/interface/illustrations/disaster/decline_of_mali_disaster.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_low
+
+	fire_only_once = yes
+
+	can_start = {
+		tag = MAL
+		country_rank = country_rank:rank_empire
+		has_any_active_disaster = no
+		current_year > 1400
+		ruler_or_regent ?= { total_abilities <= 200 }
+		OR = {
+			stability < 10
+			legitimacy < 70
+		}
+		num_locations > 5
+	}
+	
+	can_end = {
+		decline_of_mali_end_trigger = yes
+	}
+	modifier = {
+		global_estate_target_satisfaction = big_permanent_target_satisfaction_penalty
+		monthly_rebel_growth = 0.003
+		bank_interest = 0.05
+		monthly_complacency = 0.2
+		has_complacency_effects = yes
+	}
+	
+	on_start = {
+		set_variable = {
+			name = projected_num_locations_bad_variable
+			value = {
+				add = num_locations
+				multiply = 0.5
+				ceiling = yes
+			}
+		}
+		trigger_event_non_silently = decline_of_mali.1
+	}
+	on_end = {
+		remove_variable = projected_num_locations_bad_variable
+		trigger_event_non_silently = decline_of_mali.2
+	}
+	
+	on_monthly = {
+		random_list = {
+			50 = { custom_tooltip = an_event_occurs_tt }
+			50 = { custom_tooltip = no_event_occurs_tt }
+		}
+		hidden_effect = {
+			random_list = {
+				100 = { trigger_event_silently = decline_of_mali.3 }
+				100 = { trigger_event_silently = decline_of_mali.4 }
+				100 = { trigger_event_silently = decline_of_mali.5 }
+				100 = { trigger_event_silently = decline_of_mali.6 }
+				100 = { trigger_event_silently = decline_of_mali.7 }
+				100 = { trigger_event_silently = decline_of_mali.9 }
+				100 = {
+					random_neighbor_country = {
+						limit = {
+							capital.sub_continent = root.capital.sub_continent
+							NOT = { is_subject_of = root }
+							NOT = { is_allied_with = { target = root } }
+							NOT = { has_casus_belli_on = root }
+						}
+						trigger_event_silently = decline_of_mali.8
+					}
+				}
+				100 = { trigger_event_silently = decline_of_empire.6 }
+				1000 = { }
+			}
+		}
+	}
+}

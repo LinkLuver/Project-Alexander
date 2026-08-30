@@ -1,0 +1,94 @@
+﻿byzantine_succession_crisis = {
+	content_priority = 800
+	image = "gfx/interface/illustrations/disaster/byzantine_succession_crisis.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_very_high
+
+	fire_only_once = yes
+
+	can_start = {
+		tag = BYZ
+		num_provinces > 2
+		OR = {
+			has_any_active_disaster = no
+			any_active_disaster = { disaster_type = disaster_type:fate_of_the_phoenix }
+		}
+		government_type = government_type:monarchy
+		trigger_if = {
+			limit = {
+				tag = BYZ
+				OR = {
+					has_heir = no
+					has_regent = yes
+					heir ?= { total_abilities < 150 }
+				}
+			}
+			custom_tooltip = no_heir_or_regent_or_bad_heir_tt
+			stability < 50
+			legitimacy < 80
+		}
+		trigger_else = {
+			stability < 35
+			legitimacy < 70
+		}
+	}
+	
+	can_end = {
+		byzantine_succession_crisis_end_trigger = yes
+	}
+	modifier = {
+		monthly_pretender_rebel_growth = 0.01
+		global_crown_estate_power = -0.2
+		global_estate_target_satisfaction = great_permanent_target_satisfaction_penalty
+		global_estate_satisfaction_decay = 0.02
+		blocked_from_creating_subjects = yes
+	}
+	
+	on_start = {
+		set_variable = succession_crisis_disaster_counter
+		trigger_event_non_silently = succession_crisis.1
+	}
+	on_end = {
+		every_character = {
+			limit = { has_character_modifier = plotting_rebellion_modifier }
+			remove_character_modifier = plotting_rebellion_modifier
+		}
+		set_variable = had_disaster_byzantine_succession_crisis_variable
+		remove_variable = pretender_rebel_character
+		clear_gui_variable = { type = pretender_rebel_character }
+		add_legitimacy = legitimacy_extreme_bonus
+		if = {
+			limit = { exists = var:succession_crisis_pretender_variable }
+			destroy_rebel = var:succession_crisis_pretender_variable
+		}
+		trigger_event_non_silently = succession_crisis.100
+	}
+	
+	on_monthly = {
+		random_list = {
+			29 = { custom_tooltip = an_event_occurs_tt }
+			71 = { custom_tooltip = no_event_occurs_tt }
+		}
+		hidden_effect = {
+			random_list = {
+				80 = {}
+				2 = { trigger_event_silently = succession_crisis.2 }
+				2 = { trigger_event_silently = succession_crisis.3 }
+				2 = { trigger_event_silently = succession_crisis.4 }
+				2 = { trigger = { NOT = { has_variable = recently_demanded_aid_variable } } trigger_event_silently = succession_crisis.5  }
+				2 = { trigger_event_silently = byzantine_succ_crisis.1 }
+				2 = { trigger = { NOT = { has_variable = byz_nobles_refused_paying_taxes } } trigger_event_silently = byzantine_succ_crisis.2  }
+				2 = { trigger = { NOT = { has_variable = byz_nobles_supports_pretender_variable } } trigger_event_silently = byzantine_succ_crisis.3  }
+				2 = { trigger = { NOT = { has_variable = byz_mariners_guild_rose_up } } trigger_event_silently = byzantine_succ_crisis.4  }
+				2 = { trigger_event_silently = byzantine_succ_crisis.5 }
+				2 = { trigger_event_silently = byzantine_succ_crisis.6 }
+				2 = { trigger = { NOT = { has_variable = had_parliament_event_variable } } trigger_event_silently = byzantine_succ_crisis.7  }
+				2 = { trigger_event_silently = byzantine_succ_crisis.8 }
+				2 = { trigger_event_silently = byzantine_succ_crisis.9 }
+				2 = { trigger_event_silently = byzantine_succ_crisis.10 }
+				2 = { trigger_event_silently = byzantine_succ_crisis.11  }
+				2 = { c:TUR = { trigger_event_silently = byzantine_succ_crisis.14 } }
+			}
+		}
+	}
+}

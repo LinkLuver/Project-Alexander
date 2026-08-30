@@ -1,0 +1,69 @@
+﻿struggle_for_royal_power = {
+
+	image = "gfx/interface/illustrations/disaster/struggle_for_royal_power.dds"
+
+	monthly_spawn_chance = monthly_spawn_chance_very_high
+
+	fire_only_once = yes
+
+	can_start = {
+		has_any_active_disaster = no
+		OR = {
+			tag = POL
+			tag = PLC
+		}
+		current_age = age_5_absolutism
+		
+		in_civil_war = no
+		at_war = no
+		has_ruler = yes
+		government_type = government_type:monarchy
+		NOT = { has_estate_privilege = estate_privilege:liberum_veto }
+		"estate_power(estate_type:crown_estate)" < 0.5
+	}
+	
+
+	can_end = {
+		struggle_for_royal_power_end_trigger = yes
+	}
+	modifier = {
+		nobles_estate_target_satisfaction = huge_permanent_target_satisfaction_penalty
+		nobles_estate_satisfaction_decay = 0.025
+	}
+	
+	on_start = {
+		set_variable = {
+			name = target_sfrp_crown_power_variable
+			value = {
+				add = "estate_power(estate_type:crown_estate)"
+				add = 0.1
+				multiply = 1.05
+				min = 0.4
+				max = 0.85
+			}
+		}
+		trigger_event_non_silently = struggle_for_royal_power.1
+	}
+	on_end = {
+		if = {
+			limit = { has_variable = target_sfrp_crown_power_variable }
+			remove_variable = target_sfrp_crown_power_variable
+		}
+		trigger_event_non_silently = struggle_for_royal_power.100
+	}
+	
+	on_monthly = {
+	
+		random_list = {
+			10 = { custom_tooltip = an_event_occurs_tt }
+			90 = { custom_tooltip = no_event_occurs_tt }
+		}
+
+		hidden_effect = {
+			random_list = {
+				900 = {}
+				100 = { trigger_event_non_silently = struggle_for_royal_power.10 }
+			}
+		}		
+	}
+}

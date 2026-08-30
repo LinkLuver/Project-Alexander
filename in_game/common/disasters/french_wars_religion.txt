@@ -1,0 +1,115 @@
+﻿french_wars_religion = {
+
+	image = "gfx/interface/illustrations/disaster/french_wars_religion.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_low
+
+	can_start = {
+		tag = FRA
+		has_any_active_disaster = no
+		reformation_is_enabled = yes
+		custom_tooltip = {
+			text = had_fwr_before_definitive_ending_tt
+			NOT = { has_variable = had_french_wars_religion_disaster_variable }
+		}
+		religion.group = religion_group:christian
+		trigger_if = {
+			limit = { has_variable = fwr_counter }
+			religious_unity < 0.5
+		}
+		trigger_else = { religious_unity < 0.75 }
+		OR = {
+			trigger_if = {
+				limit = { 
+					NOT = { religion = religion:catholic }
+				}
+				religion_percentage_in_country = {
+					religion = religion:catholic
+					value > 0
+				}
+			}
+			trigger_if = {
+				limit = { 
+					NOT = { religion = religion:lutheran }
+				}
+				religion_percentage_in_country = {
+					religion = religion:lutheran
+					value > 0
+				}
+			}
+			trigger_if = {
+				limit = { 
+					NOT = { religion = religion:calvinist }
+				}
+				religion_percentage_in_country = {
+					religion = religion:calvinist
+					value > 0
+				}
+			}
+		}
+	}
+
+	can_end = {
+		french_wars_religion_end_trigger = yes
+	}
+	modifier = {
+		clergy_estate_target_satisfaction = huge_permanent_target_satisfaction_penalty
+		monthly_war_exhaustion = 0.15
+		global_clergy_estate_power = 1
+		global_clergy_migration_allowed = yes
+	}
+	
+	on_start = {
+		set_variable = {
+			name = target_religious_unity_variable 
+			value = {
+				add = religious_unity
+				add = 0.2
+				min = 0.70
+				max = 0.9
+			}
+		}
+		
+		trigger_event_non_silently = french_wars_religion.1
+	}
+
+	on_monthly = {
+		random_list = {
+			90 = { }
+			3 = { 
+				trigger_event_silently = french_wars_religion.2	#Migration of Heretics
+			}
+			3 = { 
+				trigger_event_silently = french_wars_religion.3	# Religious League / Happens once
+			}
+			3 = { 
+				trigger_event_silently = french_wars_religion.4	#Paris is Worth a Mass # Happens once 
+			}
+			1 = {
+				trigger_event_silently = french_wars_religion.5	#Massacre 
+			}
+			1 = {
+				trigger_event_silently = french_wars_religion.6	#Haguenot League
+			}
+			1 = {
+				trigger_event_silently = french_wars_religion.8	#Religious Fanatics
+			}
+			1 = {
+				trigger_event_silently = french_wars_religion.11	#Fortified Heretic Town
+			}
+		}
+	}
+	on_end = {
+		if = {
+			limit = { has_policy = edict_of_nantes }
+			trigger_event_non_silently = french_wars_religion.12
+		}
+		else_if = {
+			limit = {
+				religious_unity >= var:target_religious_unity_variable
+			}
+			trigger_event_non_silently = french_wars_religion.13
+		}
+		else = { trigger_event_non_silently = french_wars_religion.14 }
+	}
+}

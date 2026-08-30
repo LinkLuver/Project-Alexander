@@ -1,0 +1,293 @@
+﻿war_of_the_roses = {
+
+	image = "gfx/interface/illustrations/disaster/war_of_the_roses.dds"
+
+	monthly_spawn_chance = monthly_spawn_chance_very_high
+
+	fire_only_once = yes
+
+	can_start = {
+		has_any_active_disaster = no
+		tag = ENG
+		current_year > 1399
+		current_year < 1500
+
+		dynasty_exists = york_dynasty
+		dynasty_exists = lancaster_dynasty
+
+		dynasty:york_dynasty ?= {
+			any_character_in_dynasty = { is_alive = yes }
+		}
+		dynasty:lancaster_dynasty ?= {
+			any_character_in_dynasty = { is_alive = yes }
+		}
+
+		ruler ?= {
+			is_adult = yes
+			OR = {
+				dynasty = dynasty:plantagenet_dynasty
+				dynasty = dynasty:lancaster_dynasty
+			}
+		}
+
+		OR = {
+			ruler ?= {
+				OR = {
+					fertility <= 0
+					NOT = { any_child = { is_alive = yes } }
+				}
+			}
+			AND = {
+				legitimacy < 70
+				stability < 35
+			}
+		}
+	}
+	
+
+	can_end = {
+		war_of_the_roses_end_trigger = yes
+	}
+	modifier = {
+		monthly_pretender_rebel_growth = 0.01
+		monthly_legitimacy = -0.2
+	}
+	
+	on_start = {
+		# Resurrect the dynasties if they have no living adult male, so the rebel scopes can always be populated.
+		if = {
+			limit = {
+				dynasty:york_dynasty ?= {
+					NOT = {
+						any_character_in_dynasty = {
+							is_alive = yes
+							is_adult = yes
+							is_female = no
+						}
+					}
+				}
+			}
+			create_character = {
+				dynasty = dynasty:york_dynasty
+				female = no
+				age = { 18 25 }
+				birth_location = location:york
+			}
+		}
+		if = {
+			limit = {
+				dynasty:lancaster_dynasty ?= {
+					NOT = {
+						any_character_in_dynasty = {
+							is_alive = yes
+							is_adult = yes
+							is_female = no
+						}
+					}
+				}
+			}
+			create_character = {
+				dynasty = dynasty:lancaster_dynasty
+				female = no
+				age = { 18 25 }
+				birth_location = location:lancaster
+			}
+		}
+
+		trigger_event_silently = war_of_the_roses.1
+
+		# When the ruler is the dynasty head, pick a non-ruler non-heir cadet instead
+		dynasty:lancaster_dynasty = {
+			if = {
+				limit = { dynasty_head ?= { is_ruler = yes } }
+				random_character_in_dynasty = {
+					limit = {
+						is_alive = yes
+						is_adult = yes
+						is_female = no
+						is_ruler = no
+						is_heir = no
+					}
+					rebel = {
+						save_scope_as = lancaster_rebel
+					}
+				}
+			}
+			else = {
+				dynasty_head ?= {
+					rebel = {
+						save_scope_as = lancaster_rebel
+					}
+				}
+			}
+		}
+		dynasty:york_dynasty = {
+			if = {
+				limit = { dynasty_head ?= { is_ruler = yes } }
+				random_character_in_dynasty = {
+					limit = {
+						is_alive = yes
+						is_adult = yes
+						is_female = no
+						is_ruler = no
+						is_heir = no
+					}
+					rebel = {
+						save_scope_as = york_rebel
+					}
+				}
+			}
+			else = {
+				dynasty_head ?= {
+					rebel = {
+						save_scope_as = york_rebel
+					}
+				}
+			}
+		}
+
+		set_variable = { name = has_had_war_of_the_roses_disaster value = 1 }
+
+	}
+	on_end = {
+		trigger_event_silently = war_of_the_roses.100
+	}
+	
+	on_monthly = {
+		
+	
+		every_rebel = {
+			limit = {
+				OR = {
+					rebel_name_key = york_rebel_name
+					rebel_name_key = lancaster_rebel_name
+				}
+				rebel_size = 0
+			}
+			prev = { destroy_rebel = prev }
+		}
+
+		# Enemy dynasty has no adult male claimant: disband the rebellion in its name.
+		if = {
+			limit = {
+				has_variable = supports_house_of_lancaster
+				dynasty:york_dynasty ?= {
+					dynasty_head ?= {
+						is_adult = no
+					}
+				}
+			}
+			destroy_rebel = scope:york_rebel
+		}
+
+		if = {
+			limit = {
+				has_variable = supports_house_of_york
+				dynasty:lancaster_dynasty ?= {
+					dynasty_head ?= {
+						is_adult = no
+					}
+				}
+			}
+			destroy_rebel = scope:lancaster_rebel
+		}
+
+		# Supported dynasty has no adult male claimant: stop championing a dead house.
+		if = {
+			limit = {
+				has_variable = supports_house_of_lancaster
+				dynasty:lancaster_dynasty ?= {
+					dynasty_head ?= {
+						is_adult = no
+					}
+				}
+			}
+			destroy_rebel = scope:lancaster_rebel
+			remove_variable = supports_house_of_lancaster
+		}
+
+		if = {
+			limit = {
+				has_variable = supports_house_of_york
+				dynasty:york_dynasty ?= {
+					dynasty_head ?= {
+						is_adult = no
+					}
+				}
+			}
+			destroy_rebel = scope:york_rebel
+			remove_variable = supports_house_of_york
+		}
+
+	
+		random_list = {
+			25 = { custom_tooltip = an_event_occurs_tt }
+			75 = { custom_tooltip = no_event_occurs_tt }
+		}
+		hidden_effect = {
+			random_list = {
+				100 = { trigger_event_silently = war_of_the_roses.2 }
+				300 = { 
+					custom_tooltip = {
+						text = wotr_support_for_pretenders
+						trigger_event_silently = war_of_the_roses.3 
+						trigger_event_silently = war_of_the_roses.4
+					}
+				}
+				100 = { 
+					custom_tooltip = {
+						text = wotr_support_for_pretender_deeepens
+						trigger_event_silently = war_of_the_roses.15
+						trigger_event_silently = war_of_the_roses.16
+					}
+				}
+				100 = { trigger_event_silently = war_of_the_roses.5 }
+				100 = { trigger_event_silently = war_of_the_roses.6 }
+				100 = { trigger_event_silently = war_of_the_roses.8 }
+				100 = { trigger_event_silently = war_of_the_roses.9 }
+
+
+
+				100 = {
+					custom_tooltip = {
+						text = wotr_foreign_power_intervenes
+						random_country = {
+							limit = {
+								capital.sub_continent = root.capital.sub_continent
+								OR = {
+									country_rank = country_rank:rank_kingdom
+									country_rank = country_rank:rank_empire
+									is_neighbor_of = root
+								}
+								NOT = { has_variable = supports_house_of_york }
+								NOT = { has_variable = supports_house_of_lancaster }
+								is_during_bankruptcy = no
+							}
+							
+							if = {
+								limit = {
+									root = { 
+										has_variable = supports_house_of_york 
+										exists = scope:lancaster_rebel
+									}
+								}
+								trigger_event_silently = war_of_the_roses.12
+							}
+							if = {
+								limit = {
+									root = { 
+										has_variable = supports_house_of_lancaster 
+										exists = scope:york_rebel
+									}
+								}
+								trigger_event_silently = war_of_the_roses.13
+							}
+						}
+
+					}
+				}
+			}		
+		}
+		trigger_event_silently = war_of_the_roses.18
+	}
+}

@@ -1,0 +1,121 @@
+﻿english_civil_war = {
+
+	image = "gfx/interface/illustrations/disaster/english_civil_war.dds"
+	
+	monthly_spawn_chance = {
+		value = monthly_spawn_chance_low
+		if = {
+			limit = { 
+				OR = {
+					AND = {
+						country_exists = c:ENG
+						c:ENG = { has_variable = english_civil_war_chance_variable }
+
+					}
+					AND = {
+						tag_exists = GBR
+						country_exists = c:GBR
+						c:GBR = { has_variable = english_civil_war_chance_variable }
+					}
+				}
+			}
+			add = monthly_spawn_chance_very_low
+		}
+	}
+
+	fire_only_once = yes
+
+	can_start = {
+		OR = {
+			tag = ENG
+			tag = GBR
+		}
+		current_age_or_later = { age = age_5_absolutism }
+		government_type = government_type:monarchy
+		has_any_active_disaster = no
+		OR = {
+			"estate_power(estate_type:crown_estate)" > 0.4
+			societal_value:absolutism_vs_liberalism < 25
+		}
+	}
+
+	can_end = {
+		english_civil_war_end_trigger = yes
+	}
+	modifier = {
+		pop_join_rebel_threshold = 0.05
+		monthly_rebel_growth = 0.01
+		monthly_war_exhaustion = 0.15
+		global_manpower_modifier = -0.33
+	}
+	
+	on_start = {
+		trigger_event_non_silently = english_civil_war.251
+	}
+
+	on_monthly = {
+		random_list = {
+			10 = { custom_tooltip = an_event_occurs_tt }
+			90 = { custom_tooltip = no_event_occurs_tt }
+		}
+		hidden_effect = {
+			random_list = {
+				180 = { }
+				12 = { 
+					trigger_event_silently = english_civil_war.255
+				}
+				12 = { 
+					trigger_event_silently = english_civil_war.257
+				}
+				10 = { 
+					trigger_event_silently = english_civil_war.258
+				}
+				5 = {
+					trigger = { 
+						any_rebel = {
+							rebel_name_key = parliamentarist_rebels
+							rebel_progress > 0
+							rebel_progress < 0.9 
+						}
+					}	
+					trigger_event_silently = english_civil_war.261
+				}
+			}
+		}
+		
+	}
+	on_end = {
+		set_variable = concluded_ecw_variable
+		if = {
+			limit = { 
+				has_variable = pretender_rebel_character
+			}
+			remove_variable = pretender_rebel_character
+		}
+		if = {
+			limit = { has_variable = chosen_parliamentarist_country_variable }
+			remove_variable = chosen_parliamentarist_country_variable
+		}
+		if = {
+			limit = { has_variable = chosen_royalist_country_variable }
+			remove_variable = chosen_royalist_country_variable
+		}
+		if = {
+			limit = { has_variable = size_of_english_cw_rebels_variable }
+			remove_variable = size_of_english_cw_rebels_variable
+		}
+		if = {
+			limit = { has_variable = english_civil_war_won_variable }
+			trigger_event_non_silently = english_civil_war.253
+		}
+		if = {	#Clean up in case the rebellion is still around when the disaster ends
+			limit = {
+				any_rebel = { rebel_name_key = parliamentarist_rebels } 
+			}
+			random_rebel = {
+				limit = { rebel_name_key = parliamentarist_rebels }
+				root = { destroy_rebel = prev }
+			}
+		}
+	}
+}

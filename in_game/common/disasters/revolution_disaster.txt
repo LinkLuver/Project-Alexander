@@ -1,0 +1,80 @@
+﻿revolution_disaster = {
+
+	image = "gfx/interface/illustrations/disaster/revolution_disaster.dds"
+
+	monthly_spawn_chance = monthly_spawn_chance_very_low
+	can_start = {
+		has_any_active_disaster = no
+		current_age = age_6_revolutions
+		is_revolutionary = no
+		NOT = { has_blocked_disaster_trigger = { type = revolution_disaster } }
+		in_civil_war = no
+		at_war = no
+		has_embraced_institution = institution:enlightenment
+		average_country_literacy > 55
+		OR = {
+			is_great_power = yes
+			custom_tooltip = {
+				text = revolution_disaster_tt
+				capital.sub_continent = {
+					any_country_with_capital_in_geography = {
+						this != ROOT
+						OR = {
+							is_revolutionary = yes
+							hidden_trigger = { revolutionary_target ?= this }
+						}
+					}
+				}
+			}
+		}
+		hidden_trigger = {
+			#hidden away as they pollute the tooltip and are rarely relevant for the player
+			NOT = { tag = PAP }	#Theocracies are allowed to go through the revolution, but the Pope should be excluded...
+			NOT = { government_type = government_type:steppe_horde }
+			NOT = { government_type = government_type:tribe }
+			NOR = {
+				country_type = pop
+				country_type = building
+			}
+		}
+		trigger_if = {
+			limit = { has_variable = easier_rev_disaster }
+			OR = {
+				estate_satisfaction:peasants_estate < 0.4
+				"estate(estate_type:peasants_estate)" = { estate_tax_rate > 0.55 }
+				"estate(estate_type:burghers_estate)" = { estate_tax_rate > 0.55 }
+			}
+		}
+		trigger_else = {
+			AND = {
+				estate_satisfaction:peasants_estate < 0.25
+				estate_satisfaction:burghers_estate < 0.25
+				"estate(estate_type:peasants_estate)" = { estate_tax_rate > 0.8 }
+				"estate(estate_type:burghers_estate)" = { estate_tax_rate > 0.8 }
+			}
+		}
+	}
+	
+	can_end = {
+		revolution_disaster_end_trigger = yes
+	}
+	modifier = {
+		pop_leave_rebels_threshold = 0.1
+		stability_investment = huge_stability_investment_penalty
+	}
+	
+	on_start = {
+		trigger_event_non_silently = revolution_disaster.1
+	}
+	on_end = {
+		trigger_event_non_silently = revolution_disaster.3
+	}
+	
+	on_monthly = {
+
+		random_list = {
+			1 = { trigger_event_non_silently = parliaments.28 }
+			99 = { }
+		}
+	}
+}

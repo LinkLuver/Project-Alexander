@@ -1,0 +1,122 @@
+﻿horde_civil_war = {
+
+	image = "gfx/interface/illustrations/disaster/horde_civil_war.dds"
+
+	monthly_spawn_chance = monthly_spawn_chance_very_high
+	can_start = {
+		has_any_active_disaster = no
+		government_type = government_type:steppe_horde
+		is_rebel_country = no
+		is_subject = no
+		OR = {
+			horde_unity <= 40
+			AND = {
+				horde_unity <= 75
+				OR = {
+					has_regent = yes 
+					AND = {
+						has_heir = yes 
+						horde_unity <= 60
+					}
+				}
+			}
+		}
+		in_civil_war = no
+		OR = {
+			at_war = no
+			capital.province = {	#Capital province is at least unoccupied
+				any_location_in_province = {
+					OR = {
+						NOT = { owner = root }
+						AND = {
+							owner = root
+							controller = root
+						}
+					}
+				}
+			}
+		}
+		capital = {
+			custom_tooltip = {
+				text = horde_civil_war_capital_has_neighbor_province_tt
+				OR = {
+					any_coast_border_location = {
+						hidden_trigger = {
+							province ?= {
+								root.capital.province != this
+							}
+						}
+					}
+					any_connected_location = {
+						hidden_trigger = {
+							province ?= {
+								root.capital.province != this
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	can_end = {
+		horde_civil_war_end_trigger = yes
+	}
+	modifier = {
+		discipline = -0.1
+		global_crown_estate_power = -0.2
+		global_estate_target_satisfaction = small_permanent_target_satisfaction_penalty
+		horde_unity_hit_at_ruler_death = 50
+		monthly_horde_unity = 0.05
+		subject_loyalty = -10
+	}
+	
+	on_start = {
+		if = {
+			limit = { NOT = { has_variable = horde_civil_war_disaster_counter } }
+			set_variable = { name = horde_civil_war_disaster_counter value = 1 }
+		}
+		else = {
+			change_variable = { name = horde_civil_war_disaster_counter add = 1 }
+		}
+			trigger_event_non_silently = horde_civil_war.1
+	}
+	on_end = {
+		every_character = {
+			limit = { has_character_modifier = plotting_rebellion_modifier }
+			remove_character_modifier = plotting_rebellion_modifier
+		}
+		if = {
+			limit = { exists = var:pretender_rebel_character }
+			var:pretender_rebel_character = {
+				remove_variable = scope_horde_pretender_var
+			}
+		}
+		if = {
+			limit = { exists = var:horde_civil_war_pretender_variable }
+			destroy_rebel = var:horde_civil_war_pretender_variable
+		}
+		remove_variable = horde_civil_war_pretender_variable
+		remove_variable = pretender_rebel_character
+		trigger_event_non_silently = horde_civil_war.100
+	}
+	
+	on_monthly = {
+
+		random_list = {
+			16 = { custom_tooltip = an_event_occurs_tt }
+			84 = { custom_tooltip = no_event_occurs_tt }
+		}
+
+		hidden_effect = {
+			random_list = {
+				250 = {}
+				10 = { trigger_event_non_silently = horde_civil_war.7 }
+				5 = { trigger_event_non_silently = horde_civil_war.8 }
+				10 = { trigger_event_non_silently = horde_civil_war.9 }
+				10 = { trigger_event_non_silently = horde_civil_war.10 }
+				10 = { trigger_event_non_silently = horde_civil_war.1000 }
+			}
+			trigger_event_non_silently = horde_civil_war.11
+		}
+	}
+}

@@ -1,0 +1,90 @@
+﻿peasants_war = {
+
+	image = "gfx/interface/illustrations/disaster/peasants_war.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_medium
+
+
+	can_start = {
+		has_any_active_disaster = no
+		monthly_manpower > 0
+		stability < 0
+		at_war = no
+		in_civil_war = no
+
+		societal_value:serfdom_vs_free_subjects < 50
+		country_has_estate = estate_type:peasants_estate
+		estate_satisfaction:peasants_estate < 0.5
+		war_exhaustion_percentage > 0
+
+
+		OR = {
+			government_type = government_type:theocracy
+			government_type = government_type:monarchy
+		}
+
+		OR = {
+			current_age = age_4_reformation
+			current_age = age_3_discovery
+		}
+
+		manpower_percentage < {
+			value = 0.15
+			add = {
+				value = war_exhaustion
+				multiply = 0.1
+			}	
+			#This adds WE x 0.1 on top, so if you have around 20 WE
+			#the disaster becomes easier to trigger ( base value [0.15] + (20 x 0.1 [0.2]) = 0.35 )
+		}
+	}
+	
+
+	can_end = {
+		peasants_war_end_trigger = yes
+	}
+	modifier = {
+		global_peasants_assimilation_blocked = yes
+		global_peasants_conversion_blocked = yes
+		peasants_estate_target_satisfaction = big_permanent_target_satisfaction_penalty
+	}
+	
+	on_start = {
+		set_variable = {
+			name = peasants_war_target_ending_variable
+			value = societal_value:serfdom_vs_free_subjects
+		}
+
+
+		add_country_modifier = {
+			modifier = ai_stability_target_peasant_wars_disaster
+			years = -1
+			mode = add_and_extend
+		}
+
+		trigger_event_non_silently = peasants_war.1
+	}
+
+	on_end = {
+		remove_variable = peasants_war_target_ending_variable
+		trigger_event_non_silently = peasants_war.6
+		remove_country_modifier = ai_stability_target_peasant_wars_disaster
+	}
+	
+	on_monthly = {
+
+		random_list = {
+			4 = { custom_tooltip = an_event_occurs_tt }
+			96 = { custom_tooltip = no_event_occurs_tt }
+		}
+	
+		hidden_effect = {
+			random_list = {
+				960 = {	}
+				10 = { trigger_event_silently = peasants_war.2 }
+				10 = { trigger_event_silently = peasants_war.3 }
+				10 = { trigger_event_silently = peasants_war.5 }
+			}
+		}
+	}
+}

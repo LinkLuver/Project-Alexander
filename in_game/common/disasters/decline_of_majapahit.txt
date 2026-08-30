@@ -1,0 +1,246 @@
+﻿decline_of_majapahit = {
+
+	image = "gfx/interface/illustrations/disaster/death_of_hayan_wuruk.dds"
+	
+	monthly_spawn_chance = monthly_spawn_chance_very_high
+
+	can_start = {
+		tag = MAJ
+		has_any_active_disaster = no
+		had_disaster_trigger = {
+			type = death_of_hayan_wuruk
+		}
+		OR = {
+			stability < 30
+			legitimacy < 80
+		}
+		NOT = { 
+			had_disaster_trigger = {
+				type = decline_of_majapahit
+			}
+		}
+	}
+	
+
+	can_end = {
+		decline_of_majapahit_trigger = yes
+	}
+	modifier = {
+		power_projection = -15
+		global_pop_conversion_speed_modifier = -0.25
+		monthly_complacency = 0.25
+		has_complacency_effects = yes
+	}
+	
+	on_start = {
+		set_variable = {
+			name = demak_progress
+			value = 0
+		}
+		set_variable = {
+			name = original_majapahit_religion
+			value = religion
+		}
+		set_variable = {
+			name = decline_of_majapahit_timer
+			value = yes
+			years = 30
+		}
+		trigger_event_non_silently = {
+			id = decline_of_majapahit.1
+		}
+	}
+	on_end = {
+		trigger_event_non_silently = {
+			id = decline_of_majapahit.100
+		}
+		set_ended_disaster_flag_effect = { type = decline_of_majapahit }
+		remove_variable = demak_progress
+		remove_variable = demak_progress_growth
+		remove_variable = sunni_pop_count
+		remove_variable = hindu_pop_count
+		remove_variable = maj_sunni_percentage
+		remove_variable = maj_stability_impact
+		remove_variable = maj_legitimacy_impact
+		remove_variable = original_majapahit_religion
+		remove_variable = decline_of_majapahit_timer
+		if = {
+			limit = {
+				has_country_modifier = peranakan_trading_rights_restriction
+			}
+			remove_country_modifier = peranakan_trading_rights_restriction
+		}
+		if = {
+			limit = {
+				has_country_modifier = maj_muslim_aid
+			}
+			remove_country_modifier = maj_muslim_aid
+		}
+		if = {
+			limit = {
+				has_country_modifier = adipati_conversion_ban
+			}
+			remove_country_modifier = adipati_conversion_ban
+		}
+	}
+	
+	on_monthly = {
+		hidden_effect = {
+			set_variable = {
+				name = sunni_pop_count
+				value = "religion_population_in_country(religion:sunni)"
+			}
+			set_variable = {
+				name = hindu_pop_count
+				value = "religion_population_in_country(religion:hindu)"
+			}
+
+			# Monthly Sunni Dominance Calculation
+			set_variable = {
+				name = maj_sunni_percentage
+				value = {
+					value = var:sunni_pop_count
+					divide = {
+						value = var:sunni_pop_count
+						add = var:hindu_pop_count
+					}
+					multiply = 0.01
+				}
+			}
+			set_variable = {
+				name = maj_stability_impact
+				value = {
+					value = stability
+					multiply = -0.01
+					multiply = 0.01
+				}
+			}
+			set_variable = {
+				name = maj_legitimacy_impact
+				value = {
+					value = 100 
+					subtract = legitimacy
+					multiply = 0.0001
+				}
+			}
+
+			set_variable = {
+				name = demak_progress_growth
+				value = {
+					value = 0
+					add = var:maj_sunni_percentage
+					add = var:maj_stability_impact
+					add = var:maj_legitimacy_impact
+				}
+			}
+			change_variable = {
+				name = demak_progress
+				add = var:demak_progress_growth
+			}
+
+			# When bar reaches 100, fire event for Demak Release and lock the bar
+			if = {
+				limit = {
+					has_variable = demak_progress
+					var:demak_progress >= 1
+				}
+				trigger_event_silently = {
+					id = decline_of_majapahit.102
+				}
+				set_variable = {
+					name = demak_progress
+					value = 1
+				}
+			}
+			else_if = {
+				limit = {
+					has_variable = demak_progress
+					var:demak_progress < 0
+				}
+				set_variable = {
+					name = demak_progress
+					value = 0
+				}
+			}
+
+			# Try to fire event for Rise of Mataram
+			trigger_event_silently = {
+				id = decline_of_majapahit.101
+			}
+
+			# Try to fire event to remove core
+			random_list = {
+				1 = {
+					trigger_event_silently = {
+						id = decline_of_majapahit.7
+					}
+				}
+				5 = {}
+			}
+			
+			# Time for Spread of Islam Event
+			random_list = {
+				30 = {
+					modifier = {
+						factor = 0.5
+						has_country_modifier = peranakan_trading_rights_restriction
+					}
+					modifier = {
+						factor = 3
+						has_country_modifier = maj_muslim_aid
+					}
+					trigger_event_silently = {
+						id = death_of_hayan_wuruk.6
+					}
+				}
+				330 = {}
+			}
+
+			# Try to fire Flight to Bali Event
+			trigger_event_silently = {
+				id = decline_of_majapahit.6
+			}
+
+			# Try to fire Offer of Aid Event
+			trigger_event_silently = {
+				id = decline_of_majapahit.8
+			}
+		}
+
+		random_list = {
+			2800 = { custom_tooltip = no_event_occurs_tt }
+			400 = { custom_tooltip = an_event_occurs_tt }
+		}
+		hidden_effect = {
+			random_list = {
+				2800 = {
+	
+				}
+	
+				100 = {
+					trigger_event_silently = {
+						id = decline_of_majapahit.2
+					}
+				}
+	
+				100 = {
+					trigger_event_silently = {
+						id = decline_of_majapahit.3
+					}
+				}
+	
+				100 = {
+					trigger_event_silently = {
+						id = decline_of_majapahit.4
+					}
+				}
+	
+				100 = {
+					trigger_event_silently = {
+						id = decline_of_majapahit.5
+					}
+				}
+			}
+		}
+	}
+}
