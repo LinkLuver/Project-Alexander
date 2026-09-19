@@ -1,47 +1,8 @@
-﻿on_game_start = {
+﻿#P:A Replaced Vanilla File
+#P:A TODO This whole file needs a review for the stuff left in it.
+on_game_start = {
 	effect = {
 		setup_area_preferences = yes
-		#catholics
-		if = {
-			limit = { NOT = { has_global_variable_list = pope_countries } }
-			every_country = {
-				limit = { has_reform = government_reform:papacy_reform }
-				add_to_global_variable_list = { name = pope_countries target = this }
-				#In case we need multiple papacies with antipopes and such
-			}
-		}
-		religion:catholic = {
-			every_country_in_religion = {
-				limit = {
-					not = {
-						is_member_of_international_organization_of_type = { type = catholic_church }
-						#they get added at the end
-						this = c:ARA
-					}
-				}
-				international_organization:catholic_church = {
-					add_country_to_international_organization_no_update = prev
-				}
-			}
-		}
-		international_organization:catholic_church = {
-			#just do one update at the end
-			add_country_to_international_organization = c:ARA
-		}
-
-		if = {
-			limit = { current_year < 1338 }
-			every_country = {
-				limit = { is_ai = yes }
-				random = {
-					chance = 90
-					add_cooldown = {
-						type = ai_spam_protection
-						years = 4	#4 years as it gets updated on four yearly pulse
-					}
-				}
-			}
-		}
 
 		#shinto
 		every_country = {
@@ -50,45 +11,16 @@
 				not = {
 					is_member_of_international_organization_of_type = { type = shinto }
 					#they get added at the end
-					this = c:STC
+					this ?= c:STC
 				}
 			}
-			international_organization:shinto = {
+			international_organization:shinto ?= {
 				add_country_to_international_organization_no_update = prev
 			}
 		}
-		international_organization:shinto = {
+		international_organization:shinto ?= {
 			#just do one update at the end
 			add_country_to_international_organization = c:STC
-		}
-		
-		# HRE
-		international_organization:hre ?= {
-			every_international_organization_owned_location = {
-				limit = {
-					is_capital = yes
-					owner = {
-						NOT = { is_member_of_international_organization = international_organization:hre }
-					}
-				}
-				owner = {
-					international_organization:hre = {
-						add_country_to_international_organization_no_update = prev
-					}
-				}
-			}
-			leader_country ?= {
-				set_variable = { name = hre_current_emperor_flg value = 1 }
-			}
-			# Retroactive fix: imperial_circles_law was missing its default policy from hre_setup_hre_variables
-			if = {
-				limit = {
-					hre_has_enabled_all_imperial_laws = yes
-					NOT = { international_organization_has_policy = policy:no_imperial_circles }
-					NOT = { international_organization_has_policy = policy:imperial_circles_established }
-				}
-				add_policy_to_international_organization = policy:no_imperial_circles
-			}
 		}
 
 		#Adding gods to pagans
@@ -115,161 +47,7 @@
 					}
 				}
 			}	
-		}		
-
-		#c:CHI = {
-		#	china_set_up = yes
-		#}
-		#c:MAJ = {
-		#	majapahit_set_up = yes
-		#}
-		#c:JAP = {
-		#	japan_set_up = yes
-		#}
-		#c:BYZ = {
-		#	byz_set_up = yes
-		#}
-		#c:VER = {
-		#	ver_set_up = yes
-		#}
-		c:TEU = {
-			every_current_war = {
-				limit = {
-					c:LIT = {
-						is_war_leader_of = prev
-					}
-				}
-				set_variable = teu_lit_first_war
-			}
 		}
-
-		#Set up patriarchates
-		every_international_organization = {
-			limit = {
-				international_organization_type = international_organization_type:autocephalous_patriarchate
-				exists = leader_country
-			}
-			save_scope_as = organization_scope
-			switch = {
-				trigger = var:seat
-				location:constantinople = {
-					set_patriarch_variables = { organization = scope:organization_scope character = character:byz_john_xiv_kalekas }
-				}
-				location:tarnovo = {
-					set_patriarch_variables = { organization = scope:organization_scope character = character:bul_theodosius }
-				}
-				location:tbilisi = {
-					set_patriarch_variables = { organization = scope:organization_scope character = character:geo_basil_v }
-				}
-				location:sis = {
-					set_patriarch_variables = { organization = scope:organization_scope character = character:arm_jacob_ii_of_cilicia }
-				}
-				location:alexandria = {
-					set_patriarch_variables = { organization = scope:organization_scope character = character:mam_benjamin_ii_alexandria }
-				}
-			}
-			if = {
-				limit = {
-					NOT = { has_variable = patriarch }
-				}
-				set_up_patriarch_for_io = yes
-			}
-		}
-		if = {
-			limit = {
-				has_dlc = "d008_fate_of_the_phoenix"
-			}
-			religion:orthodox = {
-				add_to_variable_map = {
-					name = pentarchy
-					key = location:constantinople
-					value = character:byz_john_xiv_kalekas
-				}
-			}
-			religion:hellenism_religion = {
-				set_variable = {
-					name = hellenism_has_omens
-					value = 1
-				}
-			}
-			character:byz_john_xiv_kalekas = {
-				set_pentarch_variable = { location = location:constantinople }
-			}
-			c:BYZ = {
-				add_pentarchy_modifier = { location = location:constantinople }
-			}
-		}
-
-		# Born in the Purple: on_character_birth (common/on_action/character.txt) only fires for
-		# characters born after game start, so apply the modifier retroactively to the Palaiologoi
-		# who qualified historically. CAESAR-67579.
-		character:byz_andronikos_iii_palaiologos ?= {
-			add_character_modifier = {
-				modifier = byz_born_in_the_purple_modifier
-				years = -1
-				mode = add_and_extend
-				desc = byz_born_in_the_purple_modifier_desc
-			}
-		}
-		character:byz_john_v_palaiologos ?= {
-			add_character_modifier = {
-				modifier = byz_born_in_the_purple_modifier
-				years = -1
-				mode = add_and_extend
-				desc = byz_born_in_the_purple_modifier_desc
-			}
-		}
-		character:byz_michael_palaiologos_ii ?= {
-			add_character_modifier = {
-				modifier = byz_born_in_the_purple_modifier
-				years = -1
-				mode = add_and_extend
-				desc = byz_born_in_the_purple_modifier_desc
-			}
-		}
-		character:bul_theodora_palaiologos ?= {
-			add_character_modifier = {
-				modifier = byz_born_in_the_purple_modifier
-				years = -1
-				mode = add_and_extend
-				desc = byz_born_in_the_purple_modifier_desc
-			}
-		}
-		character:bul_irene_palaiologos ?= {
-			add_character_modifier = {
-				modifier = byz_born_in_the_purple_modifier
-				years = -1
-				mode = add_and_extend
-				desc = byz_born_in_the_purple_modifier_desc
-			}
-		}
-		character:mfa_teodoro_i_palaiologos ?= {
-			add_character_modifier = {
-				modifier = byz_born_in_the_purple_modifier
-				years = -1
-				mode = add_and_extend
-				desc = byz_born_in_the_purple_modifier_desc
-			}
-		}
-
-		# Dimitrios Palaiologos historically had a second child whose name is unrecorded. His wife is pregnant at start so the family reliably gains another child early in the game.
-		character:byz_demetrios_palaiologos ?= {
-			if = {
-				limit = { exists = character:byz_theodora }
-				impregnate = character:byz_theodora
-			}
-		}
-
-		c:BUL = {
-			trigger_event_silently = flavor_bul.7
-		}
-
-		#group conquest preferences
-		region:russian_region = {
-			every_country_with_capital_in_geography = {
-				add_area_preference = russia_conquer_region
-			}
-		}	
 	}
 }
 
@@ -292,59 +70,6 @@ on_siege_won = {
 		flavor_ver.1003
 	}
 	effect = {
-		if = {
-			limit = {
-				scope:target = {
-					is_capital = yes
-					owner = {
-						has_variable = muslim_southern_indian_country_flag
-					}
-				}
-			}
-			scope:target = {
-				save_scope_as = target_location
-			}
-			trigger_event_silently = flavor_vij.1202
-		}
-		if = {
-			limit = {
-				scope:target = {
-					is_capital = yes
-					owner = {
-						has_variable = vijayanagar_country_flag
-					}
-				}
-			}
-			scope:target = {
-				save_scope_as = target_location
-			}
-			trigger_event_silently = flavor_vij.1204
-		}
-		if = {
-			limit = {
-				ruler ?= character:dlh_muhammad_bin_tughluq
-				scope:target = {
-					is_capital = yes
-					owner ?= {
-						this != root
-					}
-				}
-			}
-			scope:target = {
-				save_scope_as = target_location
-				controller ?= {
-					save_scope_as = target_country
-					trigger_event_silently = flavor_dlh.28
-				}
-			}
-		}
-		if = {
-			limit = {
-				this = c:PIS
-				scope:target = location:genoa
-			}
-			trigger_event_silently = flavor_pis.2
-		}
 	}
 }
 
@@ -356,41 +81,6 @@ on_siege_lost = {
 		rise_of_the_ottomans.210
 	}
 	effect = {
-		if = {
-			limit = {
-				OR = {
-					has_reform = government_reform:anatolian_beylik
-					any_in_global_list = {
-						variable = eligible_beylik_list
-						this = root
-					}
-				}
-				in_civil_war = no
-				scope:target = { 
-					has_building = building_type:bey_fortress 
-					NOT = {  has_variable = bey_fortress_siege_timer }
-				}
-			}
-			scope:target = {
-				if = {
-					limit = { 
-						owner = { has_reform = government_reform:anatolian_beylik }
-					}
-					owner = { trigger_event_non_silently = rise_of_the_ottomans.208 }
-				}
-				else_if = {
-					limit = { 
-						country_exists = previous_owner
-						previous_owner = {  has_reform = government_reform:anatolian_beylik }
-					}
-					previous_owner = { trigger_event_non_silently = rise_of_the_ottomans.208 }
-				}
-				set_variable = {
-					name = bey_fortress_siege_timer
-					months = 18
-				}
-			}
-		}
 	}
 }
 
@@ -407,74 +97,6 @@ on_location_occupied = {
 		war_of_religions.18 #Looting of the Heidelberg Library
 	}
 	effect = {
-		if = {
-			limit = {
-				scope:target = {
-					is_capital = yes
-					owner = {
-						has_variable = muslim_southern_indian_country_flag
-					}
-				}
-			}
-			scope:target = {
-				save_scope_as = target_location
-			}
-			trigger_event_silently = flavor_vij.1202
-		}
-		if = {
-			limit = {
-				scope:target = location:shangdu
-				culture = {
-					has_culture_group = culture_group:chinese_group
-					NOT = { has_culture_group = culture_group:mongolian_group }
-				}
-				scope:target.owner ?= {
-					OR = {
-						tag = CHI 
-						tag = YUA
-					}
-					culture = { has_culture_group = culture_group:mongolian_group }
-				}
-			}
-			trigger_event_non_silently = flavor_chi.37
-		}
-		if = {
-			limit = {
-				scope:target = {
-					is_capital = yes
-					owner = {
-						has_variable = vijayanagar_country_flag
-					}
-				}
-			}
-			scope:target = {
-				save_scope_as = target_location
-			}
-			trigger_event_silently = flavor_vij.1204
-		}
-		if = {
-			limit = {
-				scope:target = {
-					has_variable = tumu_crisis_target
-					owner ?= {
-						has_variable = lost_emperor
-						var:lost_emperor.owner = ROOT
-					}
-				}
-			}
-			scope:target = {
-				save_scope_as = target_location
-			}
-			trigger_event_silently = flavor_chi_mon.6
-		}
-
-		if = {
-			limit = {
-				this = c:PIS
-				scope:target = location:genoa
-			}
-			trigger_event_silently = flavor_pis.2
-		}
 	}
 }
 
@@ -538,31 +160,6 @@ on_command_lost = {
 # fired before the annexation happens; root =  country doing the annexing ,  scope:target = country being annexed
 on_military_annex = {
 	effect = {
-		if = {
-			limit = {
-				scope:target = {
-					tag = BYZ
-				}
-				NOT = { has_global_variable = byzantine_empire_fallen }
-			}
-			save_scope_as = target_country
-			scope:target = {
-				capital = {
-					save_scope_as = target_location
-				}
-				save_scope_as = target_country2
-			}
-			religion:catholic = {
-				every_country_in_religion = {
-					limit = {
-						"culture_percentage_in_country(culture:greek_culture)" > 0.05
-					}
-					trigger_event_silently = flavor_byz.18
-				}
-			}
-			
-			set_global_variable = byzantine_empire_fallen
-		}
 	}
 }
 # fired before the annexation happens; root =  country doing the annexing ,  scope:target = country being annexed
@@ -573,30 +170,10 @@ on_diplomatic_annex = {
 	effect = {
 		if = {
 			limit = {
-				tag = NED
-				has_variable = glorious_revolution_immortal_seven_flag
-				scope:target = {
-					OR = {
-						tag = GBR
-						tag = ENG
-					}
-				}
-			}
-			trigger_event_silently = { id = flavor_ned.1003 days = 2 }
-		}
-		if = {
-			limit = {
 				has_variable = mission_chosen_vassal_variable
 				root.var:mission_chosen_vassal_variable = scope:target
 			}
 			set_variable = annexed_designated_vassal_variable
-		}
-		if = {
-			limit = {
-				has_or_had_tag = BYZ
-				scope:target = { owns = location:venice }
-			}
-			set_variable = venice_acquired_peacefully_variable
 		}
 	}
 }
@@ -609,26 +186,6 @@ on_civil_war_annex = {
 			}
 			international_organization:middle_kingdom = { set_leader_country = root }
 		}
-		if = {
-			limit = {
-				tag = SBL
-				scope:target ?= c:SCO
-			}
-			scope:target = {
-				if = {
-					limit = { has_country_modifier = sco_civil_war_aggressive }
-					remove_country_modifier = sco_civil_war_aggressive
-				}
-				if = {
-					limit = { has_country_modifier = sco_civil_war_defensive }
-					remove_country_modifier = sco_civil_war_defensive
-				}
-			}
-			if = {
-				limit = { has_country_modifier = sco_hostile_dunbar_castle }
-				remove_country_modifier = sco_hostile_dunbar_castle
-			}
-		}
 	}
 }
 
@@ -640,75 +197,6 @@ on_colonize_annex = {
 # fired before the annexation happens; root =  country doing the annexing ,  scope:target = country being annexed
 on_annex = {
 	effect = {
-		if = {
-			limit = {
-				root = {
-					NOT = {
-						is_member_of_international_organization = international_organization:hre
-					}
-				}
-				scope:target = {
-					is_member_of_international_organization = international_organization:hre
-
-				}
-			}
-			scope:target = {
-          		save_scope_as = annexed
-      		}			
-			international_organization:hre = {
-				leader_country ?= {
-					trigger_event_silently = {
-						id = hre.905
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				country_exists = c:KNI
-				scope:target = c:KNI
-			}
-			location:malta = {
-				owner = {
-					trigger_event_non_silently = flavor_kni.100
-				}
-			}
-		}
-		if = {
-			limit = { 
-				is_target_in_global_variable_list = {
-					name = eligible_beylik_list
-					target = scope:target
-				}
-			}
-			remove_list_global_variable = { 
-				name = eligible_beylik_list 
-				target = scope:target 
-			}
-		}
-		if = {
-			limit = {
-				situation:rise_of_timur = {
-					situation_is_active = yes
-				}
-				scope:target = {
-					is_rebel_country = no
-					tag = TIM
-				}
-			}
-			root = { trigger_event_non_silently = rise_of_timur.3 }
-		}
-		if = {
-			limit = {
-				var:dlh_lodi_country ?= scope:target
-				tag = DLH
-			}
-			root = { trigger_event_non_silently = flavor_dlh.14 }
-		}
-		remove_list_global_variable = { name = council_of_trent_voters target = scope:target }
-		remove_list_global_variable = { name = council_of_trent_unvoters target = scope:target }
-		remove_list_global_variable = { name = council_of_trent_voting_for_debate target = scope:target }
-		remove_list_global_variable = { name = council_of_trent_voting_against_debate target = scope:target }
 		#handle trade company countries
 		if = {
 			limit = {
@@ -756,150 +244,6 @@ on_civil_war_annexed = {
 # fired after the annexation has happened; root =  country doing the annexing ,  scope:target = country being annexed
 on_annexed = {
 	effect = {
-
-		if = {
-			limit = {
-				is_situation_active = situation:rise_of_the_ottomans
-				any_in_global_list = {
-					variable = eligible_beylik_list
-					OR = {
-						this = root
-						this = scope:target
-					}
-				}
-			}
-			if = {
-				limit = {
-					any_in_global_list = {
-						variable = eligible_beylik_list
-						this = scope:target
-					}
-				}
-				remove_list_global_variable = { 
-					name = eligible_beylik_list 
-					target = scope:target 
-				}
-			}
-			rise_of_the_ottomans_recalculate_top_3 = yes
-				
-			#See in_game\common\scripted_effects\situation_effects
-			#This effectively recalculates the top 3 positions in the situation
-			#So as to avoid displaying "dead" countries before the next monthly tick
-		}
-		#------- Treaty of Tordesillas ----
-		if = {
-			limit = {
-				is_situation_active = situation:treaty_of_tordesillas
-			}
-			#One of the countries important for the situation got annexed?
-			if = {
-				limit = {
-					OR = {							
-						scope:target = situation:treaty_of_tordesillas.var:var_west_country
-						scope:target = situation:treaty_of_tordesillas.var:var_east_country
-					}
-				}
-
-				#One of the countries important for the situation was the annexer?
-				if = {
-					limit = {
-						OR = {							
-							this = situation:treaty_of_tordesillas.var:var_west_country
-							this = situation:treaty_of_tordesillas.var:var_east_country
-						}
-					}
-					#Yes, transfer all claims to the annexer
-					replaceCountryInTordesillas = {
-						replaced = scope:target
-						replacer = root
-					}
-					#move the situation from stage 1 to stage 2
-					situation:treaty_of_tordesillas = {
-						if = {
-							limit = {
-								var:var_treaty_phase = 1.0
-							}
-							#Complete the ratification
-							set_variable = { name = var_treaty_progress value = { value = 100 } }
-							set_variable = { name = var_treaty_phase value = { value = 2.0 } }
-							#Launch treaty complete event
-							religion:catholic = {		
-								every_country_in_religion = {
-									trigger_event_silently = {
-										id = treaty_of_tordesillas.3
-									}
-								}
-							}
-							distribute_world = yes
-						}
-					}
-				}
-				else = {
-					#No, the annexer is not a Signatory
-					
-					#If there is already only one country in the situation
-					if = {
-						limit = {					
-							situation:treaty_of_tordesillas.var:var_west_country = situation:treaty_of_tordesillas.var:var_east_country
-						}
-						#End the situation					
-						end_situation = situation:treaty_of_tordesillas 
-					}
-					#Got annexed by a catholic country?
-					else_if = {
-						limit = {
-							religion = religion:catholic
-						}
-						#Yes, Replace the annexed with the annexer in the situation
-						replaceCountryInTordesillas = {
-							replaced = scope:target
-							replacer = root
-						}
-					}
-					else = {
-						#No, Transfer all the claims to the other signatory						
-						if = {
-							limit = {					
-								scope:target = situation:treaty_of_tordesillas.var:var_east_country
-							}
-							replaceCountryInTordesillas = {
-								replaced = scope:target
-								replacer = situation:treaty_of_tordesillas.var:var_west_country
-							}
-						}
-						else_if = {
-							limit = {					
-								scope:target = situation:treaty_of_tordesillas.var:var_west_country
-							}
-							replaceCountryInTordesillas = {
-								replaced = scope:target
-								replacer = situation:treaty_of_tordesillas.var:var_east_country
-							}
-						}
-						#Always, move the situation from stage 1 to stage 2
-						situation:treaty_of_tordesillas = {
-							if = {
-								limit = {
-									var:var_treaty_phase = 1.0
-								}
-								#Complete the ratification
-								set_variable = { name = var_treaty_progress value = { value = 100 } }
-								set_variable = { name = var_treaty_phase value = { value = 2.0 } }
-								#Launch treaty complete event
-								religion:catholic = {		
-									every_country_in_religion = {
-										trigger_event_silently = {
-											id = treaty_of_tordesillas.3
-										}
-									}
-								}
-								distribute_world = yes
-							}
-						}
-					}
-				}
-			}
-		}
 		if = { #It's being visited by a treasure fleet, so make the expedition continue
 			limit = {
 				scope:target = {
@@ -989,72 +333,6 @@ on_civil_war_start = {
 		}
 		if = {
 			limit = {
-				scope:rebel = { rebel_name_key = jacquerie_revolt }
-			}
-			scope:target = {
-				create_character = {
-					first_name = name_william
-					last_name = cale
-					adm = { 25 100 }
-					dip = { 25 100 }
-					mil = { 25 100 }
-					birth_location = scope:target.capital
-					birth_date = 1320.6.1
-					estate = estate_type:peasants_estate
-					save_scope_as = target_character
-				}
-				change_government_type = government_type:republic
-				add_reform = government_reform:peasant_republic_reform
-				change_heir_selection = heir_selection:peasant_elective
-				set_new_ruler = scope:target_character
-				change_societal_value = { 
-					type = serfdom_vs_free_subjects 
-					value = 200 
-				}
-				every_estate_privilege = {	#Clean slate for the peasant rebels
-					scope:target = {
-						revoke_estate_privilege = PREV
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				any_active_disaster = { disaster_type = disaster_type:english_civil_war }
-				has_variable = pretender_rebel_character
-				scope:target = {
-					OR = {
-						has_ruler = no
-						NOT = { ruler = root.var:pretender_rebel_character }
-					}
-				}
-			}
-			var:pretender_rebel_character = {
-				save_scope_as = pretender_ruler
-				move_country = scope:target
-			}
-			scope:target = { set_new_ruler = scope:pretender_ruler }
-		}
-
-		if = {
-			limit = {
-				var:li_zicheng_rebellion ?= scope:rebel
-			}
-			scope:target = {
-				trigger_event_non_silently = {
-					id = flavor_chi.118
-				}
-			}
-		}
-		if = {
-			limit = {
-				scope:rebel = { rebel_name_key = parliamentarist_rebels }
-				any_active_disaster = { disaster_type = disaster_type:english_civil_war }
-			}
-			trigger_event_non_silently = english_civil_war.254
-		}
-		if = {
-			limit = {
 				any_active_disaster = { disaster_type = disaster_type:horde_civil_war }
 				has_variable = pretender_rebel_character
 				country_exists = scope:target
@@ -1073,21 +351,6 @@ on_civil_war_start = {
 		}
 		if = {
 			limit = {
-				country_exists = c:NAP
-				c:NAP = {
-					this = root
-					has_variable = future_republic_of_naples
-					scope:rebel = root.var:future_republic_of_naples
-				}
-			}
-			scope:target = {
-				save_scope_as = republic_of_naples
-				set_variable = republic_of_naples
-			}
-			trigger_event_non_silently = flavor_nap.402
-		}
-		if = {
-			limit = {
 				any_active_disaster = {
 					disaster_type = disaster_type:revolution_disaster
 				}
@@ -1102,16 +365,6 @@ on_civil_war_start = {
 #root = country, scope:target = loan, scope:owner = lender (if existent, check with exists = scope:owner first before doing effects with it)
 on_loan_repaid = {
 	effect = {
-		if = {
-			limit = {
-				exists = scope:owner
-				scope:target = { has_loc_key = pawning_of_crown_jewels }
-				scope:owner = { has_variable = original_crown_jewels_lender }
-			}
-			scope:owner = {
-				trigger_event_non_silently = { id = flavor_byz_ven.3 }
-			}
-		}
 	}
 }
 
@@ -1126,25 +379,6 @@ on_loan_renewed = {
 #root = country
 on_bankruptcy = {
 	effect = {
-		set_variable = { name = ach_has_been_bankrupt value = yes }
-		if = {
-			limit = {
-				has_variable = original_crown_jewels_lender
-				exists = work_of_art:byzantine_crown_jewels
-				country_exists = c:BYZ
-			}
-			trigger_event_non_silently = { id = flavor_byz_ven.11 }
-			c:BYZ = { trigger_event_non_silently = { id = flavor_byz_ven.12 } }
-		}
-		if = {
-			limit = {
-				has_country_modifier = BYZ_lacking_jewels
-				country_exists = c:VEN
-				c:VEN = { has_variable = original_crown_jewels_lender }
-			}
-			trigger_event_non_silently = { id = flavor_byz_ven.13 }
-			c:VEN = { trigger_event_non_silently = { id = flavor_byz_ven.14 } }
-		}
 	}
 }
 
@@ -1183,119 +417,41 @@ on_civil_war_lost = {
 				set_variable = union_no_integration_reset
 			}
 		}
-		#Royalists losing is covered by script in the event civil_war.1 above 
-		#Technically the country is always perceived as root here
-		#Therefore, when Parliamentarists win, we call on the on_civil_war_lost because 
-		#England (the prime tag that gets the disaster) lost
-		if = {
-			limit = { 	##You are the Parliamentarists (win) / implement the Protectorate
-				scope:winner = { has_variable = chosen_parliamentarist_country_variable }
-			}
-			scope:winner = {
-				remove_variable = chosen_parliamentarist_country_variable
-				trigger_event_non_silently = english_civil_war.252 
-			}
-		}
-		#if the loser was part of the HRE, then the winner will be too
-		if = {
-			limit = {
-				exists = scope:winner	#Makes sure that not any non-existent countries somehow join the HRE
-				is_member_of_international_organization = international_organization:hre
-			}
-			international_organization:hre = {
-				add_country_to_international_organization = scope:winner
-			}
-			
-			#if the loser was an elector, the winner gains their elector place
-			if = {
-				limit = {
-					international_organization:hre = {
-						country_has_special_status = { type = special_status:elector country = root }
-					}
-				}
-				international_organization:hre = {
-					international_organization_remove_special_status = { type = special_status:elector country = root }
-					international_organization_add_special_status = { type = special_status:elector country = scope:winner }
-				}
-			}
-			if = {
-				limit = {
-					international_organization:hre = {
-						country_has_special_status = { type = special_status:archbishop_elector country = root }
-					}
-				}
-				international_organization:hre = {
-					international_organization_remove_special_status = { type = special_status:archbishop_elector country = root }
-					international_organization_add_special_status = { type = special_status:archbishop_elector country = scope:winner }
-				}
-			}
-		}
-		
-		if = {
-			limit = {
-				country_exists = c:SBL
-				scope:winner = c:SBL
-			}
-			character:sco_robert_the_bruce = {
-				every_child = {
-					add_character_modifier = { modifier = disinherited years = -1 mode = add_and_extend }
-				}
-			}
-			scope:winner = { set_variable = sbl_civil_war_victor }
-		}
-		scope:winner = {
-			if = {
-				limit = {
-					has_variable = ccw_proper_civil_war_active
-					has_variable = ccw_is_rebel_country
-				}
-				trigger_event_non_silently = castilian_civil_war.401
-				remove_variable = ccw_proper_civil_war_active
-			}
-		}
-		if = {
-			limit = {
-				OR = {
-					is_human = no
-					#Weird mp shenanigans here...
-					AND = {
-						is_human = yes
-						scope:loser = { is_human = yes }
-					}
-				}
-				OR = {
-					scope:winner = { any_active_disaster = { disaster_type = disaster_type:revolution_disaster } }
-					scope:loser = { any_active_disaster = { disaster_type = disaster_type:revolution_disaster } }
-				}
-			}
-			scope:winner = { 
-				if = {
-					limit = { exists = root.ruler_or_heir_if_regent }
-					set_variable = {
-						name = rev_former_ruler
-						value = root.ruler_or_heir_if_regent
-					}
-				}
-				trigger_event_silently = revolution_disaster.4
-			}
-		}
-
-		# Glyndwr becomes free
-		if = {
-			limit = {
-				scope:winner = { has_variable = glyndwr_revolt_war }
-			}
-
-			scope:winner = { remove_variable = glyndwr_revolt_war }
-
-			scope:loser.overlord ?= {
-				cancel_subject = scope:loser
-				add_casus_belli = {
-					target = scope:winner
-					type = casus_belli:cb_subjugation
-				}
-			}
-		}
+		#P:A TODO Our IOs need this too:
+		##if the loser was part of the HRE, then the winner will be too
+		#if = {
+		#	limit = {
+		#		exists = scope:winner	#Makes sure that not any non-existent countries somehow join the HRE
+		#		is_member_of_international_organization = international_organization:hre
+		#	}
+		#	international_organization:hre = {
+		#		add_country_to_international_organization = scope:winner
+		#	}
+		#	
+		#	#if the loser was an elector, the winner gains their elector place
+		#	if = {
+		#		limit = {
+		#			international_organization:hre = {
+		#				country_has_special_status = { type = special_status:elector country = root }
+		#			}
+		#		}
+		#		international_organization:hre = {
+		#			international_organization_remove_special_status = { type = special_status:elector country = root }
+		#			international_organization_add_special_status = { type = special_status:elector country = scope:winner }
+		#		}
+		#	}
+		#	if = {
+		#		limit = {
+		#			international_organization:hre = {
+		#				country_has_special_status = { type = special_status:archbishop_elector country = root }
+		#			}
+		#		}
+		#		international_organization:hre = {
+		#			international_organization_remove_special_status = { type = special_status:archbishop_elector country = root }
+		#			international_organization_add_special_status = { type = special_status:archbishop_elector country = scope:winner }
+		#		}
+		#	}
+		#}
 	}
 }
 
@@ -1306,39 +462,10 @@ on_civil_war_won = {
 	}
 	effect = {
 		if = {
-			limit = {
-				country_exists = c:ARA
-				root = c:ARA
-			}
-			c:ARA = {
-				trigger_event_non_silently = {
-					id = flavor_ara.219
-				}
-			}
-		}
-		if = {
-			limit = {
-				country_exists = c:CAS
-				root = c:CAS
-				has_variable = ccw_proper_civil_war_active
-			}
-			trigger_event_non_silently = castilian_civil_war.400
-			remove_variable = ccw_proper_civil_war_active
-		}
-		if = {
 			limit = { 
 				has_variable = rebel_origin_province_variable
 			}
 			remove_variable = rebel_origin_province_variable
-		}
-		if = {
-			limit = { 	##You are the Royalists and you won
-				scope:winner = { has_variable = chosen_royalist_country_variable }
-			}
-			scope:winner = {
-				remove_variable = chosen_royalist_country_variable
-				set_variable = english_civil_war_won_variable
-			}
 		}
 	}
 }
@@ -1346,280 +473,6 @@ on_civil_war_won = {
 #root = country, scope:winner = country, scope:loser = country, scope:war = war
 on_winning_war = {
 	effect = {
-		if = {
-			limit = {
-				has_dlc = "d008_fate_of_the_phoenix"
-				is_situation_active = situation:rise_of_the_ottomans
-				any_active_disaster = { disaster_type = disaster_type:fate_of_the_phoenix }
-				scope:winner = c:BYZ
-				scope:loser = {
-					this ?= situation:rise_of_the_ottomans.var:strongest_beylik_variable
-				}
-			}
-
-			#Victory Against the <top_beylik>
-			scope:winner = { trigger_event_silently = fate_of_the_phoenix.5 }
-		}
-		#The country has 5 years to call a Triumph
-		if = {
-			limit = {
-				has_dlc = "d008_fate_of_the_phoenix"
-			}
-			scope:winner = {
-				set_variable = { name = recently_won_a_war years = 5 }
-			}
-		}
-		if = {
-			limit = {
-				scope:war = {
-					casus_belli ?= casus_belli:cb_scaligeri_war
-				}
-			}
-			if = {
-				limit = {
-					scope:winner = {
-						tag = VEN
-					}
-					scope:loser = {
-						tag = VER
-					}
-				}
-				scope:war = {
-					every_attacker = {
-						trigger_event_non_silently = {
-							id = flavor_ver.8
-						}
-					}
-				}
-			}
-			else_if = {
-				limit = {
-					scope:winner = {
-						tag = VER
-					}
-					scope:loser = {
-						tag = VEN
-					}
-				}
-				c:VER = {
-					trigger_event_non_silently = {
-						id = flavor_ver.7
-					}
-				}
-			}
-
-		}
-
-		if = {
-			limit = {
-				scope:winner = {
-					is_member_of_international_organization_of_type = {
-						type = hre
-					}
-				}
-				scope:loser = {
-					is_member_of_international_organization_of_type = {
-						type = hre
-					}
-				}
-			}
-			random_known_country = {
-				limit = {
-					international_organization:hre = {
-						country_has_special_status = {
-							type = special_status:free_city
-							country = prev
-						}
-					}
-					NOT = {
-						prestige >= 40
-					}
-					NOT = {
-						has_country_modifier = fc_treatyconference_timer
-					}
-				}
-				hidden_effect = {
-					add_country_modifier = {
-						modifier = fc_treatyconference_timer
-						years = 10
-					}
-				}
-				trigger_event_silently = {
-					id = free_cities.7
-					days = 7
-				}
-			}
-		}
-		#hre expands!
-		if = {
-			limit = {
-				scope:winner = { has_variable = hre_trigger_province_expansion_event }
-			}
-			scope:winner ?= {
-				remove_variable = hre_trigger_province_expansion_event
-				trigger_event_silently = {
-					id = hre.950
-				}
-			}
-		}
-		#hre emperor wins defensive war
-		if = {
-			limit = {
-				scope:winner = international_organization:hre.leader_country
-				scope:loser = {
-					NOT = {
-						is_member_of_international_organization = international_organization:hre
-					}
-				}
-				scope:war = {
-					not = {
-						is_an_attacker = scope:winner
-					}
-				}
-			}
-			international_organization:hre ?= {
-				leader_country ?= {
-					trigger_event_silently = {
-						id = hre.904
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				scope:winner = {
-					tag = POR
-					has_ruler = yes
-					owns = location:leiria
-				}
-				current_year >= 1337
-				current_year <= 1588
-			}
-			c:POR = {
-				trigger_event_non_silently = {
-					id = flavor_por.23
-				}
-			}
-		}
-		if = {
-			limit = { 
-				scope:winner = {
-					tag = DLH
-					is_situation_active = situation:fall_of_delhi
-				}
-				situation:fall_of_delhi = { var:strongest_claimant_capital = scope:loser.capital } 
-			}
-			scope:winner = { trigger_event_non_silently = fall_of_delhi.11 }
-		}
-		if = {
-			limit = { 
-				scope:loser = {
-					tag = DLH
-					is_situation_active = situation:fall_of_delhi
-				}
-				situation:fall_of_delhi = { var:strongest_claimant_capital.owner = scope:winner }
-			}
-			scope:winner = { trigger_event_non_silently = fall_of_delhi.12 }
-		}
-		#building the Brandenburg Gate in flavor_brapru.2
-		if = {
-			limit = {
-				scope:winner = {
-					OR = {
-						tag = BRA
-						tag = PRU
-					}
-					has_ruler = yes
-					owns = location:berlin
-				}
-				gold > { value = monthly_income_trade_and_tax multiply = 5 }
-				current_year >= 1753
-				current_year <= 1790
-			}
-			root = {
-				trigger_event_non_silently = {
-					id = flavor_brapru.2
-				}
-			}
-		}
-		#Velazquez Painting Las Lanzas
-		if = {
-			limit = {
-				scope:winner = {
-					OR = {
-						tag = CAS
-						tag = SPA
-					}
-					has_ruler = yes
-					character:spa_velazquez_script ?= { 
-						is_alive = yes
-						owner = {
-							OR = {
-								tag = CAS
-								tag = SPA
-							}
-						}
-					}
-					gold > { value = monthly_income_trade_and_tax multiply = 2 }
-				}
-				current_year >= 1630
-				current_year <= 1660
-			}
-			scope:winner = {
-				trigger_event_non_silently = {
-					id = flavor_cas.2101
-				}
-			}
-		}
-		if = {
-			limit = {
-				scope:winner = {
-					has_variable = TEU_received_naked_swords
-				}
-				scope:loser = {
-					tag = TEU
-				}
-			}
-			scope:winner = {
-				remove_variable = TEU_received_naked_swords
-				trigger_event_non_silently = {
-					id = flavor_teu.302
-				}
-			}
-		}
-		if = {
-			limit = {
-				scope:war = { 
-					has_variable = is_smyrniote_crusade
-				}
-				country_exists = c:KNI
-			}
-			scope:war = {
-				every_attacker = {
-					limit = {
-						NOT = { tag = KNI }
-						save_temporary_scope_as = current_attacker
-						area:west_anatolia_area = {
-							any_location_in_area = {
-								owner ?= scope:current_attacker
-							}
-						}
-					}
-					trigger_event_non_silently = flavor_kni_pap.4
-				}
-			}
-		}
-		# Ashikaga-Shiba Incident
-		if = {
-			limit = {
-				has_global_variable = new_kanrei_ruler_if_win_war
-				scope:winner = c:JAP
-				scope:loser = c:SBA
-			}
-			c:JAP = {
-				set_variable = { name = jap_recently_won_against_shiba years = 20 }
-			}
-		}
 		if = {
 			limit = {
 				root = {
@@ -1651,58 +504,12 @@ on_join_war = {
 			}
 			reset_regency = yes
 		}
-		if = {
-			limit = {
-				unique_international_organization_type_exists = international_organization_type:hre
-				is_leader_of_international_organization = international_organization:hre
-				scope:war = {
-					is_a_defender = root
-					defender_leader = {
-						this != root
-						is_member_of_international_organization = international_organization:hre
-					}
-					attacker_leader = {
-						NOT = { is_member_of_international_organization = international_organization:hre }
-					}
-				}
-			}
-			international_organization:hre = {
-				every_international_organization_member = {
-					limit = {
-						this != root
-					}
-					add_opinion = {
-						modifier = hre_emperor_defends_empire
-						target = root
-					}
-				}
-			}
-		}
 	}
 }
 
 #root = country, scope:winner = country, scope:loser = country, scope:war = war
 on_losing_war = {
-	effect = {
-		if = {
-			limit = {
-				global_var:cas_aljubarrota_var ?= scope:war
-				scope:loser = c:CAS
-			}
-			c:CAS = {
-				trigger_event_non_silently = flavor_cas.20
-			}
-		}
-		if = {
-			limit = {
-				is_situation_active = situation:hundred_years_war
-				scope:winner = c:ENG
-				scope:loser = c:FRA
-			}
-			c:FRA = {
-				set_variable = { name = recently_lost_to_england years = 5 }
-			}
-		}		
+	effect = {	
 	}
 }
 
@@ -1713,51 +520,6 @@ on_pre_ending_war = {
 #root = country, scope:winner = country, scope:loser = country, scope:war = war
 on_pre_winning_war = {
 	effect = {
-		#Crusader Kings Achievement
-		if = {
-			limit = {
-				scope:winner = {
-					is_human = yes
-				}
-				scope:war = {
-					OR = {
-						casus_belli ?= casus_belli:cb_jihad
-						casus_belli ?= casus_belli:cb_crusade
-					}
-				}
-			}
-			set_variable = {
-				name = unlock_achievement_crusader_kings
-				months = 1
-			}
-		}
-		if = {
-			limit = {
-				scope:war = { 
-					casus_belli ?= casus_belli:cb_religious_superiority 
-					any_attacker = {
-						has_or_had_tag = SWE 
-						is_human = yes
-						religion = religion:lutheran
-					}
-				}
-			}
-			scope:war = {
-				scope:war = {
-					random_attacker = {
-						limit = {
-							has_or_had_tag = SWE
-							is_human = yes
-							religion = religion:lutheran
-						}
-						set_variable = {
-							name = unlock_lion_of_the_north_achievement_variable
-							years = 1
-						}
-					}
-				}
-			}
-		}
 	}
 }
 
@@ -1864,89 +626,6 @@ on_ending_war = {
 				}
 			}
 		}
-
-		#War of Religions
-		if = {
-			limit = {
-				is_situation_active = situation:war_of_religions
-				scope:war = {
-					is_no_cb_war = no
-					casus_belli ?= casus_belli:cb_religious_superiority
-				}
-			}
-			clear_global_variable_list = war_of_religions_wants_war_list
-			clear_global_variable_list = war_of_religions_wants_peace_list
-			situation:war_of_religions = {
-				remove_variable = war_of_religion_current_war
-			}
-		}
-		if = {
-			limit = {
-				global_var:cas_aljubarrota_var ?= scope:war
-				scope:winner = c:CAS
-				c:POR = {
-					in_union_with = c:CAS
-				}
-			}
-			c:CAS = {
-				trigger_event_non_silently = flavor_cas.21
-			}
-		}
-		if = {
-			limit = {
-				scope:war = {
-					is_no_cb_war = no
-					casus_belli ?= casus_belli:cb_reclaim_andalucia
-				}
-				country_exists = c:MOR
-				country_exists = c:GRA
-				this = c:MOR
-				area:andalusia_area = {
-					any_location_in_area = {
-						percent >= 0.8
-						OR = {
-							is_ownable = no
-							AND = {
-								is_ownable = yes
-								owner ?= root
-							}
-						}
-					}
-				}
-				location:cordoba.owner ?= root
-			}
-			trigger_event_silently = flavor_mor.36
-		}
-		if = {
-			limit = {
-				is_situation_active = situation:rise_of_timur
-				OR = {
-					scope:winner = { tag = TIM }
-					scope:loser = { tag = TIM }
-				}
-			}
-			#just clear it for the whole region
-			situation:rise_of_timur.var:rot_conquest_ambition = {
-				every_location_in_region = {
-					remove_location_modifier = rot_timur_scare
-				}
-			}
-		}
-		if = {
-			limit = {
-				scope:winner = { tag = TIM }
-				situation:rise_of_timur = { has_variable = rot_conquest_ambition }
-			}
-			situation:rise_of_timur.var:rot_conquest_ambition = {
-				every_location_in_region = {
-					limit = {
-						owner ?= c:TIM
-						integration_level = conquered
-					}
-					change_integration_level = integrated
-				}
-			}
-		}
 	}
 }
 
@@ -1999,85 +678,6 @@ on_war_declared = {
 	effect = {
 		if = {
 			limit = {
-				situation:hundred_years_war = { 
-					situation_has_ended = no 
-					situation_is_active = no
-				}
-				country_exists = c:FRA
-				country_exists = c:ENG
-				OR = {
-					scope:actor = c:ENG
-					scope:actor = c:FRA
-				}
-				OR = {
-					scope:recipient = c:FRA
-					scope:recipient = c:ENG
-				}
-			}
-			activate_situation = situation:hundred_years_war
-		}
-		if = {
-			limit = {
-				situation:hundred_years_war = { 
-					situation_has_ended = no 
-					situation_is_active = yes
-				}
-				country_exists = c:FRA
-				country_exists = c:ENG
-			}
-			if = {
-				limit = {
-					scope:actor = {
-						OR = {
-							this = c:ENG
-							this = c:FRA
-						}
-						has_variable = ccw_pretender_promises_100yw_support
-						country_exists = var:ccw_pretender_promises_100yw_support
-						var:ccw_pretender_promises_100yw_support = {
-							can_declare_war_on = scope:defender
-						}
-					}
-				}
-				scope:actor.var:ccw_pretender_promises_100yw_support = {
-					join_war_with = {
-						war = scope:war
-						target = scope:actor
-						call_in_subjects = yes
-					}
-				}
-				scope:actor = {
-					remove_variable = ccw_pretender_promises_100yw_support
-				}
-			}
-			else_if = {
-				limit = {
-					scope:recipient = {
-						OR = {
-							this = c:ENG
-							this = c:FRA
-						}
-						has_variable = ccw_pretender_promises_100yw_support
-						country_exists = var:ccw_pretender_promises_100yw_support
-						var:ccw_pretender_promises_100yw_support = {
-							can_declare_war_on = scope:defender
-						}
-					}
-				}
-				scope:recipient.var:ccw_pretender_promises_100yw_support = {
-					join_war_with = {
-						war = scope:war
-						target = scope:recipient
-						call_in_subjects = yes
-					}
-				}
-				scope:recipient = {
-					remove_variable = ccw_pretender_promises_100yw_support
-				}
-			}
-		}
-		if = {
-			limit = {
 				any_international_organizations_member_of = {
 					international_organization_type = international_organization_type:hindu_branch
 					international_organization_has_policy = policy:shaktism
@@ -2098,25 +698,6 @@ on_war_declared = {
 				}
 			}
 		}
-		#War of Religions
-		if = {
-			limit = {
-				is_situation_active = situation:war_of_religions
-				scope:war = {
-					is_no_cb_war = no
-					casus_belli ?= casus_belli:cb_religious_superiority
-				}
-			}
-			scope:war = {
-				every_war_participant = { add_to_global_variable_list = { name = war_of_religions_wants_war_list target = this } }
-			}
-			situation:war_of_religions = {
-				set_variable = {
-					name = war_of_religion_current_war
-					value = scope:war
-				}
-			}
-		}
 		if = {
 			limit = {
 				scope:war = {
@@ -2132,270 +713,24 @@ on_war_declared = {
 				value = scope:war
 			}
 		}
-		if = {
-			limit = {
-				country_exists = c:NAP
-				country_exists = c:SIC
-				OR = {
-					scope:actor = c:NAP
-					scope:actor = c:SIC
-				}
-				OR = {
-					scope:recipient = c:NAP
-					scope:recipient = c:SIC
-				}
-			}
-			c:SIC = {
-				remove_variable = sicily_pays_tribute
-			}
-		}
-		#Timur Scare
-		if = {
-			limit = {
-				scope:actor = {
-					tag = TIM
-					ruler ?= { has_character_modifier = timmy_wants_to_play }
-				}
-				situation:rise_of_timur = {
-					situation_is_active = yes
-					has_variable = rot_conquest_ambition
-					scope:recipient.capital.region = var:rot_conquest_ambition
-				}
-			}
-			situation:rise_of_timur = {
-				var:rot_conquest_ambition = {
-					every_location_in_region = {
-						limit = { is_ownable = yes }
-						remove_location_modifier = rot_timur_scare
-						if = {
-							limit = {
-								owner ?= {
-									this != scope:actor
-									is_at_war_with = scope:actor
-								}
-							}
-							add_location_modifier = {
-								modifier = rot_timur_scare
-								years = 10
-								mode = replace
-							}
-						}
-					}
-				}
-			}
-		}
-		#Guelphs and Ghibellines
-		if = {
-			limit = {
-				is_situation_active = situation:guelphs_and_ghibellines
-				scope:actor = {
-					is_member_of_international_organization = international_organization:guelphs_io
-				}
-				scope:recipient = {
-					is_member_of_international_organization = international_organization:guelphs_io
-				}
-			}
-			international_organization:guelphs_io = {
-				change_variable = {
-					name = guelphs_progress
-					add = -0.01
-				}
-			}
-		}
-		if = {
-			limit = {
-				is_situation_active = situation:guelphs_and_ghibellines
-				scope:actor = {
-					is_member_of_international_organization = international_organization:ghibellines_io
-				}
-				scope:recipient = {
-					is_member_of_international_organization = international_organization:ghibellines_io
-				}
-			}
-			international_organization:ghibellines_io = {
-				change_variable = {
-					name = ghibellines_progress
-					add = -0.01
-				}
-			}
-		}
 	}
 }
 
 #scope:actor = caller, scope:recipient = callee, scope:war = war
 on_accepted_call_to_arms = {
 	effect = {
-		#Emperor coming to the defense of a HRE member
-		if = {
-			limit = {
-				scope:recipient = international_organization:hre.leader_country
-				scope:war = {
-					not = {
-						is_an_attacker = scope:actor
-					}
-					join_war_reason = {
-						country = scope:recipient
-						reason = InternationalOrganization
-						international_organization = international_organization:hre
-					}
-				}
-			}
-			international_organization:hre = {
-				leader_country ?= {
-					trigger_event_silently = {
-						id = hre.908
-					}
-				}
-			}
-		}
 	}
 }
 
 #scope:actor = caller, scope:recipient = callee, scope:war = war
 on_rejected_call_to_arms = {
 	effect = {
-		#Emperor NOT coming to the defense of a HRE member
-		if = {
-			limit = {
-				exists = scope:war
-				scope:recipient = international_organization:hre.leader_country
-				scope:war = {
-					not = {
-						is_an_attacker = scope:actor
-					}
-					join_war_reason = {
-						country = scope:recipient
-						reason = InternationalOrganization
-						international_organization = international_organization:hre
-					}
-				}
-			}
-			international_organization:hre = {
-				leader_country ?= {
-					trigger_event_silently = {
-						id = hre.909
-					}
-				}
-			}
-		}
 	}
 }
 
 #root = winner, scope:location = location, scope:winner = new owner, scope:loser = old owner
 on_took_location_in_peace_treaty = {
 	effect = {
-		#HRE Member takes a HRE province from an outside country in a peace
-		if = {
-			limit = {
-				scope:location = { 
-					is_owned_by_international_organization = international_organization:hre
-					integration_level = conquered
-				}
-				scope:winner = {
-					is_member_of_international_organization = international_organization:hre
-					NOT = {
-						is_leader_of_international_organization = international_organization:hre
-					}
-				}
-				scope:loser = {
-					not = {
-						is_member_of_international_organization = international_organization:hre
-					}
-				}
-			}
-			scope:location = { 
-				save_scope_as = conquered_location
-			}
-			add_to_global_variable_list = {
-				name = hre_conquered_province_list
-				target = scope:location
-			}
-			scope:winner ?= {
-				set_variable = hre_trigger_province_expansion_event
-			}
-		}
-		if = {
-			limit = { 
-				scope:winner = {
-					has_reform = government_reform:military_order_reform
-					religion = religion:catholic
-					NOT = { has_variable = conquered_antioch_variable }
-				}
-				scope:location = location:antioch
-			}
-			scope:winner = {
-				trigger_event_non_silently = military_order_events.5
-			}
-		}
-		if = {
-			limit = { 
-				scope:winner = {
-					has_reform = government_reform:military_order_reform
-					religion = religion:catholic
-					NOT = { has_variable = conquered_edessa_variable }
-				}
-				scope:location = location:urfa
-			}
-			scope:winner = {
-				trigger_event_non_silently = military_order_events.6
-			}
-		}
-		if = {
-			limit = { 
-				scope:winner = {
-					has_reform = government_reform:military_order_reform
-					religion = religion:catholic
-					NOT = { has_variable = conquered_damascus_variable }
-				}
-				scope:location = location:damascus
-			}
-			scope:winner = {
-				trigger_event_non_silently = military_order_events.7
-			}
-		}
-		if = {
-			limit = { 
-				scope:winner = {
-					has_reform = government_reform:military_order_reform
-					NOT = { has_variable = conquered_jerusalem_variable }
-					religion = religion:catholic
-					
-				}
-				scope:location = location:jerusalem
-			}
-			scope:winner = {
-				trigger_event_non_silently = military_order_events.8
-			}
-		}
-		if = {
-			limit = { 
-				scope:winner = {
-					culture = { has_culture_group = culture_group:south_slavic_group }
-					has_ruler = yes
-					
-				}
-				scope:location = location:constantinople
-			}
-			scope:winner = {
-				trigger_event_non_silently = flavor_ser.100
-			}
-		}
-		if = {
-			limit = {
-				scope:location = { 
-					has_building = building_type:bey_fortress 
-					NOT = {  has_variable = bey_fortress_conquest_timer }
-				}
-			}
-			scope:loser = { trigger_event_non_silently = rise_of_the_ottomans.209 }
-			scope:location = {
-				set_variable = {
-					name = bey_fortress_conquest_timer
-					months = 18
-				}
-			}
-		}
-
 		if = { # When editing, also adjust in rtr_rein_in_rebellion.txt peace treaty
 			limit = { 
 				scope:winner = {
@@ -2477,68 +812,12 @@ on_battle_won_character = {
 				add = 1
 			}
 		}
-		if = {
-			limit = {
-				owner ?= { tag = KNI }
-			}
-			if = {
-				limit = {
-					NOT = { has_variable = knights_battles_won }
-				}
-				set_variable = {
-					name = knights_battles_won
-					value = 0
-				}
-			}
-			else = {
-				change_variable = {
-					name = knights_battles_won
-					add = 1
-				}
-			}
-		}
-		if = {
-			limit = {
-				has_variable = damarwulan_var
-			}
-			change_variable = {
-				name = damarwulan_var
-				add = 1
-			}
-			if = {
-				limit = {
-					var:damarwulan_var >= 10
-				}
-				save_scope_as = target_character
-				remove_variable =  damarwulan_var
-				owner = {
-					trigger_event_non_silently = {
-						id = flavor_maj.21
-					}
-				}
-			}
-		}
 	}
 }
 
 #root = character
 on_battle_lost_character = {
 	effect = {
-		if = {
-			limit = { 
-				root = {
-					has_character_modifier = maid_of_orleans
-				}
-			}
-			random_list = {
-				25 = {
-					c:FRA = { set_variable = { name = jeanne_d_arc_captured value = 1 } }
-					c:ENG = { set_variable = { name = jeanne_d_arc_captured_eng value = 1 } }				
-				}
-				75 = {
-				}			
-			}		
-		}	
 	}	
 }
 
@@ -2554,61 +833,6 @@ on_great_battle_won = {
 		flavor_cas.76
 	}
 	effect = {
-		if = {
-			limit = {
-				is_member_of_no_foreign_or_italian_league = no
-				scope:target.owner ?= { is_member_of_no_foreign_or_italian_league = no }
-			}
-			iw_increase_tension_effect = { value = iw_tension_gain_tiny }
-		}
-		if = {
-			limit = {
-				exists = scope:actor.leader
-				scope:actor.leader = { has_variable = loyal_strategos_variable }
-			}
-			random_list = {
-				1 = {
-					#Nothing ever happens
-				}
-				1 = {
-					scope:actor.owner = { trigger_event_silently = fate_of_the_phoenix.11 }
-				}
-			}
-		}
-
-		if = {
-			limit = {
-				exists = scope:actor.leader
-				scope:actor.owner ?= {
-					has_reform = government_reform:theme_system
-				}
-				scope:actor.leader.mil >= 65
-			}
-			
-			scope:actor.leader = {
-				add_to_variable_list = { #Not sure how I feel about this implementation here. When checking this MR, do suggest a better method for this if possible
-					name = strategos_major_victories
-					target = scope:actor.unit_location
-				}
-			}
-		}
-
-		if = {
-			limit = {
-				scope:target = {
-					owner ?= { tag = TUR }
-				}
-				scope:actor.owner ?= {
-					any_current_war = {
-						is_in_war = scope:target.owner
-						has_variable = holy_league_crusade
-					}
-				}
-			}
-			scope:actor.owner = {
-				trigger_event_silently = flavor_pap_holy_league.7
-			}
-		}
 		scope:actor = {
 			grant_special_unit_experience = {
 				value = special_unit_victory_experience
@@ -2622,59 +846,6 @@ on_great_battle_won = {
 		scope:actor = {
 			owner = {
 				set_variable = { name = land_units_killed value = scope:killed_land_units }
-			}
-		}
-		if = {
-			limit = { situation:rise_of_timur = { situation_is_active = yes } }
-			scope:actor = {
-				owner = {
-					set_variable = { name = land_units_killed value = scope:killed_land_units }
-				}
-			}
-			if = {
-				limit = { scope:actor = { owner = { tag = TIM } } }
-				rot_increase_kill_counter = {
-					type = battle
-					variable = scope:actor.owner.var:land_units_killed
-				}
-			}
-			if = {
-				limit = { scope:target = { owner = { tag = TIM } } }
-				rot_increase_kill_counter = {
-					type = battle
-					variable = scope:target.owner.var:land_units_killed
-				}
-			}
-		}
-		if = {
-			limit = { 
-				scope:actor = { 
-					owner = { tag = SER } 
-					unit_location = location:pristina
-				}
-				scope:target = { owner = { tag = TUR } } #Enemy tag
-			}
-			scope:actor = {
-				unit_location = { save_scope_as = target_location }
-				owner = {
-					set_variable = { name = battle_of_kosovo_var value = scope:target_location }
-					trigger_event_non_silently = flavor_ser.160
-				}
-			}
-		}
-		if = {
-			limit = { 
-				scope:actor = { 
-					owner = { tag = BUL } 
-				}
-				scope:target = { owner = { tag = TUR } } #Enemy tag
-			}
-			scope:actor = {
-				unit_location = { save_scope_as = target_location }
-				owner = {
-					set_local_variable = bul_won_against_ottomans
-					trigger_event_non_silently = flavor_bul.5
-				}
 			}
 		}
 	}
@@ -2703,23 +874,6 @@ on_great_battle_lost = {
 				}
 			}
 		}
-		if = {
-			limit = { 
-				scope:target = { 
-					owner = { tag = TUR } # Winning unit
-				}
-				scope:actor = { 
-					owner = { tag = BUL } # Losing unit
-				}
-			}
-			scope:actor = {
-				unit_location = { save_scope_as = target_location }
-				owner = {
-					set_local_variable = bul_lost_against_ottomans
-					trigger_event_non_silently = flavor_bul.5
-				}
-			}
-		}
 	}
 }
 
@@ -2735,22 +889,6 @@ on_battle_won = {
 		flavor_cas.76
 	}
 	effect = {
-		if = {
-			limit = {
-				scope:target = {
-					owner ?= { tag = TUR }
-				}
-				scope:actor.owner ?= {
-					any_current_war = {
-						is_in_war = scope:target.owner
-						has_variable = holy_league_crusade
-					}
-				}
-			}
-			scope:actor.owner = {
-				trigger_event_silently = flavor_pap_holy_league.7
-			}
-		}
 		scope:actor = {
 			grant_special_unit_experience = {
 				value = special_unit_victory_experience
@@ -2759,62 +897,6 @@ on_battle_won = {
 		scope:target = {
 			grant_special_unit_experience = {
 				value = special_unit_defeat_experience
-			}
-		}
-		if = {
-			limit = {
-				situation:rise_of_timur = { situation_is_active = yes }
-			}
-			scope:actor = {
-				owner = {
-					set_variable = { name = land_units_killed value = scope:killed_land_units }
-				}
-			}
-			if = {
-				limit = { scope:actor = { owner = { tag = TIM } } }
-				rot_increase_kill_counter = {
-					type = battle
-					variable = scope:actor.owner.var:land_units_killed
-				}
-			}
-			if = {
-				limit = { scope:target = { owner = { tag = TIM } } }
-				rot_increase_kill_counter = {
-					type = battle
-					variable = scope:target.owner.var:land_units_killed
-				}
-			}
-		}
-		if = {
-			limit = { 
-				scope:actor = { 
-					owner = { tag = SER } 
-					unit_location = location:pristina
-				}
-				scope:target = { owner = { tag = TUR } } #Enemy tag
-			}
-			scope:actor = {
-				unit_location = { save_scope_as = target_location }
-				owner = {
-					set_variable = { name = battle_of_kosovo_var value = scope:target_location }
-					trigger_event_non_silently = flavor_ser.160
-				}
-			}
-		}
-		if = {
-			limit = { 
-				scope:actor = { 
-					owner = { tag = HAB } 
-					unit_location = location:vienna
-				}
-				scope:target = { owner = { tag = TUR } } #Enemy tag
-			}
-			scope:actor = {
-				unit_location = { save_scope_as = target_location }
-				owner = {
-					set_variable = { name = siege_of_vienna_var value = scope:target_location }
-					trigger_event_non_silently = flavor_hab.51
-				}
 			}
 		}
 		if = {
@@ -2831,21 +913,6 @@ on_battle_won = {
 				id = flavor_chi_mon.1
 			}
 		}
-		if = {
-			limit = { 
-				scope:actor = { 
-					owner = { tag = BUL } 
-				}
-				scope:target = { owner = { tag = TUR } } #Enemy tag
-			}
-			scope:actor = {
-				unit_location = { save_scope_as = target_location }
-				owner = {
-					set_local_variable = bul_won_against_ottomans
-					trigger_event_non_silently = flavor_bul.5
-				}
-			}
-		}
 	}
 }
 
@@ -2858,23 +925,6 @@ on_battle_won = {
 # scope:war_score -> how much war score the loser loses from that battle
 on_battle_lost = {
 	effect = {
-		if = {
-			limit = { 
-				scope:target = { 
-					owner = { tag = TUR } # Winning unit
-				}
-				scope:actor = { 
-					owner = { tag = BUL } # Losing unit
-				}
-			}
-			scope:actor = {
-				unit_location = { save_scope_as = target_location }
-				owner = {
-					set_local_variable = bul_lost_against_ottomans
-					trigger_event_non_silently = flavor_bul.5
-				}
-			}
-		}
 	}
 }
 
@@ -2924,26 +974,6 @@ on_election = {
 on_becoming_free = {
 	effect = {
 		if = {
-			limit = {
-				is_member_of_international_organization = international_organization:hre
-				scope:overlord = {
-					is_real_country = yes
-					not = {
-						is_member_of_international_organization = international_organization:hre
-					}
-				}
-			}
-			save_scope_as = released_country
-			international_organization:hre = {
-				leader_country ?= {
-					trigger_event_silently = {
-						id = hre.907
-					}
-				}
-			}
-		}
-
-		if = {
 			limit = { regency_type ?= regency_type:overlord_regency }
 			reset_regency = yes
 		}
@@ -2962,21 +992,6 @@ on_becoming_free = {
 				}
 			}
 			root.ruler = { remove_character_modifier = plotting_rebellion_modifier }
-		}
-		if = {
-			limit = { 
-				NOT = {
-					is_target_in_global_variable_list = {
-						name = eligible_beylik_list
-						target = root
-					}
-				}
-				has_reform = government_reform:anatolian_beylik
-			}
-			add_to_global_variable_list = { 
-				name = eligible_beylik_list 
-				target = root 
-			}
 		}
 
 		if = {
@@ -3015,31 +1030,6 @@ on_dependency_gained = {
 	effect = {
 		if = {
 			limit = {
-				situation:rise_of_timur = {
-					situation_is_active = yes
-				}
-				root = { tag = TIM }
-				scope:overlord = { NOT = { tag = TIM } }
-			}
-			scope:overlord = { trigger_event_non_silently = rise_of_timur.5 }
-		}
-		if = {
-			limit = {
-				scope:overlord = {
-					has_variable = seeking_korean_tributary
-					is_leader_of_international_organization = international_organization:middle_kingdom
-				}
-				tag = KOR
-			}
-			save_scope_as = target_country
-			scope:overlord = {
-				trigger_event_silently = {
-					id = flavor_mch.11
-				}
-			}
-		}
-		if = {
-			limit = {
 				scope:overlord = {
 					has_scripted_relation = {
 						target = root
@@ -3051,25 +1041,6 @@ on_dependency_gained = {
 				type = relation_type:agitate_for_liberty
 				first = scope:overlord
 				second = root
-			}
-		}
-		# HRE member falls under a non-Christian overlord — notify the Emperor
-		if = {
-			limit = {
-				is_member_of_international_organization = international_organization:hre
-				scope:overlord = {
-					is_real_country = yes
-					NOT = { is_member_of_international_organization = international_organization:hre }
-					NOT = { religion.group = religion_group:christian }
-				}
-				exists = international_organization:hre
-			}
-			save_scope_as = enslaved_hre_member
-			scope:overlord = { save_scope_as = foreign_overlord }
-			international_organization:hre = {
-				leader_country ?= {
-					trigger_event_silently = { id = hre.910 }
-				}
 			}
 		}
 	}
@@ -3084,28 +1055,6 @@ on_subject_created = {
 				scope:overlord.modifier:force_convert_created_subjects = yes
 			}
 			change_religion = scope:overlord.religion
-		}
-		# A military order (e.g. Teutonic Order) creates a subject that inherits
-		# the theocracy government type but not the military_order_reform (skipped
-		# at creation). Without that reform the subject auto-qualifies for the
-		# "bishopric" Catholic Church IO special status, which is unintended.
-		# Revert such subjects to monarchy so they get a sensible government.
-		if = {
-			limit = {
-				government_type = government_type:theocracy
-				NOT = { has_reform = government_reform:military_order_reform }
-				scope:overlord = {
-					has_reform = government_reform:military_order_reform
-				}
-			}
-			change_government_type = government_type:monarchy
-		}
-		if = {
-			limit = {
-				exists = international_organization:hre
-				is_leader_of_international_organization = international_organization:hre
-			}
-			international_organization_chooses_new_leader = international_organization:hre
 		}
 	}
 }
@@ -3141,20 +1090,6 @@ on_bureaucracy_removed = {
 on_government_type_change = {
 
 	effect = {
-		if = {
-			limit = {
-				is_emperor = yes
-				scope:from = government_type:monarchy
-				scope:to != government_type:monarchy
-			}
-			international_organization:hre = {
-				international_organization_remove_special_status = {
-					type = special_status:emperor
-					country = root
-				}
-			}
-			international_organization_chooses_new_leader = international_organization:hre
-		}
 		if = {
 			limit = {
 				OR = {
@@ -3239,15 +1174,6 @@ on_new_ruler = {
 		}
 		if = {
 			limit = {
-				any_subject = {
-					is_subject_type = appanage
-					ruler ?= scope:new_ruler
-				}
-			}
-			trigger_event_non_silently = dynastic.29
-		}
-		if = {
-			limit = {
 				exists = scope:new_ruler
 				root = { NOT = { has_variable = choosing_new_pretender } }
 				scope:new_ruler ?= {
@@ -3326,49 +1252,6 @@ on_new_ruler = {
 			limit = { scope:new_ruler = { has_character_modifier = appoint_as_heir_modifier }}
 			scope:new_ruler = { remove_character_modifier = appoint_as_heir_modifier }
 		}
-		if = {
-			limit = {
-				exists = scope:new_ruler
-				is_situation_active = situation:guelphs_and_ghibellines
-				capital ?= {
-					region = region:italy_region
-				}
-				NOT = {
-					tag = PAP # pope always favors guelphs
-				}
-			}
-			scope:new_ruler = {
-				random_list = {
-					1 = { add_character_modifier = { modifier = gag_favors_guelphs years = -1 mode = add_and_extend } }
-					1 = { add_character_modifier = { modifier = gag_favors_ghibellines years = -1 mode = add_and_extend } }
-					1 = { }
-				}
-			}
-		}
-		if = {
-			limit = {
-				country_exists = c:POR
-				root = c:POR
-				dynasty_exists = avis_dynasty
-				scope:new_ruler = {
-					dynasty ?= dynasty:avis_dynasty
-				}
-				scope:old_ruler = {
-					NOT = { 
-						dynasty ?= dynasty:avis_dynasty
-					}
-				}
-				OR = {
-					c:CAS.ruler.first_spouse.dynasty ?= scope:old_ruler.dynasty
-					c:CAS.heir.first_spouse.dynasty ?= scope:old_ruler.dynasty
-				}
-			}
-			c:CAS = {
-				trigger_event_non_silently = {
-					id = flavor_cas.19
-				}
-			}
-		}
 		scope:new_ruler = {
 			if = {
 				limit = { has_character_modifier = bra_false_waldemar }
@@ -3406,13 +1289,6 @@ on_ruler_death = {
 
 	effect = {
 		if = {
-			limit = { scope:old_ruler = character:maj_hayam_wuruk }
-			set_variable = {
-				name = eligible_for_dohw_disaster_variable
-				years = 10
-			}
-		}
-		if = {
 			limit = {
 				has_heir = no
 				OR = {
@@ -3447,50 +1323,11 @@ on_ruler_death = {
 			}
 		}
 		if = {
-			limit = { tag = HOL }
-			trigger_event_silently = {
-				id = hook_and_cod_wars.1000
-				days = 5
-			}
-			#Note: while testing the disaster, make sure that there are at least 2 members of the dynasty of scope:old_ruler or 1 and a proper heir for Holland.
-			#Or else the disaster will just not fire until your next ruler dies.
-		}
-		if = {
-			limit = {
-				has_variable = rot_has_selected_core_region
-				OR = {
-					has_ruler = no
-					ruler ?= {
-						NOT = { has_character_modifier = timmy_wants_to_play }
-					}
-				}
-			}
-			var:rot_has_selected_core_region = {
-				every_location_in_region = {
-					limit = { has_location_modifier = rot_timurs_core_region }
-					remove_location_modifier = rot_timurs_core_region
-				}
-			}
-		}
-		if = {
-			limit = {
-				tag = GRM
-				scope:old_ruler = character:grm_yakub_i
-			}
-			trigger_event_non_silently = flavor_grm.1 #The Death of Yakub I
-		}
-		if = {
 			limit = {
 				government_type = government_type:steppe_horde
 				modifier:horde_unity_hit_at_ruler_death < 0
 			}
 			add_horde_unity = root.modifier:horde_unity_hit_at_ruler_death
-		}
-		c:BYZ ?= { #Save new last Emperor
-			set_global_variable = {
-				name = marbled_emperor
-				value = c:BYZ.ruler_or_regent
-			}
 		}
 		if = {
 			limit = {
@@ -3506,37 +1343,11 @@ on_ruler_death = {
 				}
 			}
 		}
-		if = {
-			limit = {
-				has_variable = mam_ruler_invested_in_cairo
-			}
-			remove_variable = mam_ruler_invested_in_cairo
-		}
-		# Notification Event that the Emperor Died for princes
-		if = {
-			limit = {
-				# Trigger this notification event when previous emperor dies
-				OR = {
-					has_variable = hre_current_emperor_flg # this variable will remain on the old emperor until reelection happens
-					is_emperor = yes # this only works when upon death instantly a new emperor is elected
-				}
-			}
-
-			international_organization:hre ?= {
-				every_international_organization_member = {
-					limit = {
-						NOT = {	THIS = ROOT	} # Not inform the emperor tag
-						is_ai = no # Only relevant for humans, purely informational, dont trigger event for all AI princes
-					}
-					trigger_event_non_silently = hre.801
-				}
-			}
-		}
 	}
 }
 
 #root = country, scope:recipient = character
-on_made_saint = {
+on_made_saint = { #P:A TODO Something something deification
 	effect = {
 		add_legitimacy = {
 			value = scope:recipient.total_abilities
@@ -3576,98 +1387,13 @@ on_religion_changed = {
 			type = convert_religion
 			years = 20
 		}
-		#get rid of the excommunication if you have any
-		if = {
-			limit = { is_excommunicated = yes }
-			ruler = {
-				remove_character_modifier = excommunicated
-			}
-		}
-		#miaphysite / Orthodoxy
-		if = {
-			limit = {
-				religion = {
-					has_autocephalous_patriarchates = yes
-				}
-			}
-			#make sure that the country is prompted to join another AP
-			fire_generic_action = {
-				type = join_autocephalous_patriarchate
-				actor = root
-				recipient = root.religion
-			}
-		}
-		if = {
-			limit = {
-				religion = {
-					has_autocephalous_patriarchates = no
-				}
-			}
-			#make sure that the country leaves its AP
-			every_international_organizations_member_of = {
-				limit = {
-					international_organization_type = international_organization_type:autocephalous_patriarchate
-				}
-				remove_country_from_international_organization = root
-			}
-		}
-
-		if = {
-			limit = {
-				has_global_variable = hagia_sophia_now_mosque
-				owns = location:constantinople
-				religion.group = religion_group:christian
-			}
-			remove_global_variable = hagia_sophia_now_mosque
-		}
-
-		#Pentarchy
-		if = {
-			limit = {
-				has_dlc = "d008_fate_of_the_phoenix"
-			}
-			if = {
-				limit = {
-					has_any_pentarchy_modifier = yes
-				}
-				remove_all_pentarchy_modifiers = yes
-			}
-			if = {
-				limit = {
-					religion = religion:orthodox
-				}
-				add_all_possible_pentarchies = yes
-				if = {
-					limit = { has_all_pentarchy = yes }
-					trigger_event_non_silently = d008_orthodox_events.9
-				}
-			}
-		}
-
-		#catholic church
-		if = {
-			limit = {
-				religion = religion:catholic
-			}
-			international_organization:catholic_church = {
-				add_country_to_international_organization = root
-			}
-		}
-		else = {
-			every_international_organizations_member_of = {
-				limit = {
-					international_organization_type = international_organization_type:catholic_church
-				}
-				remove_country_from_international_organization = root
-			}
-		}
 
 		#shinto
 		if = {
 			limit = {
 				religion = religion:shinto
 			}
-			international_organization:shinto = {
+			international_organization:shinto ?= {
 				add_country_to_international_organization = root
 			}
 		}
@@ -3778,155 +1504,6 @@ on_religion_changed = {
 			}
 		}
 
-		#hre
-		if = {
-			limit = {
-				is_member_of_international_organization = international_organization:hre
-				is_emperor = no
-			}
-			if = {
-				#prince in the HRE becomes heretic
-				limit = {
-					international_organization:hre = {
-						leader_country ?= {
-							NOT = { religion = root.religion }
-						}
-						NOT = { international_organization_has_policy = policy:only_imperial_religion_group_policy }	#Peace of Westphalia
-					}
-				}
-				save_scope_as = heretic_country
-				international_organization:hre = {
-					leader_country ?= {
-						trigger_event_silently = {
-							id = hre.902
-						}
-					}
-				}
-			}
-			else_if = {
-				limit = {
-					NOT = { has_variable = hre_got_religion_enforced }
-					NOT = {
-						international_organization:hre = {
-							international_organization_has_policy = policy:only_imperial_religion_group_policy #Peace of Westphalia
-						}
-					}
-				}
-				#prince in the HRE converts to the true faith
-				save_scope_as = true_faith_country
-				international_organization:hre = {
-					leader_country ?= {
-						if = {
-							limit = { NOT = { this = scope:true_faith_country } }
-							trigger_event_silently = {
-								id = hre.903
-							}
-						}
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				is_emperor = yes
-				hre_country_breaks_imperial_religion = yes
-			}
-			international_organization:hre = {
-				international_organization_remove_special_status = {
-					type = special_status:emperor
-					country = root
-				}
-			}
-			international_organization_chooses_new_leader = international_organization:hre
-		}
-
-		#Countries that adopted islamic titles
-		if = {
-			limit = {
-				religion.group = religion_group:muslim
-				has_variable = sultan_titles_for_non_muslims
-			}
-			trigger_event_silently = propagate_religion_events.7
-		}
-
-		#Treaty of Tordesillas
-		if = {
-			limit = {
-				is_situation_active = situation:treaty_of_tordesillas
-			}
-			
-			if = {
-				limit = {
-					scope:old_religion = religion:catholic
-				}
-				if = {
-					limit = {
-						has_country_modifier = violate_treaty_of_tordesillas
-					}
-					remove_country_modifier = violate_treaty_of_tordesillas
-				}
-				
-				#One of the countries important for the situation changed religion
-				if = {
-					limit = {
-						OR = {							
-							this = situation:treaty_of_tordesillas.var:var_west_country
-							this = situation:treaty_of_tordesillas.var:var_east_country
-						}
-					}
-					#If there is already only one country in the situation
-					if = {
-						limit = {					
-							situation:treaty_of_tordesillas.var:var_west_country = situation:treaty_of_tordesillas.var:var_east_country
-						}
-						#End the situation					
-						end_situation = situation:treaty_of_tordesillas 
-					}
-					#if not, Who changed religion?
-					else_if = {
-						limit = {					
-							this = situation:treaty_of_tordesillas.var:var_east_country
-						}
-						
-						#Yes, transfer all claims
-						replaceCountryInTordesillas = {
-							replaced = this
-							replacer = situation:treaty_of_tordesillas.var:var_west_country
-						}
-					}
-					else_if = {
-						limit = {					
-							this = situation:treaty_of_tordesillas.var:var_west_country
-						}
-						replaceCountryInTordesillas = {
-							replaced = this
-							replacer = situation:treaty_of_tordesillas.var:var_east_country
-						}
-					}
-					#Always, move the situation from stage 1 to stage 2
-					situation:treaty_of_tordesillas = {
-						if = {
-							limit = {
-								var:var_treaty_phase = 1.0
-							}
-							#Complete the ratification
-							set_variable = { name = var_treaty_progress value = { value = 100 } }
-							set_variable = { name = var_treaty_phase value = { value = 2.0 } }
-							#Launch treaty complete event
-							religion:catholic = {		
-								every_country_in_religion = {
-									trigger_event_silently = {
-										id = treaty_of_tordesillas.3
-									}
-								}
-							}
-							distribute_world = yes
-						}
-					}
-				}
-			}
-		}
-
 		#promote religion - stop them if they were promoting the previous religion
 		every_cabinet = {
 			limit = {
@@ -3965,53 +1542,6 @@ on_international_organization_creation = {
 #root = int org, actor = instigator (optional)
 on_international_organization_disbanding = {
 	effect = {
-		if = {
-			limit = {
-				this = international_organization:hre
-				leader_country ?= { has_ruler = yes }
-				scope:actor ?= { has_ruler = yes }
-			}
-			leader_country = {
-				save_scope_as = old_emperor
-			}
-			if = {
-				limit = { scope:actor ?= { NOT = { has_country_modifier = rome_reborn } } }
-				scope:actor ?= {
-					trigger_event_silently = {
-						id = hre.15
-					}
-				}
-			}
-		}
-		#Tatar Yoke
-		if = {
-			limit = {
-				this = international_organization:tatar_yoke
-			}
-			every_international_organization_member = {
-				limit = {
-					NOT = {	government_type = government_type:steppe_horde }
-					NOT = {	government_type = government_type:tribe }
-				}
-				save_scope_as = russian_state
-				every_neighbor_country = {
-					limit = {
-						scope:russian_state = {
-							can_create_casus_belli_of_type_on = {
-								type = casus_belli:cb_expansion_into_the_steppes
-								target = prev
-							}
-						}
-					}
-					scope:russian_state = {
-						add_casus_belli = {
-							target = prev
-							type = casus_belli:cb_expansion_into_the_steppes
-						}
-					}
-				}
-			}
-		}
 	}
 }
 
@@ -4163,158 +1693,6 @@ on_location_changed_owner = {
 		conquistador.10
 	}
 	effect = {
-		if = {
-			limit = {
-				this = location:rome
-				religion:catholic = { has_religion_modifier = rome_lost_modifier }
-				scope:winner.religion = religion:catholic
-			}
-			religion:catholic = { remove_religion_modifier = rome_lost_modifier }
-		}
-		if = {
-			limit = {
-				this = location:rome
-				religion:orthodox = { has_religion_modifier = rome_reclaimed_modifier }
-				scope:winner.religion != religion:orthodox
-			}
-			religion:orthodox = { remove_religion_modifier = rome_reclaimed_modifier }
-		}
-		if = {
-			limit = {
-				has_dlc = "d008_fate_of_the_phoenix"
-				scope:winner ?= c:BYZ
-				root = location:smyrna
-			}
-
-			scope:winner = {
-				trigger_event_silently = {
-					id = fate_of_the_phoenix.2
-					days = { 1 90 }
-				}
-			}
-		}
-		if = {
-			limit = {
-				has_dlc = "d008_fate_of_the_phoenix"
-				scope:winner ?= c:BYZ
-				root = location:iznik
-			}
-
-			scope:winner = {
-				trigger_event_silently = {
-					id = fate_of_the_phoenix.3
-					days = { 1 90 }
-				}
-			}
-		}
-		if = {
-			limit = {
-				has_dlc = "d008_fate_of_the_phoenix"
-				scope:winner ?= c:BYZ
-				root = location:bursa
-			}
-
-			scope:winner = {
-				trigger_event_silently = {
-					id = fate_of_the_phoenix.4
-					days = { 1 90 }
-				}
-			}
-		}
-		if = {
-			limit = {
-				scope:winner ?= c:BYZ
-				c:BYZ = { has_country_modifier = BYZ_lacking_jewels }
-				work_of_art:byzantine_crown_jewels.location ?= root
-			}
-			work_of_art:byzantine_crown_jewels = {
-				save_scope_as = target_woa
-			}
-			save_scope_as = target
-			c:BYZ = {
-				trigger_event_non_silently = {
-					id = flavor_byz_ven.6
-				}
-			}
-		}
-		if = {
-			limit = {
-				root = location:constantinople
-				has_global_variable = hagia_sophia_now_mosque
-				scope:winner = { religion.group = religion_group:christian }
-			}
-			remove_global_variable = hagia_sophia_now_mosque
-		}
-		#if = {  #P:A REMOVED
-		#	limit = {
-		#		is_situation_active = situation:fall_of_delhi
-		#		root = situation:fall_of_delhi.var:strongest_claimant_capital
-		#	}
-		#	if = {
-		#		limit = {
-		#			scope:winner = { has_variable = delhi_claimants_variable }
-		#		}
-		#		situation:fall_of_delhi = { 
-		#			set_variable = {
-		#				name = strongest_claimant_capital
-		#				value = scope:winner.capital
-		#			}
-		#		}
-		#		set_variable = {
-		#			name = leadership_secured_variable
-		#			value = yes
-		#			years = 1
-		#		}
-		#	}
-		#	else = {
-		#		scope:winner = {
-		#			ordered_known_country = {
-		#				limit = { has_variable = delhi_claimants_variable }
-		#				order_by = {
-		#					value = {
-		#						add = country_total_army_levy_size
-		#						if = {
-		#							limit = { is_subject = yes }
-		#							multiply = 0
-		#						}
-		#						if = {
-		#							limit = { at_war = yes }
-		#							multiply = 0.75
-		#						}
-		#					}
-		#				}
-		#				situation:fall_of_delhi = { 
-		#					set_variable = {
-		#						name = strongest_claimant_capital
-		#						value = scope:winner.capital
-		#					}
-		#				}
-		#				set_variable = {
-		#					name = leadership_secured_variable
-		#					value = yes
-		#					years = 1
-		#				}
-		#			}
-		#		}
-		#	}
-		#}
-		#if = {
-		#	limit = {
-		#		is_situation_active = situation:rise_of_the_ottomans
-		#		scope:winner ?= { has_reform = government_reform:anatolian_beylik }
-		#		OR = {
-		#			root = location:sivas
-		#			root = location:konya
-		#			root = location:tabriz
-		#			root = location:erzurum
-		#		}
-		#		scope:winner = {
-		#			NOT = { has_estate_privilege = estate_privilege:trunk_road_to_erzurum_privilege }
-		#		}
-		#	}
-
-		#	scope:winner = { trigger_event_non_silently = rise_of_the_ottomans.218 }
-		#}
 		#Remove Panaqas from foreign locations
 		if = {
 			limit = { 
@@ -4322,73 +1700,6 @@ on_location_changed_owner = {
 				scope:winner = { modifier:has_panaqas = no }
 			}
 			destroy_building = "building(building_type:panaqa_building|owner)"
-		}
-		if = {
-			limit = { 
-				has_building = building_type:bey_fortress 
-				scope:winner = { NOT = { culture ?= { has_culture_group = culture_group:turkic_group } } }
-			}
-			destroy_building = "building(building_type:bey_fortress|owner)"
-		}
-		if = {
-			limit = {
-				is_situation_active = situation:italian_wars
-				region = region:italy_region
-			}
-			if = {
-				limit = {
-					scope:winner = {
-						any_international_organizations_member_of = {
-							OR = {
-								is_target_in_global_variable_list = {
-									name = iw_italian_leagues_list
-									target = this
-								}
-								is_target_in_global_variable_list = {
-									name = iw_foreign_leagues_list
-									target = this
-								}
-							}
-							
-						}
-					}
-				}
-				every_international_organization_owner = {
-					limit = {
-						OR = {
-							is_target_in_global_variable_list = {
-								name = iw_italian_leagues_list
-								target = this
-							}
-							is_target_in_global_variable_list = {
-								name = iw_foreign_leagues_list
-								target = this
-							}
-						}
-						scope:winner ?= { 
-							NOT = { is_member_of_international_organization = prev }
-						}
-					}
-					remove_location_from_international_organization = root
-				}
-				scope:winner ?= {
-					random_international_organizations_member_of = {
-						limit = {
-							OR = {
-								is_target_in_global_variable_list = {
-									name = iw_italian_leagues_list
-									target = this
-								}
-								is_target_in_global_variable_list = {
-									name = iw_foreign_leagues_list
-									target = this
-								}
-							}
-						}
-						add_location_to_international_organization = root
-					}
-				}
-			}
 		}
 		if = {
 			limit = {
@@ -4399,31 +1710,6 @@ on_location_changed_owner = {
 				}
 			}
 			root = { change_integration_level = core }
-		}
-		if = {
-			limit = {
-				can_fire_situation_event = {
-					situation = situation:rise_of_timur
-					event = rot_fall_of_delhi
-				}
-				scope:winner ?= { tag = TIM }
-				this = location:delhi
-			}
-			scope:winner = {
-				trigger_event_non_silently = rise_of_timur.11
-			}
-		}
-
-		if = {
-			limit = {
-				tag_exists = TUR
-				scope:winner ?= { tag = TUR }
-				scope:winner = { religion.group = religion_group:muslim }
-				this = location:cairo
-			}
-			scope:winner = {
-				trigger_event_non_silently = flavor_tur.204
-			}
 		}
 		if = {
 			limit = {
@@ -4438,91 +1724,6 @@ on_location_changed_owner = {
 				}
 			}
 		}
-		#Pentarchy
-		if = {
-			limit = {
-				has_dlc = "d008_fate_of_the_phoenix"
-				root = {
-					is_pentarchy_seat = yes
-				}
-			}
-			save_scope_as = target_pentarchy
-			scope:winner = {
-				if = {
-					limit = {
-						religion = religion:orthodox
-					}
-					select_suitable_patriarch = { pentarchy = yes }
-					scope:target_patriarch = {
-						set_pentarch_variable = { location = scope:target_pentarchy }
-					}
-					add_pentarchy_modifier = { location = scope:target_pentarchy }
-					trigger_event_non_silently = d008_orthodox_events.7
-				}
-			}
-			scope:loser ?= {
-				if = {
-					limit = { has_pentarchy_modifier = { location = scope:target_pentarchy } }
-					if = {
-						limit = { has_all_pentarchy_except = { location = scope:target_pentarchy } } #location already has changed hands so it needs to be checked differently
-						downgrade_pentarchy_modifier = yes
-						set_variable = lost_pentarchy
-					}
-					remove_pentarchy_modifier = { location = scope:target_pentarchy }
-					trigger_event_non_silently = d008_orthodox_events.8
-				}
-			}
-			religion:orthodox = {
-				"variable_map(pentarchy|scope:target_pentarchy)" ?= {
-					remove_variable = is_pentarch
-				}
-				remove_from_variable_map = {
-					name = pentarchy
-					key = scope:target_pentarchy
-				}
-				if = {
-					limit = { exists = scope:target_patriarch }
-					add_to_variable_map = {
-						name = pentarchy
-						key = scope:target_pentarchy
-						value = scope:target_patriarch
-					}
-					scope:target_patriarch = {
-						set_variable = {
-							name = is_pentarch
-							value = scope:target_pentarchy
-						}
-					}
-				}
-			}
-		}
-		if = {
-			limit = {
-				area = area:morea_area
-			}
-			if = {
-				limit = {
-					scope:winner = {
-						has_variable = additional_noble_power_for_morea
-					}
-				}
-				add_location_modifier = {
-					mode = replace
-					modifier = BYZ_morea_nobles
-					years = 30 
-				}
-			}
-			if = {
-				limit = {
-					scope:winner = {
-						has_variable = BYZ_additional_integration_in_morea
-					}
-					has_variable = BYZ_unused_integration_bonus
-				}
-				change_integration_progress = 30
-				remove_variable = BYZ_unused_integration_bonus
-			}
-		}
 	}
 }
 
@@ -4533,31 +1734,6 @@ on_raw_material_changed = {
 #root = newly formed country
 on_new_country_formed = {
 	effect = {
-		#auto-join anyone who has their capital in the hre
-		if = {
-			limit = {
-				capital = {
-					is_owned_by_international_organization = international_organization:hre
-				}
-				NOT = { is_member_of_international_organization = international_organization:hre }
-			}
-			international_organization:hre = {
-				add_country_to_international_organization = root
-			}
-		}
-		#catholics
-		if = {
-			limit = {
-				religion = religion:catholic
-				not = {
-					is_member_of_international_organization_of_type = { type = catholic_church }
-				}
-			}
-			international_organization:catholic_church = {
-				add_country_to_international_organization = prev
-			}
-		}
-
 		#shinto
 		if = {
 			limit = {
@@ -4566,7 +1742,7 @@ on_new_country_formed = {
 					is_member_of_international_organization_of_type = { type = shinto }
 				}
 			}
-			international_organization:shinto = {
+			international_organization:shinto ?= {
 				add_country_to_international_organization = prev
 			}
 		}
@@ -4576,48 +1752,6 @@ on_new_country_formed = {
 #root = released country, scope:overlord = overlord
 on_released_country = {
 	effect = {
-		if = {
-			limit = {
-				exists = international_organization:hre
-				exists = capital
-				capital ?= {
-					is_owned_by_international_organization = international_organization:hre
-				}
-				NOT = { is_member_of_international_organization = international_organization:hre }
-			}
-			international_organization:hre = {
-				add_country_to_international_organization_no_update = root
-			}
-		}
-		if = {
-			limit = {
-				scope:overlord = {
-					is_leader_of_international_organization = international_organization:hre
-				}
-				is_subject = no
-			}
-			save_scope_as = released_country
-			scope:overlord ?= {
-				trigger_event_silently = {
-					id = hre.901
-				}
-			}
-		}
-		if = {
-			limit = { 
-				NOT = {
-					is_target_in_global_variable_list = {
-						name = eligible_beylik_list
-						target = root
-					}
-				}
-				has_reform = government_reform:anatolian_beylik
-			}
-			add_to_global_variable_list = { 
-				name = eligible_beylik_list 
-				target = root 
-			}
-		}
 	}
 }
 
@@ -4625,223 +1759,6 @@ on_released_country = {
 on_international_organization_changed_leader = {
 	effect = {
 		save_scope_as = new_ruler
-		#HRE effects:
-		if = {
-			limit = {
-				scope:target = { international_organization_type = international_organization_type:hre }
-				game_is_initialized = yes
-			}
-			# Previous HRE Leader was reelected
-			if = {
-				limit = {
-					exists = scope:old_ruler
-					scope:old_ruler = ROOT
-					has_ruler = yes
-				}
-				trigger_event_non_silently = hre.900
-			}
-			if = {
-				limit = {
-					OR = {
-						imperial_work_of_art_can_be_moved = { work_of_art = work_of_art:imperial_crown_hre country = root international_organization = scope:target }
-						imperial_work_of_art_can_be_moved = { work_of_art = work_of_art:imperial_orb_hre country = root international_organization = scope:target }
-						imperial_work_of_art_can_be_moved = { work_of_art = work_of_art:saint_stephans_purse country = root international_organization = scope:target }
-						imperial_work_of_art_can_be_moved = { work_of_art = work_of_art:coronation_gospel_hre country = root international_organization = scope:target }
-					}
-				}
-				trigger_event_non_silently = hre.800
-			}
-			# New emperor elected from new country or no previous emperor
-			if = {
-				limit = {
-					OR = {
-						NOT = { exists = scope:old_ruler }
-						AND = {
-							exists = scope:old_ruler
-							NOT = { scope:old_ruler = ROOT }
-						}
-					}
-				}
-				if = {
-					limit = { exists = scope:old_ruler }
-					# Update current emperor variable on emperor change
-					scope:old_ruler = { remove_variable = hre_current_emperor_flg }
-					set_variable = { name = hre_current_emperor_flg value = 1 }
-				}
-				if = {
-					limit = {
-						exists = scope:old_ruler
-						scope:old_ruler = {
-							is_member_of_international_organization = international_organization:ghibellines_io
-							NOT = { has_presence_in = region:italy_region }
-						}
-					}
-					international_organization:ghibellines_io = {
-						remove_country_from_international_organization = scope:old_ruler
-					}
-				}
-				if = {
-					limit = { exists = international_organization:ghibellines_io }
-					if = {
-						limit = { NOT = { is_member_of_international_organization = international_organization:ghibellines_io } }
-						international_organization:ghibellines_io = { add_country_to_international_organization = ROOT }
-					}
-					trigger_event_silently = guelphs_and_ghibellines.100
-				}
-			}
-			if = {
-				limit = {
-					exists = scope:old_ruler
-					NOT = { scope:old_ruler = root }
-					scope:old_ruler = {
-						num_subjects > 0
-						any_subject = {
-							OR = {
-								is_subject_type = imperial_free_city
-								is_subject_type = direct_imperial_free_city
-							}
-						}
-					}
-				}
-				scope:old_ruler ?= {
-					every_subject = {
-						limit = {
-							OR = {
-								is_subject_type = imperial_free_city
-								is_subject_type = direct_imperial_free_city
-							}
-						}
-						overlord = { cancel_subject = prev }
-					}
-				}
-				if = {
-					limit = {
-						exists = scope:new_ruler
-						scope:target = {
-							OR = {
-								hre_has_free_city_subjects = yes
-								hre_has_direct_free_city_subjects = yes
-							}
-						}
-					}
-					scope:target = {
-						every_international_organization_member = {
-							limit = {
-								has_special_status_in_international_organization = {
-									type = special_status:free_city
-									international_organization = scope:target
-								}
-								NOT = { this = scope:new_ruler }
-							}
-							if = {
-								limit = { scope:target = { hre_has_direct_free_city_subjects = yes } }
-								make_subject_of = {
-									target = scope:new_ruler
-									type = subject_type:direct_imperial_free_city
-								}
-							}
-							else = {
-								make_subject_of = {
-									target = scope:new_ruler
-									type = subject_type:imperial_free_city
-								}
-							}
-						}
-					}
-				}
-			}
-			if = {
-				limit = {
-					OR = {
-						scope:target = {
-							OR = {
-								international_organization_has_policy = policy:expanded_electors_policy
-								international_organization_has_policy = policy:elector_council_policy
-							}
-						}
-						modifier:is_excluded_from_electorship = yes
-					}
-					has_special_status_in_international_organization = {
-						type = special_status:elector
-						international_organization = international_organization:hre
-					}
-				}
-				scope:target = {
-					international_organization_remove_special_status = {
-						type = special_status:elector
-						country = root
-					}
-				}
-			}
-			if = {
-				limit = {
-					tag = HAB
-					is_leader_of_international_organization = international_organization:hre
-					international_organization:hre = {
-						international_organization_has_law = law:golden_bull 
-					}
-				}
-				trigger_event_non_silently = flavor_hab.37
-			}
-			# Imperial Circles: new Emperor was a circle leader -> relinquish leadership
-			if = {
-				limit = {
-					scope:target = { circles_are_active = yes }
-					is_imperial_circle_leader = yes
-				}
-				trigger_event_non_silently = imperial_circles.80
-			}
-		}
-		#Religious League effects:
-		if = {
-			limit = {
-				scope:target = {
-					OR = {
-						international_organization_type = international_organization_type:catholic_league
-						international_organization_type = international_organization_type:protestant_union
-					}
-				}
-				exists = scope:old_ruler
-			}
-			scope:old_ruler ?= {
-				if = {
-					limit = {
-						any_casus_belli_target = {
-							scope:old_ruler = {
-								has_casus_belli_of_type_on = { target = prev type = casus_belli:cb_religious_superiority }
-							}
-						}
-					}
-					random_casus_belli_target = {
-						limit = {
-							scope:old_ruler = {
-								has_casus_belli_of_type_on = { target = prev type = casus_belli:cb_religious_superiority }
-							}
-						}
-						save_scope_as = current_religious_enemy_leader
-					}
-				}
-			}
-			if = {
-				limit = {exists = scope:current_religious_enemy_leader }
-				scope:current_religious_enemy_leader = {
-					if = {
-						limit = { exists = scope:old_ruler }
-						remove_casus_belli_mutual_effect = {
-							target = scope:old_ruler
-							type = casus_belli:cb_religious_superiority
-						}
-					}
-					if = {
-						limit = { scope:current_religious_enemy_leader != root }
-						add_casus_belli_mutual_effect = {
-							target = root
-							type = casus_belli:cb_religious_superiority
-						}
-					}
-				}
-			}
-		}
 		#Middle Kingdom effects:
 		if = {
 			limit = {
@@ -4867,16 +1784,6 @@ on_international_organization_changed_leader = {
 						type = scope:type
 					}
 				}
-			}
-		}
-		#Autocephalous patriarchates effects
-		if = {
-			limit = {
-				scope:target = { international_organization_type = international_organization_type:autocephalous_patriarchate }
-			}
-			scope:target = {
-				var:patriarch ?= { remove_variable = is_patriarch }
-				set_up_patriarch = { organization = scope:target leader = root }
 			}
 		}
 	}
@@ -4971,18 +1878,6 @@ on_cabinet_removed = {
 #root = country, scope:target = institution
 on_institution_embraced = {
 	effect = {
-		if = {
-			limit = { scope:target = institution:scientific_revolution }
-			root = { trigger_event_non_silently = institution_events.139 }
-		}
-		if = {
-			limit = { scope:target = institution:artillery_institution }
-			root = { trigger_event_non_silently = institution_events.115 }
-		}
-		if = {
-			limit = { scope:target = institution:printing_press }
-			root = { add_country_modifier = { modifier = printing_press_books years = -1 } }
-		}
 	}
 }
 
@@ -5033,96 +1928,6 @@ on_work_of_art_destroyed = {
 #root = work of art, scope:target = new location, scope:location = old location; gets NOT called by the move_art effect
 on_work_of_art_looted = {
 	effect = {
-		if = {
-			limit = {
-				this = work_of_art:byzantine_crown_jewels
-			}
-			if = {
-				limit = {
-					scope:target.owner = {
-						OR = {
-							has_country_modifier = BYZ_lacking_jewels
-							any_country_together_in_war_with = {
-								has_country_modifier = BYZ_lacking_jewels
-							}
-						}
-					}
-				}
-				work_of_art:byzantine_crown_jewels = {
-					save_scope_as = target_woa
-				}
-				scope:location = {
-					random_unit_in_location = {
-						limit = {
-							owner = {
-								any_country_together_in_war_with = {
-									has_country_modifier = BYZ_lacking_jewels
-								}
-							}
-						}
-						save_scope_as = target_army
-					}
-					random_unit_in_location = {
-						limit = {
-							owner ?= scope:target.owner
-						}
-						save_scope_as = target_army
-					}
-				}
-				scope:target.owner = {
-					if = {	
-						limit = {
-							has_country_modifier = BYZ_lacking_jewels
-						}
-						save_scope_as = origin_country
-					}
-					else = {
-						random_country_together_in_war_with = {
-							limit = {
-								has_country_modifier = BYZ_lacking_jewels
-							}
-							save_scope_as = origin_country
-						}
-					}
-				}
-				if = {
-					limit = { # The work of art was brought to Byz
-						scope:target.owner = {
-							has_country_modifier = BYZ_lacking_jewels
-						}
-					}
-					scope:target.owner = {
-						trigger_event_non_silently = {
-							id = flavor_byz_ven.6
-						}
-					}
-				}
-				else = { # An ally got it - prompt them to have it returned
-					scope:target.owner = {
-						trigger_event_non_silently = {
-							id = flavor_byz_ven.7
-						}
-					}
-				}
-			}
-			# The work of art is being moved in a diffent country? Notify Byz
-			else_if = {
-				limit = {
-					scope:target.owner = {
-						NOT = { has_country_modifier = BYZ_lacking_jewels }
-					}
-					c:BYZ ?= {
-						has_country_modifier = BYZ_lacking_jewels
-					}
-				}
-				save_scope_as = target_woa
-				c:BYZ = {
-					trigger_event_non_silently = {
-						id = flavor_byz_ven.8
-					}
-				}
-			}
-		}
 	}
 }
 
@@ -5257,53 +2062,12 @@ on_lose_great_power_status = {
 on_embrace_revolution = {
 	events = { the_revolution.9 }
 	effect = {
-		add_to_revolutionary_list = yes
-		if = {
-			limit = { NOT = { government_type = government_type:republic } }
-			change_government_type = government_type:republic
-		}
-		if = {
-			limit = { any_current_reforms = { is_unique_reform = yes } }
-			random_current_reforms = {
-				limit = { is_unique_reform = yes }
-				PREV = { remove_reform = PREV }
-			}
-		}
-		remove_current_major_government_reform = yes
-		add_reform = government_reform:revolutionary_republic
-		if = {
-			limit = { NOT = { succession_law = heir_selection:republic_4_year_terms } }
-			change_heir_selection = heir_selection:republic_4_year_terms
-		}
-		if = {
-			limit = { is_emperor = yes }
-			international_organization:hre = {
-				international_organization_remove_special_status = {
-					type = special_status:emperor
-					country = root
-				}
-			}
-			international_organization_chooses_new_leader = international_organization:hre
-		}
 	}
 }
 
 #root = country
 on_lose_revolution = {
 	effect = {
-		remove_from_revolutionary_list = yes
-		if = {
-			limit = { has_reform = government_reform:revolutionary_republic }
-			remove_reform = government_reform:revolutionary_republic
-		}
-		if = {
-			limit = { has_reform = government_reform:revolutionary_autocracy }
-			remove_reform = government_reform:revolutionary_autocracy
-		}
-		if = {
-			limit = { has_reform = government_reform:revolutionary_empire }
-			remove_reform = government_reform:revolutionary_empire
-		}
 	}
 }
 
@@ -5320,18 +2084,6 @@ on_lose_revolution_target = {
 #root = country
 on_shatter_country = {
 	effect = {
-		if = {
-			limit = { tag = GLH }
-			every_neighbor_country = {
-				limit = {
-					can_create_casus_belli_of_type_on = {
-						type = casus_belli:cb_expansion_into_the_steppes
-						target = root
-					}
-				}
-				add_to_list = steppe_opportunists
-			}
-		}
 		change_country_type = location
 		change_government_type = government_type:tribe
 		every_owned_location = {
@@ -5536,17 +2288,6 @@ on_enforce_peace_declined = {
 #happens after the transfer, root = subject, scope:overlord = new overlord, scope:former_overlord = old overlord
 on_transfer_subject = {
 	effect = {
-		if = {
-			limit = {
-				is_subject_type = appanage
-				scope:overlord = {
-					NOT = { has_reform = government_reform:french_feudal_nobility }
-				}
-			}
-			remove_reform = government_reform:french_appanage_reform
-			set_variable = { name = is_former_appanage_check value = 1 }
-			change_subject_type = subject_type:vassal
-		}
 	}
 }
 
