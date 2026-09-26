@@ -1,0 +1,188 @@
+﻿# summis_desiderantes = { #Enable Witchcraft events
+	
+# 	international_organization_type = catholic_church
+
+# 	potential = {
+# 		papacy_active = yes
+# 		international_organization:catholic_church = {
+# 			leader_country ?= scope:actor
+# 		}
+# 	}
+
+# 	allow = {
+# 	}
+
+# 	votes = {
+# 		value = scope:actor.num_cardinals
+# 	}
+
+# 	proposal_price = price:propose_curia_action
+
+# 	days = 1
+
+# 	select_trigger = {
+# 		looking_for_a = international_organization
+# 		target_flag = recipient
+# 		name = "choose_international_organization"
+# 		column = {
+# 			data = name
+# 		}
+# 		visible = {
+# 			international_organization_type = international_organization_type:catholic_church
+# 			#no actor = this is just the general "is the vote allowed"
+# 			trigger_if = {
+# 				limit = {
+# 					exists = scope:actor
+# 				}
+# 				international_organization:catholic_church = {
+#                     leader_country = scope:actor
+#                 }
+# 			}
+# 		}
+# 		enabled = {
+# 			#non-leaders can only vote, not initiate the debate
+# 			trigger_if = {
+# 				limit = {
+# 					not = {
+# 						leader_country = scope:actor
+# 					}
+# 					not = { can_initiate_policy_votes = scope:actor }
+# 				}
+# 				custom_tooltip = {
+# 					text = non_leader_countries_cannot_initiate_resolutions
+# 					resolution_is_active = resolution:policy_vote
+# 				}
+# 			}
+# 			trigger_else = {
+# 				custom_tooltip = {
+# 					text = non_member_countries_cannot_initiate_resolutions
+# 					OR = {
+# 						resolution_is_active = resolution:policy_vote
+# 						has_member = scope:actor
+# 					}
+# 				}
+# 			}
+# 			#Has an active policy voting cooldown
+# 			trigger_if = {
+# 				limit = { policy_voting_cooldown_trigger = yes }
+# 				policy_voting_on_cooldown_trigger = no
+# 			}
+# 		}
+# 	}
+
+# 	select_trigger = {
+# 		looking_for_a = law
+# 		target_flag = target
+# 		name = "policy_vote_select_law"
+# 		none_available_msg_key = "policy_vote_no_laws"
+# 		column = {
+# 			data = name
+# 		}
+# 		visible = {
+# 			requires_vote = yes
+# 			scope:recipient = {
+# 				not = {
+# 					law_is_locked_in_international_organization = root
+# 				}
+# 				law_visible_to_international_organization = root
+# 			}
+# 		}
+# 		enabled = {
+# 			scope:recipient = {
+# 				law_enabled_to_international_organization = root
+# 			}
+# 		}
+# 	}
+
+#     # last target - this is what countries will vote on
+# 	select_trigger = {
+# 		looking_for_a = policy
+# 		source = target
+# 		target_flag = vote
+# 		#allow null so we choose either a policy or "no thank you"
+# 		allow_null = yes
+# 		name = "policy_vote_select_policy"
+# 		none_available_msg_key = "policy_vote_no_policies"
+# 		column = {
+# 			data = policy_voting
+# 		}
+# 		visible = {
+# 			scope:recipient = {
+# 				policy_visible_to_international_organization = root
+# 			}
+# 		}
+# 		enabled = {
+# 			scope:recipient = {
+# 				policy_enabled_to_international_organization = root
+# 				#if we're proposing a policy, make sure we can't propose what's already implemented
+# 				trigger_if = {
+# 					limit = {
+# 						exists = scope:actor
+# 						exists = scope:proposer
+# 						scope:actor = scope:proposer
+# 					}
+# 					not = { international_organization_has_policy = root }
+# 				}
+# 			}
+# 		}
+# 		selected = {
+# 			scope:recipient = {
+# 				international_organization_has_policy = root
+# 			}
+# 		}
+# 	}
+
+# 	effect = {
+#         scope:recipient = {
+#             apply_policy_voting_cooldown_effect = yes
+#         }
+# 	}
+	
+# 	reject_effect = {
+# 		scope:proposer = {
+# 			if = {
+# 				limit = {
+# 					exists = scope:target
+# 				}
+# 				scope:recipient = {
+# 					remove_law_from_international_organization = scope:target
+# 				}
+# 			}
+
+# 			add_prestige = prestige_extreme_penalty
+# 		}
+# 	}
+
+# 	# ai_desire is how much an AI would like this action to pass.
+# 	# It is evaluated in the scope of the AI. Proposing country is scope:actor
+# 	ai_will_do = {
+# 		#base
+# 		value = 50
+
+# 		scope:actor = {
+# 			# multiply by 1-satisfaction
+# 			multiply = {
+# 				value = estate_satisfaction:clergy_estate
+# 				multiply = -1
+# 				add = 1
+# 			}
+# 			multiply = "estate_power(estate_type:clergy_estate)"
+# 		}
+# 		#bias for the "no" vote
+#		if = {
+#			limit = {
+#				scope:vote = no
+#			}
+#			multiply = {
+#				desc = "BIAS_FOR_VOTE_AGAINST_IT"
+#				value = -1
+#			}
+#		}
+# 	}
+
+# 	# ai_proposer_risk will be multiplied by the estimated probability of rejection
+# 	ai_proposer_risk = {
+# 		value = "scope:actor.currency_utility(prestige|-20)"
+# 	}
+
+# }

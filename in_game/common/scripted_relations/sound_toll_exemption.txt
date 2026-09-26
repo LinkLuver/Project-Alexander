@@ -1,0 +1,77 @@
+﻿sound_toll_exemption =  { 
+	type = diplomacy
+	relation_type = oneway
+	break_on_war = yes
+	is_exempt_from_sound_toll = yes
+	category = {
+		offer = CATEGORY_ECONOMY_ACTIONS
+		request = CATEGORY_ECONOMY_ACTIONS
+		cancellation = CATEGORY_ECONOMY_ACTIONS
+		break = CATEGORY_ECONOMY_ACTIONS
+	}
+
+	relation_type_for_ai = friendly
+
+	visible = {
+		scope:actor = {
+			has_sound_tolls = yes
+		}
+	}
+
+	will_expire_trigger = {
+		scope:first = {
+			has_sound_tolls = no
+		}
+	}
+
+	cancel_effect = {
+		scope:recipient = {
+			add_casus_belli = { target = scope:actor type = casus_belli:cb_sound_toll_exemptions_broken }
+		}
+	}
+
+	wants_to_give = {
+
+		if = {
+			limit = {
+				scope:recipient = {
+					is_subject_of = scope:actor
+				}
+			}
+			desc = "game_concept_subject"
+			value = 1000
+		}
+		else = {	
+			add = {
+				desc = "game_concept_rival"
+				if = {
+					limit = {	
+						scope:recipient = { 
+							is_rival_of = scope:actor 
+						}
+					}
+					value = -100
+				}
+			}
+			
+			add = {
+				desc = "BASE"
+				value = -50
+			}
+
+			add = {
+				desc = "THEIR_TRUST_TOOLTIP"
+				value = "scope:recipient.trust(scope:actor)"
+			}
+
+			add = {
+				desc = "THEIR_OPINION_TOOLTIP"
+				value = "scope:recipient.opinion(scope:actor)"
+				if = {
+					limit = { "scope:recipient.opinion(scope:actor)" > 0 }
+					divide = 5
+				}
+			}
+		}		
+	}
+}	

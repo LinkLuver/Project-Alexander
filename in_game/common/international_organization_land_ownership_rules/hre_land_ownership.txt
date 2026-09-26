@@ -1,0 +1,61 @@
+﻿hre_land_ownership = {
+
+	# applied to locations that are owned by the international organization
+	modifier = {
+	}
+
+	can_add_trigger = {
+		always = yes
+	}
+	can_remove_trigger = {
+		always = yes
+	}
+
+	# root = location, recipient = international organization
+	can_add_location_trigger = {
+		is_land = yes
+		is_passable = yes
+		any_coast_border_location = {
+			is_owned_by_international_organization = scope:recipient
+		}
+		owner ?= {
+			is_member_of_international_organization = scope:recipient
+		}
+	}
+	
+	# root = location, recipient = international organization
+	can_remove_location_trigger = {
+		always = yes
+	}
+	
+	# root = location, recipient = international organization
+	on_added = {
+		scope:recipient.leader_country ?= {
+			if = {
+				limit = {
+					NOT = {
+						this = root.owner
+					}
+				}
+				add_opinion = { target = root.owner modifier = opinion_added_land_to_hre }
+			}
+		}
+	}
+	
+	# root = location, recipient = international organization
+	on_removed = {
+		owner ?= {
+			add_opinion = { target = scope:recipient.leader_country modifier = opinion_removed_land_from_hre }
+		}
+	}
+	
+	# root = location, recipient = international organization
+	ai_desire_to_add = {
+	}
+
+	owned_location_color = rgb { 155 75 190 }
+	
+	allow_control_propagation = yes
+	removed_by_peace_treaty = yes
+	remove_war_score_modifier = 0.1
+}

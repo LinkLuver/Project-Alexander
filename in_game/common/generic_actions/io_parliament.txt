@@ -1,0 +1,533 @@
+﻿call_organization_parliament = {
+	type = internationalorganization
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = diplomacy
+
+	
+	show_in_gui_list = no
+	ai_prerequisite = {
+	}
+	potential = {
+	}
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		none_available_msg_key = "call_organization_parliament_no_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			has_parliament = yes
+			modifier:has_international_parliament = yes
+		}
+		enabled = {
+			can_have_parliament_called_by = { country = scope:actor }
+			is_active_parliament = no
+			months_since_last_parliament_called > 59
+		}
+	}
+
+	select_trigger = {
+		show_if = {
+			exists = scope:recipient
+			scope:recipient = {
+				NOT = { has_variable = hre_diet_location }
+				has_land_ownership_rule = yes
+				international_organization_num_locations > 0
+				OR = {
+					"num_countries_with_special_status(special_status:free_city)" > 0
+					"num_countries_with_special_status(special_status:archbishop_elector)" > 0
+				}
+			}
+		}
+		looking_for_a = location
+		source = recipient
+		target_flag = parliament_location
+		interaction_source_list = {
+			scope:recipient = {
+				every_international_organization_owned_location = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "select_parliament_location"
+		none_available_msg_key = "call_parliament_no_locations"
+		column = { data = rank }
+		column = { data = name_no_rank }
+		column = { data = population }
+		column = { data = owner_flag }
+		visible = {
+			owner ?= {
+				OR = {
+					has_special_status_in_international_organization = {
+						international_organization = scope:recipient
+						type = special_status:free_city
+					}
+					has_special_status_in_international_organization = {
+						international_organization = scope:recipient
+						type = special_status:archbishop_elector
+					}
+				}
+			}
+			is_capital = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = parliament_issue
+		source = recipient
+		interaction_source_list = {
+			scope:recipient = {
+				every_possible_parliament_issue = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_targets = yes
+		target_flag = parliament_issue
+		name = "select_parliament_debate"
+		none_available_msg_key = "select_call_organization_parliament_none_available"
+		column = {
+			data = io_parliament_issue_widget
+		}
+		visible = {
+			is_visible_for_international_organization = scope:recipient
+			NOT = { this = parliament_issue:hre_law_debate }
+		}
+		enabled = {
+			is_allowed_for_international_organization = scope:recipient
+			is_selectable_issue_for = {
+				international_organization = scope:recipient
+				actor = scope:actor
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:recipient }
+			scope:actor = {
+				propose_parliament_issue = { international_organization = scope:recipient }
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						months_since_last_parliament_called < 72
+					}
+				}
+				value = -10000
+			}
+			
+			if = {
+				limit = {
+					scope:actor = {	
+						months_since_last_parliament_called > 120
+					}
+				}
+				value = 500
+			}
+		}
+
+		scope:actor = {
+			if = {
+				limit = {
+					exists = scope:parliament_issue
+				}
+				add = "parliament_issue_chance(scope:parliament_issue)"
+			}
+		}
+
+		multiply = {
+			scope:parliament_location = {
+				if = { 
+					limit = {
+						scope:actor = {
+							capital = scope:parliament_location
+							modifier:can_call_rural_parliaments = no
+						}
+					}
+					value = 30
+				}
+				else = {
+					value = proximity # proximity goes from 0 to 100
+					add = {
+						value = local_control # control goes from 0 to 1
+						multiply = 10
+					}
+					add = {
+						value = scope:actor.societal_value:centralization_vs_decentralization
+						multiply = 0.1
+					}
+
+					add = {
+						value = random_integer
+						modulo = 10
+					}
+				}
+
+				if = {
+					limit = { location_rank = location_rank:town }
+					add = 2
+				}
+				else_if = {
+					limit = { OR = { location_rank = location_rank:city  location_rank = location_rank:megalopolis } }
+					add = 10
+				}
+
+				add = {
+					value = modifier:fort_level
+					multiply = 2
+				}
+			}
+		}
+	}
+}
+
+change_organization_parliament_type = {
+	icon = call_parliament
+	type = internationalorganization
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = diplomacy
+
+	
+	
+	show_in_gui_list = no
+	ai_prerequisite = {
+	}
+	potential = {
+	}
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			has_parliament = yes
+		}
+		enabled = {
+			trigger_if = {
+				limit = { international_organization_type = international_organization_type:union }
+				country_has_special_status = {
+					type = special_status:senior_partner
+					country = scope:actor
+				}
+			}
+			trigger_else = {
+				leader_country ?= scope:actor
+			}
+			is_active_parliament = no
+			OR = {
+				NOT = { exists = parliament_type }
+				parliament_type ?= {
+					NOT = { is_locked_for_international_organization = prev }
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = parliament_type
+		source = actor
+		target_flag = parliament_type
+		name = "select_parliament_type"
+		none_available_msg_key = "change_parliament_type_no_types"
+		column = {
+			data = parliament_type_widget
+		}
+		
+		visible = {
+			is_visible_for_international_organization = scope:recipient
+		}
+
+		enabled = {
+			is_available_for_international_organization = scope:recipient
+		}
+	}
+
+	effect = {
+		scope:recipient = {
+			if = {
+				limit = { exists = scope:parliament_type }
+				set_parliament_type = scope:parliament_type
+			}
+		}
+	}
+	ai_will_do = {
+		#Base
+		scope:actor = {
+			add = "parliament_type_utility(scope:parliament_type|yes)"
+		}
+	}
+}
+
+vote_in_organization_parliament = {
+	icon = call_parliament
+	type = internationalorganization	
+	ai_tick = monthly
+	ai_tick_frequency = 3
+	automation_tick = monthly
+	automation_tick_frequency = 3
+	player_automated_category = diplomacy	
+	show_in_gui_list = no
+	show_message = no
+	ai_prerequisite = {
+	}
+	potential = {
+	}
+	allow = {
+	}
+	cooldown = {
+		type = vote_in_organization_parliament 
+		months = 1 
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		none_available_msg_key = "vote_in_organization_parliament_no_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			has_parliament = yes
+			modifier:has_international_parliament = yes
+			is_active_parliament = yes
+			NOT = { international_organization_type = international_organization_type:union }
+		}
+		enabled = {
+			scope:actor = {
+				NOT = { has_proposed_parliament_issue_in = { international_organization = root } }
+				can_vote_in_parliament = root
+				NOT = { is_leader_of_international_organization = scope:recipient }
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = boolean
+		target_flag = vote
+		name = "select_vote"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+		enabled = {
+		}
+	}
+	effect = {
+		if = {
+			limit = {
+				exists = scope:vote
+				exists = scope:recipient
+				exists = scope:actor
+			}
+			if = {
+				limit = {
+					scope:recipient = {
+						has_variable = io_law_target
+						has_variable = io_current_law
+						parliament_issue = parliament_issue:hre_law_debate
+					}
+				}
+
+				if = {
+					limit = {
+						scope:actor = {
+							is_ai = yes
+						}
+					}
+					scope:recipient = {
+						save_temporary_scope_value_as = {
+							name = vote_for_new_law_bias
+							value = {
+								value = "ai_issue_voting_bias(scope:actor|scope:recipient|scope:recipient.var:io_law_target)"
+								add = "scope:recipient.var:io_law_target.ai_policy_resolution_vote_bias(scope:actor|scope:recipient)"
+							}
+						}
+						save_temporary_scope_value_as = {
+							name = keep_current_law_bias
+							value = "scope:recipient.var:io_current_law.ai_policy_resolution_keep_bias(scope:actor|scope:recipient)"
+						}
+						if = {
+							limit = {
+								scope:vote_for_new_law_bias > scope:keep_current_law_bias
+							}
+							set_vote = {
+								voter = scope:actor
+								resolution = resolution:policy_vote
+								vote = var:io_law_target
+							}
+						}
+						else = {
+							set_vote = {
+								voter = scope:actor
+								resolution = resolution:policy_vote
+								vote = var:io_current_law
+							}
+						}
+					}
+				}
+				else = {
+					scope:recipient = {
+						if = {
+							limit = { scope:vote = yes }
+							set_vote = {
+								voter = scope:actor
+								resolution = resolution:policy_vote
+								vote = var:io_law_target
+							}
+						}
+						else = {
+							set_vote = {
+								voter = scope:actor
+								resolution = resolution:policy_vote
+								vote = var:io_current_law
+							}
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					scope:actor = {
+						is_ai = yes
+						NOT = { has_participated_in_parliament = scope:recipient }
+					}
+				}
+				#specific for the AI so they get assigned to one of the two columns
+				if = {
+					limit = {
+						"scope:recipient.parliament_issue.ai_parliament_issue_resolution_vote_bias(scope:actor|scope:recipient)" > 0
+					}
+					scope:actor = {
+						participate_in_parliament = {
+							international_organization = scope:recipient
+							vote = yes
+						}
+					}
+				}
+				else = {
+					scope:actor = {
+						participate_in_parliament = {
+							international_organization = scope:recipient
+							vote = no
+						}
+					}
+				}
+			}
+			else = {
+				scope:actor = {
+					participate_in_parliament = {
+						international_organization = scope:recipient
+						vote = scope:vote
+					}
+				}
+			}
+		}
+		else = {
+			custom_tooltip = vote_in_organization_parliament_tt
+		}
+	}
+	ai_will_do = {
+		if = {
+			limit = {
+				exists = scope:recipient
+				scope:actor = { NOT = { has_participated_in_parliament = scope:recipient } }
+			}
+			add = {
+				desc = "IO_BIAS"
+				value = 10000	#we should cast ANY vote at least ..
+			}
+		}
+		else_if = {
+			limit = {
+				exists = scope:recipient
+				scope:recipient = {
+					NOT = { resolution_is_active = resolution:policy_vote }	#AI voting behavior for that is already covered in policy_vote
+					exists = parliament_issue
+				}
+				exists = scope:vote
+				scope:actor = {
+					NOT = { has_been_influenced_by_parliament_agenda = scope:recipient }
+				}
+			}
+			#add on voting bias from the international organization
+			if = {
+				limit = {
+					scope:vote = yes
+					scope:actor = {
+						has_special_status_in_international_organization = {
+							international_organization = scope:recipient
+							type = scope:recipient.parliament_issue.special_status
+						}
+					}
+				}
+				add = {
+					desc = "SPECIAL_STATUS_BIAS"
+					value = 1000	#It's our issue!
+				}
+			}
+			if = {
+				limit = {
+					scope:vote = yes
+				}
+				add = {
+					desc = "IO_PARLIAMENT_ISSUE_BIAS"
+					value = "scope:recipient.parliament_issue.ai_parliament_issue_resolution_vote_bias(scope:actor|scope:recipient)"
+				}
+			}
+			else = {
+				add = {
+					desc = "IO_PARLIAMENT_ISSUE_BIAS"
+					value = {
+						value = "scope:recipient.parliament_issue.ai_parliament_issue_resolution_vote_bias(scope:actor|scope:recipient)"
+						multiply = -1
+					}
+				}
+			}
+			if = {
+				limit = {
+					scope:recipient = {
+						uses_parliament_for_law_votes_trigger = yes
+						resolution_is_active = resolution:policy_vote
+					}
+				}
+				multiply = 0	#AI should NOT use this button when it is about voting for the laws
+			}
+		}
+		else = {
+			add = {
+				desc = "IO_BIAS"
+				value = 0
+			}
+		}
+	}
+}

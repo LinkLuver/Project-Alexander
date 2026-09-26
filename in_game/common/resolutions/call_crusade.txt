@@ -1,0 +1,234 @@
+﻿call_crusade = {
+
+	international_organization_type = catholic_church
+
+	potential = {
+		crusade_potential_trigger = yes
+		papacy_active = yes
+	}
+
+	allow = {
+		scope:actor ?= {
+			is_member_of_international_organization = international_organization:catholic_church
+		}
+		crusade_allow_trigger = yes
+		religion:catholic = {
+			modifier:curia_actions_blocked = no
+		}
+		current_papal_authority = { value = 50 }
+		international_organization:catholic_church = {
+			OR = {
+				scope:actor = { is_subject = no }
+				resolution_is_active = resolution:call_crusade
+			}
+		}
+		scope:actor = {
+			has_regent = no
+		}
+	}
+
+	can_vote = {
+		international_organization:catholic_church = {
+			country_has_special_status = {
+				type = special_status:curia
+				country = scope:actor
+			}
+		}
+	}
+	
+	votes = {
+		add = {
+			desc = "[cardinal_s|e]"
+			value = scope:actor.num_cardinals
+		}
+	}
+
+	proposal_price = price:propose_curia_action
+
+	months = 6
+
+	cooldown = {
+		type = recently_called_crusade
+		years = 10
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:catholic_church
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target
+		name = "crusade_select_country"
+		none_available_msg_key = "call_crusade_no_countries"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			is_valid_target_for_crusade = yes
+			OR = {
+				#Needs this OR because a ?= returns a no but actor can be null
+				NOT = { exists = scope:actor }
+				scope:actor ?= {
+					not = { is_at_war_with = root }
+					not = { has_truce_with = root }
+					not = { is_allied_with = { target = root } }
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = boolean
+		target_flag = vote
+		name = "select_vote"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+		enabled = {
+			trigger_if = {
+				limit = {
+					root = no
+				}
+				#can't select "no" when proposing something
+				scope:recipient = {
+					resolution_is_active = resolution:call_crusade
+				}
+			}
+			trigger_else = {
+				always = yes
+			}
+		}
+	}
+
+	vote_effect = {
+		if = {
+			limit = {
+				scope:vote = yes
+			}
+			add_to_global_variable_list = {
+				name = pope_crusaders
+				target = this
+			}
+		}
+		else = {
+			remove_list_global_variable = {
+				name = pope_crusaders
+				target = this
+			}
+		}
+	}
+
+	abstain_effect = {
+		remove_list_global_variable = {
+			name = pope_crusaders
+			target = this
+		}
+	}
+
+	effect = {
+		scope:proposer = {
+			crusade_effect = { target = scope:target }
+		}
+
+		clear_global_variable_list = pope_crusaders
+	}
+	
+	reject_effect = {
+		scope:proposer = {
+			add_prestige = prestige_extreme_penalty
+		}
+
+		clear_global_variable_list = pope_crusaders
+	}
+
+	ai_will_do = {
+		scope:proposer ?= {
+			#We want to be at least somewhat strong enough to fight ourselves
+			
+			if = {
+				limit = {
+					at_war = yes
+				}
+				subtract = {
+					desc = "AT_WAR_TRIGGER"
+					value = 100
+				}
+			}
+		}
+		scope:actor = {
+			if = {
+				limit = {
+					is_at_war_with = scope:target
+				}
+				add = {
+					desc = "IS_AT_WAR"
+					value = 20
+				}
+			}
+			if = {
+				limit = {
+					is_fighting_war_together_with = scope:target
+				}
+				add = {
+					desc = "IS_AT_WAR"
+					value = -20
+				}
+			}
+			add = {
+				desc = "OPINION_OF_TARGET"
+				value = "opinion(scope:target)"
+				multiply = -0.1
+			}
+			if = {
+				limit = {
+					scope:actor != scope:proposer
+				}
+				add = {
+					desc = "game_concept_opinion"
+					value = "opinion(scope:proposer)"
+					multiply = 0.2
+				}
+			}
+			add = {
+				desc = "RELATIVE_STRENGTH_OF_ACTOR_TO_TARGET"
+				value = "relative_strength(scope:target)"
+				add = -0.60
+				multiply = 200
+			}	
+		}
+		#bias for the "no" vote, but only for votes, not for proposals.
+		if = {
+			limit = {
+				exists = scope:proposer
+			}
+			if = {
+				limit = {
+					scope:vote = no
+				}
+				multiply = {
+					desc = "BIAS_FOR_VOTE_AGAINST_IT"
+					value = -1
+				}
+			}
+		}
+	}
+	ai_proposer_risk = {
+		value = "scope:actor.currency_utility(prestige|-20)"
+	}
+}

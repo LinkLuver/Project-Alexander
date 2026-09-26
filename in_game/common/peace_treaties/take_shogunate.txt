@@ -1,0 +1,95 @@
+﻿peace_take_shogunate = {
+	
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 5
+		}
+		add = {
+			desc = "game_concept_population"
+			value = scope:loser.total_population
+			multiply = 0.009
+		}
+	}
+
+	potential = {
+		scope:war = {
+			casus_belli ?= casus_belli:cb_take_shogunate
+		}
+		scope:winner = {
+		 	is_japanese_emperor_or_shogun = no
+		}
+		international_organization:japanese_shogunate = { leader_country = scope:loser }
+	}
+	
+	allow = {
+		scope:winner = {
+			has_regent = no
+			ruler ?= {
+				has_character_modifier = allowed_shogun_title
+			}
+		}
+	}
+
+	effect = {
+		scope:loser = {
+			if = {
+				limit = { has_reform = government_reform:shogunate }
+				remove_reform = government_reform:shogunate
+			}
+			if = {
+				limit = { country_type = building }
+				add_reform = government_reform:japanese_clan
+			}
+			if = {
+				limit = { country_type = location }
+				add_reform = government_reform:daimyo
+			}
+			if = {
+				limit = { country_rank = country_rank:rank_empire }
+				set_country_rank = country_rank:rank_kingdom
+			}
+		}
+		scope:winner = {
+			every_international_organizations_member_of = {
+				limit = { international_organization_type = international_organization_type:japanese_shogunate }
+				set_leader_country = scope:winner
+			}
+			if = {
+				limit = { has_reform = government_reform:japanese_clan }
+				remove_reform = government_reform:japanese_clan
+			}
+			if = {
+				limit = { has_reform = government_reform:daimyo }
+				remove_reform = government_reform:daimyo
+			}
+			add_reform = government_reform:shogunate
+			set_country_rank = country_rank:rank_empire
+		}
+	}
+
+	ai_desire = {
+		if = {
+			limit = {
+				scope:winner = {
+					is_rival_of = scope:loser
+				}
+			}
+			add = {
+				desc = "game_concept_rival"
+				value = 10
+			}
+		}
+		if = {
+			limit = {
+				scope:winner.prestige < scope:loser.prestige
+			}
+			add = {
+				desc = "DIPLOREASON_LOWER_PRESTIGE"
+				value = scope:loser.prestige
+				subtract = scope:winner.prestige
+			}
+		}
+	}
+}
+

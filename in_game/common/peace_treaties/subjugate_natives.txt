@@ -1,0 +1,88 @@
+﻿subjugate_natives = {
+	potential = {
+		scope:war = {
+			or = {
+				has_casus_belli = no
+				casus_belli = {
+					is_trade_cb = no
+				}
+			}
+		}
+		scope:winner = {
+			OR = {
+                country_type = location
+                country_type = army
+            }
+		}
+        scope:loser = {
+            country_type = pop
+        }
+	}
+
+    allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = province_definition
+		source = recipient
+        target_flag = target
+        visible = {
+            scope:recipient = {
+                any_owned_nomad_pop = {
+                    location.province_definition = root
+                }
+            }
+        }
+    }
+
+    cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 10
+		}
+		add = {
+			desc = "game_concept_development"
+			value = {
+                scope:target = {
+                    every_location_in_province_definition = {
+                        add = this.development
+                    }
+                }
+            }
+			multiply = 0.1
+		}
+		if = {
+			limit = {
+				scope:loser = {
+					OR = {
+						country_type = pop
+						government_type = government_type:tribe
+					}
+				}
+			}
+			multiply = 0.5
+		}
+	}
+	
+	base_antagonism = 1
+	antagonism_type = antagonism_subjugate_natives
+
+	effect = {
+		#transfer ownership of all pops in the province
+        scope:target = {
+            every_location_in_province_definition = {
+                every_pop = {
+                    limit = {
+                        owner ?= scope:loser
+                    }
+                    change_pop_owner = scope:winner
+                }
+            }
+        }
+	}
+
+	ai_desire = {
+		
+	}
+}
+

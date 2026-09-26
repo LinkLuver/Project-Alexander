@@ -1,0 +1,98 @@
+﻿assign_despot = {
+	message = yes
+	on_own_nation = yes
+
+	potential = {
+		scope:actor = {
+			has_or_had_tag = BYZ
+			has_dlc = "d008_fate_of_the_phoenix"
+		}
+	} 
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:assign_despot_price
+
+	allow = {
+		scope:actor = {
+			has_ruler = yes
+			ruler ?= { has_dynasty = yes }
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = recipient
+		name = "choose_character"
+		column = {
+			data = name
+		}
+		visible = {
+			is_alive = yes
+			is_female = no
+			NOT = { has_character_modifier = despot_modifier }
+			has_dynasty = yes
+			is_ruler = no
+		}
+		enabled = {
+			is_adult = yes
+			dynasty ?= scope:actor.ruler.dynasty
+		}
+	}
+
+	effect = {
+        scope:recipient = {
+            add_character_modifier = {
+                mode = add_and_extend
+                modifier = despot_modifier
+                years = -1
+            }
+        }
+	}
+
+   ai_will_do = {
+		add = {
+			value = scope:recipient.total_abilities
+			subtract = 250
+		}
+
+		add = {
+			value = scope:actor.estate_satisfaction:nobles_estate
+			# remap to -1 to 0
+			subtract = 1
+
+			# intensity
+			multiply = 50
+		}
+
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						OR = {
+							is_general = yes
+							is_admiral = yes
+						}
+					}
+				}
+				value = 30
+			}
+		}
+
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						OR = {
+							has_trait_category = general
+							has_trait_category = admiral
+						}
+					}
+				}
+				value = 30
+			}
+		}
+    }
+}

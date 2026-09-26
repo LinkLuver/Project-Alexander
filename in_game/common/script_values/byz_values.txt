@@ -1,0 +1,130 @@
+﻿# Byzantine societal value script values
+# Used by auto_modifiers/byzantium.txt to scale the latinization/hellenization rates.
+
+# Count of romance-language countries with merchants in the capital market.
+byz_romance_traders_count = {
+	capital ?= {
+		market ?= {
+			every_merchant_in_market = {
+				limit = {
+					NOT = { this = root }
+					culture ?= {
+						language ?= {
+							language_family ?= { this = language_family:romance_language_family }
+						}
+					}
+				}
+				root = { add = 1 }
+			}
+		}
+	}
+}
+
+# Count of greek-language countries with merchants in the capital market.
+byz_greek_traders_count = {
+	capital ?= {
+		market ?= {
+			every_merchant_in_market = {
+				limit = {
+					NOT = { this = root }
+					culture ?= {
+						language ?= { this = language:greek_language }
+					}
+				}
+				root = { add = 1 }
+			}
+		}
+	}
+}
+
+# Total population across all owned locations (used as denominator for ratio calculations).
+byz_total_population = {
+	every_owned_location = {
+		add = population
+	}
+}
+
+# Fraction (0–1) of owned population living under a romance dominant language.
+byz_romance_population = {
+	every_owned_location = {
+		limit = {
+			dominant_language ?= {
+				language_family ?= { this = language_family:romance_language_family }
+			}
+		}
+		add = population
+	}
+	divide = {
+		value = byz_total_population
+		min = 1
+	}
+}
+
+# Fraction (0–1) of owned population living under a greek dominant language.
+byz_greek_population = {
+	every_owned_location = {
+		limit = {
+			dominant_language ?= { this = language:greek_language }
+		}
+		add = population
+	}
+	divide = {
+		value = byz_total_population
+		min = 1
+	}
+}
+
+# Count of diplomatic capacity used by romance-language countries
+# (subjects + alliances + royal marriages).
+byz_romance_diplo_count = {
+	every_subject = {
+		limit = {
+			culture ?= {
+				language ?= {
+					language_family ?= { this = language_family:romance_language_family }
+				}
+			}
+		}
+		root = { add = 1 }
+	}
+	every_known_country = {
+		limit = {
+			NOT = { is_subject_of = root }
+			OR = {
+				is_allied_with = { target = root }
+				has_royal_marriage_with = root
+			}
+			culture ?= {
+				language ?= {
+					language_family ?= { this = language_family:romance_language_family }
+				}
+			}
+		}
+		root = { add = 1 }
+	}
+}
+
+# Count of diplomatic capacity used by greek-language countries.
+byz_greek_diplo_count = {
+	every_subject = {
+		limit = {
+			culture ?= {
+				language ?= { this = language:greek_language }
+			}
+		}
+		root = { add = 1 }
+	}
+	every_known_country = {
+		limit = {
+			NOT = { is_subject_of = root }
+			OR = {
+				is_allied_with = { target = root }
+				has_royal_marriage_with = root
+			}
+			culture ?= {
+				language ?= { this = language:greek_language }
+			}
+		}
+		root = { add = 1 }
+	}
+}

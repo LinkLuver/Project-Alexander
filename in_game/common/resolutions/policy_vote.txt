@@ -1,0 +1,917 @@
+﻿policy_vote =
+{
+	#special hardcoded
+	potential = {
+	}
+
+	allow = {
+	}
+
+	days = 365
+	ai_tick = daily
+
+	#price when enacted
+	proposal_price = price:policy_vote
+	price = {
+		if = {
+			limit = {
+				exists = scope:vote
+			}
+			scope:vote = {
+				value = price
+			}
+		}
+	}
+
+	requires_vote = {
+		always = yes
+	}
+
+	total_votes_needed = {
+		if = {
+			limit = {
+				scope:recipient = {
+					modifier:policy_vote_required_vote_ratio > 0
+					modifier:policy_vote_required_vote_ratio < 1
+				}
+			}
+			add = {
+				value = scope:total_votes_available
+				multiply = scope:recipient.modifier:policy_vote_required_vote_ratio
+			}
+		}
+		else = {
+			add = {
+				value = scope:total_votes_available
+				divide = 2
+			}
+		}
+	}
+	 
+	select_trigger = {
+		top_widget = law_card_header_at_io_policy_select
+		looking_for_a = international_organization
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+		enabled = {
+			trigger_if = {
+				limit = {
+					is_proposal = { international_organization = scope:recipient resolution = resolution:policy_vote }
+				}
+				#proposal check
+				can_initiate_policy_votes = scope:actor
+			}
+			trigger_else_if = {
+				limit = {
+					is_vote = { international_organization = scope:recipient resolution = resolution:policy_vote }
+				}
+				#vote check
+				OR = {
+					can_initiate_policy_votes = scope:actor
+					has_member = scope:actor
+				}
+			}
+			trigger_else = {
+				#finalising check
+				hidden_trigger = { always = yes }
+			}
+
+
+			#Has an active policy voting cooldown
+			trigger_if = {
+				limit = { modifier:policy_vote_delay > 0 }
+				NOT = { has_cooldown = io_policy_vote_active_cooldown }
+			}
+			#If parliament is used, do not start a law debate while the parliament issue is ongoing
+			trigger_if = {
+				limit = { uses_parliament_for_law_votes_trigger = yes }
+				OR = {
+					has_ongoing_parliament_debate = no
+					parliament_issue ?= parliament_issue:hre_law_debate
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		top_widget = law_card_header_at_io_policy_select
+		looking_for_a = law
+		target_flag = target	#hardcoded
+		name = "policy_vote_select_law"
+		none_available_msg_key = "policy_vote_no_laws"
+		column = {
+			data = name
+		}
+		visible = {
+			requires_vote = yes
+			scope:recipient = {
+				law_visible_to_international_organization = root
+			}
+		}
+		enabled = {
+			scope:recipient ?= {
+				trigger_if = {
+					limit = {
+						international_organization_has_leader = yes
+					}
+
+					trigger_if = {
+						limit = {
+							is_proposal = { international_organization = scope:recipient resolution = resolution:policy_vote }
+						}
+						#proposal check
+						OR = {
+							leader_country = scope:actor
+							root = { law_can_be_initiated_by_members = yes }
+						}
+					}
+					trigger_else_if = {
+						limit = {
+							is_vote = { international_organization = scope:recipient resolution = resolution:policy_vote }
+						}
+						#vote check
+						or = {
+							#for predictions
+							not = { resolution_is_active = resolution:policy_vote }
+							#for actual votes
+							"active_resolution(resolution:policy_vote)" ?= {
+								"resolution_target(target)" ?= root
+							}
+						}
+					}
+					trigger_else = {
+						#finalising check
+						hidden_trigger = { always = yes }
+					}
+				}
+				trigger_else_if = {
+					limit = {
+						international_organization_type = international_organization_type:union
+						international_organization_has_policy = policy:union_establish_seniority_policy
+					}
+
+					trigger_if = {
+						limit = {
+							is_proposal = { international_organization = scope:recipient resolution = resolution:policy_vote }
+						}
+						#proposal check
+						OR = {
+							country_has_special_status = {
+								type = special_status:senior_partner
+								country = scope:actor
+							}
+							root = { law_can_be_initiated_by_members = yes }
+						}
+					}
+					trigger_else_if = {
+						limit = {
+							is_vote = { international_organization = scope:recipient resolution = resolution:policy_vote }
+						}
+						#vote check
+						or = {
+							#for predictions
+							not = { resolution_is_active = resolution:policy_vote }
+							#for actual votes
+							"active_resolution(resolution:policy_vote)" ?= {
+								"resolution_target(target)" ?= root
+							}
+						}
+					}
+					trigger_else = {
+						#finalising check
+						hidden_trigger = { always = yes }
+					}
+				}
+				trigger_else = {
+					trigger_if = {
+						limit = {
+							is_proposal = { international_organization = scope:recipient resolution = resolution:policy_vote }
+						}
+						#proposal check
+						always = yes
+					}
+					trigger_else_if = {
+						limit = {
+							is_vote = { international_organization = scope:recipient resolution = resolution:policy_vote }
+						}
+						#vote check
+						or = {
+							#for predictions
+							not = { resolution_is_active = resolution:policy_vote }
+							#for actual votes
+							"active_resolution(resolution:policy_vote)" ?= {
+								"resolution_target(target)" ?= root
+							}
+						}
+					}
+					trigger_else = {
+						#finalising check
+						hidden_trigger = { always = yes }
+					}
+				}
+				trigger_if = {
+					limit = {
+						root = { NOT = { has_tag = no_ai_propose_cd } }
+						is_proposal = { international_organization = scope:recipient resolution = resolution:policy_vote }
+						scope:actor = {
+							is_ai = yes
+						}
+					}
+					NOT = {
+						is_target_in_variable_list = {
+							name = law_debate_cooldowns
+							target = root
+						}
+					}
+				}
+			}
+
+			scope:recipient = {
+				not = { law_is_locked_in_international_organization = root }
+				trigger_if = {
+					limit = { NOT = { resolution_is_active = resolution:policy_vote } }
+					law_enabled_to_international_organization = root
+				}
+			}
+			
+			trigger_if = {
+				limit = {
+					scope:recipient = {
+						has_variable = sc_blocked_votes_on_non_religious_policies
+					}
+				}
+				custom_tooltip = {
+					text = sc_block_votes_on_non_religious_policies_tt
+					root = law:sc_religious_affairs
+				}
+			}
+		}
+	}
+	
+	#last target - this is what countries will vote on
+	select_trigger = {
+		top_widget = law_card_header_at_io_policy_select
+		looking_for_a = policy
+		source = target	#hardcoded
+		target_flag = vote
+		#allow null so we choose either a policy or "no thank you"
+		allow_null = {
+			scope:target = {
+				NOT = { has_tag = forbids_no_policy }
+			}
+		}
+		name = "policy_vote_select_policy"
+		none_available_msg_key = "policy_vote_no_policies"
+		column = {
+			data = policy_voting
+		}
+		visible = {
+			scope:recipient ?= {
+				policy_visible_to_international_organization = root
+			}
+		}
+		enabled = {
+			law ?= scope:target
+			scope:recipient = {
+				trigger_if = {
+					limit = {
+						NOT = {
+							resolution_is_active = resolution:policy_vote
+						}
+					}
+					policy_enabled_to_international_organization = root
+				}
+				#if we're proposing a policy, make sure we can't propose what's already implemented
+				custom_tooltip = {
+					text = policy_vote_select_policy_at
+					trigger_if = {
+						limit = {
+							exists = scope:actor
+							exists = scope:proposer
+							scope:actor = scope:proposer
+							NOT = {
+								resolution_is_active = resolution:policy_vote
+							}
+						}
+						not = { international_organization_has_policy = root }
+					}
+				}
+				#if the IO does not allow multiple policy options, only make the current and the proposed policies available
+				custom_tooltip = {
+					text = policy_vote_select_policy_ct
+					trigger_if = {
+						limit = {
+							modifier:forbid_multiple_policies_vote = yes
+							exists = scope:actor
+							exists = scope:proposer
+							scope:actor != scope:proposer
+						}
+						OR = {
+							international_organization_has_policy = root
+							AND = {
+								not = { resolution_is_active = resolution:policy_vote }
+								OR = {
+									not = { exists = scope:previewed_vote }
+									scope:previewed_vote = root
+									international_organization_has_policy = scope:previewed_vote
+								}
+							}
+							AND = {
+								has_variable = io_law_target
+								var:io_law_target = root
+							}
+						}
+					}
+				}
+			}
+		}
+		selected = {
+			scope:recipient = {
+				international_organization_has_policy = root
+			}
+		}
+	}
+	propose_effect = {
+		hidden_effect = {
+			council_of_trent_proposal_effect = yes
+			call_parliament_for_law_change = yes
+			if = {
+				limit = { exists = scope:recipient }
+				scope:recipient = {
+					if = {
+						limit = { exists = scope:vote }
+						set_variable = {
+							name = io_law_target
+							value = scope:vote
+						}
+						set_variable = {
+							name = ai_io_law_target
+							value = scope:vote
+						}
+					}
+					if = {
+						limit = {
+							international_organization_has_law = scope:target
+							scope:target = {
+								any_policy_in_law = {
+									scope:recipient = { international_organization_has_policy = prev }
+								}
+							}
+						}
+						scope:target = {
+							random_policy_in_law = {
+								limit = { scope:recipient = { international_organization_has_policy = prev } }
+								save_scope_as = current_policy
+								scope:recipient = {
+									set_variable = {
+										name = io_current_law
+										value = scope:current_policy
+									}
+								}
+							}
+						}
+					}
+					else = {
+						scope:recipient = {
+							remove_variable = io_current_law
+						}
+					}
+					if = {
+						limit = { exists = scope:proposer }
+						set_variable = {
+							name = io_law_proposer
+							value = scope:proposer
+						}
+					}
+				}
+			}
+			if = {
+				limit = {
+					exists = scope:vote
+					exists = scope:proposer
+					exists = scope:recipient
+				}
+				execute_propose_effect = {
+					source = scope:vote
+					actor = scope:proposer
+					recipient = scope:recipient
+				}
+			}
+
+			#Law-specific rejection cooldowns
+			if = {
+				limit = {
+					exists = scope:recipient
+					exists = scope:target
+					scope:target = { NOT = { has_tag = no_ai_propose_cd } }
+				}
+				scope:recipient = {
+					add_to_variable_list = {
+						name = law_debate_cooldowns
+						target = scope:target
+						years = 20
+					}
+				}
+			}
+		}
+	}
+	effect = {
+		if = {
+			limit = { exists = scope:recipient }
+			if = {
+				limit = { scope:recipient = { international_organization_type = international_organization_type:union } }
+				scope:recipient = {
+					hidden_effect = { remove_variable = ai_io_law_target }
+					if = {
+						limit = {
+							exists = scope:vote
+							has_variable = io_current_law
+							var:io_current_law = scope:vote
+						}
+						apply_pu_estate_satisfaction_hit = {
+							target = supporters
+							value = estate_satisfaction_severe_penalty
+						}
+					}
+					else_if = {
+						limit = {
+							exists = scope:vote
+							has_variable = io_current_law
+						}
+						apply_pu_estate_satisfaction_hit = {
+							target = opponents
+							value = estate_satisfaction_severe_penalty
+						}
+					}
+					else = {
+						custom_tooltip = apply_pu_estate_satisfaction_hit_tt
+					}
+				}
+			}
+			if = {
+				limit = { exists = scope:vote }
+				scope:recipient = {
+					add_policy_to_international_organization = scope:vote
+					apply_policy_voting_cooldown_effect = yes
+					hidden_effect = {
+						pay_policy_price_effect = scope:vote
+					}
+				}
+			}
+			hidden_effect = {
+				scope:recipient = {
+					if = {
+						limit = {
+							uses_parliament_for_law_votes_trigger = yes
+							has_ongoing_parliament_debate = yes
+						}
+						end_parliament = yes
+					}
+				}
+				#Catholic Church vote
+				council_of_trent_pass_effect = yes
+			}
+		}
+		else = {
+			custom_tooltip = policy_vote_tt
+		}
+		#Special ai cooldown so they don't spam it
+		if = {
+			limit = {
+				exists = scope:recipient
+				exists = scope:target
+			}
+			hidden_effect = {
+				scope:recipient = {
+					add_to_variable_list = {
+						name = ai_law_vote_cooldowns
+						target = scope:target
+						years = 20
+					}
+				}
+			}
+		}
+	}
+	reject_effect = {
+		if = {
+			limit = {
+				exists = scope:target
+				scope:target = { NOT = { has_tag = forbids_no_policy } }
+			}
+			scope:recipient = {
+				remove_law_from_international_organization = scope:target
+			}
+		}
+		if = {
+			limit = { scope:recipient = { international_organization_type = international_organization_type:union } }
+			scope:recipient = {
+				apply_pu_estate_satisfaction_hit = {
+					target = supporters
+					value = estate_satisfaction_severe_penalty
+				}
+			}
+		}
+		hidden_effect = {
+			scope:recipient = {
+				remove_variable = ai_io_law_target
+				if = {
+					limit = {
+						uses_parliament_for_law_votes_trigger = yes
+						has_ongoing_parliament_debate = yes
+					}
+					end_parliament = no
+				}
+			}
+			#Catholic Church vote
+			council_of_trent_reject_effect = yes
+		}
+		#Special ai cooldown so they don't spam it
+		if = {
+			limit = {
+				exists = scope:recipient
+				exists = scope:target
+			}
+			hidden_effect = {
+				scope:recipient = {
+					add_to_variable_list = {
+						name = ai_law_vote_cooldowns
+						target = scope:target
+						years = 20
+					}
+				}
+			}
+		}
+	}
+	vote_effect = {
+		if = {
+			limit = { exists = scope:actor }
+			if = {
+				limit = { scope:actor = { NOT = { has_variable = dont_trigger_vote_effect } } }
+				if = {
+					limit = { exists = scope:recipient }
+					scope:actor = { set_variable = dont_trigger_vote_effect }
+					council_of_trent_vote_effect = yes
+				}
+			}
+			else = {
+				scope:actor = { remove_variable = dont_trigger_vote_effect }
+			}
+			scope:recipient = {
+				if = {
+					limit = {
+						uses_parliament_for_law_votes_trigger = yes
+						has_ongoing_parliament_debate = yes
+					}
+					recalculate_parliament_vote_for_law_change = yes
+				}
+			}
+			scope:actor = {
+				if = {
+					limit = { exists = scope:vote }
+					if = {
+						limit = { scope:vote = policy:revoke_privilegia_policy }
+						set_variable = voted_for_privilegia
+					}
+					else = {
+						remove_variable = voted_for_privilegia
+					}
+				}
+			}
+		}
+	}
+	abstain_effect = {
+		if = {
+			limit = { country_exists = scope:actor }
+			if = {
+				limit = { scope:actor = { NOT = { has_variable = dont_trigger_abstain_effect } } }
+				if = {
+					limit = { exists = scope:recipient }
+					scope:actor = { set_variable = dont_trigger_abstain_effect }
+					council_of_trent_abstain_effect = yes
+				}
+			}
+			else = {
+				scope:actor = { remove_variable = dont_trigger_abstain_effect }
+			}
+			if = {
+				limit = { exists = scope:recipient  }
+				scope:recipient = {
+					if = {
+						limit = {
+							uses_parliament_for_law_votes_trigger = yes
+							has_ongoing_parliament_debate = yes
+						}
+						recalculate_parliament_vote_for_law_change = yes
+					}
+				}
+			}
+			scope:actor = {
+				remove_variable = voted_for_privilegia
+			}
+		}
+	}
+
+	can_vote = {
+		trigger_if = {
+			limit = {
+				situation:council_of_trent = {
+					situation_is_active = no
+				}
+				exists = scope:recipient
+				scope:recipient = international_organization:catholic_church
+			}
+			scope:actor = {
+				num_cardinals > 0
+			}
+		}
+		trigger_else_if = {
+			limit = {
+				situation:council_of_trent = {
+					situation_is_active = yes
+				}
+				exists = scope:recipient
+				scope:recipient = international_organization:catholic_church
+			}
+			scope:actor = {
+				is_member_of_international_organization = international_organization:catholic_church
+			}
+		}
+		trigger_else_if = {
+			limit = {
+				exists = scope:recipient
+				scope:recipient = {
+					uses_parliament_for_law_votes_trigger = yes
+				}
+			}
+			scope:actor = {
+				"country_combined_special_status_power(scope:recipient)" > 0
+			}
+		}
+		trigger_else_if = {
+			#Italian League Sponsors finance the League but are exempt from its offensive wars, so they hold no vote on its laws (eg Mutual Offense)
+			limit = {
+				exists = scope:recipient
+				scope:actor = {
+					has_special_status_in_international_organization = {
+						type = special_status:italian_league_sponsor
+						international_organization = scope:recipient
+					}
+				}
+			}
+			always = no
+		}
+		trigger_else = {
+			always = yes
+		}
+	}
+
+	votes = {
+		if = {
+			limit = {
+				exists = scope:recipient
+				scope:recipient = international_organization:catholic_church
+			}
+			add = {
+				desc = "[cardinals|e]"
+				value = scope:actor.num_cardinals
+			}
+			multiply = {
+				desc = "[country_rank|e]"
+				value = scope:actor.country_rank_level
+				min = 1
+			}
+		}
+		else_if = {
+			limit = {
+				exists = scope:recipient
+				scope:recipient = {
+					uses_parliament_for_law_votes_trigger = yes # This is the HRE among others
+				}
+			}
+			value = {
+				desc = "[special_status_power|e]"
+				value = {
+					save_temporary_value_as = {
+						name = special_status_power_value
+						value = "scope:actor.country_combined_special_status_power(scope:recipient)"
+					}
+					if = {
+						limit = { exists = scope:special_status_power_value }
+						value = scope:special_status_power_value
+					}
+					else = {
+						value = 1
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				exists = scope:recipient
+				scope:recipient = {
+					international_organization_type = international_organization_type:union
+				}
+			}
+			add = {
+				desc = "[tax_base|e]"
+				value = scope:actor.country_tax_base
+			}
+		}
+		else = {
+			value = 1 #1 vote per country
+		}
+		min = 0
+	}
+
+	ai_will_select = {
+		if = {
+			limit = {
+				exists = scope:vote
+				exists = scope:recipient
+				exists = scope:target
+				scope:recipient = {
+					OR = {
+						NOT = { has_variable_list = ai_law_vote_cooldowns }
+						NOT = { is_target_in_variable_list = { name = ai_law_vote_cooldowns target = scope:target } }
+					}
+				}
+			}
+			#add on voting bias from the policy itself
+			if = {
+				limit = { scope:vote = { policy_has_ai_propose_value = yes } }
+				add = {
+					desc = "POLICY_PROPOSE_BIAS"
+					value = "scope:vote.ai_policy_resolution_propose_bias(scope:actor|scope:recipient)"
+				}
+			}
+			else = {
+				add = {
+					desc = "POLICY_VOTE_BIAS"
+					value = "scope:vote.ai_policy_resolution_vote_bias(scope:actor|scope:recipient)"
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:recipient
+				exists = scope:target
+				scope:recipient = {
+					has_variable_list = ai_law_vote_cooldowns
+					is_target_in_variable_list = { name = ai_law_vote_cooldowns target = scope:target }
+				}
+			}
+			subtract = {
+				desc = "INERTIA"
+				value = 10000
+			}
+		}
+	}
+
+	ai_will_do = {
+		#add on voting bias from the international organization
+		if = {
+			limit = {
+				exists = scope:vote
+				exists = scope:recipient
+			}
+			add = {
+				desc = "IO_BIAS"
+				value = "ai_issue_voting_bias(scope:actor|scope:recipient|scope:vote)"
+			}
+			#add on voting bias from the policy itself
+			add = {
+				#desc = "POLICY_VOTE_BIAS"
+				value = 0
+				if = {
+					limit = {
+						scope:vote = { policy_has_ai_keep_value = yes }
+						scope:recipient = {
+							international_organization_has_law = scope:target
+							"law_policy(scope:target)" = scope:vote
+						}
+					}
+					add = "scope:vote.ai_policy_resolution_keep_bias(scope:actor|scope:recipient)"
+				}
+				else = {
+					add = "scope:vote.ai_policy_resolution_vote_bias(scope:actor|scope:recipient)"
+				}
+			}
+
+			#Subtract the "we want to keep the current policy" value
+			if = {
+				limit = {
+					scope:recipient = {
+						international_organization_has_law = scope:target
+						"law_policy(scope:target)" != scope:vote
+					}
+				}
+				if = {
+					limit = { "scope:recipient.law_policy(scope:target)" = { policy_has_ai_keep_value = yes } }
+					save_temporary_value_as = {
+						name = policy_vote_keep_value
+						value = "scope:recipient.law_policy(scope:target).ai_policy_resolution_keep_bias(scope:actor|scope:recipient)"
+					}
+				}
+				else = {
+					save_temporary_value_as = {
+						name = policy_vote_keep_value
+						value = "scope:recipient.law_policy(scope:target).ai_policy_resolution_vote_bias(scope:actor|scope:recipient)"
+					}
+				}
+				if = {
+					limit = { exists = scope:policy_vote_keep_value }
+					if = {
+						limit = { scope:policy_vote_keep_value > 0 }
+						subtract = {
+							desc = "POLICY_WANTS_TO_KEEP_CURRENT_POLICY"
+							value = scope:policy_vote_keep_value
+						}
+					}
+					else = {
+						subtract = {
+							desc = "POLICY_WANTS_TO_REMOVE_CURRENT_POLICY"
+							value = scope:policy_vote_keep_value
+						}
+					}
+				}
+			}
+
+			#Subtract the "we want to vote for the proposed policy" value in case scope:vote = current_policy
+			if = {
+				limit = {
+					scope:recipient = {
+						resolution_is_active = resolution:policy_vote
+						international_organization_has_law = scope:target
+						"law_policy(scope:target)" = scope:vote
+						has_variable = ai_io_law_target
+						var:ai_io_law_target != scope:vote
+					}
+				}
+				subtract = {
+					desc = "POLICY_REASON_TO_VOTE_FOR_PROPOSED_POLICY"
+					value = "scope:recipient.var:ai_io_law_target.ai_policy_resolution_vote_bias(scope:actor|scope:recipient)"
+				}
+			}
+			else_if = {
+				limit = {
+					exists = scope:previewed_vote
+					scope:recipient = {
+						NOT = { resolution_is_active = resolution:policy_vote }
+						modifier:forbid_multiple_policies_vote = yes
+						international_organization_has_law = scope:target
+						"law_policy(scope:target)" = scope:vote
+						NOT = { international_organization_has_policy = scope:previewed_vote }
+					}
+				}
+				subtract = {
+					desc = "POLICY_REASON_TO_VOTE_FOR_PREVIEWED_POLICY"
+					value = "scope:previewed_vote.ai_policy_resolution_vote_bias(scope:actor|scope:recipient)"
+				}
+			}
+			else_if = {
+				limit = {
+					scope:recipient = {
+						NOT = { resolution_is_active = resolution:policy_vote }
+						international_organization_has_law = scope:target
+					}
+					OR = {
+						NOT = { exists = scope:previewed_vote }
+						NOT = { scope:recipient = { modifier:forbid_multiple_policies_vote = yes } }
+						scope:recipient = { international_organization_has_policy = scope:previewed_vote }
+					}
+				}
+				scope:target = {
+					ordered_policy_in_law = {
+						limit = {
+							this != scope:vote
+							scope:recipient = { policy_enabled_to_international_organization = prev }
+						}
+						order_by = "ai_policy_resolution_vote_bias(scope:actor|scope:recipient)"
+						max = 1
+						check_range_bounds = no
+						save_temporary_scope_as = evaluation_policy
+					}
+				}
+				if = {
+					limit = { exists = scope:evaluation_policy }
+					subtract = {
+						desc = "POLICY_REASON_TO_VOTE_FOR_TARGET"
+						value = "scope:evaluation_policy.ai_policy_resolution_vote_bias(scope:actor|scope:recipient)"
+					}
+				}
+			}
+
+			#how useful will this policy be?
+			add = {
+				desc = "POLICY_MODIFIER_UTILITY"
+				value = "scope:vote.modifier_utility(scope:actor)"
+				multiply = 4
+			}
+		}
+	}
+}

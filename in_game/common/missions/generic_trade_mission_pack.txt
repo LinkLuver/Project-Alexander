@@ -1,0 +1,709 @@
+﻿generic_trade = {
+	icon = generic_trade 
+	repeatable = yes
+	player_playstyle = administrative
+
+	visible = {
+		game_has_missions_enabled = yes	
+		country_has_estate = estate_type:burghers_estate
+		NOT = { has_variable = recently_had_generic_trade_variable }
+	}
+
+	enabled = {
+		exists = capital.market
+		has_ports = yes
+		num_of_non_rural > 0
+		has_embraced_institution = institution:banking
+	}
+
+	chance = 3600
+	abort = {
+		OR = {
+			NOT = { exists = capital.market }
+			NOT = { country_has_estate = estate_type:burghers_estate }
+		}
+	}
+	on_start = {
+		set_variable = {
+			name = target_navy_size_percentage_variable
+			value = {
+				add = root.navy_size_percentage
+				add = 0.05
+				max = 1
+			}
+		}
+		set_variable = {
+			name = total_coastal_fort_battery_levels_variable
+			value = {
+				add = total_effective_building_levels:coastal_fort
+				add = total_effective_building_levels:naval_battery
+				add = {
+					value = total_effective_building_levels:coastal_fort
+					add = total_effective_building_levels:naval_battery
+					multiply = 0.1
+					ceiling = yes
+				}
+				min = 1
+				max = {
+					value = num_of_non_rural_ports
+					add = 1
+				}
+			}
+		}
+		set_variable = {
+			name = total_wharf_levels_variable
+			value = {
+				add = total_effective_building_levels:wharf
+				add = {
+					value = total_effective_building_levels:wharf
+					multiply = 0.1
+					ceiling = yes
+				}
+				min = 1
+				max = {
+					value = num_of_non_rural_ports
+					add = 1
+				}
+			}
+		}
+		set_variable = {
+			name = total_dock_levels_variable
+			value = {
+				add = total_effective_building_levels:dock
+				add = total_effective_building_levels:dry_dock
+				add = {
+					value = total_effective_building_levels:dock
+					add = total_effective_building_levels:dry_dock
+					multiply = 0.1
+					ceiling = yes
+				}
+				min = 1
+				max = {
+					value = num_of_non_rural_ports
+					add = 1
+				}
+			}
+		}
+		set_variable = {
+			name = total_marketplace_levels_variable
+			value = {
+				if = {
+					limit = { has_advance = commerce_center_advance }
+					add = total_effective_building_levels:commerce_center
+				}
+				else_if = {
+					limit = { has_advance = grand_marketplace_advance }
+					add = total_effective_building_levels:grand_marketplace
+				}
+				else_if = {
+					limit = { has_advance = merchants_quarters_advance }
+					add = total_effective_building_levels:merchants_quarters
+				}
+				else = { add = total_effective_building_levels:marketplace }
+				multiply = 1.1
+				ceiling = yes
+				min = 1
+			}
+		}
+		set_variable = {
+			name = burgher_relations_variable
+			value = {
+				add = estate_satisfaction:burghers_estate
+				multiply = 1.1
+				min = 0.1
+				max = 0.6
+			}
+		}
+		set_variable = {
+			name = current_burgher_privs_variable
+			value = {
+				add = "estate(estate_type:burghers_estate).num_privileges"
+				add = 2
+				max = 10
+			}
+		}
+		set_variable = {
+			name = burghers_power_variable
+			value = {
+				add = "estate_power(estate_type:burghers_estate)"
+				add = 0.05
+				min = 0.1
+				max = 0.75
+			}
+		}
+
+		if = {
+			limit = {
+				current_age_or_later = { age = age_4_reformation }
+			}
+			set_variable = {
+				name = target_mercantilism_variable
+				value = {
+					add = societal_value:mercantilism_vs_free_trade
+					subtract = 15
+					min = -95
+					max = -5
+				}
+			}
+			set_variable = {
+				name = target_free_trade_variable
+				value = {
+					add = societal_value:mercantilism_vs_free_trade
+					add = 15
+					min = 5
+					max = 95
+				}
+			}
+		}
+		ordered_owned_non_rural_location = {
+			limit = { is_coastal = yes }
+			order_by = {
+				value = proximity
+				if = {	#Capital will be one of the top locations but maybe not the n1 always...
+					limit = { is_capital = yes }
+					multiply = 0.85
+				}
+				if = {
+					limit = {
+						any_neighbor_location = {
+							is_land = no
+							location_maritime_presence_power = {
+								country = ROOT
+								value <= 95
+							}
+						}
+					}
+					multiply = 1.25	#More likely to choose a coastal sea location with < 95 maritime by us already
+				}
+			}
+			max = 1
+			random_neighbor_location = {
+				limit = {
+					is_land = no
+					area = { is_area_coastal_sea = yes }
+				}
+				save_scope_as = target_maritime_mission_location
+			}
+		}
+
+		if = {
+			limit = { exists = scope:target_maritime_mission_location }
+			set_variable = {
+				name = target_location_maritime_presence_variable
+				value = {
+					add = "scope:target_maritime_mission_location.location_maritime_presence_power(root)"
+					add = {
+						value = "scope:target_maritime_mission_location.location_maritime_presence_power(root)"
+						multiply = 0.1
+						add = 10
+					}
+					max = 95
+				}
+			}
+		}
+
+		set_variable = {
+			name = target_merchant_capacity_market_variable
+			value = {
+				add = "capital.market.merchant_capacity(root)"
+				multiply = 1.1
+				min = 5
+			}
+		}
+
+		set_variable = {
+			name = target_merchant_capacity_modifier_variable
+			value = {
+				add = modifier:global_merchant_capacity_modifier
+				add = 0.05
+			}
+		}
+	}
+
+	on_abort = {
+		set_variable = {
+			name = recently_had_generic_trade_variable
+			years = 10
+		}
+		remove_variable = target_merchant_capacity_market_variable
+		remove_variable = target_merchant_capacity_modifier_variable
+		remove_variable = total_coastal_fort_battery_levels_variable
+		remove_variable = total_dock_levels_variable
+		remove_variable = burghers_power_variable
+		remove_variable = total_wharf_levels_variable
+		remove_variable = total_marketplace_levels_variable
+		remove_variable = burgher_relations_variable
+		remove_variable = current_burgher_privs_variable
+		remove_variable = target_navy_size_percentage_variable
+		if = {
+			limit = { has_variable = target_location_maritime_presence_variable }
+			remove_variable = target_location_maritime_presence_variable
+		}
+		if = {
+			limit = { has_variable = target_mercantilism_variable }
+			remove_variable = target_mercantilism_variable
+		}
+		if = {
+			limit = { has_variable = target_free_trade_variable }
+			remove_variable = target_free_trade_variable
+		}
+	}
+	on_completion = {
+		set_variable = {
+			name = recently_had_generic_trade_variable
+			years = 25
+		}
+		remove_variable = target_merchant_capacity_market_variable
+		remove_variable = target_merchant_capacity_modifier_variable
+		remove_variable = total_coastal_fort_battery_levels_variable
+		remove_variable = total_dock_levels_variable
+		remove_variable = burghers_power_variable
+		remove_variable = total_wharf_levels_variable
+		remove_variable = total_marketplace_levels_variable
+		remove_variable = burgher_relations_variable
+		remove_variable = current_burgher_privs_variable
+		remove_variable = target_navy_size_percentage_variable
+		if = {
+			limit = { has_variable = target_location_maritime_presence_variable }
+			remove_variable = target_location_maritime_presence_variable
+		}
+		if = {
+			limit = { has_variable = target_mercantilism_variable }
+			remove_variable = target_mercantilism_variable
+		}
+		if = {
+			limit = { has_variable = target_free_trade_variable }
+			remove_variable = target_free_trade_variable
+		}
+	}
+	###########################################
+	###########################################
+
+	mission_establish_wharfs = {
+		icon = maritime_advance_age_2
+		requires = { }
+
+		enabled = {
+			total_effective_building_levels:wharf >= var:total_wharf_levels_variable
+		}
+
+		duration = 0
+		bypass = {
+			has_ports = no
+		}
+		on_completion = {
+			custom_tooltip = amount_of_impacted_locations_depends_on_crown_power_tt
+			ordered_owned_non_rural_location = {
+				limit = { has_building_with_at_least_one_level = wharf }
+				order_by = {
+					value = development
+					multiply = {
+						value = market_access
+						add = local_control
+					}
+				}
+				max = {
+					value = "estate_power(estate_type:crown_estate)"
+					multiply = 5
+					ceiling = yes
+				}
+				add_location_modifier = {
+					modifier = increased_maritime_activity_modifier
+					years = modifier_duration_years_short
+					mode = replace
+				}
+			}
+		}
+	}
+
+	mission_establish_docks = {
+		icon = ship_building_advance
+		requires = { mission_establish_wharfs }
+
+		enabled = {
+			OR = {
+				total_effective_building_levels:dock >= var:total_dock_levels_variable
+				total_effective_building_levels:dry_dock >= var:total_dock_levels_variable
+			}
+		}
+
+		duration = 0
+		bypass = {
+			has_ports = no
+		}
+		on_completion = {
+			if = {
+				limit = {
+					OR = {
+						total_effective_building_levels:dock > 0
+						total_effective_building_levels:dry_dock > 0
+					}
+				}
+				ordered_owned_non_rural_location = {
+					limit = { 
+						OR = { 
+							has_building_with_at_least_one_level = dock 
+							has_building_with_at_least_one_level = dry_dock 
+						}
+					}
+					order_by = {
+						value = development
+						multiply = {
+							value = market_access
+							add = local_control
+						}
+					}
+					max = 1
+					change_development = development_severe_bonus
+				}
+			}
+			else = { custom_tooltip = one_dock_or_drydock_location_dev_severe_tt }
+		}
+	}
+
+	mission_winds_of_trade = {
+		icon = global_trade_routes_advance
+		visible = {
+			current_age_or_later = { age = age_4_reformation }
+		}
+		requires = { mission_build_entrepot }
+		enabled = {
+			OR = {
+				modifier:monthly_towards_free_trade > 0.25
+				modifier:monthly_towards_mercantilism > 0.25
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			if = {
+				limit = {
+					modifier:monthly_towards_free_trade > modifier:monthly_towards_mercantilism
+				}
+				change_societal_value = { type = mercantilism_vs_free_trade value = societal_value_move_to_right }
+			}
+			else = {
+				change_societal_value = { type = mercantilism_vs_free_trade value = societal_value_move_to_left }
+			}
+		}
+	}
+
+	mission_solid_approach = {
+		icon = merchant_power_from_maritime_reformation_advance
+		visible = {
+			current_age_or_later = { age = age_4_reformation }
+		}
+		requires = { mission_winds_of_trade }
+		final = yes
+		enabled = {
+			OR = {
+				societal_value:mercantilism_vs_free_trade >= var:target_free_trade_variable
+				societal_value:mercantilism_vs_free_trade <= var:target_mercantilism_variable
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			add_country_modifier = {
+				modifier = consolidated_trade_modifier
+				years = modifier_duration_years_normal
+				mode = replace
+			}
+		}
+	}
+
+	mission_marketplace_of_capital = {
+		icon = banking_advance
+		requires = { }
+
+		enabled = {
+			trigger_if = {
+				limit = { has_advance = commerce_center_advance }
+				total_effective_building_levels:commerce_center >= {
+					value = var:total_marketplace_levels_variable
+					min = num_of_non_rural
+				}
+			}
+			trigger_else_if = {
+				limit = { has_advance = grand_marketplace_advance }
+				total_effective_building_levels:grand_marketplace >= {
+					value = var:total_marketplace_levels_variable
+					min = num_of_non_rural
+				}
+			}
+			trigger_else_if = {
+				limit = { has_advance = merchants_quarters_advance }
+				total_effective_building_levels:merchants_quarters >= {
+					value = var:total_marketplace_levels_variable
+					min = num_of_non_rural
+				}
+			}
+			trigger_else = {
+				total_effective_building_levels:marketplace >= {
+					value = var:total_marketplace_levels_variable
+					min = num_of_non_rural
+				}
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			if = {
+				limit = { total_effective_building_levels:marketplace > 0 }
+				ordered_owned_non_rural_location = {
+					limit = { has_building_with_at_least_one_level = marketplace }
+					order_by = {
+						value = development
+						multiply = {
+							value = market_access
+							add = local_control
+						}
+					}
+					max = {
+						value = "estate_power(estate_type:crown_estate)"
+						multiply = 4
+						ceiling = yes
+					}
+					change_development = {
+						value = 0.05
+						multiply = "location_building_level(building_type:marketplace)"
+						max = 1
+					}
+					change_prosperity = {
+						value = 0.0025
+						multiply = "location_building_level(building_type:marketplace)"
+						max = 0.05
+					}
+				}
+			}
+			custom_tooltip = marketplace_amount_of_impacted_locations_depends_on_crown_power_tt
+		}
+	}
+
+	mission_build_entrepot = {
+		icon = route_to_the_indies_advance
+		requires = { mission_marketplace_of_capital }
+
+		enabled = {
+			total_effective_building_levels:entrepot > 0
+		}
+
+		duration = 0
+		on_completion = {
+			if = {
+				limit = { total_effective_building_levels:entrepot > 0 }
+				ordered_owned_non_rural_location = {
+					limit = { has_building_with_at_least_one_level = entrepot }
+					order_by = {
+						value = development
+						multiply = {
+							value = market_access
+							add = local_control
+						}
+					}
+					max = 1
+					add_location_modifier = {
+						modifier = influx_of_merchants_modifier
+						years = modifier_duration_years_short
+						mode = replace
+					}
+				}
+			}
+			else = { custom_tooltip = entrepot_task_reward_tt }
+		}
+	}
+
+	mission_establish_market_center = {
+		icon = diplomatic_training_diplomatic_capacity
+		requires = { mission_build_entrepot }
+		enabled = {
+			custom_tooltip = {
+				text = owns_capital_market_center_tt
+				capital.market ?= {
+					any_location_in_market = {
+						is_ownable = yes
+						is_market_center = yes
+						top_owner ?= root
+					}
+				}
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			capital.market ?= {
+				add_merchant_power = {
+					country = root
+					key = market_dominance_key
+					years = modifier_duration_years_short
+					power = merchant_power_weak_bonus
+				}
+			}
+		}
+	}
+
+	mission_burgher_relations = {
+		icon = guilds
+		requires = { }
+		enabled = {
+			estate_satisfaction:burghers_estate >= var:burgher_relations_variable
+		}
+
+		duration = 0
+		bypass = {
+			NOT = { country_has_estate = estate_type:burghers_estate }
+		}
+		on_completion = {
+			if = {
+				limit = { modifier:burghers_estate_can_participate_in_parliament = yes }
+				add_country_modifier = {
+					modifier = parliament_favor_merchants_modifier
+					years = modifier_duration_years_normal
+					mode = replace
+				}
+				custom_tooltip = based_on_burghers_estate_tax_we_gain_tt
+				add_gold = estate_tax_base:burghers_estate
+			}
+			else = {
+				custom_tooltip = based_on_burghers_estate_tax_we_gain_tt
+				add_gold = {
+					value = estate_tax_base:burghers_estate
+					multiply = 3
+				}
+			}
+		}
+	}
+
+	mission_burgher_privileges = {
+		icon = cultural_acceptance_advance
+		requires = { mission_burgher_relations }
+		enabled = {
+			OR = {
+				"estate(estate_type:burghers_estate)" = { num_privileges >= root.var:current_burgher_privs_variable }
+				"estate_power(estate_type:burghers_estate)">= var:burghers_power_variable
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			if = {
+				limit = {
+					current_age_or_later = { age = age_4_reformation }
+					modifier:monthly_towards_free_trade > modifier:monthly_towards_mercantilism
+				}
+				change_societal_value = { type = mercantilism_vs_free_trade value = societal_value_minor_move_to_right }
+			}
+			else_if = {
+				limit = { current_age_or_later = { age = age_4_reformation } }
+				change_societal_value = { type = mercantilism_vs_free_trade value = societal_value_minor_move_to_left }
+			}
+			add_country_modifier = {
+				modifier = empowered_burghers_modifier
+				years = modifier_duration_years_normal
+				mode = extend
+			}
+		}
+	}
+
+	mission_increase_maritime_presence = {
+		icon = continental_trade
+		requires = { mission_build_entrepot mission_burgher_privileges mission_protect_our_coasts }
+		final = yes
+		enabled = {
+			scope:target_maritime_mission_location = {
+				location_maritime_presence_power = {
+					country = ROOT
+					value >= root.var:target_location_maritime_presence_variable
+				}
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			add_country_modifier = {
+				modifier = maritime_lanes_modifier
+				years = modifier_duration_years_normal
+				mode = replace
+			}
+		}
+	}
+
+	mission_protect_our_coasts = {
+		icon = royal_navy
+		requires = { mission_burgher_relations }
+
+		enabled = {
+			OR = {
+				total_effective_building_levels:coastal_fort >= var:total_coastal_fort_battery_levels_variable
+				total_effective_building_levels:naval_battery >= var:total_coastal_fort_battery_levels_variable
+			}
+		}
+
+		duration = 0
+
+		bypass = { NOT = { exists = scope:target_maritime_mission_location } }
+		on_completion = {
+			if = {
+				limit = { exists = scope:target_maritime_mission_location }
+			}
+			scope:target_maritime_mission_location ?= {
+				change_maritime_presence_power = {
+					country = root
+					value = maritime_presence_extreme_bonus
+				}
+			}
+			
+		}
+	}
+
+	mission_merchant_fleet = {
+		icon = por_bombardeiros
+		requires = { mission_burgher_relations }
+
+		enabled = {
+			OR = {
+				trigger_if = {
+					limit = { has_variable = target_navy_size_percentage_variable }
+					navy_size_percentage >= var:target_navy_size_percentage_variable
+				}
+				trigger_else = { navy_size_percentage > 0.1 }
+				total_sub_unit_count:navy_light_ship >= {
+					value = expected_navy_size
+					multiply = 0.1
+					min = 1
+				}
+			}
+		}
+
+		bypass = { has_ports = no }
+
+		duration = 30
+		on_completion = {
+			add_navy_tradition = navy_tradition_mild_bonus
+		}
+	}
+
+	mission_trade_capacity = {
+		icon = global_trade_advance
+		requires = { mission_merchant_fleet }
+
+		enabled = {
+			capital.market ?= {
+				merchant_capacity = {
+					country = root
+					value >= root.var:target_merchant_capacity_market_variable
+				}
+			}
+			modifier:global_merchant_capacity_modifier >= var:target_merchant_capacity_modifier_variable
+		}
+
+		duration = 0
+		on_completion = {
+			add_country_modifier = {
+				modifier = expanded_trade_capacity
+				mode = replace
+				years = modifier_duration_years_normal
+			}
+		}
+	}
+}

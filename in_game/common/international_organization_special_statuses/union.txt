@@ -1,0 +1,117 @@
+﻿senior_partner = {
+	max_countries = 1
+	priority = 10
+	modifier = { is_senior_partner = yes }
+	can_bestow_trigger = {
+		is_member_of_international_organization = scope:recipient
+		scope:recipient = {
+			international_organization_has_policy = policy:union_establish_seniority_policy
+			"num_countries_with_special_status(special_status:senior_partner)" < 1
+			trigger_if = {
+				limit = { has_variable = pre_selected_senior_partner }
+				var:pre_selected_senior_partner = root
+			}
+			trigger_else = {
+				NOT = {
+					any_international_organization_member = {
+						this != root
+						country_economical_base > root.country_economical_base
+					}
+				}
+			}
+		}
+	}
+	auto_bestowal_trigger = {
+		always = yes
+	}
+	auto_rescind_trigger = {
+		OR = {
+			NOT = { is_member_of_international_organization = scope:recipient }
+			scope:recipient = {
+				NOT = { international_organization_has_policy = policy:union_establish_seniority_policy }
+			}
+		}
+	}
+	on_bestowed_effect = {
+		ruler_or_regent ?= {
+			if = {
+				limit = { owner != root }
+				move_country = root
+			}
+		}
+		scope:recipient = {
+			set_leader_country = root
+			if = {
+				limit = { has_variable = pre_selected_senior_partner }
+				remove_variable = pre_selected_senior_partner
+			}
+			set_variable = {
+				name = union_senior_partner
+				value = root
+			}
+			if = {
+				limit = { root = { has_ruler = yes } }
+				set_variable = {
+					name = union_ruler_character
+					value = root.ruler
+				}
+				every_international_organization_member = {
+					limit = {
+						OR = {
+							has_ruler = no
+							ruler != root.ruler
+						}
+					}
+					scope:recipient = { remove_country_from_international_organization = prev }
+				}
+			}
+			if = {
+				limit = { root = { has_heir = yes } }
+				set_variable = {
+					name = union_heir_character
+					value = root.ruler
+				}
+			}
+		}
+	}
+	on_rescinded_effect = {}
+	map_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	special_status_power = 0	#The Senior partner has no special status on purpose so a strong senior partner can't just overrule everyone else in the parliament
+}
+
+junior_partner = {
+	priority = 5
+	modifier = {}
+	can_bestow_trigger = {
+		is_member_of_international_organization = scope:recipient
+		NOT = { is_leader_of_international_organization = scope:recipient }
+		NOT = { has_special_status_in_international_organization = { type = special_status:senior_partner international_organization = scope:recipient } }
+		scope:recipient = {
+			international_organization_has_policy = policy:union_establish_seniority_policy
+		}
+	}
+	auto_bestowal_trigger = {
+		always = yes
+	}
+	auto_rescind_trigger = {
+		OR = {
+			NOT = { is_member_of_international_organization = scope:recipient }
+			has_special_status_in_international_organization = { type = special_status:senior_partner international_organization = scope:recipient }
+			scope:recipient = {
+				NOT = { international_organization_has_policy = policy:union_establish_seniority_policy }
+			}
+		}
+	}
+	special_status_power = {
+		value = country_economical_base
+		if = {
+			limit = {
+				has_variable = integrated_in_union
+				scope:recipient = { modifier:union_integration_level > 0 }
+				var:integrated_in_union = scope:recipient.modifier:union_integration_level
+			}
+			multiply = 0	#Countries which are as integrated as the IO itself are not affected by the parliament, and as such should not have a say in it
+		}
+	}
+	map_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_TIER1_COLOR
+}

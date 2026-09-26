@@ -1,0 +1,106 @@
+﻿peace_nanbokuchou_force_imperial_abdication = {
+	
+	cost = {
+		add = 100
+	}
+
+	base_antagonism = {
+		add = {
+			desc = "game_concept_population"
+			value = scope:loser.total_population
+			multiply = 0.009
+		}
+	}
+	antagonism_type = antagonism_peace_nanbokuchou_force_imperial_abdication
+	
+	potential = {
+		scope:war = {
+			casus_belli ?= casus_belli:cb_nanbokuchou
+			OR = {
+				attacker_leader = scope:winner
+				defender_leader = scope:winner
+			}
+			OR = {
+				attacker_leader = scope:loser
+				defender_leader = scope:loser
+			}
+		}
+		scope:loser = {
+			has_reform = government_reform:japanese_imperial_family
+			country_type = building
+		}
+		situation:nanbokuchou = { situation_has_ended = no }
+	}
+
+	allow = {
+	}
+
+	effect = {
+		scope:loser ?= {
+			every_owned_foreign_building = {
+				location = {
+					destroy_building = prev
+				}
+			}
+			if = {
+				limit = { exists = international_organization:japanese_shogunate.leader_country }
+				hidden_effect = {
+					every_character = { move_country = international_organization:japanese_shogunate.leader_country }
+				}
+			}
+		}
+		international_organization:japanese_shogunate = {
+			international_organization_remove_special_status = {
+				type = special_status:japanese_emperor
+				country = scope:loser
+			}
+		}
+		if = {
+			limit = {
+				international_organization:japanese_shogunate = {
+					"num_countries_with_special_status(special_status:japanese_emperor)" = 1 
+				}
+			}
+			end_situation = situation:nanbokuchou
+		}
+	}
+
+	ai_desire = {
+		if = {
+			limit = {
+				scope:winner = {
+					is_rival_of = scope:loser
+				}
+			}
+			add = {
+				desc = "game_concept_rival"
+				value = 10
+			}
+		}
+		if = {
+			limit = {
+				scope:winner.prestige < scope:loser.prestige
+			}
+			add = {
+				desc = "DIPLOREASON_LOWER_PRESTIGE"
+				value = scope:loser.prestige
+				subtract = scope:winner.prestige
+			}
+		}
+		if = {
+			limit = {
+				scope:winner = {
+					OR = {
+						is_leader_of_international_organization = international_organization:japanese_shogunate
+						has_reform = government_reform:japanese_imperial_family
+					}
+				}
+			}
+			add = {
+				desc = "JAPANESE_SHOGUNATE_LEADER_MALE"
+				value = 1000
+			}
+		}
+	}
+}
+

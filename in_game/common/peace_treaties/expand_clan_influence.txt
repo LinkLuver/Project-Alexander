@@ -1,0 +1,188 @@
+﻿peace_expand_clan_influence = {
+	
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 5
+		}
+		add = {
+			desc = "game_concept_population"
+			value = scope:loser.total_population
+			multiply = 0.009
+		}
+	}
+
+	base_antagonism = {
+		add = {
+			desc = "game_concept_population"
+			value = scope:loser.total_population
+			multiply = 0.009
+		}
+	}
+	antagonism_type = antagonism_peace_expand_clan_influence
+	
+	potential = {
+		scope:war = {
+			OR = {
+				is_no_cb_war = yes
+				casus_belli ?= casus_belli:cb_japanese_clan_expand_authority
+				casus_belli ?= casus_belli:cb_nanbokuchou
+				casus_belli ?= casus_belli:cb_sengoku
+				casus_belli ?= casus_belli:cb_japanese_clan_rebel_against_shogunate_authority
+			}
+		}
+		scope:winner = {
+			OR = {
+				has_reform = government_reform:japanese_clan
+				has_reform = government_reform:japanese_imperial_family
+			}
+		}
+		scope:loser = { is_member_of_international_organization = international_organization:japanese_shogunate }
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		source = recipient
+		target_flag = target
+        visible = {
+			trigger_if = {
+				limit = { scope:recipient ?= { country_type = building } }
+			 	any_foreign_building_countries_in_location = { this = scope:recipient }
+			}
+			trigger_else = {
+				owner ?= scope:recipient
+				NOT = {
+					any_foreign_buildings_in_location = {
+						owner = scope:actor
+						OR = {
+							building_type = building_type:yamashiro
+							building_type = building_type:shoen
+						}
+					}
+				}
+			}
+		}
+    }
+	
+	allow = {
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			if = {
+				limit = {
+					scope:loser ?= { country_type = building }
+					scope:target = { any_foreign_building_countries_in_location = { this = scope:loser } }
+				}
+				custom_tooltip = {
+					text = expand_clan_influence_other.tt
+					scope:target = {
+						every_foreign_buildings_in_location = {
+							limit = { owner = scope:loser }
+							if = {
+								limit = {
+									building_type = building_type:gosho
+									scope:winner = { has_reform = government_reform:japanese_clan }
+								}
+								location = {
+									destroy_building = prev
+									construct_building = {
+										building_type = building_type:yakata
+										instant = yes
+										owner = scope:winner
+										cost_multiplier = 0
+										cost_multiplier_reason = "game_concept_event"
+									}
+								}
+							}
+							else_if = {
+								limit = {
+									building_type = building_type:yakata
+									scope:winner = { has_reform = government_reform:japanese_imperial_family }
+								}
+								location = {
+									destroy_building = prev
+									construct_building = {
+										building_type = building_type:gosho
+										instant = yes
+										owner = scope:winner
+										cost_multiplier = 0
+										cost_multiplier_reason = "game_concept_event"
+									}
+								}
+							}
+							else_if = {
+								limit = {
+									building_type = building_type:kokufu
+								}
+								if = {
+									limit = {
+										scope:loser = {
+											any_owned_foreign_building = {
+												building_type = building_type:kokufu
+												count = 1
+										
+											}
+										}
+									}
+									international_organization:japanese_shogunate = {
+										international_organization_remove_special_status = {
+											type = special_status:shugo_daimyo
+											country = scope:loser
+										}
+									}
+									location = { destroy_building = prev }
+								}
+							}
+							else = {
+								change_building_owner = scope:winner
+							}
+						}
+					}
+				}
+			}
+			else = {
+				scope:target = {
+					construct_building = {
+						building_type = building_type:yamashiro
+						instant = yes
+						owner = scope:winner
+						cost_multiplier = 0
+						cost_multiplier_reason = "game_concept_event"
+					}
+					construct_building = {
+						building_type = building_type:shoen
+						instant = yes
+						owner = scope:winner
+						cost_multiplier = 0
+						cost_multiplier_reason = "game_concept_event"
+					}
+				}
+			}
+		}
+		else = {
+			custom_tooltip = expand_clan_influence_no_target_tt
+		}
+	}
+
+	ai_desire = {
+		add = {
+			desc = "base desire"
+			value = 10
+		}
+		if = {
+			limit = {
+				scope:winner.prestige < scope:loser.prestige
+			}
+			add = {
+				desc = "DIPLOREASON_LOWER_PRESTIGE"
+				value = scope:loser.prestige
+				subtract = scope:winner.prestige
+			}
+		}
+	}
+}
+

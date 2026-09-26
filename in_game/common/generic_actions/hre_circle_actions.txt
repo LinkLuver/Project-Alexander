@@ -1,0 +1,773 @@
+﻿# Remember to add the correct icon here
+# emperor actions icon = circle_emperor_action
+# leader actions icon = circle_leader_action
+# emperor actions icon = circle_member_action
+distribute_imperial_grant = {
+	type = owncountry
+
+	imperial_circle_action = yes
+	icon = circle_leader_action
+
+	show_in_gui_list = no
+
+	cooldown = {
+		type = distribute_imperial_grant
+		years = 3
+	}
+
+	select_trigger = {
+		show_if = { NOT = { exists = scope:target } }
+		looking_for_a = imperial_circle
+		target_flag = target
+		interaction_source_list = {
+			scope:actor = {
+				every_imperial_circle_country_is_member_of = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_circle"
+		column = { data = name }
+	}
+
+	potential = {
+		scope:actor = {
+			is_imperial_circle_leader = yes
+			is_member_of_circle = scope:target
+			international_organization:hre = { circles_are_active = yes }
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			gold >= {
+				value = country_economical_base
+				multiply = 0.20
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			save_temporary_scope_value_as = {
+				name = total_grant
+				value = {
+					value = country_economical_base
+					multiply = 0.20
+				}
+			}
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = 2
+				save_temporary_scope_value_as = {
+					name = grant_per_member
+					value = {
+						value = scope:total_grant
+						divide = {
+							value = imperial_circle_member_count
+							subtract = 1
+							min = 1
+						}
+					}
+				}
+			}
+			add_country_modifier = {
+				modifier = distributed_imperial_circle_grant
+				years = 2
+			}
+			remove_variable = has_received_imperial_bribe
+			remove_variable = has_received_imperial_bribe_timeout
+			custom_tooltip = {
+				text = distribute_imperial_grant_tt
+
+				every_imperial_circle_country_is_member_of = {
+					every_circle_member = {
+						limit = {
+							NOT = { this = scope:actor }
+						}
+						add_gold = scope:grant_per_member
+						scope:actor = {
+							add_gold = {
+								value = scope:grant_per_member
+								multiply = -1
+							}
+						}
+						add_country_modifier = {
+							modifier = received_imperial_circle_grant
+							years = 2
+						}
+						add_opinion = {
+							target = scope:actor
+							modifier = opinion_received_imperial_grant
+						}
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = { value = 20 }
+		if = {
+			limit = {
+				scope:actor = {
+					any_imperial_circle_country_is_member_of = {
+						imperial_circle_satisfaction < 60
+					}
+				}
+			}
+			add = { value = 40 }
+		}
+	}
+}
+
+demand_circle_loyalty = {
+	type = owncountry
+
+	imperial_circle_action = yes
+	icon = circle_leader_action
+
+	cooldown = {
+		type = demand_circle_loyalty
+		years = 3
+	}
+
+	select_trigger = {
+		show_if = { NOT = { exists = scope:target } }
+		looking_for_a = imperial_circle
+		target_flag = target
+		interaction_source_list = {
+			scope:actor = {
+				every_imperial_circle_country_is_member_of = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_circle"
+		column = { data = name }
+	}
+
+	potential = {
+		scope:actor = {
+			is_imperial_circle_leader = yes
+			is_member_of_circle = scope:target
+			international_organization:hre = { circles_are_active = yes }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			custom_tooltip = {
+				text = demand_circle_loyalty_tt
+
+				add_country_modifier = {
+					modifier = imposed_circle_authority
+					years = 3
+				}
+
+				every_imperial_circle_country_is_member_of = {
+					every_circle_member = {
+						limit = {
+							NOT = { this = scope:actor }
+						}
+						add_country_modifier = {
+							modifier = pressured_circle_loyalty
+							years = 3
+						}
+						add_opinion = {
+							target = scope:actor
+							modifier = opinion_demanded_loyalty
+						}
+					}
+					add_circle_satisfaction = -5
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = { value = 10 }
+		if = {
+			limit = {
+				scope:actor = {
+					any_imperial_circle_country_is_member_of = {
+						imperial_circle_satisfaction > 65
+					}
+				}
+			}
+			add = { value = 30 }
+		}
+	}
+}
+
+reform_coinage_in_circle = {
+	type = owncountry
+
+	imperial_circle_action = yes
+	icon = circle_leader_action
+
+	show_in_gui_list = no
+
+	cooldown = {
+		type = reform_coinage_in_circle
+		years = 10
+	}
+
+	select_trigger = {
+		show_if = { NOT = { exists = scope:target } }
+		looking_for_a = imperial_circle
+		target_flag = target
+		interaction_source_list = {
+			scope:actor = {
+				every_imperial_circle_country_is_member_of = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_circle"
+		column = { data = name }
+	}
+
+	potential = {
+		scope:actor = {
+			is_imperial_circle_leader = yes
+			is_member_of_circle = scope:target
+			international_organization:hre = { circles_are_active = yes }
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			government_power >= 95
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = 5
+			}
+			add_government_power = government_power_mild_penalty
+			add_country_modifier = {
+				modifier = reformed_circle_coinage_leader
+				years = 5
+			}
+			custom_tooltip = {
+				text = reform_coinage_in_circle_tt
+
+				every_imperial_circle_country_is_member_of = {
+					every_circle_member = {
+						limit = {
+							NOT = { this = scope:actor }
+						}
+						add_country_modifier = {
+							modifier = reformed_circle_coinage_member
+							years = 5
+						}
+						add_opinion = {
+							target = scope:actor
+							modifier = opinion_reformed_circle_coinage
+						}
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = { value = 20 }
+		if = {
+			limit = {
+				scope:actor = {
+					any_imperial_circle_country_is_member_of = {
+						imperial_circle_satisfaction < 60
+					}
+				}
+			}
+			add = { value = 40 }
+		}
+	}
+}
+
+reduction_of_circle_titles = {
+	type = owncountry
+
+	imperial_circle_action = yes
+	icon = circle_leader_action
+
+	show_in_gui_list = no
+
+	cooldown = {
+		type = reduction_of_circle_titles
+		years = 10
+	}
+
+	select_trigger = {
+		show_if = { NOT = { exists = scope:target } }
+		looking_for_a = imperial_circle
+		target_flag = target
+		interaction_source_list = {
+			scope:actor = {
+				every_imperial_circle_country_is_member_of = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_circle"
+		column = { data = name }
+	}
+
+	potential = {
+		scope:actor = {
+			is_imperial_circle_leader = yes
+			is_member_of_circle = scope:target
+			international_organization:hre = { circles_are_active = yes }
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			government_power >= 95
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = -5
+			}
+			add_country_modifier = {
+				modifier = reduction_of_circle_titles
+				years = 5
+			}
+			custom_tooltip = {
+				text = reduction_of_circle_titles_tt
+
+				every_imperial_circle_country_is_member_of = {
+					every_circle_member = {
+						limit = {
+							NOT = { this = scope:actor }
+						}
+						add_opinion = {
+							target = scope:actor
+							modifier = opinion_reduction_of_circle_titles
+						}
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = { value = -20 }
+	}
+}
+
+# Circle leader whips every member of the targeted circle to vote for the debated policy.
+# Shares the vote_in_organization_parliament cooldown so whipping counts as the leader's
+# vote action for the month.
+approve_imperial_circle_proposal = {
+	type = owncountry
+
+	imperial_circle_action = yes
+	icon = circle_leader_action
+
+	show_in_gui_list = no
+
+	cooldown = {
+		type = vote_in_organization_parliament
+		months = 1
+	}
+
+	select_trigger = {
+		show_if = { NOT = { exists = scope:target } }
+		looking_for_a = imperial_circle
+		target_flag = target
+		interaction_source_list = {
+			scope:actor = {
+				every_imperial_circle_country_is_member_of = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_circle"
+		column = { data = name }
+	}
+
+	potential = {
+		scope:actor = {
+			is_member_of_circle = scope:target
+			international_organization:hre = {
+				circles_are_active = yes
+				resolution_is_active = resolution:policy_vote
+			}
+		}
+	}
+
+	allow = {
+		exists = scope:target
+		scope:target = {
+			circle_leader ?= { this = scope:actor }
+		}
+	}
+
+	effect = {
+		scope:target = {
+			# Wrapped in custom_tooltip so the action tooltip stays a single sentence rather
+			# than expanding one set_vote line per member.
+			custom_tooltip = {
+				text = approve_imperial_circle_proposal_members_tt
+				every_circle_member = {
+					save_temporary_scope_as = circle_member
+					international_organization:hre = {
+						set_vote = {
+							voter = scope:circle_member
+							resolution = resolution:policy_vote
+							vote = international_organization:hre.var:io_law_target
+							lock_reason = { key = VOTE_LOCK_REASON_CIRCLE_LEADER }
+						}
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = { value = 0 }
+	}
+}
+
+# Mirror of approve_imperial_circle_proposal — whips the circle to vote against the proposal,
+# locking members to the current policy (or the abstention fallback when none is on file).
+oppose_imperial_circle_proposal = {
+	type = owncountry
+
+	imperial_circle_action = yes
+	icon = circle_leader_action
+
+	show_in_gui_list = no
+
+	cooldown = {
+		type = vote_in_organization_parliament
+		months = 1
+	}
+
+	select_trigger = {
+		show_if = { NOT = { exists = scope:target } }
+		looking_for_a = imperial_circle
+		target_flag = target
+		interaction_source_list = {
+			scope:actor = {
+				every_imperial_circle_country_is_member_of = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_circle"
+		column = { data = name }
+	}
+
+	potential = {
+		scope:actor = {
+			is_member_of_circle = scope:target
+			international_organization:hre = {
+				circles_are_active = yes
+				resolution_is_active = resolution:policy_vote
+			}
+		}
+	}
+
+	allow = {
+		exists = scope:target
+		scope:target = {
+			circle_leader ?= { this = scope:actor }
+		}
+	}
+
+	effect = {
+		scope:target = {
+			# Wrapped in custom_tooltip so the action tooltip stays a single sentence rather
+			# than expanding one set_vote line per member.
+			custom_tooltip = {
+				text = oppose_imperial_circle_proposal_members_tt
+				every_circle_member = {
+					save_temporary_scope_as = circle_member
+					if = {
+						limit = {
+							international_organization:hre = { has_variable = io_current_law }
+						}
+						international_organization:hre = {
+							set_vote = {
+								voter = scope:circle_member
+								resolution = resolution:policy_vote
+								vote = international_organization:hre.var:io_current_law
+								lock_reason = { key = VOTE_LOCK_REASON_CIRCLE_LEADER }
+							}
+						}
+					}
+					else = {
+						international_organization:hre = {
+							set_vote = {
+								voter = scope:circle_member
+								resolution = resolution:policy_vote
+								lock_reason = { key = VOTE_LOCK_REASON_CIRCLE_LEADER }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = { value = 0 }
+	}
+}
+
+# Emperor bribes
+bribe_imperial_circle = {
+	type = owncountry
+
+	imperial_circle_action = yes
+	icon = circle_leader_action
+
+	show_in_gui_list = no
+
+	potential = {
+		scope:actor = {
+			is_emperor = yes
+			international_organization:hre = {
+				circles_are_active = yes
+				resolution_is_active = resolution:policy_vote
+			}
+		}
+	}
+
+	select_trigger = {
+		show_if = { NOT = { exists = scope:target } }
+		looking_for_a = country
+		target_flag = target
+		interaction_source_list = {
+			international_organization:hre = {
+				every_international_organization_member = {
+					limit = { is_imperial_circle_leader = yes }
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_circle_leader"
+		column = { data = name }
+		visible = {
+			is_imperial_circle_leader = yes
+		}
+	}
+
+	allow = {
+		exists = scope:target
+		scope:target = { is_imperial_circle_leader = yes }
+		# Don't re-bribe a leader whose vote is already locked by a prior bribe or whip.
+		international_organization:hre = {
+			NOT = {
+				vote_is_locked = {
+					voter = scope:target
+					resolution = resolution:policy_vote
+				}
+			}
+		}
+		# Affordability — full scaled cost against the target's circles.
+		scope:actor = {
+			gold >= bribe_imperial_circle_target_cost
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_gold = {
+				value = bribe_imperial_circle_target_cost
+				multiply = -1
+			}
+		}
+		scope:target = {
+			set_variable = has_received_imperial_bribe
+			set_variable = {
+				name = has_received_imperial_bribe_timeout
+				years = 3
+			}
+			save_temporary_scope_value_as = {
+				name = bribe_member_share
+				value = {
+					value = bribe_circle_leader_cost
+					multiply = 0.25
+				}
+			}
+			# Pay the leader the full base and lock their vote.
+			add_gold = bribe_circle_leader_cost
+			international_organization:hre = {
+				set_vote = {
+					voter = scope:target
+					resolution = resolution:policy_vote
+					vote = international_organization:hre.var:io_law_target
+					lock_reason = { key = VOTE_LOCK_REASON_BRIBED }
+				}
+			}
+			# Each non-leader member of every circle the target leads gets 25% of the
+			# base and the same vote-lock. Wrapped in custom_tooltip so the action tooltip
+			# stays a single sentence rather than expanding one add_gold + one set_vote
+			# line per member.
+			#
+			# After locking the vote, fire imperial_circles.20 to the member so they get
+			# a visible message-log entry (popup for human players, silent log line for AI)
+			# explaining who bribed them and that their vote is locked. Without this hook
+			# the engine's auto-routed _PERFORMED_ON_US_TARGET notification only reaches
+			# the circle leader (the action's target) — non-leader members would silently
+			# have their votes flipped.
+			custom_tooltip = {
+				text = bribe_imperial_circle_members_tt
+				every_imperial_circle_country_is_member_of = {
+					limit = { circle_leader ?= { this = scope:target } }
+					every_circle_member = {
+						limit = { NOT = { this = scope:target } }
+						save_temporary_scope_as = circle_member
+						add_gold = scope:bribe_member_share
+						international_organization:hre = {
+							set_vote = {
+								voter = scope:circle_member
+								resolution = resolution:policy_vote
+								vote = international_organization:hre.var:io_law_target
+								lock_reason = { key = VOTE_LOCK_REASON_BRIBED }
+							}
+						}
+						trigger_event_non_silently = { id = imperial_circles.20 }
+					}
+				}
+			}
+		}
+	}
+
+	# Emperor AI: bribe leaders whose circle is currently voting against the Emperor's pick,
+	# weighted by how many votes the bribe would actually flip. We add a base interest only
+	# when the leader is currently *not* voting for io_law_target (otherwise the bribe is
+	# wasted gold), then scale with circle size and treasury health.
+	ai_will_do = {
+		# Skip entirely if the target is already voting for the Emperor's pick — nothing
+		# to flip, gold would be wasted. resolution_vote returns the policy the target
+		# currently has selected; comparing it to io_law_target tells us if they're aligned.
+		if = {
+			limit = {
+				international_organization:hre = {
+					exists = var:io_law_target
+				}
+				"resolution_vote(scope:target|international_organization:hre|resolution:policy_vote)" ?= international_organization:hre.var:io_law_target
+			}
+			subtract = {
+				desc = "BRIBE_ALREADY_ALIGNED"
+				value = 1000
+			}
+		}
+		# Base interest in bribing this leader (only meaningful if the above skip didn't fire).
+		add = {
+			desc = "BRIBE_BASELINE"
+			value = 60
+		}
+		# Bigger circle = more votes flipped per bribe — the same gold buys more leverage.
+		if = {
+			limit = { scope:target = { any_imperial_circle_country_is_member_of = { imperial_circle_member_count >= 4 } } }
+			add = 20
+		}
+		if = {
+			limit = { scope:target = { any_imperial_circle_country_is_member_of = { imperial_circle_member_count >= 6 } } }
+			add = 20
+		}
+		if = {
+			limit = { scope:target = { any_imperial_circle_country_is_member_of = { imperial_circle_member_count >= 8 } } }
+			add = 20
+		}
+		# Treasury affordability gates — refuse if cost would push us toward bankruptcy.
+		if = {
+			limit = {
+				scope:actor = {
+					gold < {
+						value = bribe_imperial_circle_target_cost
+						multiply = 2
+					}
+				}
+			}
+			multiply = 0.5
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					OR = {
+						monthly_balance < 0
+						is_during_bankruptcy = yes
+					}
+				}
+			}
+			multiply = 0.25
+		}
+		# Slight nudge toward leaders who like us — same gold, lower diplomatic blowback.
+		add = {
+			desc = "BRIBE_OPINION_NUDGE"
+			value = "scope:target.opinion(scope:actor)"
+			divide = 20
+		}
+	}
+}
+
+join_an_imperial_circle = {
+	type = owncountry
+
+	show_in_gui_list = no
+
+	potential = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:hre
+			hre_is_in_formation_period = yes
+		}
+	}
+
+	select_trigger = {
+		show_if = {
+			NOT = { exists = scope:target }
+		}
+		looking_for_a = imperial_circle
+		target_flag = target
+		interaction_source_list = {
+			international_organization:hre = {
+				every_imperial_circle = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_circle"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:actor = {
+				NOT = {
+					is_member_of_circle = scope:target
+				}
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			NOT = { is_member_of_circle = scope:target }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			hre_join_imperial_circle_effect = { circle = scope:target }
+		}
+	}
+
+	# AI is auto-assigned to its geographically-closest circle at formation start
+	# (C++ StartCircleFormation → AssignUnassignedFormationMembers). The AI must
+	# not switch circles during the formation window, or every AI scores every
+	# target equally and dumps into the first iterated circle.
+	ai_will_do = {
+		add = { value = 0 }
+	}
+}

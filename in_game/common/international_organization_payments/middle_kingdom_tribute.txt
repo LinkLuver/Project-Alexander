@@ -1,0 +1,85 @@
+﻿#leader pays tributes to members in exchange for getting more mandate.
+middle_kingdom_tribute = {
+	get_payer_list = {
+		leader_country ?= {
+			add_to_local_variable_list = {
+				name = payers
+				target = this
+			}
+		}
+	}
+	get_payee_list = {
+		every_international_organization_member = {
+			limit = { 
+				NOT = { is_leader_of_international_organization = root }
+			}
+
+			add_to_local_variable_list = {
+				name = payees
+				target = this
+			}
+		}
+	}
+	price = middle_kingdom_tribute_price
+	uses_maintenance = yes
+	min_slider_value = 0 #otherwise Yuan quickly go broke when the RTR fires up
+	maintenance_modifier = {
+		potential_trigger = {
+			"payment_maintenance(scope:recipient|middle_kingdom_tribute)" < 0.5
+		}
+		scale = {
+			value = 1
+			subtract = {
+				value = "payment_maintenance(scope:recipient|middle_kingdom_tribute)"
+				multiply = 2
+			}
+		}
+		monthly_celestial_authority = -0.2
+	}
+	maintenance_modifier = {
+		potential_trigger = {
+			"payment_maintenance(scope:recipient|middle_kingdom_tribute)" > 0.5
+		}
+		scale = {
+			value = "payment_maintenance(scope:recipient|middle_kingdom_tribute)"
+			subtract = 0.5
+			multiply = 2
+		}
+		monthly_celestial_authority = 0.2
+	}
+	price_multiplier = {
+		add = {
+			desc = middle_kingdom_tribute_price_modifier
+			every_international_organization_member = {
+				limit = { 
+					not = { is_leader_of_international_organization = root }
+				}
+				add = {
+					value = monthly_income_trade_and_tax
+					multiply = {
+						value = 1
+						add = modifier:tribute_payment_received_modifier
+					}
+				}
+			}
+		}
+	}
+	proportion_for_payer = {
+		add = {
+			desc = "chinese_emperor"
+			value = 1
+		}
+	}
+	proportion_for_payee = {
+		add = {
+			desc = "AUTO_MODIFIER_NAME_monthly_income_impact"
+			value = monthly_income_trade_and_tax
+		}
+		multiply = {
+			format = "TWO_DP_ENTRY_FORMAT_PERCENT_MULTIPLIER"
+			desc = "MODIFIER_TYPE_NAME_tribute_payment_received_modifier"
+			value = 1
+			add = modifier:tribute_payment_received_modifier
+		}
+	}
+}

@@ -1,0 +1,248 @@
+﻿#Scope is irrelevant as this file only contains effects which can be called in every scope
+#Usually either needed to create event scopes and you don't want to do the same copy/paste
+#Or to manipulate variables
+
+get_pope_character_scope = {
+	c:PAP = {
+		if = {
+			limit = { has_ruler = yes }
+			ruler ?= { save_scope_as = pope_scope }
+		}
+		else = {
+			regent ?= { save_scope_as = pope_scope }
+		}
+	}
+}
+
+get_ottomans_equivalent_scope = {
+	if = {
+		limit = {
+			is_situation_active = situation:rise_of_the_ottomans
+			situation:rise_of_the_ottomans = {
+				has_variable = strongest_beylik_variable
+			}
+		}
+		situation:rise_of_the_ottomans = {
+			var:strongest_beylik_variable = { save_scope_as = $save_scope_as$ }
+		}
+	}
+	else = {
+		c:TUR = { save_scope_as = $save_scope_as$ }
+	}
+}
+
+
+unlock_global_law_effect = {
+	custom_description = {
+		text = unlock_global_law_effect
+		value = law:$type$
+		set_global_variable = {
+			name = unlocked_global_law_$type$
+			value = yes
+		}
+	}
+}
+lock_global_law_effect = {
+	custom_description = {
+		text = lock_global_law_effect
+		value = law:$type$
+		remove_global_variable = unlocked_global_law_$type$
+	}
+}
+international_organization_unlock_global_law_effect = {
+	custom_description = {
+		text = international_organization_unlock_global_law_effect
+		value = law:$type$
+		set_global_variable = {
+			name = unlocked_global_law_$type$
+			value = yes
+		}
+	}
+}
+international_organization_lock_global_law_effect = {
+	custom_description = {
+		text = international_organization_lock_global_law_effect
+		value = law:$type$
+		remove_global_variable = unlocked_global_law_$type$
+	}
+}
+
+unlock_global_policy_effect = {
+	custom_description = {
+		text = unlock_global_policy_effect
+		value = policy:$type$
+		set_global_variable = {
+			name = unlocked_global_policy_$type$
+			value = yes
+		}
+	}
+}
+lock_global_policy_effect = {
+	custom_description = {
+		text = lock_global_policy_effect
+		value = policy:$type$
+		remove_global_variable = unlocked_global_policy_$type$
+	}
+}
+
+#Do not use it with timed variables though
+limit_variable_to_max = {
+	if = {
+		limit = { var:$name$ > $value$ }
+		set_variable = { name = $name$ value = $value$ }
+	}
+}
+limit_variable_to_min = {
+	if = {
+		limit = { var:$name$ < $value$ }
+		set_variable = { name = $name$ value = $value$ }
+	}
+}
+limit_variable = {
+	limit_variable_to_$mode$ = {
+		name = $name$
+		value = $value$
+	}
+}
+
+#Used for localization's sake
+set_character_siblings_scope = {
+	$first_sibling$ = { save_scope_as = first_sibling }
+	$second_sibling$ = { save_scope_as = second_sibling }
+}
+
+create_gui_variable = {
+	set_variable = {
+		name = GUI_$type$
+		value = $target$
+	}
+}
+
+clear_gui_variable = {
+	remove_variable = GUI_$type$
+}
+
+compare_and_get_highest_variable_from_4 = {
+	remove_variable = comperator_var
+	remove_variable = comperator_var_current_highest_value_1_comperator
+	remove_variable = comperator_var_current_highest_value_2_comperator
+	remove_variable = comperator_var_current_highest_value_3_comperator
+	remove_variable = comperator_var_current_highest_value_4_comperator
+	set_variable = { name = value_1_comperator 	value = $value_1$ }
+	set_variable = { name = value_2_comperator 	value = $value_2$ }
+	set_variable = { name = value_3_comperator 	value = $value_3$ }
+	set_variable = { name = value_4_comperator 	value = $value_4$ }
+	if = {
+		limit = { var:value_1_comperator < 0 }
+		change_variable = { name = value_1_comperator multiply = -1 }
+	}
+	if = {
+		limit = { var:value_2_comperator < 0 }
+		change_variable = { name = value_2_comperator multiply = -1 }
+	}
+	if = {
+		limit = { var:value_3_comperator < 0 }
+		change_variable = { name = value_3_comperator multiply = -1 }
+	}
+	if = {
+		limit = { var:value_4_comperator < 0 }
+		change_variable = { name = value_4_comperator multiply = -1 }
+	}
+	set_variable = { name = comperator_var value = var:value_1_comperator }
+	set_variable = comperator_var_current_highest_value_1_comperator
+	if = {
+		limit = { var:comperator_var < var:value_2_comperator }
+		set_variable = { name = comperator_var value = var:value_2_comperator }
+		remove_variable = comperator_var_current_highest_value_1_comperator
+		set_variable = comperator_var_current_highest_value_2_comperator
+	}
+	if = {
+		limit = { var:comperator_var < var:value_3_comperator }
+		set_variable = { name = comperator_var value = var:value_3_comperator }
+		remove_variable = comperator_var_current_highest_value_1_comperator
+		remove_variable = comperator_var_current_highest_value_2_comperator
+		set_variable = comperator_var_current_highest_value_3_comperator
+	}
+	if = {
+		limit = { var:comperator_var < var:value_4_comperator }
+		set_variable = { name = comperator_var value = var:value_4_comperator }
+		remove_variable = comperator_var_current_highest_value_1_comperator
+		remove_variable = comperator_var_current_highest_value_2_comperator
+		remove_variable = comperator_var_current_highest_value_3_comperator
+		set_variable = comperator_var_current_highest_value_4_comperator
+	}
+}
+
+call_recursive_scripted_effect = {
+	$effect$
+}
+# Works like in the following example
+#recursive_scripted_effect = {
+#	every_neighbor_country = {
+#		limit = { NOT = { has_variable = is_neighbor_flag } }
+#		set_variable = is_neighbor_flag
+#		call_recursive_scripted_effect = {
+#			effect = "recursive_scripted_effect = yes"
+#		}
+#	}
+#}
+# Make absolutely sure that it has a guaranteed end and does not run into a potential infinite loop!
+
+create_instant_rebellion = {
+	show_as_tooltip = {
+		$rebel$ = {
+			start_civil_war = {}
+		}
+	}
+	
+	hidden_effect = {
+		every_in_list = {
+			list = $list$
+			if = {
+				limit = { scope_type = province }
+				every_location_in_province = {
+					every_pop = {
+						change_pop_allegiance = $rebel$
+					}
+				}
+			}
+			else_if = {
+				limit = { scope_type = location }
+				every_pop = {
+					change_pop_allegiance = $rebel$
+				}
+			}
+		}
+
+		$rebel$ = {
+			start_civil_war = {
+				save_scope_as = target_rebel_country
+				set_variable = {
+					name = will_not_surrender
+					years = 3
+				}
+				if = {
+					limit = {
+						PREV.owner = {
+							at_war = yes
+						}
+					}
+					every_province = {
+						raise_levies = {
+							instant = yes
+							type = army
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+set_situation_end_flag_effect = {
+	custom_description = {
+		text = set_situation_end_flag_effect
+		value = situation:$situation$
+		set_global_variable = situation_ended_$situation$
+	}
+}

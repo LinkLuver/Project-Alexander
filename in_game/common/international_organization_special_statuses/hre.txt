@@ -1,0 +1,640 @@
+﻿emperor = {
+	max_countries = 1
+	priority = 15
+	can_bestow_trigger = {
+		is_leader_of_international_organization = scope:recipient
+	}
+	auto_bestowal_trigger = {
+		always = yes
+	}
+	auto_rescind_trigger = {
+		NOT = { is_leader_of_international_organization = scope:recipient }
+	}
+	leader = yes
+	map_color = define:NMapColors|HRE_EMPEROR_COLOR
+	special_status_power = {
+		value = 150
+		if = {
+			limit = { 
+				OR = {
+					scope:recipient = { international_organization_has_policy = policy:no_imperial_diet_policy } 
+					scope:recipient = { international_organization_has_policy = policy:no_golden_bull_policy } 
+				}
+			}
+			multiply = 1.25
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_early_imperial_diet_policy } }
+			multiply = 1.0
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_bi_camerial_imperial_diet_policy } }
+			multiply = 1.0
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_tri_camerial_imperial_diet_policy } }
+			multiply = 1.0
+		}
+	}
+}
+elector = {
+	max_countries = {
+		if = {
+			limit = { modifier:hre_max_elector <= 0  }
+			value = 4
+		}
+		else = {
+			value = modifier:hre_max_elector
+		}
+	}
+	priority = 10
+
+	modifier = {
+		is_hre_elector = yes
+	}
+
+	can_bestow_trigger = {
+		is_subject = no
+		is_member_of_international_organization = scope:recipient
+		government_type = government_type:monarchy
+		scope:recipient = {
+			NOT = {
+				country_has_special_status = { type = special_status:elector country = root }
+			}
+		}
+		hre_country_fulfills_imperial_religion_requirement = { type = electorship }
+	}
+
+	auto_bestowal_trigger = {
+	}
+
+	auto_rescind_trigger = {
+		OR = {
+			NOT = { government_type = government_type:monarchy }
+			NOT = { is_member_of_international_organization = scope:recipient }
+		}
+	}
+	
+	on_bestowed_effect = {
+		scope:recipient = {
+			international_organization_remove_special_status = {
+				type = scope:source
+				country = root
+			}
+		}
+	}
+	
+	on_rescinded_effect = {
+	}
+	elector = yes
+	special_status_power = {
+		value = 75
+		if = {
+			limit = { 
+				OR = {
+					scope:recipient = { international_organization_has_policy = policy:no_imperial_diet_policy } 
+					scope:recipient = { international_organization_has_policy = policy:no_golden_bull_policy } 
+				}
+			}
+			multiply = 1.5
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_early_imperial_diet_policy } }
+			multiply = 1.5
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_bi_camerial_imperial_diet_policy } }
+			multiply = 1.25		
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_tri_camerial_imperial_diet_policy } }
+			multiply = 1.0			
+		}
+	}
+	map_color = define:NMapColors|HRE_ELECTOR_COLOR
+}
+archbishop_elector = {
+	max_countries = {
+		if = {
+			limit = {  modifier:hre_max_archbishop_elector <= 0 } 
+			value = 3
+		}
+		else = {
+			value = modifier:hre_max_archbishop_elector
+		}
+	}
+	priority = 10
+
+	modifier = {
+		is_hre_elector = yes
+	}
+
+	can_bestow_trigger = {
+		is_subject = no
+		is_member_of_international_organization = scope:recipient
+		government_type = government_type:theocracy
+		scope:recipient = {
+			NOT = {
+				country_has_special_status = { type = special_status:archbishop_elector country = root }
+			}
+		}
+		hre_country_fulfills_imperial_religion_requirement = { type = electorship }
+	}
+
+	auto_bestowal_trigger = {
+	}
+
+	auto_rescind_trigger = {
+		OR = {
+			NOT = { is_member_of_international_organization = scope:recipient }
+			NOT = { government_type = government_type:theocracy }
+		}
+	}
+	
+	on_bestowed_effect = {
+	}
+	
+	on_rescinded_effect = {
+	}
+
+	special_status_power = {
+		value = 75
+		if = {
+			limit = { 
+				OR = {
+					scope:recipient = { international_organization_has_policy = policy:no_imperial_diet_policy } 
+					scope:recipient = { international_organization_has_policy = policy:no_golden_bull_policy } 
+				}
+			}
+			multiply = 1.5
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_early_imperial_diet_policy } }
+			multiply = 1.5
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_bi_camerial_imperial_diet_policy } }
+			multiply = 1.25		
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_tri_camerial_imperial_diet_policy } }
+			multiply = 1.0			
+		}
+	}
+	elector = yes
+	map_color = define:NMapColors|HRE_ELECTOR_ARCHBISHOP_COLOR
+}
+free_city = {
+	priority = 10
+
+	modifier = {
+		burghers_estate_target_satisfaction = small_permanent_target_satisfaction
+		global_production_efficiency = medium_production_efficiency_bonus
+		reject_subjugation_reasons = 50
+	}
+
+	can_bestow_trigger = {
+		is_subject = no
+		num_of_non_rural = 1
+		num_locations = 1
+		is_member_of_international_organization = scope:recipient
+		scope:recipient = {
+			hre_enabled_free_cities = yes
+			NOT = { country_has_special_status = { type = special_status:free_city country = root } }
+			NOT = { country_has_special_status = { type = special_status:elector country = root } }
+			NOT = { country_has_special_status = { type = special_status:archbishop_elector country = root } }
+			international_organization_has_law = law:free_city_rights_law
+			OR = {
+				AND = {
+					international_organization_has_policy = policy:german_free_cities_only_policy
+					root.culture = { has_culture_group = culture_group:german_group }
+				}
+				AND = {
+					international_organization_has_policy = policy:german_and_german_adjacent_free_cities_policy
+					root.culture = {
+						OR = {
+							has_culture_group = culture_group:german_group
+							has_culture_group = culture_group:netherlandish_group
+							has_culture_group = culture_group:swiss_group
+							has_culture_group = culture_group:italian_group
+						}
+					}
+				}
+				international_organization_has_policy = policy:empire_wide_free_cities_policy
+			}
+		}
+		hre_country_fulfills_imperial_religion_requirement = { type = general }
+	}
+	
+	auto_bestowal_trigger = {
+	}
+
+	auto_rescind_trigger = {
+		OR = {
+			num_of_non_rural > 1
+			num_locations = 0
+			NOT = { is_member_of_international_organization = scope:recipient }
+			scope:recipient = {
+				hre_disabled_free_cities = yes
+			}
+		}
+	}
+	
+	on_bestowed_effect = {
+		trigger_event_silently = free_cities.1
+		subject_type:imperial_free_city = { save_scope_as = type_scope }
+		if = {
+			limit = { scope:recipient = { hre_has_direct_free_city_subjects = yes } }
+			subject_type:direct_imperial_free_city = { save_scope_as = type_scope }
+		}
+		if = {
+			limit = { exists = scope:type_scope }
+			hre_convert_free_city_to_emperor_subject = {
+				international_organization = scope:recipient
+				target = root
+				type = scope:type_scope
+			}
+		}
+	}
+	
+	on_rescinded_effect = {
+		trigger_event_silently = free_cities.2
+		hre_break_free_city_emperor_subject = yes
+	}
+
+	map_color = define:NMapColors|HRE_FREE_CITY_COLOR
+	special_status_power = {
+		value = 25
+		if = {
+			limit = { 
+				OR = {
+					scope:recipient = { international_organization_has_policy = policy:no_imperial_diet_policy } 
+					scope:recipient = { international_organization_has_policy = policy:no_golden_bull_policy } 
+				}
+			}
+			multiply = 0.1
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_early_imperial_diet_policy } }
+			multiply = 0.25
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_bi_camerial_imperial_diet_policy } }
+			multiply = 0.0
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_tri_camerial_imperial_diet_policy } }
+			multiply = 2
+		}
+	}
+}
+
+primas_germaniae = {
+	priority = 10
+
+	modifier = {
+		monthly_religious_influence = 0.1
+		reject_subjugation_reasons = 50
+	}
+	can_bestow_trigger = {
+		is_subject = no
+		government_type = government_type:theocracy
+		is_member_of_international_organization = scope:recipient
+		country_rank_level > 1
+		hre_country_fulfills_imperial_religion_requirement = { type = general }
+		c:PAP = {
+			"opinion(root)" > 150
+		}
+	}
+
+	auto_rescind_trigger = {
+		OR = {
+			NOT = { is_member_of_international_organization = scope:recipient }
+			NOT = { has_reform = government_reform:primas_germaniae }
+			country_rank_level < 2
+			c:PAP = {
+				"opinion(root)" < -100
+			}
+		}
+	}
+	
+	on_bestowed_effect = {
+	}
+	
+	on_rescinded_effect = {
+	}
+
+	map_color = define:NMapColors|HRE_PRIMAS_GERMANIAE_COLOR
+	special_status_power = {
+		value = 4
+		if = {
+			limit = { 
+				OR = {
+					scope:recipient = { international_organization_has_policy = policy:no_imperial_diet_policy } 
+					scope:recipient = { international_organization_has_policy = policy:no_golden_bull_policy } 
+				}
+			}
+			multiply = 10
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_early_imperial_diet_policy } }
+			multiply = 1
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_bi_camerial_imperial_diet_policy } }
+			multiply = 1
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_tri_camerial_imperial_diet_policy } }
+			multiply = 1
+		}
+	}
+}
+legatus_natus = {
+	priority = 10
+
+	max_countries = 1
+
+	modifier = {
+		monthly_prestige = 0.1
+		diplomatic_reputation = diplomatic_reputation_weak_bonus
+	}
+	can_bestow_trigger = {
+		is_subject = no
+		government_type = government_type:theocracy
+		is_member_of_international_organization = scope:recipient
+		scope:recipient = {
+			country_has_special_status = { type = special_status:archbishop_elector country = root }
+		}
+		c:PAP = {
+			"opinion(root)" > 150
+		}
+		hre_country_fulfills_imperial_religion_requirement = { type = general }
+	}
+
+	auto_rescind_trigger = {
+		OR = {
+			NOT = { is_member_of_international_organization = scope:recipient }
+			NOT = { has_reform = government_reform:legatus_natus }
+		}
+	}
+	
+	on_bestowed_effect = {
+	}
+	
+	on_rescinded_effect = {
+	}
+
+	map_color = define:NMapColors|HRE_LEGATUS_NATUS_COLOR
+	special_status_power = {
+		value = 4
+		if = {
+			limit = { 
+				OR = {
+					scope:recipient = { international_organization_has_policy = policy:no_imperial_diet_policy } 
+					scope:recipient = { international_organization_has_policy = policy:no_golden_bull_policy } 
+				}
+			}
+			multiply = 10
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_early_imperial_diet_policy } }
+			multiply = 1
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_bi_camerial_imperial_diet_policy } }
+			multiply = 1
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_tri_camerial_imperial_diet_policy } }
+			multiply = 1
+		}
+	}
+}
+imperial_prelate = {
+	priority = 10
+
+	modifier = {
+	}
+
+	can_bestow_trigger = {
+		is_member_of_international_organization = scope:recipient
+		government_type = government_type:theocracy
+		scope:recipient = {
+			NOT = {
+				country_has_special_status = { type = special_status:imperial_prelate country = root }
+			}
+			NOT = {
+				country_has_special_status = { type = special_status:archbishop_elector country = root }
+			}
+		}
+	}
+	
+	auto_bestowal_trigger = {
+		always = yes
+	}
+
+	auto_rescind_trigger = {
+		OR = {
+			NOT = { government_type = government_type:theocracy }
+			NOT = { is_member_of_international_organization = scope:recipient }
+			has_special_status_in_international_organization = { type = special_status:archbishop_elector international_organization = scope:recipient }
+		}
+	}
+	
+	on_bestowed_effect = {
+	}
+	
+	on_rescinded_effect = {
+	}
+
+	map_color = define:NMapColors|HRE_IMPERIAL_PRELATE_COLOR
+	special_status_power = {
+		value = 2
+		if = {
+			limit = { 
+				OR = {
+					scope:recipient = { international_organization_has_policy = policy:no_imperial_diet_policy } 
+					scope:recipient = { international_organization_has_policy = policy:no_golden_bull_policy } 
+				}
+			}
+			multiply = 0.5
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_early_imperial_diet_policy } }
+			multiply = 1.0
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_bi_camerial_imperial_diet_policy } }
+			multiply = 1.25
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_tri_camerial_imperial_diet_policy } }
+			multiply = 1.25
+		}
+	}
+}
+imperial_prince = {
+	priority = 10
+	modifier = {
+	}
+	can_bestow_trigger = {
+		is_member_of_international_organization = scope:recipient
+		OR = {
+			government_type = government_type:monarchy
+			government_type = government_type:republic
+		}
+		scope:recipient = {
+			NOT = {
+				country_has_special_status = { type = special_status:imperial_prince country = root }
+			}
+			NOT = {
+				country_has_special_status = { type = special_status:emperor country = root }
+			}
+			NOT = {
+				country_has_special_status = { type = special_status:elector country = root }
+			}
+			NOT = {
+				country_has_special_status = { type = special_status:imperial_peasant_republic country = root }
+			}
+			NOT = {
+				country_has_special_status = { type = special_status:free_city country = root }
+			}
+		}
+	}
+	
+	auto_bestowal_trigger = {
+		always = yes
+	}
+
+	auto_rescind_trigger = {
+		OR = {
+			AND = {
+				NOT = { government_type = government_type:monarchy }
+				NOT = { government_type = government_type:republic }
+			}
+			NOT = { is_member_of_international_organization = scope:recipient }
+			has_special_status_in_international_organization = { type = special_status:emperor international_organization = scope:recipient }
+			has_special_status_in_international_organization = { type = special_status:elector international_organization = scope:recipient }
+			has_special_status_in_international_organization = { type = special_status:imperial_peasant_republic international_organization = scope:recipient }
+			has_special_status_in_international_organization = { type = special_status:free_city international_organization = scope:recipient }
+		}
+	}
+	
+	on_bestowed_effect = {
+	}
+	
+	on_rescinded_effect = {
+	}
+	map_color = define:NMapColors|HRE_IMPERIAL_PRINCE_COLOR
+	special_status_power = {
+		value = 2
+		if = {
+			limit = { 
+				OR = {
+					scope:recipient = { international_organization_has_policy = policy:no_imperial_diet_policy } 
+					scope:recipient = { international_organization_has_policy = policy:no_golden_bull_policy } 
+				}
+			}
+			multiply = 1
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_early_imperial_diet_policy } }
+			multiply = 1.25
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_bi_camerial_imperial_diet_policy } }
+			multiply = 1.5
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_tri_camerial_imperial_diet_policy } }
+			multiply = 1.5
+		}
+		if = {
+			limit = {
+				scope:recipient = {
+					NOT = {
+						country_has_special_status = { type = special_status:elector country = root }
+					}
+				}
+				country_rank = country_rank:rank_kingdom
+			}
+			multiply = 36
+		}
+	}
+}
+imperial_peasant_republic = {
+	priority = 5
+
+	modifier = {
+	}
+
+	can_bestow_trigger = {
+		is_member_of_international_organization = scope:recipient
+		OR = {
+			has_reform = government_reform:frisian_freedom_reform
+			has_reform = government_reform:peasant_republic_reform
+		}
+		scope:recipient = {
+			NOT = {
+				country_has_special_status = { type = special_status:imperial_peasant_republic country = root }
+			}
+			NOT = {
+				country_has_special_status = { type = special_status:elector country = root }
+			}
+			NOT = {
+				country_has_special_status = { type = special_status:archbishop_elector country = root }
+			}
+		}
+	}
+	
+	auto_bestowal_trigger = {
+		scope:recipient = {
+			NOT = {
+				country_has_special_status = { type = special_status:imperial_peasant_republic country = root }
+			}
+		}
+	}
+
+	auto_rescind_trigger = {
+		OR = {
+			AND = {
+				NOT = { has_reform = government_reform:peasant_republic_reform }
+				NOT = { has_reform = government_reform:frisian_freedom_reform }
+			}
+			NOT = { is_member_of_international_organization = scope:recipient }
+		}
+	}
+	
+	on_bestowed_effect = {
+	}
+	
+	on_rescinded_effect = {
+	}
+
+	map_color = define:NMapColors|HRE_IMPERIAL_PEASANT_REPUBLIC_COLOR
+	special_status_power = {
+		value = 1
+		if = {
+			limit = { 
+				OR = {
+					scope:recipient = { international_organization_has_policy = policy:no_imperial_diet_policy } 
+					scope:recipient = { international_organization_has_policy = policy:no_golden_bull_policy } 
+				}
+			}
+			multiply = 1
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_early_imperial_diet_policy } }
+			multiply = 0
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_bi_camerial_imperial_diet_policy } }
+			multiply = 0
+		}
+		else_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:hre_tri_camerial_imperial_diet_policy } }
+			multiply = 2.5
+		}
+	}
+}

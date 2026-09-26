@@ -1,0 +1,143 @@
+﻿start_a_treasure_voyage = {
+	type = internationalorganization
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = monthly
+	automation_tick_frequency = 3
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+
+	potential = {
+		scope:actor ?= {
+			has_variable = enabled_treasure_voyages
+			exists = international_organization:middle_kingdom
+			is_leader_of_international_organization = international_organization:middle_kingdom
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			custom_tooltip = {
+				text = not_is_treasure_voyage_active
+				NOT = { has_global_variable = chinese_treasure_voyage_running }
+			}
+			has_ports = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization:middle_kingdom ?= this
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = area
+		source_global_list = treasure_voyage_areas
+		target_flag = target_area
+		interaction_source_list = {
+			every_in_global_list = {
+				variable = treasure_voyage_areas
+				add_to_list = source
+			}
+		}
+		pre_evaluation_sort_value = {
+			value = "scope:actor.capital.distance_to_area(root)"
+			multiply = -1
+		}
+		pre_evaluation_number_to_evaluate_fully = 1
+		name = "treasure_voyage_select_destination_area"
+		none_available_msg_key = "treasure_voyage_select_destination_no_areas"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = target_character
+		pre_evaluation_sort_value = {
+			value = total_abilities
+		}
+		pre_evaluation_number_to_evaluate_fully = 5
+		cache_targets = yes
+		name = "treasure_voyage_select_character"
+		none_available_msg_key = "treasure_voyage_select_character_no_characters"
+		column = {
+			data = character_info
+		}
+		visible = {
+			is_adult = yes
+			is_alive = yes
+			is_ruler = no
+			is_female = no
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = value
+		target_flag = target_value
+		name = "treasure_voyage_select_value_of_gifts"
+		min = {
+			value = scope:actor.yearly_gold
+			divide = 10
+		}
+		max = {
+			value = scope:actor.yearly_gold
+			multiply = {
+				value = 1
+				add = scope:actor.modifier:treasure_voyage_cargo_size_modifier
+			}
+			multiply = { #up to *4 from adm^2
+				value = 1
+				add = scope:target_character.adm
+				pow = 2
+			}
+		}
+
+		step = {
+			value = scope:actor.yearly_gold
+			divide = 20
+		}
+		default = {
+			value = scope:actor.yearly_gold
+			divide = 10
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			if = {
+				limit = { exists = scope:target_area }
+				custom_tooltip = {
+					text = start_treasure_voyage_tt
+					trigger_event_silently = { id = flavor_chi.2002 }
+				}
+			}
+			else = {
+				custom_tooltip = start_treasure_voyage_no_scope_tt
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = -50
+		add = {
+			value = scope:actor.gold
+			divide = scope:target_value
+			multiply = 100
+		}
+	}
+}

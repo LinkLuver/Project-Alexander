@@ -1,0 +1,149 @@
+﻿tatar_yoke_contribution = { #Tribute from everyone to the Tax Collector
+	get_payer_list = {
+		every_international_organization_member = {
+			limit = { 
+				NOT = {
+					is_leader_of_international_organization = root
+				}
+				NOT = {
+					has_special_status_in_international_organization = {
+						type = special_status:tatar_tax_collector
+						international_organization = root
+					}
+				}
+			}
+
+			add_to_local_variable_list = {
+				name = payers
+				target = this
+			}
+		}
+	}
+	get_payee_list = {
+		every_country_with_special_status_of_type = {
+			type = tatar_tax_collector
+			add_to_local_variable_list = {
+				name = payees
+				target = this
+			}
+		}
+	}
+	price = tatar_yoke_contribution_price
+	uses_maintenance = yes
+	maintenance_modifier = {
+		potential_trigger = { "payment_maintenance(scope:recipient|tatar_yoke_contribution)" < 0.5 }
+		scale = {
+			value = 1
+			subtract = {
+				value = "payment_maintenance(scope:recipient|tatar_yoke_contribution)"
+				multiply = 2
+			}
+		}
+		monthly_prestige = -0.1
+		global_monthly_development = -0.005
+	}
+	maintenance_modifier = {
+		potential_trigger = { "payment_maintenance(scope:recipient|tatar_yoke_contribution)" > 0.5 }
+		scale = {
+			value = "payment_maintenance(scope:recipient|tatar_yoke_contribution)"
+			subtract = 0.5
+			multiply = 2
+		}
+		monthly_diplomats = 0.05
+	}
+	price_multiplier = {
+		add = {
+			desc = "TATAR_YOKE_CONTRIBUTION_PAYMENT_MULTIPLIER"
+			every_international_organization_member = {
+				add = monthly_income_trade_and_tax
+			}
+			multiply = 0.01
+		}
+	}
+	proportion_for_payer = {
+		add = {
+			desc = "tatar_yoke_contribution"
+			value = monthly_income_trade_and_tax
+		}
+	}
+	proportion_for_payee = {
+		add = {
+			desc = "tatar_yoke_contribution"
+			value = 1
+		}
+	}
+}
+
+tatar_yoke_leader_payments = { #What the Tax Collector pays to the Leader
+	get_payer_list = {
+		every_international_organization_member = {
+			limit = { 
+				NOT = {
+					is_leader_of_international_organization = root
+				}
+				has_special_status_in_international_organization = {
+					type = special_status:tatar_tax_collector
+					international_organization = root
+				}
+			}
+
+			add_to_local_variable_list = {
+				name = payers
+				target = this
+			}
+		}
+	}
+	get_payee_list = {
+		leader_country ?= {
+			add_to_local_variable_list = {
+				name = payees
+				target = this
+			}
+		}
+	}
+	price = tatar_yoke_leader_payments_price
+	uses_maintenance = yes
+	maintenance_modifier = {
+		potential_trigger = { "payment_maintenance(scope:recipient|tatar_yoke_leader_payments)" < 0.5 }
+		scale = {
+			value = 1
+			subtract = {
+				value = "payment_maintenance(scope:recipient|tatar_yoke_leader_payments)"
+				multiply = 2
+			}
+		}
+		monthly_prestige = -0.05
+		global_monthly_development = -0.0025
+	}
+	maintenance_modifier = {
+		potential_trigger = { "payment_maintenance(scope:recipient|tatar_yoke_leader_payments)" > 0.5 }
+		scale = {
+			value = "payment_maintenance(scope:recipient|tatar_yoke_leader_payments)"
+			subtract = 0.5
+			multiply = 2
+		}
+		monthly_diplomats = 0.05
+		monthly_prestige = 0.05
+	}
+	price_multiplier = {
+		add = {
+			desc = "TATAR_YOKE_CONTRIBUTION_PAYMENT_MULTIPLIER"
+			every_international_organization_member = {
+				add = monthly_income_trade_and_tax
+			}
+			multiply = 0.01
+		}
+	}
+	proportion_for_payer = {
+		add = {
+			desc = "tatar_yoke_leader_payments"
+			value = monthly_income_trade_and_tax
+		}
+	}
+	proportion_for_payee = {
+		add = {
+			desc = "tatar_yoke_leader_payments"
+			value = 1
+		}
+	}
+}

@@ -1,0 +1,1087 @@
+﻿# Imperial Circles country interactions
+# Post-formation interactions (Emperor<->Leader, Leader<->Members, Member<->Leader)
+# Formation join action lives in common/generic_actions/hre_circle_actions.txt (type = owncountry).
+
+# -------------------------------------------------------------------------
+# EMPEROR <-> CIRCLE LEADER
+# -------------------------------------------------------------------------
+
+call_imperial_circle_to_war = {
+	type = diplomacy
+	category = CATEGORY_HRE_ACTIONS
+	icon = circle_leader_action
+
+	potential = {
+		scope:actor = { is_emperor = yes }
+		international_organization:hre = { circles_are_active = yes }
+	}
+	
+	allow = {
+		NOT = {
+			scope:actor = {
+				has_cooldown = called_imperial_circle_to_war
+				any_current_war = {
+					is_a_defender = scope:actor
+				}
+			}
+		}
+
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			international_organization:hre = {
+				every_international_organization_member = {
+					limit = { is_imperial_circle_leader = yes }
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_circle_leader"
+		column = {
+			data = name
+		}
+		visible = {
+			is_imperial_circle_leader = yes
+			NOT = { in_same_imperial_circle = scope:actor }
+		}
+		enabled = {
+			scope:actor = {
+				any_current_war = {
+					is_a_defender = scope:actor
+					NOT = {
+						attacker_leader = {
+							is_member_of_international_organization = international_organization:hre
+						}
+					}
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = war
+		target_flag = imperial_war
+		interaction_source_list = {
+			scope:actor = {
+				every_current_war = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_interaction_source_list = yes
+		name = "choose_war_to_join"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+		enabled = {
+			is_a_defender = scope:actor
+			NOT = {
+				attacker_leader = {
+					is_member_of_international_organization = international_organization:hre
+				}
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:imperial_war }
+			scope:actor = {
+				add_cooldown = {
+					type = called_imperial_circle_to_war
+					months = 60
+				}
+			}
+			scope:recipient = {
+				every_imperial_circle_country_is_member_of = {
+					every_circle_member = {
+						limit = { NOT = { this = scope:actor } }
+						join_war_as_defender = { war = scope:imperial_war }
+					}
+				}
+			}
+		}
+	}
+
+	reject_effect = {
+		scope:actor = {
+			add_prestige = prestige_mild_penalty
+		}
+	}
+
+	accept = {
+		add = {
+			desc = "CIRCLE_WAR_CALL_DEFENSIVE_WAR"
+			value = 100
+		}
+		add = hre_default_opinion_check #todo
+		subtract = {
+			desc = "DIPLOREASON_BASE"
+			value = 20
+		}
+		if = {
+			limit = {
+				exists = scope:actor
+			}
+			add = {
+				desc = "DIPLOMATIC_REPUTATION"
+				value = scope:actor.modifier:diplomatic_reputation
+				multiply = 2
+			}
+			add = {
+				desc = "THEIR_OPINION"
+				value = "scope:recipient.opinion(scope:actor)"
+				multiply = 0.3
+			}
+			add = {
+				desc = "DIPLOREASON_TRUST_IN_ACTOR"
+				value = "scope:recipient.trust(scope:actor)"
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "TARGET_ACCEPTANCE"
+			value = "scope:actor.country_interaction_acceptance(country_interaction:call_imperial_circle_to_war|scope:recipient)"
+			if = {
+				limit = { scope:recipient = { is_ai = no } }
+				subtract = 50	#just so the AI doesn't spam it
+			}
+		}
+	}
+}
+
+appoint_imperial_circle_leader = {
+	type = diplomacy
+	category = CATEGORY_HRE_ACTIONS
+	icon = circle_member_action
+
+	potential = {
+		scope:actor = { is_emperor = yes }
+		international_organization:hre = {
+			circles_are_active = yes
+			international_organization_has_policy = policy:improved_imperial_authority_policy
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			international_organization:hre = {
+				every_international_organization_member = {
+					limit = {
+						is_imperial_circle_leader = no
+						NOT = { country_type = building }
+						is_subject = no
+						any_imperial_circle_country_is_member_of = {
+							NOT = { is_dormant_imperial_circle = yes }
+							NOT = { has_circle_leader = yes }
+						}
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			is_member_of_international_organization = international_organization:hre
+			is_imperial_circle_leader = no
+		}
+		enabled = {
+			any_imperial_circle_country_is_member_of = {
+				NOT = { is_dormant_imperial_circle = yes }
+				NOT = { has_circle_leader = yes }
+			}
+		}
+	}
+
+	effect = {
+		scope:recipient = {
+			every_imperial_circle_country_is_member_of = {
+				set_circle_leader = scope:recipient
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = { value = 40 }
+	}
+}
+
+# -------------------------------------------------------------------------
+# CIRCLE LEADER <-> EMPEROR
+# -------------------------------------------------------------------------
+
+petition_imperial_diet = {
+	type = diplomacy
+	category = CATEGORY_HRE_ACTIONS
+	icon = circle_emperor_action
+
+	cooldown = { months = 120 }
+
+	potential = {
+		scope:actor = {
+			is_imperial_circle_leader = yes
+			is_emperor = no
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			# any_imperial_circle_country_is_member_of = {
+			# 	imperial_circle_satisfaction > 75
+			# }
+		}
+		international_organization:hre ?= {
+			has_ongoing_parliament_debate = no
+		}
+		international_organization:hre ?= {
+			NOT = { resolution_is_active = resolution:policy_vote }
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			international_organization:hre = {
+				leader_country ?= {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_emperor"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization:hre = { circles_are_active = yes }
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		map_mode = international_organization
+		top_widget = law_card_header_at_io_policy_select
+		looking_for_a = international_organization
+		interaction_source_list = {
+			international_organization:hre = {
+				add_to_list = source
+			}
+		}
+		target_flag = io_recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			this = international_organization:hre
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		map_mode = international_organization
+		top_widget = law_card_header_at_io_policy_select
+		looking_for_a = law
+		target_flag = target
+		name = "enact_policy_select_law"
+		none_available_msg_key = "enact_policy_no_laws"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:io_recipient = {
+				law_visible_to_international_organization = root
+			}
+		}
+		enabled = {
+			# requires_vote = no
+			scope:io_recipient = {
+				not = {
+					law_is_locked_in_international_organization = root
+				}
+				law_enabled_to_international_organization = root
+			}
+		}
+	}
+
+	#last target - this is what countries will vote on
+	select_trigger = {
+		map_mode = international_organization
+		top_widget = law_card_header_at_io_policy_select
+		looking_for_a = policy
+		source = target
+		target_flag = vote
+		name = "enact_policy_select_policy"
+		none_available_msg_key = "enact_policy_no_policies"
+		column = {
+			data = policy_enacting
+		}
+		visible = {
+			scope:io_recipient = {
+				policy_visible_to_international_organization = root
+			}
+		}
+		enabled = {
+			scope:io_recipient = {
+				policy_enabled_to_international_organization = root
+				#if we're proposing a policy, make sure we can't propose what's already implemented
+				trigger_if = {
+					limit = {
+						exists = scope:recipient
+					}
+					not = { international_organization_has_policy = root }
+					trigger_if = {
+						limit = { exists = price }
+						scope:recipient = { can_pay_price = root.price }
+					}
+				}
+			}
+		}
+		selected = {
+			scope:io_recipient = {
+				international_organization_has_policy = root
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:vote
+			}
+			scope:recipient = {
+				propose_resolution = {
+					resolution = resolution:policy_vote
+					actor = this
+					recipient = scope:io_recipient
+					target = scope:target
+					vote = scope:vote
+				}
+			}
+		}
+		else = {
+			custom_tooltip = {
+				text = petition_imperial_diet_tt
+			}
+		}
+	}
+
+	reject_effect = {
+		scope:actor = {
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = -5
+				circle_leader ?= {
+					add_prestige = prestige_mild_penalty
+				}
+			}
+		}
+	}
+
+	accept = {
+		subtract = {
+			desc = "DIPLOREASON_BASE"
+			value = 10
+		}
+		if = {
+			limit = {
+				exists = scope:actor
+			}
+			add = {
+				desc = "DIPLOMATIC_REPUTATION"
+				value = scope:actor.modifier:diplomatic_reputation
+				multiply = 3
+			}
+			add = {
+				desc = "THEIR_OPINION"
+				value = "scope:recipient.opinion(scope:actor)"
+				multiply = 0.2
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "TARGET_ACCEPTANCE"
+			value = "scope:actor.country_interaction_acceptance(country_interaction:petition_imperial_diet|scope:recipient)"
+			if = {
+				limit = { scope:recipient = { is_ai = no } }
+				subtract = 50	#just so the AI doesn't spam it
+			}
+		}
+	}
+}
+
+request_circle_privilege = {
+	type = diplomacy
+	category = CATEGORY_HRE_ACTIONS
+	icon = circle_emperor_action
+
+	cooldown = { months = 60 }
+
+	potential = {
+		scope:actor = { is_imperial_circle_leader = yes }
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			international_organization:hre = {
+				leader_country ?= {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_emperor"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization:hre = { circles_are_active = yes }
+		}
+		enabled = {
+			international_organization:hre = { international_organization_has_leader = yes }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_prestige = prestige_mild_bonus
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = 2
+				custom_tooltip = {
+					text = request_circle_privilege_members_tt
+					every_circle_member = {
+						add_country_modifier = {
+							modifier = granted_circle_privilege
+							years = 5
+						}
+					}
+				}
+			}
+		}
+	}
+
+	reject_effect = {
+		scope:actor = {
+			add_prestige = prestige_mild_penalty
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = -1
+			}
+		}
+	}
+
+	accept = {
+		subtract = {
+			desc = "DIPLOREASON_BASE"
+			value = 10
+		}
+		if = {
+			limit = {
+				exists = scope:actor
+			}
+			add = {
+				desc = "DIPLOMATIC_REPUTATION"
+				value = scope:actor.modifier:diplomatic_reputation
+				multiply = 3
+			}
+			add = {
+				desc = "THEIR_OPINION"
+				value = "scope:recipient.opinion(scope:actor)"
+				multiply = 0.2
+			}
+		}
+		add = hre_circle_opinion_check
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "TARGET_ACCEPTANCE"
+			value = "scope:actor.country_interaction_acceptance(country_interaction:request_circle_privilege|scope:recipient)"
+			if = {
+				limit = { scope:recipient = { is_ai = no } }
+				subtract = 50	#just so the AI doesn't spam it
+			}
+		}
+	}
+}
+
+# -------------------------------------------------------------------------
+# CIRCLE LEADER <-> MEMBERS
+# -------------------------------------------------------------------------
+# These actions are self-targeted owncountry actions; see
+# common/generic_actions/hre_circle_actions.txt (distribute_imperial_grant,
+# demand_circle_loyalty).
+
+# -------------------------------------------------------------------------
+# MEMBER <-> CIRCLE LEADER
+# -------------------------------------------------------------------------
+
+challenge_circle_leadership = {
+	type = diplomacy
+	category = CATEGORY_HRE_ACTIONS
+	icon = circle_leader_action
+
+	cooldown = { months = 60 }
+
+	potential = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:hre
+			is_imperial_circle_leader = no
+			is_emperor = no
+			NOT = { country_type = building }
+			is_subject = no
+			any_imperial_circle_country_is_member_of = {
+				has_circle_leader = yes
+				NOT = { is_dormant_imperial_circle = yes }
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_imperial_circle_country_is_member_of = {
+					circle_leader ?= {
+						add_to_list = source
+					}
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_circle_leader"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization:hre = { circles_are_active = yes }
+			NOT = { is_leader_of_international_organization = international_organization:hre }
+		}
+		enabled = {
+			OR = {
+				scope:actor = { prestige >= 50 }
+				scope:actor = {
+					any_imperial_circle_country_is_member_of = {
+						imperial_circle_satisfaction < 30
+					}
+				}
+			}
+			NOT = { has_country_modifier = consolidating_circle_leadership }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			trigger_event_non_silently = { id = imperial_circles.50 }
+			custom_tooltip = challenge_circle_leadership_tt
+		}
+	}
+
+	ai_will_do = {
+		add = { value = 10 }
+		if = {
+			limit = {
+				scope:actor = {
+					any_imperial_circle_country_is_member_of = {
+						imperial_circle_satisfaction < 15
+					}
+				}
+			}
+			add = { value = 40 }
+		}
+		# Never challenge if no tier's win condition can fire (matches imperial_circles.50.a logic)
+		if = {
+			limit = {
+				scope:actor = {
+					NOT = {
+						any_imperial_circle_country_is_member_of = {
+							imperial_circle_satisfaction < 15
+						}
+					}
+					OR = {
+						NOT = {
+							any_imperial_circle_country_is_member_of = {
+								imperial_circle_satisfaction < 20
+							}
+						}
+						prestige < scope:recipient.prestige
+					}
+					prestige < {
+						value = scope:recipient.prestige
+						add = 25
+					}
+				}
+			}
+			multiply = 0
+		}
+	}
+}
+
+appeal_to_emperor = {
+	type = diplomacy
+	category = CATEGORY_HRE_ACTIONS
+
+	cooldown = { months = 120 }
+
+	potential = {
+		always = no #action kept in the script for when it gets reworked. Right now though, it is causing more harm than good to have it available
+		scope:actor = {
+			is_member_of_international_organization = international_organization:hre
+			is_imperial_circle_leader = no
+			is_emperor = no
+			any_imperial_circle_country_is_member_of = {
+				has_circle_leader = yes
+				circle_leader ?= {
+					NOT = {
+						has_country_modifier = imperial_intervention
+					}
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			international_organization:hre = {
+				leader_country ?= {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_emperor"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization:hre = { circles_are_active = yes }
+		}
+		enabled = {
+			international_organization:hre = { international_organization_has_leader = yes }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = -5
+				circle_leader ?= {
+					add_country_modifier = {
+						modifier = imperial_intervention
+						years = 5
+					}
+				}
+			}
+		}
+		scope:recipient = {
+			add_prestige = prestige_mild_bonus
+			change_imperial_authority = { value = 5 }
+		}
+	}
+
+	reject_effect = {
+		scope:actor = {
+			add_prestige = prestige_mild_penalty
+		}
+	}
+
+	accept = {
+		add = hre_circle_opinion_check
+		add = {
+			desc = "CIRCLE_LOW_SATISFACTION_GRIEVANCE"
+			if = {
+				limit = {
+					scope:actor = {
+						any_imperial_circle_country_is_member_of = {
+							imperial_circle_satisfaction < 25
+						}
+					}
+				}
+				value = 15
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:actor
+			}
+			add = {
+				desc = "DIPLOMATIC_REPUTATION"
+				value = scope:actor.modifier:diplomatic_reputation
+				multiply = 2
+			}
+			add = {
+				desc = "THEIR_OPINION"
+				value = "scope:recipient.opinion(scope:actor)"
+				multiply = 0.3
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "CIRCLE_LOW_SATISFACTION_GRIEVANCE"
+			if = {
+				limit = {
+					scope:actor = {
+						any_imperial_circle_country_is_member_of = {
+							imperial_circle_satisfaction < 40
+						}
+					}
+				}
+				value = 15
+			}
+		}
+		add = {
+			desc = "ACTOR_ACCEPTANCE"
+			value = "scope:actor.country_interaction_acceptance(country_interaction:appeal_to_emperor|scope:recipient)"
+			if = {
+				limit = { scope:recipient = { is_ai = no } }
+				subtract = 50	#just so the AI doesn't spam it
+			}
+		}
+		#todo add scaling with circle leader countries relation to the actor
+	}
+}
+
+appeal_to_circle_diet = {
+	type = diplomacy
+	category = CATEGORY_HRE_ACTIONS
+	icon = circle_leader_action
+
+	cooldown = { months = 120 }
+
+	potential = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:hre
+			is_imperial_circle_leader = no
+			is_emperor = no
+			any_imperial_circle_country_is_member_of = {
+				has_circle_leader = yes
+				circle_leader ?= {
+					custom_tooltip = {
+						text = appeal_to_circle_diet_timeout_tt
+						NOT = {
+							has_variable = appeal_to_circle_diet_timeout
+						}
+					}
+					gold >= {
+						value = monthly_income_trade_and_tax
+						multiply = 4
+					}
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			international_organization:hre = {
+				every_international_organization_member = {
+					limit = { is_imperial_circle_leader = yes }
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_circle_leader"
+		column = {
+			data = name
+		}
+		visible = {
+			is_imperial_circle_leader = yes
+			in_same_imperial_circle = scope:actor
+		}
+		enabled = {
+			
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_government_power = government_power_mild_bonus
+		}
+		scope:recipient = {
+			transfer_yearly_gold = {
+				target = scope:actor
+				value = 0.2
+			}
+			set_variable = {
+				name = appeal_to_circle_diet_timeout
+				years = 2
+			}
+		}
+	}
+
+	reject_effect = {
+		scope:recipient = {
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = -1
+			}
+		}
+	}
+
+	accept = {
+		add = hre_circle_opinion_check
+		if = {
+			limit = {
+				exists = scope:actor
+			}
+			add = {
+				desc = "DIPLOMATIC_REPUTATION"
+				value = scope:actor.modifier:diplomatic_reputation
+				multiply = 2
+			}
+			add = {
+				desc = "THEIR_OPINION"
+				value = "scope:recipient.opinion(scope:actor)"
+				multiply = 0.3
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "ACTOR_ACCEPTANCE"
+			value = "scope:actor.country_interaction_acceptance(country_interaction:appeal_to_circle_diet|scope:recipient)"
+			if = {
+				limit = { scope:recipient = { is_ai = no } }
+				subtract = 50	#just so the AI doesn't spam it
+			}
+		}
+	}
+}
+
+request_circle_infrastructure_expansion = {
+	type = diplomacy
+	category = CATEGORY_HRE_ACTIONS
+	icon = circle_leader_action
+
+	cooldown = { months = 120 }
+
+	potential = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:hre
+			is_imperial_circle_leader = no
+			is_emperor = no
+			any_imperial_circle_country_is_member_of = {
+				has_circle_leader = yes
+				circle_leader ?= {
+					custom_tooltip = {
+						text = request_circle_infrastructure_expansion_timeout_tt
+						NOT = {
+							has_variable = request_circle_infrastructure_expansion_timeout
+						}
+					}
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			international_organization:hre = {
+				every_international_organization_member = {
+					limit = { is_imperial_circle_leader = yes }
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_circle_leader"
+		column = {
+			data = name
+		}
+		visible = {
+			is_imperial_circle_leader = yes
+			in_same_imperial_circle = scope:actor
+		}
+		enabled = {
+			
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_country_modifier = {
+				modifier = granted_circle_infrastructure_expansion
+				years = 10
+			}
+		}
+		scope:recipient = {
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = 1
+			}
+			set_variable = {
+				name = request_circle_infrastructure_expansion_timeout
+				years = 2
+			}
+		}
+	}
+
+	reject_effect = {
+		scope:recipient = {
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = -2
+			}
+		}
+	}
+
+	accept = {
+		add = hre_circle_opinion_check
+		subtract = {
+			desc = "DIPLOREASON_BASE"
+			value = 10
+		}
+		if = {
+			limit = {
+				exists = scope:actor
+			}
+			add = {
+				desc = "DIPLOMATIC_REPUTATION"
+				value = scope:actor.modifier:diplomatic_reputation
+				multiply = 2
+			}
+			add = {
+				desc = "THEIR_OPINION"
+				value = "scope:recipient.opinion(scope:actor)"
+				multiply = 0.3
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "ACTOR_ACCEPTANCE"
+			value = "scope:actor.country_interaction_acceptance(country_interaction:request_circle_infrastructure_expansion|scope:recipient)"
+			if = {
+				limit = { scope:recipient = { is_ai = no } }
+				subtract = 50	#just so the AI doesn't spam it
+			}
+		}
+	}
+}
+
+request_new_circle_titles = {
+	type = diplomacy
+	category = CATEGORY_HRE_ACTIONS
+	icon = circle_leader_action
+
+	cooldown = { months = 120 }
+
+	potential = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:hre
+			is_imperial_circle_leader = no
+			is_emperor = no
+			any_imperial_circle_country_is_member_of = {
+				has_circle_leader = yes
+				circle_leader ?= {
+					custom_tooltip = {
+						text = request_new_circle_titles_timeout_tt
+						NOT = {
+							has_variable = request_new_circle_titles_timeout
+						}
+					}
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			international_organization:hre = {
+				every_international_organization_member = {
+					limit = { is_imperial_circle_leader = yes }
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_circle_leader"
+		column = {
+			data = name
+		}
+		visible = {
+			is_imperial_circle_leader = yes
+			in_same_imperial_circle = scope:actor
+		}
+		enabled = {
+			
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_country_modifier = {
+				modifier = granted_new_circle_titles
+				years = 10
+			}
+		}
+		scope:recipient = {
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = 2
+			}
+			set_variable = {
+				name = request_new_circle_titles_timeout
+				years = 2
+			}
+		}
+	}
+
+	reject_effect = {
+		scope:recipient = {
+			every_imperial_circle_country_is_member_of = {
+				add_circle_satisfaction = -2
+			}
+		}
+	}
+
+	accept = {
+		add = hre_circle_opinion_check
+		if = {
+			limit = {
+				exists = scope:actor
+			}
+			add = {
+				desc = "DIPLOMATIC_REPUTATION"
+				value = scope:actor.modifier:diplomatic_reputation
+				multiply = 2
+			}
+			add = {
+				desc = "THEIR_OPINION"
+				value = "scope:recipient.opinion(scope:actor)"
+				multiply = 0.3
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "ACTOR_ACCEPTANCE"
+			value = "scope:actor.country_interaction_acceptance(country_interaction:request_new_circle_titles|scope:recipient)"
+			if = {
+				limit = { scope:recipient = { is_ai = no } }
+				subtract = 50	#just so the AI doesn't spam it
+			}
+		}
+	}
+}

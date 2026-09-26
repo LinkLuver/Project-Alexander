@@ -1,0 +1,381 @@
+﻿#root = location
+move_building = {
+	if = {
+		limit = { $from$ = { has_building = $building_type$ } }
+		custom_description = {
+			text = move_building
+			object = $from$
+			value = building_type:$building_type$
+			$from$ = { destroy_building = "building($building_type$|$owner$)" }
+			change_building_level_in_location = {
+				building = $building_type$
+				value = 1
+				owner = $owner$
+			}
+		}
+	}
+}
+
+# root - location
+upgrade_location_rank = {
+	if = {
+		limit = {
+			location_rank = location_rank:rural_settlement
+		}
+		change_location_rank = location_rank:town
+	}
+	else_if = {
+		limit = {
+			location_rank = location_rank:town
+		}
+		change_location_rank = location_rank:city
+	}
+	else = {
+		change_development = development_mild_bonus
+	}
+}
+
+horde_raid_location = {
+	change_prosperity = prosperity_weak_penalty
+	change_development = development_weak_penalty
+	add_location_modifier = {
+		modifier = recently_raided_by_horde
+		years = 5
+		mode = add_and_extend
+	}
+	if = {
+		limit = {
+			has_owner = yes
+			exists = scope:target_country
+			owner = {
+				NOT = { this = scope:target_country }
+			}
+		}
+		owner = {
+			add_opinion = {
+				target = scope:target_country
+				modifier = opinion_raided_our_borders
+			}
+			if = {
+				limit = { NOT = { has_casus_belli_of_type_on = { type = casus_belli:cb_raiding_retaliation target = scope:target_country } } }
+				add_casus_belli = { type = casus_belli:cb_raiding_retaliation target = scope:target_country }
+			}
+		}
+		scope:target_country = {
+			capital = { save_scope_as = slave_target }
+		}
+		save_scope_value_as = {
+			name = pops_to_affect
+			value = 1
+		}
+		every_pop = {
+			limit = { pop_size > 0.2 }
+			save_scope_as = pop_to_lose
+			if = {
+				limit = { exists = scope:slave_target }
+				scope:slave_target = {
+					add_pop = {
+						culture = scope:pop_to_lose.culture
+						religion = scope:pop_to_lose.religion
+						type = pop_type:slaves
+						size = {
+							value = scope:pops_to_affect
+							multiply = 0.05
+							max = {
+								value = scope:pop_to_lose.pop_size
+								divide = 10
+							}
+						}
+					}
+				}
+			}
+			add_pop_size = {
+				value = scope:pops_to_affect
+				multiply = 0.1
+				max = {
+					value = scope:pop_to_lose.pop_size
+					divide = 10
+				}
+				multiply = -1
+			}
+		}
+		scope:target_country = { loot_location = prev }
+	}
+}
+
+# root = location
+# Safe upgrade-only helper: never downgrades the location's rank.
+# - city  target : applies only if current rank is below city (town or rural_settlement)
+# - town  target : applies only if current rank is below town (rural_settlement)
+# - rural_settlement target : always applies (used for intentional downgrades, e.g. Cahokia collapse)
+# Megalopolis target is intentionally not handled here; megalopolis upgrades go through the construction system.
+change_location_rank_effect = {
+	if = {
+		limit = {
+			$location_rank$ = location_rank:city
+			NOT = { location_rank = location_rank:city }
+			NOT = { location_rank = location_rank:megalopolis }
+		}
+		change_location_rank = $location_rank$
+	}
+	else_if = {
+		limit = {
+			$location_rank$ = location_rank:town
+			NOT = { location_rank = location_rank:town }
+			NOT = { location_rank = location_rank:city }
+			NOT = { location_rank = location_rank:megalopolis }
+		}
+		change_location_rank = $location_rank$
+	}
+	else_if = {
+		limit = { $location_rank$ = location_rank:rural_settlement }
+		change_location_rank = $location_rank$
+	}
+}
+
+# root = pop
+transfer_pop = {
+	save_scope_as = target_pop
+	$target$ = {
+		set_local_variable = {
+			name = pops_to_add
+			value = scope:target_pop.pop_size
+		}
+		add_pop = {
+			culture = scope:target_pop.culture
+			religion = scope:target_pop.religion
+			type = scope:target_pop.pop_type
+			size = {
+				value = local_var:pops_to_add
+				$operator$ = $value$
+			}
+		}
+	}
+	add_pop_size = { 
+		value = { value = local_var:pops_to_add  $operator$ = $value$ }
+		multiply = -1
+	}
+}
+
+save_route_to_the_target_effect = {
+	if = {
+		limit = {
+			exists = scope:from
+		}
+		scope:from = {
+			set_variable = {
+				name = $variable_name$
+				value = PREV
+			}
+		}
+	}
+}
+
+set_as_part_of_grand_canal = {
+	add_location_modifier = {
+		mode = add_and_extend
+		modifier = chi_grand_canal
+		years = -1
+	}
+}
+
+convert_pops_in_location_to_catholic = {
+	custom_tooltip = {
+		text = catholic_pop_conversion.tt
+		every_pop = {
+			limit = {
+				religion.group != religion_group:christian
+			}
+			split_pop = {
+				fraction = 0.1
+				religion = religion:catholic
+			}
+		}
+	}
+}
+
+demote_to_destroyed_canal = {
+	remove_location_modifier = chi_grand_canal
+	add_location_modifier = {
+		mode = add_and_extend
+		modifier = chi_grand_canal_destruction
+		years = -1
+	}
+}
+
+fix_grand_canal_repair = {
+	remove_location_modifier = chi_grand_canal_destruction
+	add_location_modifier = {
+		mode = add_and_extend
+		modifier = chi_grand_canal
+		years = -1
+	}
+}
+
+create_work_of_art_with_artist_input = {
+	create_art = {
+		artist = $artist$
+		key = $key$
+		type = $type$
+		quality = {
+			value = $base_quality$
+			add = {
+				value = 1
+				subtract = $base_quality$
+				multiply = $artist$.artist_skill
+			}
+		}
+	}
+}
+
+# root = pop
+enslave_pop = {
+	save_scope_as = target_pop
+	$target$ = {
+		set_local_variable = {
+			name = pops_to_add
+			value = scope:target_pop.pop_size
+		}
+		add_pop = {
+			culture = scope:target_pop.culture
+			religion = scope:target_pop.religion
+			type = pop_type:slaves 
+			size = { value = local_var:pops_to_add  $operator$ = $value$ }
+		}
+	}
+	add_pop_size = { 
+		value = { value = local_var:pops_to_add  $operator$ = $value$ }
+		multiply = -1
+	}
+}
+
+#Create some heretics in catholic locations
+create_some_heretics = {
+	random_list = {
+		10 = {
+			trigger = { religion:lutheran = { is_religion_enabled = yes } }
+			ordered_pop = {
+				limit = { religion = religion:catholic }
+				order_by = pop_size
+				max = 2
+				split_pop = {
+					fraction = { 0.04 0.07 }
+					religion = religion:lutheran
+				}
+			}			
+		}
+		10 = {
+			trigger = { religion:calvinist = { is_religion_enabled = yes } }
+			ordered_pop = {
+				limit = { religion = religion:catholic }
+				order_by = pop_size
+				max = 2
+				split_pop = {
+					fraction = { 0.04 0.07 }
+					religion = religion:calvinist
+				}
+			}
+		}
+		10 = {
+			trigger = { religion:catharism = { is_religion_enabled = yes } }
+			ordered_pop = {
+				limit = { religion = religion:catholic }
+				order_by = pop_size
+				max = 2
+				check_range_bounds = no
+				split_pop = {
+					fraction = { 0.04 0.07 }
+					religion = religion:catharism
+				}
+			}
+		}
+		40 = {
+			trigger = {
+				religion:hussite = { is_religion_enabled = yes }
+				owner = { has_primary_or_accepted_culture = culture:czech }
+			}
+			ordered_pop = {
+				limit = { religion = religion:catholic }
+				order_by = pop_size
+				max = 2
+				split_pop = {
+					fraction = { 0.04 0.07 }
+					religion = religion:hussite
+				}
+			}
+		}
+		40 = {
+			trigger = {
+				religion:lollardy = { is_religion_enabled = yes }
+				owner = {
+					any_primary_or_accepted_culture = {
+						language = language:english_language
+					}
+				}
+			}
+			ordered_pop = {
+				limit = { 
+					religion = religion:catholic
+					culture.language = language:english_language
+				}
+				order_by = pop_size
+				max = 2
+				check_range_bounds = no
+				split_pop = {
+					fraction = { 0.04 0.07 }
+					religion = religion:lollardy
+				}
+			}
+		}
+		10 = {
+			trigger = { religion:waldensian = { is_religion_enabled = yes } }
+			ordered_pop = {
+				limit = { religion = religion:catholic }
+				order_by = pop_size
+				max = 2
+				check_range_bounds = no
+				split_pop = {
+					fraction = { 0.04 0.07 }
+					religion = religion:waldensian
+				}
+			}
+		}
+	}
+}
+
+
+#To be used inside location - > building calculations
+#Root = location
+#Prev = building
+minor_destroy_building_levels_in_location = {
+	change_building_level_in_location = {
+		building = prev.building_type
+		value = {
+			add = prev.building_level
+			multiply = -0.1
+			floor = yes
+		}
+	}
+}
+
+major_destroy_building_levels_in_location = {
+	change_building_level_in_location = {
+		building = prev.building_type
+		value = {
+			add = prev.building_level
+			multiply = -0.25
+			floor = yes
+		}
+	}
+}
+
+catastrophic_destroy_building_levels_in_location = {
+	change_building_level_in_location = {
+		building = prev.building_type
+		value = {
+			add = prev.building_level
+			multiply = -0.33
+			floor = yes
+		}
+	}
+}

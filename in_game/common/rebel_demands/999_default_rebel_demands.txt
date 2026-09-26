@@ -1,0 +1,206 @@
+﻿# Default rebel demands — one fallback per rebel category.
+# Files named 000_–998_ are loaded first, so unique demands placed in those
+# files will be evaluated before these defaults.
+
+default_slave_demand = {
+	trigger = {
+		rebel_category = slave
+	}
+	# Slaves demand emancipation: all slave pops in the country become peasants.
+	concession_effect = {
+		pacify_rebel_pops = yes
+		owner = {
+			every_pop = {
+				limit = {
+					pop_type = pop_type:slaves
+				}
+				change_pop_type = pop_type:peasants
+			}
+		}
+	}
+}
+
+default_nationalist_demand = {
+	trigger = {
+		rebel_category = nationalist
+	}
+	# Nationalists demand cultural recognition: their culture is accepted and some autonomy conceded.
+	concession_effect = {
+		pacify_rebel_pops = yes
+		culture = { save_scope_as = nationalist_culture }
+		owner = {
+			if = {
+				limit = {
+					NOT = { has_accepted_culture = scope:nationalist_culture }
+				}
+				add_accepted_culture = scope:nationalist_culture
+			}
+			change_societal_value = { type = centralization_vs_decentralization value = societal_value_minor_move_to_right }
+		}
+	}
+}
+
+default_religious_demand = {
+	trigger = {
+		rebel_category = religious
+	}
+	concession_effect = {
+		pacify_rebel_pops = yes
+		custom_tooltip = {
+			text = all_other_pops_tt
+			owner = { every_pop = { add_pop_satisfaction = pop_satisfaction_extreme_penalty } }
+		}
+		owner = {
+			if = {
+				limit = { modifier:blocked_from_conversion = no }
+				change_religion = root.religion
+			}
+		}
+	}
+}
+
+default_pretender_demand = {
+	trigger = {
+		rebel_category = pretender
+		has_pretender = yes
+	}
+	# Pretender rebels demand the crown: install the pretender as ruler and lose legitimacy.
+	concession_effect = {
+		pacify_rebel_pops = yes
+		owner = {
+			set_new_ruler = prev.pretender
+			add_legitimacy = legitimacy_severe_penalty
+		}
+	}
+	# Victory effect: the pretender's faction won the civil war and now rules. Penalize legitimacy and
+	# apply a temporary modifier reflecting the realm's divided loyalties.
+	victory_effect = {
+		add_legitimacy = legitimacy_severe_penalty
+		add_country_modifier = {
+			modifier = civil_war_pretender_victor
+			years = 10
+		}
+	}
+}
+
+default_nobles_estate_demand = {
+	trigger = {
+		rebel_category = estate
+		rebel_estate_type = estate_type:nobles_estate
+	}
+	# Nobles demand recognition of their privileges: aristocratic governance and serfdom reinforced.
+	concession_effect = {
+		pacify_rebel_pops = yes
+		grant_benefits_to_estate = yes
+
+		owner = {
+			change_societal_value = { type = aristocracy_vs_plutocracy value = societal_value_minor_move_to_left }
+			change_societal_value = { type = serfdom_vs_free_subjects value = societal_value_minor_move_to_left }
+		}
+	}
+}
+
+default_clergy_estate_demand = {
+	trigger = {
+		rebel_category = estate
+		rebel_estate_type = estate_type:clergy_estate
+	}
+	# Clergy demand spiritual authority: religious orthodoxy and church power affirmed.
+	concession_effect = {
+		pacify_rebel_pops = yes
+		grant_benefits_to_estate = yes
+		owner = {
+			change_societal_value = { type = spiritualist_vs_humanist value = societal_value_minor_move_to_left }
+		}
+	}
+}
+
+default_burghers_estate_demand = {
+	trigger = {
+		rebel_category = estate
+		rebel_estate_type = estate_type:burghers_estate
+	}
+	# Burghers demand commercial freedoms: merchant autonomy and capital economy promoted.
+	concession_effect = {
+		pacify_rebel_pops = yes
+		grant_benefits_to_estate = yes
+	
+		owner = {
+			change_societal_value = { type = aristocracy_vs_plutocracy value = societal_value_minor_move_to_right }
+			change_societal_value = { type = capital_economy_vs_traditional_economy value = societal_value_minor_move_to_left }
+		}
+	}
+}
+
+default_peasants_estate_demand = {
+	trigger = {
+		rebel_category = estate
+		rebel_estate_type = estate_type:peasants_estate
+	}
+	# Peasants demand relief from bondage: serfdom loosened and traditional livelihoods protected.
+	concession_effect = {
+		pacify_rebel_pops = yes
+		grant_benefits_to_estate = yes
+		owner = {
+			change_societal_value = { type = serfdom_vs_free_subjects value = societal_value_minor_move_to_right }
+			change_societal_value = { type = capital_economy_vs_traditional_economy value = societal_value_minor_move_to_right }
+		}
+	}
+}
+
+default_dhimmi_estate_demand = {
+	trigger = {
+		rebel_category = estate
+		rebel_estate_type = estate_type:dhimmi_estate
+	}
+	# Dhimmi demand tolerance and protection of their communities.
+	concession_effect = {
+		pacify_rebel_pops = yes
+		grant_benefits_to_estate = yes
+		owner = {
+			change_societal_value = { type = spiritualist_vs_humanist value = societal_value_minor_move_to_right }
+		}
+	}
+}
+
+default_tribes_estate_demand = {
+	trigger = {
+		rebel_category = estate
+		rebel_estate_type = estate_type:tribes_estate
+	}
+	# Tribes demand autonomy: decentralization and traditional ways of life affirmed.
+	concession_effect = {
+		pacify_rebel_pops = yes
+		grant_benefits_to_estate = yes
+		owner = {
+			change_societal_value = { type = centralization_vs_decentralization value = societal_value_minor_move_to_right }
+			change_societal_value = { type = capital_economy_vs_traditional_economy value = societal_value_minor_move_to_right }
+		}
+	}
+}
+
+default_cossacks_estate_demand = {
+	trigger = {
+		rebel_category = estate
+		rebel_estate_type = estate_type:cossacks_estate
+	}
+	# Cossacks demand military autonomy: offensive posture and martial spirit recognized.
+	concession_effect = {
+		pacify_rebel_pops = yes
+		grant_benefits_to_estate = yes
+		owner = {
+			change_societal_value = { type = offensive_vs_defensive value = societal_value_minor_move_to_left }
+			change_societal_value = { type = belligerent_vs_conciliatory value = societal_value_minor_move_to_left }
+		}
+	}
+}
+
+default_rebel_demand = {
+	trigger = {
+		always = yes
+	}
+	concession_effect = {
+		pacify_rebel_pops = yes
+		owner = { add_legitimacy = legitimacy_severe_penalty }
+	}
+}

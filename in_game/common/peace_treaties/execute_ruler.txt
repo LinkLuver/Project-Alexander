@@ -1,0 +1,117 @@
+﻿execute_ruler = {
+	
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 5
+		}
+		add = {
+			desc = "game_concept_prestige"
+			value = scope:loser.prestige
+			multiply = 0.5
+		}
+	}
+
+	base_antagonism = 5
+	antagonism_type = antagonism_execute_ruler
+	
+	potential = {
+		scope:war = {
+			or = {
+				has_casus_belli = no
+				casus_belli = {
+					is_trade_cb = no
+				}
+			}
+		}
+	}
+	
+	allow = {
+		scope:winner = {
+			modifier:can_execute_characters = yes
+			prestige >= {
+				value = prestige_severe_penalty
+				multiply = -1
+			}
+		}
+		scope:loser = {
+			has_ruler = yes
+			ruler = {
+				NOR = {
+					AND = {
+						exists = scope:winner.ruler
+						this = scope:winner.ruler
+					}
+					AND = {
+						exists = scope:winner.heir
+						this = scope:winner.heir
+					}
+					AND = {
+						exists = scope:winner.consort
+						this = scope:winner.consort
+					}
+				}
+				is_general = no
+				is_admiral = no
+				is_explorer = no
+				location.controller ?= scope:winner
+			}
+		}
+		scope:winner.ruler_or_regent ?= {
+			this != scope:loser.ruler
+		}
+	}
+
+	effect = {
+		scope:loser = {
+			ruler ?= {
+				kill_character = {
+					target = this
+					reason = execution
+					killer = scope:winner.ruler_or_regent
+				}
+				every_ruling_countries = {
+					add_opinion = {
+						target = scope:winner
+						modifier = opinion_executed_our_ruler
+					}
+				}
+			}
+		}
+		scope:winner = {
+			add_prestige = prestige_severe_penalty
+			add_country_modifier = { 
+				modifier = executed_a_ruler
+				years = 50
+				mode = add_and_extend
+			}
+		}
+	}
+
+	ai_desire = {
+		value = -50
+		if = {
+			limit = {
+				scope:loser = {
+					heir ?= {
+						OR = {
+							AND = {
+								exists = scope:winner.ruler
+								this = scope:winner.ruler
+							}
+							AND = {
+								exists = scope:winner.heir
+								this = scope:winner.heir
+							}
+							AND = {
+								exists = scope:winner.consort
+								this = scope:winner.consort
+							}
+						}
+					}
+				}
+			}
+			add = 1000
+		}
+	}
+}

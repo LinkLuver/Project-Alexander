@@ -1,0 +1,138 @@
+﻿red_turban_rebels = {
+    #Can have the rebels only once
+    unique = yes
+    show_on_diplomatic_map = yes
+	expel_members_who_are_targets_of_other_members = no
+    disband_message_trigger = {
+        situation:red_turban_rebellions = {
+            situation_has_ended = yes
+        }
+    }
+	has_leader_country = yes
+	leader_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	#member_color = rtr_rebel_color
+    leader_type = country
+    leader_change_method = score
+    leader_change_trigger_type = timed
+    months_between_leader_changes = 1
+    leader_score = {
+		value = military_strength
+    }
+
+    leader_modifier = {
+        government_size = 1
+    }
+
+    #The rebels fought against each other too
+    can_declare_war = { always = yes }
+
+	create_visible_trigger = {
+		always = no
+	}
+
+    #Only rebellious Warring States should be able to join the rebellion
+	invite_visible_trigger = {
+        is_situation_active = situation:red_turban_rebellions
+	}
+
+    #Rebels automatically join this IO
+    can_join_trigger = { always = no }
+    #...but never flee it
+    can_leave_trigger = { always = no }
+
+    can_lead_trigger = {
+        is_subject = no
+        is_member_of_international_organization = scope:recipient
+    }
+	
+	auto_leave_trigger = {
+        OR = {
+            AND = {
+                has_variable = rtr_yuan_allegiance
+                var:rtr_yuan_allegiance >= 50   #Loyalty towards Yuán
+            }
+            NOT = { has_reform = government_reform:warring_state }  #Somehow no longer a proper Chinese warlord
+            tag = CHI   #Has become China somehow
+            is_subject_of = c:CHI
+            is_allied_with = { target = c:CHI }
+        }
+	}
+	
+    #Gets dismantled via an event at the end of the situation
+	auto_disband_trigger = {
+        always = no
+	}
+
+    monthly_effect = {
+		if = {
+			limit = {
+				country_exists = c:CHI
+			}
+
+            clear_global_variable_list = rtr_loyal_faction
+            clear_global_variable_list = rtr_neutral_faction
+            add_to_global_variable_list = {
+                name = rtr_loyal_faction
+                target = c:CHI
+            }
+            every_country = {
+                limit = {
+                    has_variable = rtr_yuan_allegiance
+                    has_reform = government_reform:warring_state
+                }
+                change_variable = {
+                    name = rtr_yuan_allegiance
+                    add = {
+                        value = {
+                            value = "opinion(c:CHI)"
+                            divide = 100
+                        }
+                        subtract = 1
+                    }
+                }
+                if = {
+                    limit = { var:rtr_yuan_allegiance < -100 }
+                    set_variable = { name = rtr_yuan_allegiance value = -100 }
+                }
+                if = {
+                    limit = { var:rtr_yuan_allegiance > 100 }
+                    set_variable = { name = rtr_yuan_allegiance value = 100 }
+                }
+                if = {
+                    limit = {
+                        NOT = { is_member_of_international_organization = root }
+                        var:rtr_yuan_allegiance < 0
+                    }
+                    root = {
+                        add_country_to_international_organization = prev
+                    }
+                }
+                if = {
+                    limit = {
+                        var:rtr_yuan_allegiance >= 0
+                        var:rtr_yuan_allegiance < 50
+                        NOT = { is_member_of_international_organization = international_organization:red_turban_rebels }
+                    }
+                    add_to_global_variable_list = { name = rtr_neutral_faction target = this }
+                }
+                if = {
+                    limit = {
+                        var:rtr_yuan_allegiance >= 50
+                    }
+                    add_to_global_variable_list = { name = rtr_loyal_faction target = this }
+                }
+            }
+        }
+    }
+
+	ai_desire_to_join = {
+
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}

@@ -1,0 +1,67 @@
+﻿union_contribution = {
+	get_payer_list = {
+		#junior partners contributes
+		every_country_with_special_status_of_type = {
+			type = junior_partner
+			add_to_local_variable_list = {
+				name = payers
+				target = this
+			}
+		}
+	}
+	get_payee_list = {
+		#payment goes to the Senior Partner
+		every_country_with_special_status_of_type = {
+			type = senior_partner
+			add_to_local_variable_list = {
+				name = payees
+				target = this
+			}
+		}
+	}
+	price = union_contribution_price
+	uses_maintenance = yes 
+	maintenance_modifier = {
+		potential_trigger = { "payment_maintenance(scope:recipient|union_contribution)" < 0.5 }
+		scale = {
+			value = 1
+			subtract = {
+				value = "payment_maintenance(scope:recipient|union_contribution)"
+				multiply = 2
+			}
+		}
+        diplomatic_reputation = -2
+	}
+	maintenance_modifier = {
+		potential_trigger = {
+			"payment_maintenance(scope:recipient|union_contribution)" > 0.5
+		}
+		scale = {
+			value = "payment_maintenance(scope:recipient|union_contribution)"
+			subtract = 0.5
+			multiply = 2
+		}
+        diplomatic_reputation = 1
+	}
+	price_multiplier = {
+		add = {
+			desc = "UNION_CONTRIBUTION_PAYMENT_MULTIPLIER"
+			every_international_organization_member = {
+				add = monthly_income_trade_and_tax
+			}
+			multiply = 0.005
+        }
+	}
+	proportion_for_payer = {
+		add = {
+			desc = "game_concept_monthly_income_trade_and_tax"
+			value = monthly_income_trade_and_tax
+		}
+	}
+	proportion_for_payee = {
+		add = {
+			desc = "union_contribution"
+			value = 1
+		}
+	}
+}

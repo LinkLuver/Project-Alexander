@@ -1,0 +1,686 @@
+﻿estate_cooperation = {
+	icon = generic_estate_cooperation
+	repeatable = yes
+	chance = 3600
+	player_playstyle = diplomatic
+
+	visible = {
+		game_has_missions_enabled = yes
+		OR = {
+			country_has_estate = estate_type:peasants_estate
+			country_has_estate = estate_type:clergy_estate
+			country_has_estate = estate_type:burghers_estate
+			country_has_estate = estate_type:nobles_estate
+		}
+		NOT = { has_variable = recently_had_estate_cooperation_variable }
+		NOR = {
+			country_type = building
+			country_type = pop
+		}
+		any_estate = {
+			count > 2
+		}
+	}
+	select_trigger = {
+		looking_for_a = estate
+		source = actor
+		target_flag = mission_target_estate
+		name = "mission_select_estate"
+		none_available_msg_key = "mission_select_no_estate"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:actor = { country_has_estate = root.estate_type }
+			OR = {
+				estate_type = estate_type:nobles_estate
+				estate_type = estate_type:burghers_estate
+				estate_type = estate_type:peasants_estate
+				estate_type = estate_type:clergy_estate
+			}
+		}
+	}
+	on_start = {
+		if = {
+			limit = { scope:mission_target_estate.estate_type = estate_type:nobles_estate }
+			set_variable = {
+				name = target_estate_satisfaction_variable
+				value = {
+					add = estate_satisfaction:nobles_estate
+					add = 0.15
+					max = 0.75
+				}
+			}
+			set_variable = {
+				name = target_estate_var_bribery
+				value = estate_type:nobles_estate
+			}
+		}
+		else_if = {
+			limit = { scope:mission_target_estate.estate_type = estate_type:burghers_estate }
+			set_variable = {
+				name = target_estate_satisfaction_variable
+				value = {
+					add = estate_satisfaction:burghers_estate
+					add = 0.2
+					max = 0.8
+				}
+			}
+			set_variable = {
+				name = target_estate_var_bribery
+				value = estate_type:burghers_estate
+			}
+		}
+		else_if = {
+			limit = { scope:mission_target_estate.estate_type = estate_type:clergy_estate }
+			set_variable = {
+				name = target_estate_satisfaction_variable
+				value = {
+					add = estate_satisfaction:clergy_estate
+					add = 0.2
+					max = 0.8
+				}
+			}
+			set_variable = {
+				name = target_estate_var_bribery
+				value = estate_type:clergy_estate
+			}
+		}
+		else_if = {
+			limit = { scope:mission_target_estate.estate_type = estate_type:peasants_estate }
+			set_variable = {
+				name = target_estate_satisfaction_variable
+				value = {
+					add = estate_satisfaction:peasants_estate
+					add = 0.2
+					max = 0.8
+				}
+			}
+			set_variable = {
+				name = target_estate_var_bribery
+				value = estate_type:peasants_estate
+			}
+		}
+		set_variable = {
+			name = target_estate_privs_variable
+			value = {
+				add = scope:mission_target_estate.num_privileges
+				add = 2
+				max = 10
+			}
+		}
+		
+		if = {
+			limit = { scope:mission_target_estate.estate_type = estate_type:nobles_estate }
+			random_list = {
+				1 = { 
+					trigger = { societal_value:aristocracy_vs_plutocracy > -100 }
+					set_variable = {
+						name = push_towards_aristocracy_var
+						value = {
+							add = modifier:monthly_towards_aristocracy
+							add = 0.1
+						}
+					}
+				
+				}
+				1 = {
+					trigger = { societal_value:serfdom_vs_free_subjects > -100 }
+					set_variable = {
+						name = push_towards_serfdom_var
+						value = {
+							add = modifier:monthly_towards_serfdom
+							add = 0.1
+						}
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { scope:mission_target_estate.estate_type = estate_type:burghers_estate }
+			random_list = {
+				1 = { 
+					trigger = { societal_value:aristocracy_vs_plutocracy < 100 }
+					set_variable = {
+						name = push_towards_plutocracy_var
+						value = {
+							add = modifier:monthly_towards_plutocracy
+							add = 0.1
+						}
+					}
+				}
+				1 = {
+					trigger = {
+						current_age_or_later = { age = age_4_reformation }
+						societal_value:mercantilism_vs_free_trade < 100
+					}
+					set_variable = {
+						name = push_towards_free_trade_var
+						value = {
+							add = modifier:monthly_towards_free_trade
+							add = 0.1
+						}
+					}
+				}
+				1 = {
+					trigger = {
+						current_age_or_later = { age = age_4_reformation }
+						societal_value:mercantilism_vs_free_trade > -100
+					}
+					set_variable = {
+						name = push_towards_mercantilism_var
+						value = {
+							add = modifier:monthly_towards_mercantilism
+							add = 0.1
+						} 
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { scope:mission_target_estate.estate_type = estate_type:clergy_estate }
+			random_list = {
+				1 = {
+					trigger = { societal_value:traditionalist_vs_innovative > -100 }
+					set_variable = {
+						name = push_towards_traditionalist_var
+						value = {
+							add = modifier:monthly_towards_traditionalist
+							add = 0.1
+						}
+					}
+					set_variable = {
+						name = total_target_theater_buildings_variable
+						value = {
+							add = total_effective_building_levels:theater
+							add = 1
+						}
+					}
+				}
+				1 = {
+					trigger = { societal_value:spiritualist_vs_humanist > -100 }
+					set_variable = {
+						name = push_towards_spiritualist_var
+						value = {
+							add = modifier:monthly_towards_spiritualist
+							add = 0.1
+						}
+					}
+					if = {	
+						#Here we set tracker variables for urban and rural cathedrals, in case the advance is researched
+						#These variables are used in the mission_fund_construction_projects further below
+						limit = { has_advance = cathedral_advance }
+
+						#####
+						set_variable = {
+							name = total_target_cathedral_buildings_variable
+							value = total_effective_building_levels:cathedral
+						}
+						every_owned_non_rural_location = {
+							limit = { 
+								NOT = { has_building = building_type:cathedral }
+							}
+							owner = {
+								change_variable = {
+									name = total_target_cathedral_buildings_variable
+									add = 0.25
+								}
+							}
+						}
+					}
+					set_variable = {
+						name = total_target_temple_buildings_variable
+						value = {
+							add = total_effective_building_levels:temple
+							add = 1
+						}
+					}
+					if = {
+						limit = { total_effective_building_levels:temple < num_of_non_rural }
+						every_owned_non_rural_location = {
+							limit = { NOT = { has_building = building_type:temple } }
+							owner = {
+								change_variable = {
+									name = total_target_temple_buildings_variable
+									add = 0.2
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { 
+				societal_value:serfdom_vs_free_subjects < 100
+				scope:mission_target_estate.estate_type = estate_type:peasants_estate
+			}
+			set_variable = {
+				name = push_towards_free_subjects_var
+				value = {
+					add = modifier:monthly_towards_free_subjects
+					add = 0.1
+				} 
+			}
+		}
+		set_variable = {
+			name = target_employment_variable
+			value = {
+				add = capital.employment_percentage
+				add = 0.05
+				max = 0.9
+			}
+		}
+	}
+
+	on_abort = {
+		set_variable = {
+			name = recently_had_estate_cooperation_variable
+			years = 10
+		}
+		remove_variable = target_employment_variable
+		if = {
+			limit = { has_variable = total_target_cathedral_buildings_variable }
+			remove_variable = total_target_cathedral_buildings_variable
+		}
+		if = {
+			limit = { has_variable = total_target_temple_buildings_variable }
+			remove_variable = total_target_temple_buildings_variable
+		}
+
+		if = {
+			limit = { has_variable = total_target_theater_buildings_variable }
+			remove_variable = total_target_theater_buildings_variable
+		}
+		if = {
+			limit = { has_variable = push_towards_traditionalist_var }
+			remove_variable = push_towards_traditionalist_var
+		}
+		if = {
+			limit = { has_variable = push_towards_spiritualist_var }
+			remove_variable = push_towards_spiritualist_var
+		}
+		if = {
+			limit = { has_variable = push_towards_free_subjects_var }
+			remove_variable = push_towards_free_subjects_var
+		}
+		
+		if = {
+			limit = { has_variable = push_towards_aristocracy_var }
+			remove_variable = push_towards_aristocracy_var
+		}
+		if = {
+			limit = { has_variable = push_towards_serfdom_var }
+			remove_variable = push_towards_serfdom_var
+		}
+		if = {
+			limit = { has_variable = push_towards_plutocracy_var }
+			remove_variable = push_towards_plutocracy_var 
+		}
+		if = {
+			limit = { has_variable = push_towards_free_trade_var }
+			remove_variable = push_towards_free_trade_var
+		}
+		if = {
+			limit = { has_variable = push_towards_mercantilism_var }
+			remove_variable = push_towards_mercantilism_var 
+		}
+		remove_variable = target_estate_privs_variable
+		remove_variable = target_estate_satisfaction_variable
+		remove_variable = target_estate_var_bribery
+	}
+
+	on_completion = {
+		set_variable = {
+			name = recently_had_estate_cooperation_variable
+			years = 25
+		}
+		remove_variable = target_employment_variable
+		remove_variable = target_estate_var_bribery
+		if = {
+			limit = { has_variable = total_target_cathedral_buildings_variable }
+			remove_variable = total_target_cathedral_buildings_variable
+		}
+		if = {
+			limit = { has_variable = total_target_temple_buildings_variable }
+			remove_variable = total_target_temple_buildings_variable
+		}
+		if = {
+			limit = { has_variable = total_target_theater_buildings_variable }
+			remove_variable = total_target_theater_buildings_variable
+		}
+		if = {
+			limit = { has_variable = push_towards_traditionalist_var }
+			remove_variable = push_towards_traditionalist_var
+		}
+		if = {
+			limit = { has_variable = push_towards_spiritualist_var }
+			remove_variable = push_towards_spiritualist_var
+		}
+		if = {
+			limit = { has_variable = push_towards_free_subjects_var }
+			remove_variable = push_towards_free_subjects_var
+		}
+		if = {
+			limit = { has_variable = push_towards_aristocracy_var }
+			remove_variable = push_towards_aristocracy_var
+		}
+		if = {
+			limit = { has_variable = push_towards_serfdom_var }
+			remove_variable = push_towards_serfdom_var
+		}
+		if = {
+			limit = { has_variable = push_towards_plutocracy_var }
+			remove_variable = push_towards_plutocracy_var 
+		}
+		
+		if = {
+			limit = { has_variable = push_towards_free_trade_var }
+			remove_variable = push_towards_free_trade_var
+		}
+		if = {
+			limit = { has_variable = push_towards_mercantilism_var }
+			remove_variable = push_towards_mercantilism_var 
+		}
+		remove_variable = target_estate_privs_variable
+		remove_variable = target_estate_satisfaction_variable
+	}
+
+	mission_estate_privileges = {
+		icon = government_reforms
+		enabled = {
+			OR = {
+				scope:mission_target_estate = { num_privileges > root.var:target_estate_privs_variable }
+				trigger_if = {
+					limit = { scope:mission_target_estate.estate_type = estate_type:nobles_estate }
+					estate_satisfaction:nobles_estate > 0.5
+				}
+				trigger_if = {
+					limit = { scope:mission_target_estate.estate_type = estate_type:clergy_estate }
+					estate_satisfaction:clergy_estate > 0.5
+				}
+				trigger_if = {
+					limit = { scope:mission_target_estate.estate_type = estate_type:burghers_estate }
+					estate_satisfaction:burghers_estate > 0.5
+				}
+				trigger_if = {
+					limit = { scope:mission_target_estate.estate_type = estate_type:peasants_estate }
+					estate_satisfaction:peasants_estate > 0.5
+				}
+			}
+		}
+		duration = 365
+		modifier_while_progressing = {
+			stability_investment = 1
+			global_crown_estate_power = -0.1
+		}
+
+		on_monthly = {
+			random_list = {
+				10 = { trigger_event_silently = generic_mission_events.4 }	#Estate Demands Favoritism
+				10 = { trigger_event_silently = generic_mission_events.5 }	#Estate Promotes Councilor Cooperation
+				10 = { trigger_event_silently = generic_mission_events.6 }	#Petition for Reform
+				10 = { trigger_event_silently = generic_mission_events.7 }	#Estate-type pops bring prosperity to province
+				60 = { }
+			}
+		}
+
+		on_start = {
+			custom_tooltip = monthly_events_about_the_scoped_estate_tt
+		}
+	}
+
+	mission_capital_influence = {
+		icon = diplomatic_range_age_1
+		requires = { mission_estate_privileges }
+		enabled = {
+			capital = {
+				employment_percentage >= root.var:target_employment_variable
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			if = {
+				limit = {
+					capital = {
+						any_pop = {
+							estate_type = scope:mission_target_estate.estate_type
+						}
+					}
+				}
+				capital = {
+					every_pop = {
+						limit = {
+							owner = root
+							estate_type = scope:mission_target_estate.estate_type
+						}
+						add_pop_satisfaction = pop_satisfaction_severe_bonus
+					}
+				}
+			}
+			else = { custom_tooltip = target_mission_pop_gets_20_satisfaction_tt }
+		}
+	}
+
+	mission_shape_society = {
+		icon = smooth_administration
+		requires = { mission_estate_privileges }
+		enabled = {
+			switch = {  
+				trigger = has_variable  
+				push_towards_traditionalist_var = {
+					modifier:monthly_towards_traditionalist >= var:push_towards_traditionalist_var
+				} 
+				push_towards_spiritualist_var = {
+					modifier:monthly_towards_spiritualist >= var:push_towards_spiritualist_var
+				}  
+				push_towards_free_subjects_var = {
+					modifier:monthly_towards_free_subjects >= var:push_towards_free_subjects_var
+				}
+				push_towards_aristocracy_var = {
+					modifier:monthly_towards_aristocracy >= var:push_towards_aristocracy_var
+				}
+				push_towards_serfdom_var = {
+					modifier:monthly_towards_serfdom >= var:push_towards_serfdom_var
+				}
+				push_towards_plutocracy_var = {
+					modifier:monthly_towards_plutocracy >= var:push_towards_plutocracy_var
+				}
+				push_towards_free_trade_var = {
+					modifier:monthly_towards_free_trade >= var:push_towards_free_trade_var
+				}
+				push_towards_mercantilism_var = {
+					modifier:monthly_towards_mercantilism >= var:push_towards_mercantilism_var
+				}
+			}
+		}
+
+		duration = 0
+
+		bypass = {
+			NOR = {
+				has_variable = push_towards_aristocracy_var
+				has_variable = push_towards_serfdom_var
+				has_variable = push_towards_plutocracy_var
+				has_variable = push_towards_free_trade_var
+				has_variable = push_towards_mercantilism_var
+				has_variable = push_towards_traditionalist_var
+				has_variable = push_towards_spiritualist_var
+				has_variable = push_towards_free_subjects_var
+			}
+		}
+
+		on_completion = {
+			add_estate_satisfaction = { type = scope:mission_target_estate.estate_type value = estate_satisfaction_weak_bonus }
+		}
+	}
+
+	mission_fund_construction_projects = {
+		icon = banking_advance
+		requires = { mission_estate_privileges }
+		enabled = {
+			switch = {  
+				trigger = has_variable  
+				push_towards_traditionalist_var = { 
+					trigger_if = {
+						limit = { has_advance = art_school_advance }
+						capital = { has_building = building_type:art_school }
+					}
+					trigger_else_if = {
+						limit = { has_advance = arts_academy_advance }
+						capital = { has_building = building_type:arts_academy }
+					} 
+					trigger_else = {}
+					total_effective_building_levels:theater >= var:total_target_theater_buildings_variable 
+				}
+				
+				push_towards_spiritualist_var = { 
+					trigger_if = {
+						limit = { has_advance = cathedral_advance }
+						OR = {
+							total_effective_building_levels:cathedral >= var:total_target_cathedral_buildings_variable 
+							total_effective_building_levels:temple >= var:total_target_temple_buildings_variable
+						}
+					}
+					trigger_else = { total_effective_building_levels:temple >= var:total_target_temple_buildings_variable }
+				}
+				push_towards_free_subjects_var = { 
+					total_effective_building_levels:irrigation_systems >= {
+						value = {
+							add = root.num_locations
+							divide = 10
+						}
+					} 
+				}
+				push_towards_aristocracy_var = { total_effective_building_levels:royal_garden >= 1 }
+				push_towards_serfdom_var = { total_effective_building_levels:trade_office >= 2 }
+				push_towards_plutocracy_var = { 
+					total_effective_building_levels:marketplace >= root.num_of_non_rural 
+				} 
+				push_towards_free_trade_var = { 
+					total_effective_building_levels:trade_office >= {
+						value = {
+							add = {
+								value = root.num_of_non_rural
+								divide = 10
+								max = 10
+							}
+						}
+					}
+				}
+				push_towards_mercantilism_var = { 
+					trigger_if = {
+						limit = { has_advance = pound_lock_canals_advance }
+						
+						total_effective_building_levels:pound_lock_canal_infrastructure >= {
+							value = {
+								add = root.num_of_non_rural 
+								divide = 10
+							}
+						}
+					}
+					trigger_else = {
+						total_effective_building_levels:marketplace >= root.num_of_non_rural 
+					}
+				}
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			add_country_modifier = {
+				modifier = mission_development_projects_modifier
+				years = modifier_duration_years_normal
+				mode = replace
+			}
+
+			if = {
+				limit = { num_of_non_rural > 0 }
+				ordered_owned_non_rural_location = {
+					order_by = development
+					check_range_bounds = no
+					max = 1
+					change_development = development_weak_bonus
+				}
+			}
+			else = { custom_tooltip = should_we_have_non_rural_fund_construction_projects_tt }
+		}
+	}
+
+	mission_estate_satisfaction = {
+		icon = crown_power_advance_renaissance
+		final = yes
+		requires = { mission_shape_society }
+		enabled = {
+			trigger_if = {
+				limit = { scope:mission_target_estate.estate_type = estate_type:nobles_estate }
+				estate_satisfaction:nobles_estate >= root.var:target_estate_satisfaction_variable
+			}
+			trigger_if = {
+				limit = { scope:mission_target_estate.estate_type = estate_type:clergy_estate }
+				estate_satisfaction:clergy_estate >= root.var:target_estate_satisfaction_variable
+			}
+			trigger_if = {
+				limit = { scope:mission_target_estate.estate_type = estate_type:burghers_estate }
+				estate_satisfaction:burghers_estate >= root.var:target_estate_satisfaction_variable
+			}
+			trigger_if = {
+				limit = { scope:mission_target_estate.estate_type = estate_type:peasants_estate }
+				estate_satisfaction:peasants_estate >= root.var:target_estate_satisfaction_variable
+			}
+		}
+
+
+		duration = 0
+
+		on_completion = {
+			if = {
+				limit = { exists = scope:mission_target_estate }
+				custom_tooltip = {
+					text = every_pop_of_estate_10_satisfaction_tt
+					every_pop = {
+						limit = {
+							owner = root
+							religion = root.religion
+							culture = root.culture
+							estate_type = scope:mission_target_estate.estate_type
+						}
+						add_pop_satisfaction = pop_satisfaction_weak_bonus
+					}
+				}
+			}
+			else = { custom_tooltip = every_pop_of_no_estate_10_satisfaction_tt }
+		}
+	}
+
+	mission_shared_enrichment = {
+		icon = grand_banquets
+		requires = { mission_shape_society }
+		enabled = {
+			OR = {
+				custom_tooltip = {
+					text = used_bribe_5_years_tt
+					has_variable = recently_bribed_estate_variable
+				}
+				scope:mission_target_estate = {
+					estate_gold >= {
+						value = root.monthly_income_trade_and_tax
+						multiply = 4
+					}
+				}
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			add_country_modifier = {
+				modifier = shared_enrichment_modifier
+				years = 10
+			}
+		}
+	}
+}

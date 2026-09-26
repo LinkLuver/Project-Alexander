@@ -1,0 +1,60 @@
+﻿religious_supremacy = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 50
+		}
+	}
+
+	
+	potential = {
+        exists = international_organization:hre
+		scope:war = {
+			is_no_cb_war = no
+			casus_belli ?= casus_belli:cb_religious_superiority
+		}
+	}
+	allow = {
+		scope:loser = {
+			is_war_leader_of = scope:war
+		}
+		scope:winner = {
+			is_war_leader_of = scope:war
+		}
+	}
+	effect = {
+		scope:loser = {
+			add_stability = stability_extreme_penalty
+			change_societal_value = { type = aristocracy_vs_plutocracy value = societal_value_huge_move_to_left }
+		}
+		international_organization:hre ?= {
+			if = {
+				limit = {
+					scope:winner = {
+						is_member_of_international_organization = international_organization:protestant_union
+					}
+				}
+				if = {
+					limit = { scope:winner.religion = religion:hussite }
+					add_policy_to_international_organization = policy:hre_religion_hussite
+				}
+				else_if = {
+					limit = { scope:winner.religion = religion:calvinist }
+					add_policy_to_international_organization = policy:hre_religion_calvinist
+				}
+				else = {
+					add_policy_to_international_organization = policy:hre_religion_lutheran
+				}
+			}
+			else = {
+				add_policy_to_international_organization = policy:hre_religion_catholic
+			}
+		}
+		end_situation = situation:war_of_religions
+	}
+
+	ai_force_add = yes #bypass alliance war score split etc
+	ai_desire = {
+		value = 1000
+	}
+}

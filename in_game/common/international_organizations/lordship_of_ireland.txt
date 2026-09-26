@@ -1,0 +1,229 @@
+﻿lordship_of_ireland = {
+
+	has_target = no
+	unique = yes
+
+	custom_name = lordship_of_ireland_name
+	
+	has_leader_country = yes
+	leader_title_key = "lordship_of_ireland_LEADER"
+	leader_type = character
+	leader = {
+		leader_country ?= {
+			ruler ?= {
+				add_to_list = leaders
+			}
+		}
+	}
+	leader_change_trigger_type = none
+	leader_change_method = none
+	disband_if_no_leader = yes
+
+	join_defensive_wars = Never
+
+	join_offensive_wars = Never
+	
+	create_visible_trigger = {
+		always = no
+	}
+
+	invite_visible_trigger = {
+		always = yes
+	}
+
+	can_declare_war = {
+		always = yes
+	}	
+	
+	show_as_overlord_on_map_trigger = {
+		NOT = {
+			has_special_status_in_international_organization = {
+				type = special_status:absentee
+				international_organization = scope:recipient
+			}
+		}
+	}
+
+	land_ownership_rule = lordship_of_ireland_land_ownership
+	antagonism_modifier_for_taking_land_from_fellow_member = 0.5
+	
+	modifier = {
+		global_defensive = 0.2
+		block_from_change_to_duchy_rank = yes
+		block_from_change_to_kingdom_rank = yes
+		block_from_change_to_empire_rank = yes
+	}
+
+	modifier = {
+	}
+
+	leader_modifier = {
+		monthly_prestige = 0.02
+	}
+	
+	can_lead_trigger = {
+	}
+	
+	can_join_trigger = {
+		capital ?= {
+			is_owned_by_international_organization = scope:recipient
+		}
+		is_rebel_country = no
+		OR = {
+			is_subject_of = scope:recipient.leader_country
+			opinion = {
+				target = scope:recipient.leader_country
+				value > 50
+			}
+		}
+	}
+
+	join_visible_trigger = {
+		always = no
+	}
+
+	can_initiate_policy_votes = {
+		scope:recipient = {
+			OR = {
+				leader_country = root
+				country_has_special_status = { type = special_status:lieutenant country = root }
+			}
+		}
+	}
+	
+	can_leave_trigger = {
+		trigger_if = {
+			limit = {
+				has_special_status_in_international_organization = {
+					type = special_status:lord_of_ireland
+					international_organization = international_organization:lordship_of_ireland
+				}
+			}
+			NOT = {
+				has_special_status_in_international_organization = {
+					type = special_status:lord_of_ireland
+					international_organization = international_organization:lordship_of_ireland
+				}
+			}
+		}
+		trigger_if = {
+			limit = {
+				NOT = {
+					has_special_status_in_international_organization = {
+						type = special_status:lord_of_ireland
+						international_organization = international_organization:lordship_of_ireland
+					}
+				}
+			}
+			NOT = { is_subject_of = scope:recipient.leader_country }
+			OR = {
+				NOT = {
+					capital.region = region:ireland_region
+				}
+				AND = {
+					opinion = {
+						target = scope:recipient.leader_country
+						value < -50
+					}
+					has_special_status_in_international_organization = {
+						type = special_status:absentee
+						international_organization = international_organization:lordship_of_ireland
+					}
+				}
+			}
+		}
+	}
+	
+	
+	auto_leave_trigger = {
+		OR = {
+			NOT = {
+				capital.region = region:ireland_region
+			}
+			is_member_of_international_organization_of_type = { type = high_kingship }
+		}
+	}
+	
+	auto_disband_trigger = {
+		total_members < 1
+	}
+	disband_minimum_member_count = 0
+
+	on_joined = {
+	}
+
+	on_left = {
+	}
+
+	has_military_access = {
+		always = yes
+	}
+	
+	monthly_effect = {
+		# auto-join
+		# every_international_organization_owned_location = {
+		# 	limit = {
+		# 		is_capital = yes
+		# 		owner = {
+		# 			NOT = { is_member_of_international_organization = root }
+		# 			is_subject_of = scope:recipient.leader_country
+		# 		}
+		# 	}
+		# 	ROOT = {
+		# 		add_country_to_international_organization = prev.owner
+		# 	}
+		# }
+	}
+	
+	variables = {
+	}
+
+	special_statuses_implemented = {
+		lord_of_ireland
+		lieutenant
+		loyalist
+		absentee
+	}
+
+	ai_desire_to_join = {
+
+		add = {
+			value = -100
+			desc = BASE_VALUE
+		}
+		add = {
+			desc = "[opinion|e]"
+			value = {
+				scope:actor = {
+					root = {
+						value = this_opinion_of_prev
+						multiply = 0.4
+					}
+				}
+			}
+		}
+		add = {
+			desc = "IO_LEADER_DIP_REP"
+			scope:recipient = {
+				value = scope:actor.modifier:diplomatic_reputation
+				multiply = 5
+			}
+		}
+		subtract = {
+			desc = "IO_LEADER_ANTAGONISM"
+			scope:actor = {
+				root = {
+					value = this_antagonism_towards_prev
+					multiply = 2
+				}
+			}
+		}
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}

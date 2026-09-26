@@ -1,0 +1,708 @@
+﻿grant_italian_league_sponsor = {
+	type = diplomacy
+	category = CATEGORY_FRIENDLY_ACTIONS
+
+	ai_limit_per_check = 1
+
+	potential = {
+		scope:actor = {
+			OR = {
+				is_leader_of_international_organization = international_organization:italian_league_1
+				is_leader_of_international_organization = international_organization:italian_league_2
+				is_leader_of_international_organization = international_organization:italian_league_3
+			}
+		}
+	}
+
+	allow = {
+		scope:recipient ?= {
+			monthly_manpower > {
+				value = scope:actor.monthly_manpower
+				multiply = 0.33
+			}
+			monthly_income_total > {
+				value = scope:actor.monthly_income_total
+				multiply = 0.33
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			is_rebel_country = no
+			NOR = {
+				is_member_of_international_organization = international_organization:italian_league_1
+				is_member_of_international_organization = international_organization:italian_league_2
+				is_member_of_international_organization = international_organization:italian_league_3
+				is_member_of_international_organization = international_organization:foreign_league_france
+				is_member_of_international_organization = international_organization:foreign_league_hre
+				is_member_of_international_organization = international_organization:foreign_league_iberia
+				capital.region = region:italy_region
+			}
+		}
+		enabled = {
+			NOT = { is_at_war_with = scope:actor }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			random_international_organizations_member_of = {
+				limit = {
+					OR = {
+						this = international_organization:italian_league_1
+						this = international_organization:italian_league_2
+						this = international_organization:italian_league_3
+					}
+					leader_country ?= scope:actor
+				}
+				add_country_to_international_organization = scope:recipient
+				international_organization_add_special_status = {
+					type = special_status:italian_league_sponsor
+					country = scope:recipient
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		# More urgent as Italian Wars tension rises
+		add = {
+			desc = "[situation_tension|e]"
+			value = situation:italian_wars.var:iw_tension
+			multiply = 0.5
+		}
+
+		# Prefer wealthy targets — they contribute more gold
+		add = {
+			desc = "game_concept_monthly_income_trade_and_tax"
+			value = scope:recipient.monthly_income_trade_and_tax
+			multiply = 0.1
+		}
+
+		# Prefer militarily productive targets — they contribute more manpower
+		add = {
+			desc = "game_concept_monthly_manpower"
+			value = scope:recipient.monthly_manpower
+			multiply = 20
+		}
+
+		# Prefer targets that already like and trust us — more likely to actually accept
+		add = {
+			desc = "game_concept_opinion"
+			value = "scope:recipient.opinion(scope:actor)"
+			multiply = 0.3
+		}
+		add = {
+			desc = "game_concept_trust"
+			value = "scope:recipient.trust(scope:actor)"
+			multiply = 0.2
+		}
+
+		# Great powers and regional powers are the most valuable patrons
+		if = {
+			limit = { scope:recipient = { is_great_power = yes } }
+			add = {
+				desc = "[great_power|e]"
+				value = 20
+			}
+		}
+		if = {
+			limit = { scope:recipient = { is_regional_power = yes } }
+			add = {
+				desc = "[regional_power|e]"
+				value = 10
+			}
+		}
+
+		# Prioritise rivals/enemies of opposing foreign league leaders — highest accept chance
+		if = {
+			limit = {
+				international_organization:foreign_league_france ?= {
+					leader_country ?= {
+						OR = {
+							scope:recipient = { is_rival_of = prev }
+							scope:recipient = { is_enemy_of = prev }
+						}
+					}
+				}
+			}
+			add = {
+				desc = "RIVAL_OR_ENEMY_OF_FOREIGN_LEAGUE_FRANCE"
+				value = 15
+			}
+		}
+		if = {
+			limit = {
+				international_organization:foreign_league_hre ?= {
+					leader_country ?= {
+						OR = {
+							scope:recipient = { is_rival_of = prev }
+							scope:recipient = { is_enemy_of = prev }
+						}
+					}
+				}
+			}
+			add = {
+				desc = "RIVAL_OR_ENEMY_OF_FOREIGN_LEAGUE_HRE"
+				value = 15
+			}
+		}
+		if = {
+			limit = {
+				international_organization:foreign_league_iberia ?= {
+					leader_country ?= {
+						OR = {
+							scope:recipient = { is_rival_of = prev }
+							scope:recipient = { is_enemy_of = prev }
+						}
+					}
+				}
+			}
+			add = {
+				desc = "RIVAL_OR_ENEMY_OF_FOREIGN_LEAGUE_IBERIA"
+				value = 15
+			}
+		}
+		if = {
+			limit = {
+				international_organization:foreign_league_balkan ?= {
+					leader_country ?= {
+						OR = {
+							scope:recipient = { is_rival_of = prev }
+							scope:recipient = { is_enemy_of = prev }
+						}
+					}
+				}
+			}
+			add = {
+				desc = "RIVAL_OR_ENEMY_OF_FOREIGN_LEAGUE_BALKAN"
+				value = 15
+			}
+		}
+
+		# Avoid approaching countries weaker than the league leader — they'll be hard-blocked in accept
+		if = {
+			limit = {
+				scope:recipient = {
+					relative_strength = {
+						target = scope:actor
+						value < 0.5
+					}
+				}
+			}
+			subtract = {
+				desc = "DIPLOREASON_TOO_WEAK_TO_SPONSOR"
+				value = 1000
+			}
+		}
+
+		# Don't waste diplomats on rivals or enemies — they'll refuse outright
+		if = {
+			limit = {
+				scope:recipient = {
+					OR = {
+						is_rival_of = scope:actor
+						is_enemy_of = scope:actor
+					}
+				}
+			}
+			subtract = {
+				desc = "DIPLOREASON_RIVAL_OR_ENEMY"
+				value = 1000
+			}
+		}
+	}
+
+	accept = {
+		# Hard to recruit a patron by default — the player must invest in the relationship
+		add = {
+			desc = "BASE_VALUE"
+			value = -50
+		}
+
+		# Good opinion and trust are the primary levers the player can pull
+		add = {
+			desc = "[opinion|e]"
+			value = "scope:recipient.opinion(scope:actor)"
+			multiply = 0.5
+		}
+		add = {
+			desc = "[trust|e]"
+			scope:recipient = {
+				value = "trust(scope:actor)"
+				divide = 4
+			}
+		}
+
+		# Sponsors prefer league leaders they can dominate — the stronger the sponsor
+		# relative to the league leader, the more appealing the arrangement is.
+		# Hard block if the sponsor is less than half the league leader's strength.
+		if = {
+			limit = {
+				scope:recipient = {
+					relative_strength = {
+						target = scope:actor
+						value > 0.5
+					}
+				}
+			}
+			add = {
+				desc = "[country_strength|e]"
+				value = "scope:recipient.relative_strength(scope:actor)"
+				multiply = 20
+				max = 30
+			}
+		}
+		else = {
+			subtract = {
+				desc = "[country_strength|e]"
+				value = 1000
+			}
+		}
+
+		# A comfortable monthly balance means the gold contribution matters less to them
+		if = {
+			limit = { scope:recipient = { monthly_balance > 5 } }
+			add = {
+				desc = "COMFORTABLE_MONTHLY_BALANCE"
+				value = scope:recipient.monthly_balance
+				multiply = -0.5
+				min = -20
+			}
+		}
+
+		# Plentiful manpower means the army tradition bonus from sponsorship matters less
+		if = {
+			limit = { scope:recipient = { monthly_manpower > 0.1 } }
+			add = {
+				desc = "COMFORTABLE_MANPOWER"
+				value = scope:recipient.monthly_manpower
+				multiply = -50
+				min = -20
+			}
+		}
+
+		# Rival or enemy of a French foreign league leader
+		if = {
+			limit = {
+				international_organization:foreign_league_france ?= {
+					leader_country ?= {
+						OR = {
+							scope:recipient = { is_rival_of = prev }
+							scope:recipient = { is_enemy_of = prev }
+						}
+					}
+				}
+			}
+			add = {
+				desc = "RIVAL_OR_ENEMY_OF_FOREIGN_LEAGUE_FRANCE"
+				value = 10
+			}
+		}
+
+		# Rival or enemy of an HRE foreign league leader
+		if = {
+			limit = {
+				international_organization:foreign_league_hre ?= {
+					leader_country ?= {
+						OR = {
+							scope:recipient = { is_rival_of = prev }
+							scope:recipient = { is_enemy_of = prev }
+						}
+					}
+				}
+			}
+			add = {
+				desc = "RIVAL_OR_ENEMY_OF_FOREIGN_LEAGUE_HRE"
+				value = 10
+			}
+		}
+
+		# Rival or enemy of an Iberian foreign league leader
+		if = {
+			limit = {
+				international_organization:foreign_league_iberia ?= {
+					leader_country ?= {
+						OR = {
+							scope:recipient = { is_rival_of = prev }
+							scope:recipient = { is_enemy_of = prev }
+						}
+					}
+				}
+			}
+			add = {
+				desc = "RIVAL_OR_ENEMY_OF_FOREIGN_LEAGUE_IBERIA"
+				value = 10
+			}
+		}
+
+		# Rival or enemy of a Balkan foreign league leader
+		if = {
+			limit = {
+				international_organization:foreign_league_balkan ?= {
+					leader_country ?= {
+						OR = {
+							scope:recipient = { is_rival_of = prev }
+							scope:recipient = { is_enemy_of = prev }
+						}
+					}
+				}
+			}
+			add = {
+				desc = "RIVAL_OR_ENEMY_OF_FOREIGN_LEAGUE_BALKAN"
+				value = 10
+			}
+		}
+	}
+}
+
+revoke_italian_league_sponsor = {
+	type = diplomacy
+	category = CATEGORY_FRIENDLY_ACTIONS
+
+	potential = {
+		scope:actor = {
+			OR = {
+				is_leader_of_international_organization = international_organization:italian_league_1
+				is_leader_of_international_organization = international_organization:italian_league_2
+				is_leader_of_international_organization = international_organization:italian_league_3
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		interaction_source_list = {
+			scope:actor = {
+				random_international_organizations_member_of = {
+					limit = {
+						OR = {
+							this = international_organization:italian_league_1
+							this = international_organization:italian_league_2
+							this = international_organization:italian_league_3
+						}
+					}
+					every_country_with_special_status_of_type = {
+						type = italian_league_sponsor
+						add_to_list = source
+					}
+				}
+			}
+		}
+		name = "choose_country"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			random_international_organizations_member_of = {
+				limit = {
+					OR = {
+						this = international_organization:italian_league_1
+						this = international_organization:italian_league_2
+						this = international_organization:italian_league_3
+					}
+					leader_country ?= scope:actor
+				}
+				international_organization_remove_special_status = {
+					type = special_status:italian_league_sponsor
+					country = scope:recipient
+				}
+				remove_country_from_international_organization = scope:recipient
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = -80
+		}
+
+		# Rival sponsors are a liability — revoke immediately
+		if = {
+			limit = { scope:recipient = { is_rival_of = scope:actor } }
+			add = {
+				desc = "game_concept_rival"
+				value = 100
+			}
+		}
+
+		# Outright enemies must go
+		if = {
+			limit = { scope:recipient = { is_enemy_of = scope:actor } }
+			add = {
+				desc = "DIPLOREASON_RIVAL_OR_ENEMY"
+				value = 200
+			}
+		}
+
+		# Sponsor's opinion of us has gone negative — eroding loyalty
+		if = {
+			limit = {
+				scope:recipient = {
+					opinion = { target = scope:actor value < 0 }
+				}
+			}
+			subtract = {
+				desc = "game_concept_opinion"
+				value = "scope:recipient.opinion(scope:actor)"
+				max = 30
+			}
+		}
+
+		# Sponsor is allied with an opposing foreign league leader — political betrayal
+		if = {
+			limit = {
+				OR = {
+					international_organization:foreign_league_france ?= {
+						leader_country ?= { scope:recipient = { is_allied_with = { target = prev } } }
+					}
+					international_organization:foreign_league_hre ?= {
+						leader_country ?= { scope:recipient = { is_allied_with = { target = prev } } }
+					}
+					international_organization:foreign_league_iberia ?= {
+						leader_country ?= { scope:recipient = { is_allied_with = { target = prev } } }
+					}
+					international_organization:foreign_league_balkan ?= {
+						leader_country ?= { scope:recipient = { is_allied_with = { target = prev } } }
+					}
+				}
+			}
+			add = {
+				desc = "ALLIED_WITH_FOREIGN_LEAGUE_LEADER"
+				value = 75
+			}
+		}
+
+		# High tension = need every sponsor we have — strongly resist revoking
+		subtract = {
+			desc = "[situation_tension|e]"
+			value = situation:italian_wars.var:iw_tension
+			multiply = 0.5
+			max = 50
+		}
+	}
+}
+
+cancel_italian_league_sponsor = {
+	type = diplomacy
+	category = CATEGORY_FRIENDLY_ACTIONS
+
+	potential = {
+		OR = {
+			international_organization:italian_league_1 ?= {
+				country_has_special_status = {
+					type = special_status:italian_league_sponsor
+					country = scope:actor
+				}
+			}
+			international_organization:italian_league_2 ?= {
+				country_has_special_status = {
+					type = special_status:italian_league_sponsor
+					country = scope:actor
+				}
+			}
+			international_organization:italian_league_3 ?= {
+				country_has_special_status = {
+					type = special_status:italian_league_sponsor
+					country = scope:actor
+				}
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		#interaction_source_list
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			OR = {
+				AND = {
+					is_leader_of_international_organization = international_organization:italian_league_1
+					scope:actor = {
+						has_special_status_in_international_organization = {
+							type = special_status:italian_league_sponsor
+							international_organization = international_organization:italian_league_1
+						}
+					}
+				}
+				AND = {
+					is_leader_of_international_organization = international_organization:italian_league_2
+					scope:actor = {
+						has_special_status_in_international_organization = {
+							type = special_status:italian_league_sponsor
+							international_organization = international_organization:italian_league_2
+						}
+					}
+				}
+				AND = {
+					is_leader_of_international_organization = international_organization:italian_league_3
+					scope:actor = {
+						has_special_status_in_international_organization = {
+							type = special_status:italian_league_sponsor
+							international_organization = international_organization:italian_league_3
+						}
+					}
+				}
+			}
+		}
+		enabled = {
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				scope:actor = {
+					has_special_status_in_international_organization = {
+						type = special_status:italian_league_sponsor
+						international_organization = international_organization:italian_league_1
+					}
+				}
+			}
+			international_organization:italian_league_1 = {
+				international_organization_remove_special_status = {
+					type = special_status:italian_league_sponsor
+					country = scope:actor
+				}
+				remove_country_from_international_organization = scope:actor
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					has_special_status_in_international_organization = {
+						type = special_status:italian_league_sponsor
+						international_organization = international_organization:italian_league_2
+					}
+				}
+			}
+			international_organization:italian_league_2 = {
+				international_organization_remove_special_status = {
+					type = special_status:italian_league_sponsor
+					country = scope:actor
+				}
+				remove_country_from_international_organization = scope:actor
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					has_special_status_in_international_organization = {
+						type = special_status:italian_league_sponsor
+						international_organization = international_organization:italian_league_3
+					}
+				}
+			}
+			international_organization:italian_league_3 = {
+				international_organization_remove_special_status = {
+					type = special_status:italian_league_sponsor
+					country = scope:actor
+				}
+				remove_country_from_international_organization = scope:actor
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = -25
+		}
+
+		# League leader has become a rival — no longer worth backing
+		if = {
+			limit = { scope:recipient = { is_rival_of = scope:actor } }
+			add = {
+				desc = "game_concept_rival"
+				value = 100
+			}
+		}
+
+		# League leader is now an outright enemy
+		if = {
+			limit = { scope:recipient = { is_enemy_of = scope:actor } }
+			add = {
+				desc = "DIPLOREASON_RIVAL_OR_ENEMY"
+				value = 200
+			}
+		}
+
+		# Our own poor opinion of the league leader erodes commitment
+		if = {
+			limit = {
+				scope:actor = {
+					opinion = { target = scope:recipient value < 0 }
+				}
+			}
+			subtract = {
+				desc = "game_concept_opinion"
+				value = "scope:actor.opinion(scope:recipient)"
+				max = 30
+			}
+		}
+
+		# Low trust means the arrangement no longer feels secure
+		if = {
+			limit = {
+				scope:actor = {
+					trust = { target = scope:recipient value < 25 }
+				}
+			}
+			add = {
+				desc = "game_concept_trust"
+				value = 20
+			}
+		}
+
+		# Financial strain — can no longer sustain the gold contributions
+		if = {
+			limit = { scope:actor = { monthly_balance < 0 } }
+			subtract = {
+				desc = "COMFORTABLE_MONTHLY_BALANCE"
+				value = scope:actor.monthly_balance
+				max = 25
+			}
+		}
+
+		# Manpower strain — can no longer sustain the manpower contributions
+		if = {
+			limit = { scope:actor = { monthly_manpower < 0 } }
+			subtract = {
+				desc = "COMFORTABLE_MANPOWER"
+				value = scope:actor.monthly_manpower
+				multiply = 50
+				max = 25
+			}
+		}
+
+		# Low tension = no strategic urgency to keep paying into the Italian Wars
+		subtract = {
+			desc = "[situation_tension|e]"
+			value = situation:italian_wars.var:iw_tension
+			multiply = 0.3
+			max = 30
+		}
+	}
+}

@@ -1,0 +1,615 @@
+﻿convert_religion = {
+	type = owncountry
+
+	sound = UI_action_religion_generic	
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	
+	ai_prerequisite = {
+		trigger_if = {
+			limit = {
+				situation:hussite_wars = {
+					situation_is_active = yes
+				}
+				religion = religion:catholic
+			}
+			religion_percentage_in_country = {
+				religion = religion:hussite
+				value > 0.2
+			}
+		}
+		trigger_else_if = {
+			limit = {
+				situation:reformation = {
+					situation_is_active = yes
+				}
+				situation:council_of_trent = {
+					situation_has_ended = no
+				}
+				religion = religion:catholic
+				OR = {
+					AND = {
+						is_member_of_international_organization = international_organization:hre
+						has_presence_in = region:north_german_region
+					}
+					has_presence_in = region:scandinavian_region
+				}
+			}
+			OR = {
+				religion_percentage_in_country = {
+					religion = religion:lutheran
+					value > 0.2
+				}
+				religion_percentage_in_country = {
+					religion = religion:calvinist
+					value > 0.2
+				}
+				dominant_religion ?= {
+					NOT = { this = root.religion }
+				}
+			}
+		}
+		trigger_else_if = {
+			limit = {
+				tag = BOH
+				religion != religion:hussite
+				OR = {
+					situation:hussite_wars = {
+						situation_is_active = no
+						situation_has_ended = no
+					}
+					situation:hussite_wars = {
+						situation_is_active = yes
+					}
+				}
+			}
+			religion_percentage_in_country = {
+				religion = religion:hussite
+				value > 0.2
+			}
+		}
+		trigger_else = {
+			dominant_religion ?= {
+				NOT = { this = root.religion }
+			}
+		}
+	}
+
+	potential = {
+	}
+
+	allow = {
+		trigger_if = {
+			limit = {
+				exists = scope:actor
+			}
+			scope:actor = {
+				modifier:blocked_from_conversion = no
+				is_colonial_subject = no
+				custom_tooltip = {
+					text = theocracy_subject_cannot_convert_tt
+					NOT = {
+						AND = {
+							government_type = government_type:theocracy
+							is_subject = yes
+							overlord ?= { government_type = government_type:theocracy }
+						}
+					}
+				}
+			}
+		}
+	}
+
+	price = price:convert_religion
+
+	cooldown = {
+		type = convert_religion
+		years = 25
+	}
+
+	select_trigger = {
+		looking_for_a = religion
+		target_flag = target
+		name = "convert_religion_select_religion"
+		none_available_msg_key = "no_convert_religion_tt"
+		column = {
+			data = name
+		}
+		column = {
+			data = religion_percentage_in_country
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					has_game_rule = dynamic_religion
+				}
+				not = { religious_head ?= scope:actor }
+				is_religion_enabled = yes
+				not = {
+					this = scope:actor.religion
+				}
+			}
+			trigger_else_if = {
+				limit = {
+					has_game_rule = religion_group_only
+				}
+				group = scope:actor.religion.group
+			}
+			trigger_else_if = {
+				limit = {
+					has_game_rule = religion_present_in_country
+				}
+				scope:actor = {
+					religion_population_in_country = {
+						religion = root
+						value > 0
+					}
+				}
+			}
+			trigger_else = {
+				always = yes
+			}
+			trigger_if = {
+				limit = { scope:actor = { is_emperor = yes } }
+				group = scope:actor.religion.group
+			}
+		}
+		enabled = {
+			custom_tooltip = {
+				text = convert_religion_tt
+				trigger_if = {
+					limit = { exists = root }
+					not = { scope:actor.religion = root }
+					OR = {
+						NOT = { has_game_rule = dynamic_religion }
+						scope:actor = {
+							religion_population_in_country = {
+								religion = root
+								value > 0
+							}
+							or = {
+								religion.group = root.group
+								religion_percentage_in_country = {
+									religion = root
+									value > 0.4
+								}
+							}
+						}
+					}
+				}
+				trigger_else = {
+					hidden_trigger = { always = yes }
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			every_related_country = {
+				type = alliance
+				limit = {
+					this != scope:actor
+					religion = scope:actor.religion
+				}
+				remove_relation = {
+					type = relation_type:alliance
+					first = this
+					second = scope:actor
+				}
+			}
+			change_religion = scope:target
+			change_religion_for_ruler_and_family = { country = scope:actor religion = scope:target }
+			
+			ruler ?= { remove_character_modifier = enacted_placitum_regium }
+		}
+	}
+
+	ai_will_do = {
+
+		if = {	#BOH pre-target: general will-to-convert bonus
+			limit = {
+				scope:actor = c:BOH
+				OR = {
+					scope:actor = {
+						religion != religion:hussite
+						religion_percentage_in_country = {
+							religion = religion:hussite
+							value > 0.2
+						}
+					}
+					situation:hussite_wars = {
+						situation_is_active = no
+						situation_has_ended = no
+					}
+				}
+			}
+			add = {
+				value = 250
+				desc = "DIPLOREASON_HISTORICAL_DECISION"
+			}
+		}
+		if = {	#BOH per-target: steer specifically towards hussite
+			limit = {
+				scope:actor = c:BOH
+				exists = scope:target
+				scope:target = religion:hussite
+				scope:actor = {
+					religion != religion:hussite
+					religion_percentage_in_country = {
+						religion = religion:hussite
+						value > 0.2
+					}
+				}
+			}
+			add = {
+				value = 500
+				desc = "DIPLOREASON_HISTORICAL_DECISION"
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					has_or_had_tag = TUR
+				}
+				has_game_rule = historical_ai_choices
+			}
+			subtract = {
+				value = 10000
+				desc = "DIPLOREASON_HISTORICAL_DECISION"
+			}
+		}
+
+		if = {
+			limit = {
+				has_game_rule = only_within_religion_group
+				scope:actor.religion.group != scope:target.group
+				trigger_if = {
+					limit = { scope:actor = { tag = LIT } }	#Lithuania's conversion to Christianity should be still happening
+					scope:target.group = religion_group:christian
+				}
+			}
+			subtract = {
+				value = 10000
+				desc = "ANTAGONISM_OTHERRELIGION_GROUP"
+			}
+		}
+
+		if = {
+			limit = { scope:actor.dominant_religion = scope:target }
+			add = {
+				desc = "[dominant_religion|e]"
+				value = 250
+				multiply = "scope:actor.religion_percentage_in_country(scope:target)"
+			}
+		}
+		if = {
+			limit = {
+				#check non-protestant religions and see if our ruler is not of that religion 
+				#take Catholic Lithuania with Orthodox majority as example
+				scope:target = { ai_wants_convert = no }
+				scope:actor.dominant_religion = scope:target	
+				scope:actor.ruler_or_regent ?= { religion != scope:target }
+				scope:actor != c:BOH
+			}
+			subtract = {
+				desc = "DIPLOREASON_RULER_RELIGION"
+				value = 1000
+			}
+		}
+		if = {
+			limit = {
+				scope:actor ?= {
+					religion = religion:catholic
+					OR = {
+						AND = {
+							is_member_of_international_organization = international_organization:hre
+							has_presence_in = region:north_german_region
+						}
+						has_presence_in = region:scandinavian_region
+					}
+				}
+			}
+			add = {
+				desc = "DIPLOREASON_TARGET_RELIGION_PERCENTAGE"
+				value = 600
+				multiply = "scope:actor.religion_percentage_in_country(scope:target)"
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = { is_subject = yes }
+				scope:target != scope:actor.overlord.religion
+			}
+			subtract = {
+				desc = "DIPLOREASON_OVERLORD_RELIGION"
+				value = 1000
+			}
+		}		
+	}
+}
+
+change_religious_aspect = {
+	icon = add_religious_aspect
+	type = owncountry
+
+	sound = UI_action_religion_aspect_change
+
+	ai_tick = monthly
+	ai_tick_frequency = 48
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	
+	potential = {
+		scope:actor = {
+			religion = {
+				max_religious_aspects > 0
+			}
+		}
+	}
+
+	ai_prerequisite = {
+		num_of_religious_aspects = religion.max_religious_aspects
+	}
+	
+	price = {
+		if = {
+			limit = {
+				scope:actor = {
+					religion.group = religion_group:christian
+				}
+			}
+			value = price:add_religious_aspect_christian
+		}
+		else_if = {
+			limit = {
+				scope:actor = {
+					religion = religion:hellenism_religion
+				}
+			}
+			value = price:change_religious_aspect_hellenism
+		}
+		else = {
+			value = price:change_religious_aspect_inti
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = religious_aspect
+		target_flag = existing_religious_aspect
+		source = actor
+		name = "change_religious_aspect_select_which"
+		none_available_msg_key = "change_religious_aspect_no_religious_aspects"
+		column = {
+			data = name
+		}
+		column = {
+			data = effect
+		}
+		visible = {
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = religious_aspect
+		source_object = scope:actor.religion
+		target_flag = replacement_religious_aspect
+		cache_targets = yes
+		cache_order = yes
+		name = "change_religious_aspect_select_which"
+		none_available_msg_key = "change_religious_aspect_no_religious_aspects"
+		column = {
+			data = name
+		}
+		column = {
+			data = effect
+		}
+		visible = {
+			scope:actor = { can_see_religious_aspect = prev }
+		}
+		enabled = {
+			NOT = { scope:actor = { has_religious_aspect = prev } }
+			scope:actor = { is_religious_aspect_enabled = prev }
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:replacement_religious_aspect
+				exists = scope:existing_religious_aspect
+			}
+			scope:actor = {
+				remove_religious_aspect = scope:existing_religious_aspect
+				add_religious_aspect = scope:replacement_religious_aspect
+			}
+		}
+	}
+
+	ai_will_do = {
+		#inertia
+		value = -1
+		#how useful is it for this aspect to be added?
+		subtract = {
+			value = "scope:existing_religious_aspect.modifier_utility(scope:actor)"
+		}
+		add = {
+			value = "scope:replacement_religious_aspect.modifier_utility(scope:actor)"
+		}
+	}
+}
+
+add_religious_aspect = {
+	type = owncountry
+
+	sound = UI_action_religion_aspect_add
+
+	ai_tick = monthly
+	ai_tick_frequency = 24
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	
+	potential = {
+		scope:actor = {
+			religion = {
+				max_religious_aspects > 0
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = { 
+			num_of_religious_aspects < religion.max_religious_aspects
+		}
+	}
+	
+	price = {
+		if = {
+			limit = {
+				scope:actor = {
+					religion.group = religion_group:christian
+				}
+			}
+			value = price:add_religious_aspect_christian
+		}
+		else_if = {
+			limit = {
+				scope:actor = {
+					religion = religion:hellenism_religion
+				}
+			}
+			value = price:add_religious_aspect_hellenism
+		}
+		else = {
+			value = price:add_religious_aspect_inti
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = religious_aspect
+		target_flag = target
+		source_object = scope:actor.religion
+		name = "add_religious_aspect_select_which"
+		none_available_msg_key = "add_religious_aspect_no_religious_aspects"
+		column = {
+			data = name
+		}
+		column = {
+			data = effect
+		}
+		visible = {
+			NOT = { scope:actor = { has_religious_aspect = prev } }
+			scope:actor = { can_see_religious_aspect = prev }
+		}
+		enabled = {
+			scope:actor = { is_religious_aspect_enabled = prev }
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:actor = {
+				add_religious_aspect = scope:target
+			}
+		}
+	}
+	
+	ai_will_do = {
+		#how useful is it for this aspect to be added?
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+		}
+	}
+}
+
+remove_religious_aspect = {
+	icon = add_religious_aspect
+	type = owncountry
+
+	sound = UI_action_religion_aspect_remove
+	
+	ai_tick = never
+	ai_tick_frequency = 720
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	
+	potential = {
+		scope:actor = {
+			religion = {
+				max_religious_aspects > 0
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = { 
+			num_of_religious_aspects > 0
+		}
+	}
+	
+	price = {
+		if = {
+			limit = {
+				scope:actor = {
+					religion.group = religion_group:christian
+				}
+			}
+			value = price:remove_religious_aspect_christian
+		}
+		else_if = {
+			limit = {
+				scope:actor = {
+					religion = religion:hellenism_religion
+				}
+			}
+			value = price:remove_religious_aspect_hellenism
+		}
+		else = {
+			value = price:remove_religious_aspect_inti
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = religious_aspect
+		source = actor
+		target_flag = existing_religious_aspect
+		name = "remove_religious_aspect_select_which"
+		none_available_msg_key = "remove_religious_aspect_no_religious_aspects"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			remove_religious_aspect = scope:existing_religious_aspect
+		}
+	}
+
+	ai_will_do = {
+		subtract = {
+			value = "scope:existing_religious_aspect.modifier_utility(scope:actor)"
+		}
+	}
+}
+

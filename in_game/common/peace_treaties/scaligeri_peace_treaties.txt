@@ -1,0 +1,307 @@
+﻿scaligeri_victory = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 70
+		}
+	}
+
+	potential = {
+		scope:war ?= {
+			casus_belli ?= { this = casus_belli:cb_scaligeri_war }
+			defender_leader = scope:winner
+			attacker_leader = scope:loser
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:winner
+			}
+			scope:winner = {
+				custom_tooltip = {
+					text = ver_add_integration_in_every_location
+					every_owned_location = {
+						limit = {
+							is_in_scripted_geography = scripted_geography:scaligeri_conquests_geography
+							NOT = { integration_progress = 100 }
+						}
+						change_integration_progress = 100
+					}
+				}
+				custom_tooltip = {
+					text = ver_remove_antagonism
+					every_known_country = {
+						remove_antagonism = {
+							target = scope:winner
+							modifier = antagonism_peace_treaty_demands
+						}
+					}
+				}
+			}
+		}
+		else = {
+			custom_tooltip = {
+				text = ver_add_integration_in_every_location
+				every_owned_location = {
+					limit = {
+						is_in_scripted_geography = scripted_geography:scaligeri_conquests_geography
+						NOT = { integration_progress = 100 }
+					}
+					change_integration_progress = 100
+				}
+			}
+			custom_tooltip = {
+				text = ver_remove_antagonism
+				every_known_country = {
+					remove_antagonism = {
+						target = scope:winner
+						modifier = antagonism_peace_treaty_demands
+					}
+				}
+			}
+		}
+	}
+
+	ai_desire = {
+		add = {
+			desc = "BASE"
+			value = 10000
+		}
+	}
+}
+
+ver_milanese_demands = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			if = {
+				limit = {
+					scope:war.var:MLO_demands = flag:brescia_demand
+				}
+				value = 25
+			}
+			else_if = {
+				limit = {
+					scope:war.var:MLO_demands = flag:parma_demand
+				}
+				value = 20
+			}
+			else = {
+				value = 33 # Base
+			}
+		}
+	}
+
+	potential = {
+		country_exists = c:MLO
+		scope:war ?= {
+			casus_belli ?= { this = casus_belli:cb_scaligeri_war }
+			allows_scaligeri_peace_treaty_for_country = { country = MLO }
+			is_an_attacker = scope:winner
+			is_an_attacker = c:MLO
+		}
+		exists = scope:loser.province:brescia_province
+	}
+
+	allow = {
+		scaligeri_peace_treaty_demand_allow = { country = MLO }
+	}
+
+	effect = {
+		if = {
+			limit = {
+				scaligeri_peace_treaty_tooltip_fallback_scopes = yes
+				scope:war.var:MLO_demands = flag:brescia_demand
+			}
+			scope:loser = {
+				province:brescia_province = {
+					change_province_owner = c:MLO
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				scaligeri_peace_treaty_tooltip_fallback_scopes = yes
+				scope:war.var:MLO_demands = flag:parma_demand
+			}
+			province_definition:parma_province = {
+				every_location_in_province_definition = {
+					limit = {
+						owner ?= {
+							scope:war = {
+								is_a_defender = PREV
+							}
+						}
+					}
+					change_location_owner = c:MLO
+				}
+			}
+		}
+		else = {
+			custom_tooltip = ver_effect_depends_on_scope
+		}
+	}
+
+	ai_desire = {
+		add = {
+			desc = "BASE"
+			value = 10000
+		}
+	}
+}
+
+ver_florentine_demands = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			if = {
+				limit = {
+					scope:war.var:FLO_demands = flag:pescia_demand
+				}
+				value = 10
+			}
+			else_if = {
+				limit = {
+					scope:war.var:FLO_demands = flag:lucca_demand
+				}
+				value = 25
+			}
+			else = {
+				value = 33 # Base
+			}
+		}
+	}
+
+	potential = {
+		country_exists = c:FLO
+		scope:war ?= {
+			casus_belli ?= { this = casus_belli:cb_scaligeri_war }
+			allows_scaligeri_peace_treaty_for_country = { country = FLO }
+			is_an_attacker = scope:winner
+			is_an_attacker = c:FLO
+		}
+	}
+
+	allow = {
+		scaligeri_peace_treaty_demand_allow = { country = FLO }
+	}
+
+	effect = {
+		if = {
+			limit = {
+				scaligeri_peace_treaty_tooltip_fallback_scopes = yes
+				scope:war.var:FLO_demands = flag:pescia_demand
+			}
+			location:pescia = {
+				change_location_owner = c:FLO
+			}
+		}
+		else_if = {
+			limit = {
+				scaligeri_peace_treaty_tooltip_fallback_scopes = yes
+				scope:war.var:FLO_demands = flag:lucca_demand
+			}
+			province_definition:lucca_province = {
+				every_location_in_province_definition = {
+					limit = {
+						owner ?= {
+							scope:war = {
+								is_a_defender = PREV
+							}
+						}
+					}
+					change_location_owner = c:FLO
+				}
+			}
+		}
+		else = {
+			custom_tooltip = ver_effect_depends_on_scope
+		}
+	}
+
+	ai_desire = {
+		add = {
+			desc = "BASE"
+			value = 10000
+		}
+	}
+}
+
+ver_venetian_demands = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			if = {
+				limit = {
+					scope:war.var:VEN_demands = flag:mestre_demand
+				}
+				value = 10
+			}
+			else_if = {
+				limit = {
+					scope:war.var:VEN_demands = flag:treviso_demand
+				}
+				value = 25
+			}
+			else = {
+				value = 33 # Base
+			}
+		}
+	}
+
+	potential = {
+		country_exists = c:VEN
+		scope:war ?= {
+			casus_belli ?= { this = casus_belli:cb_scaligeri_war }
+			allows_scaligeri_peace_treaty_for_country = { country = VEN }
+			is_an_attacker = scope:winner
+			is_an_attacker = c:VEN
+		}
+	}
+
+	allow = {
+		scope:war = {
+			scaligeri_peace_treaty_demand_allow = { country = VEN }
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				scope:war.var:VEN_demands = flag:mestre_demand
+			}
+			location:mestre = {
+				change_location_owner = c:VEN
+			}
+		}
+		else_if = {
+			limit = {
+				scope:war.var:VEN_demands = flag:treviso_demand
+			}
+			province_definition:venice_province = {
+				every_location_in_province_definition = {
+					limit = {
+						owner ?= {
+							scope:war = {
+								is_a_defender = PREV
+							}
+						}
+					}
+					change_location_owner = c:VEN
+				}
+			}
+		}
+		else = {
+			custom_tooltip = ver_effect_depends_on_scope
+		}
+	}
+
+	ai_desire = {
+		add = {
+			desc = "BASE"
+			value = 10000
+		}
+	}
+}

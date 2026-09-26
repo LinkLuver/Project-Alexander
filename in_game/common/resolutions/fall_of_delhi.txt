@@ -1,0 +1,287 @@
+﻿fall_of_delhi_resolution = {
+	
+	potential = {
+		situation:fall_of_delhi = {
+			situation_is_active = yes
+		}
+	}
+
+	allow = {
+		scope:actor ?= { at_war = no }
+	}
+
+	can_vote = {
+		scope:actor ?= {
+			trigger_if = {
+				limit = { 
+					exists = scope:proposer
+					country_exists = c:DLH
+				}
+				NOT = { this = scope:proposer }
+			}
+			NOT = { tag = DLH }
+			OR = {
+				capital.sub_continent = sub_continent:south_asia
+				AND = {
+					country_exists = c:DLH
+					OR = {
+						is_neighbor_of = c:DLH
+						is_subject_of = c:DLH
+						is_enemy_of = c:DLH
+						is_rival_of = c:DLH
+					}
+				}
+			}
+		}
+	}
+
+	votes = {
+		value = scope:actor.total_population
+		divide = 1000000
+		max = 0.05
+		min = 0.0005
+		if = {
+			limit = {
+				scope:actor ?= { has_variable = fall_of_delhi_vote_weight }
+			}
+			scope:actor ?= { add = var:fall_of_delhi_vote_weight }
+		}
+	}
+
+	total_votes_needed = 1
+
+	should_finalize_vote = {
+		scope:highest_vote >= scope:total_votes_needed
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		interaction_source_list = {
+			situation:fall_of_delhi = {
+				add_to_list = source
+			}
+		}
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			this = situation:fall_of_delhi
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		name = "select_vote"
+		target_flag = vote
+		source_global_list = fall_of_delhi_possible_votes
+		cache_interaction_source_list = yes
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					country_exists = c:DLH
+					this ?= c:DLH
+					exists = scope:actor
+					exists = scope:proposer
+				}
+				scope:actor = {
+					NOT = { is_enemy_of = c:DLH }
+					NOT = { is_rival_of = c:DLH }
+					OR = {
+						is_subject = no
+						AND = {
+							is_subject_of = c:DLH
+							liberty_desire < 50
+						}
+					}
+				}
+				not = { scope:actor = scope:proposer }
+			}
+			trigger_else_if = {
+				limit = {
+					exists = scope:proposer
+					scope:proposer = this
+					exists = scope:actor
+				}
+				scope:actor = {
+					NOT = { tag = DLH }
+					NOT = { is_allied_with = { target = c:DLH } }
+					OR = {
+						is_subject = no
+						AND = {
+							is_subject_of = c:DLH
+							liberty_desire >= 50
+						}
+					}
+				}
+			}
+			trigger_else = {
+				always = yes
+			}
+		}
+	}
+
+	effect = {
+		if = {
+            limit = {
+                scope:vote ?= c:DLH
+            }
+			scope:recipient = {
+				set_variable = {
+					name = delhi_share_of_power
+					value = yes 
+				}
+			}
+			scope:proposer = {
+				if = {
+					limit = {
+						has_opinion = {
+							modifier = opinion_joined_opposers
+							target = c:DLH
+						}
+					}
+					remove_opinion_mutual_effect = {
+						modifier = opinion_joined_opposers
+						target = c:DLH
+					}
+				}
+				add_opinion_mutual_effect  = {
+					target = c:DLH
+					modifier = opinion_joined_delhi
+				}
+			}
+		}
+		if = {
+            limit = {
+                scope:vote ?= scope:proposer
+            }
+			scope:recipient = {
+				set_variable = {
+					name = opposition_share_of_power
+					value = yes 
+				}
+			}
+			scope:proposer = {
+				if = {
+					limit = { 
+						has_opinion = {
+							target = c:DLH 
+							modifier = opinion_joined_delhi 
+						}
+					}
+					remove_opinion_mutual_effect = {
+						modifier = opinion_joined_delhi
+						target = c:DLH
+					}
+				}
+				add_opinion_mutual_effect = {
+					target = c:DLH
+					modifier = opinion_joined_opposers
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+        if = {
+            limit = {
+				country_exists = c:DLH
+                scope:vote = c:DLH
+            }
+            #if we like the pope 20 more than the opponent, do it
+            add = -100
+            add = "scope:actor.opinion(c:DLH)"
+			add = {
+				if = {
+					limit = {
+						scope:actor = { religion.group = religion_group:muslim }
+					}
+					value = 20
+				}
+			}
+			subtract = {
+				if = {
+					limit = {
+						scope:actor = { religion.group != religion_group:muslim }
+					}
+					value = 20
+				}
+			}
+			subtract = {
+				if = {
+					limit = {
+						scope:actor = {
+							relative_strength = {
+								target = c:DLH
+								value >= 0.85
+							}
+						}
+					}
+					value = 30
+				}
+			}
+			subtract = {
+				if = {
+					limit = {
+						scope:actor = { religion.group = religion_group:dharmic }
+					}
+					value = 25
+				}
+			}
+        }
+        else_if = {
+            limit = {
+                scope:vote = scope:proposer
+            }
+            #if we like the opponent 20 more than the pope, do it
+            add = -100
+            add = "scope:actor.opinion(scope:proposer)"
+			subtract = {
+				if = {
+					limit = {
+						scope:actor = { religion.group = religion_group:muslim }
+					}
+					value = 20
+				}
+			}
+			add = {
+				if = {
+					limit = {
+						scope:actor = { religion.group != religion_group:muslim }
+					}
+					value = 20
+				}
+			}
+			add = {
+				if = {
+					limit = {
+						scope:actor = {
+							relative_strength = {
+								target = c:DLH
+								value >= 0.85
+							}
+						}
+					}
+					value = 30
+				}
+			}
+			add = {
+				if = {
+					limit = {
+						scope:actor = { religion.group != religion_group:dharmic }
+					}
+					value = 25
+				}
+			}
+        }
+	}
+}

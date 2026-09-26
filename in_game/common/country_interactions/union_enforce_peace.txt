@@ -1,0 +1,174 @@
+﻿union_enforce_peace =  { 
+	type = union
+	category = CATEGORY_UNION_ACTIONS
+
+	potential = {
+		scope:actor = {
+			exists = union
+			union ?= {
+				international_organization_has_policy = policy:union_establish_seniority_policy
+			}
+		}
+	}
+	
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				union = {
+					if = {
+						limit = {
+							modifier:union_allowed_enforce_peace = yes
+							international_organization_has_policy = policy:union_establish_seniority_policy
+							country_has_special_status = {
+								type = special_status:senior_partner
+								country = scope:actor
+							}
+						}
+						every_international_organization_member = {
+							limit = {
+								NOT = { this = scope:actor }
+							}
+							add_to_list = source
+						}
+					}
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			any_current_war = {
+				not = { is_in_war = scope:actor }
+			}
+			in_union_with = scope:actor
+		}
+        enabled = {
+			opinion = {
+				target = scope:actor
+				value >= MIN_SUBJECT_LOYALTY_FOR_ACTION
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = war
+		source = recipient
+		target_flag = target
+		name = "union_enforce_peace_select_title"
+		none_available_msg_key = "union_enforce_peace_no_wars"
+		default_sort = select_target_acceptance_total
+		column = {
+			data = name
+		}
+		column = {
+			data = select_target_acceptance_total
+		}
+		visible = {
+			defender_leader != scope:recipient
+			NOT = {
+				any_war_participant = {
+					this = scope:actor
+				}
+			}
+		}
+	}
+	
+	
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:recipient = {
+				leave_war = {
+					war = scope:target
+					actor = scope:actor
+				}
+			}
+		}
+		else = {
+			custom_tooltip = select_a_war_to_leave
+		}
+		scope:recipient = {
+			add_opinion = {
+				modifier = opinion_enforced_peace
+				target = scope:actor
+			}
+		}
+	}
+	reject_effect = {
+		scope:recipient = {
+			add_opinion = {
+				modifier = opinion_enforced_peace
+				target = scope:actor
+			}
+		}
+	}
+	accept = {
+		subtract = {
+			desc = "DIPLOREASON_BASE"
+			value = 25
+		}
+		add = {
+			desc = "DIPLOREASON_DIPLOMATIC_REPUTATION"
+			value = "scope:actor.modifier:diplomatic_reputation"
+			multiply = 3
+		}
+		add = {
+			desc = "THEIR_OPINION_TOOLTIP"
+			value = "scope:recipient.opinion(scope:actor)"
+			divide = 4
+		}
+		if = {
+			limit = { exists = scope:target }
+			add = {
+				desc = "LENGTH_OF_WAR_TOOLTIP"
+				value = "scope:target.war_length_in_years"
+				multiply = 5
+			}
+			add = {
+				desc = "DIPLOREASON_WARSCORE"
+				value = "scope:recipient.war_score_in_war(scope:target)"
+				multiply = -1
+			}
+			if = {
+				limit = {
+					scope:target = {
+						any_defender = { this = scope:recipient }
+					}
+				}
+				subtract = {
+					desc = "DIPLOREASON_DEFENSIVE_WAR"
+					value = 75
+				}
+			}
+			else_if = {
+				limit = {
+					scope:target = {
+						attacker_leader ?= scope:recipient
+					}
+				}
+				subtract = {
+					desc = "DIPLOREASON_WAR_LEADER"
+					value = 50
+				}
+			}
+		}
+		add = {
+			desc = "DIPLOREASON_AVERAGE_ESTATE_SATISFACTION"
+			value = "scope:recipient.average_estate_satisfaction"
+			subtract = 0.3
+			multiply = 100
+		}
+	}
+	ai_will_do = {
+		value = -1000
+		#The AI is intended to never use this action as it is incredibly difficult to decide if the war your junior partner is in is really unwinnable
+		#+ it would be very frustrating on the receiving end of this action
+	}
+}	

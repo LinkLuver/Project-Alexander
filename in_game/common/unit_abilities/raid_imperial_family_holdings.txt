@@ -1,0 +1,84 @@
+﻿raid_imperial_family_holdings = {
+	toggle = no
+	army_only = yes
+	map = yes
+	duration = 30
+	cancel_on_combat = yes
+	hidden = {
+		owner = {
+			NOT = { culture = { has_culture_group = culture_group:japanese_group } }
+		}
+	}
+	allow = {
+		has_prisoners = no
+		owner = { culture = { has_culture_group = culture_group:japanese_group } }
+		is_army = yes
+		OR = {
+			total_sub_unit_category_in_unit:army_light_infantry > 0
+			total_sub_unit_category_in_unit:army_heavy_infantry > 0
+			total_sub_unit_category_in_unit:army_light_cavalry > 0
+			total_sub_unit_category_in_unit:army_heavy_cavalry > 0
+			total_sub_unit_category_in_unit:army_artillery > 0
+		}
+		in_combat = no
+		is_moving = no
+		is_exiled = no
+		in_siege = no
+		custom_tooltip = {
+			text = location_has_enemy_imperial_family_holding_tt
+			unit_location = {
+				any_foreign_building_countries_in_location = {
+					is_at_war_with = root.owner
+					has_reform = government_reform:japanese_imperial_family
+				}
+			}
+		}
+		custom_tooltip = {
+			text = location_not_recently_raided
+			unit_location = {
+				NOT = { has_location_modifier = recently_razed }
+			}
+		}
+	}
+	finished_when = {
+		OR = {
+			in_combat = yes
+			is_moving = yes
+			is_exiled = yes
+			in_siege = yes
+		}
+	}
+	modifier = {
+		land_morale_modifier = -0.25
+	}
+
+	start_effect = {
+		unit_location = {
+			random_foreign_building_countries_in_location = {
+				limit = { is_at_war_with = root.owner }
+				transfer_yearly_gold = {
+					value = 0.1
+					target = root.owner
+				}
+				transfer_yearly_manpower = {
+					value = 0.1
+					target = root.owner
+				}
+				"war_with_country(root.owner)" = {
+					add_bonus_warscore = {
+						country = root.owner
+						amount = 20
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = recently_razed
+				years = 1
+				mode = add_and_extend
+			}
+		}
+	}
+	ai_will_do = {
+		add = 25
+	}
+}

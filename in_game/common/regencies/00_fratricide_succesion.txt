@@ -1,0 +1,312 @@
+﻿
+fratricide_succesion_regency = {	
+	allow = {
+		succession_law = heir_selection:fratricide_succesion
+	}
+	
+	modifier = {
+		stability_investment = huge_stability_investment_penalty
+		monthly_towards_belligerent = societal_value_monthly_move
+	}
+	
+	
+	start_effect = {
+		if = {
+			limit = { exists = previous_ruler }
+			previous_ruler = { save_temporary_scope_as = previous_ruler	 }
+
+			#How many adult son's does the dead ruler have?
+			previous_ruler = {
+				every_child = {
+					limit = {
+						is_alive = yes
+						is_adult = yes
+						is_female = no 
+						is_religious_figure = no
+					}
+					if = {
+						limit = {
+							is_adult = yes
+						}
+						add_to_list = rival_sons
+					}
+					else = {
+						add_to_list = rival_male_children
+					}
+				}
+			}
+			#If there are 0 sons
+			#Get a member of the dynasty and make him the new ruler
+			if = {
+				limit = {
+					list_size = { name = rival_sons value = 0 }
+					list_size = { name = rival_male_children value = 0 }
+				}
+				#Is there a close relative of the previous ruler?
+				if = {
+					limit = {
+						exists = scope:previous_ruler
+						previous_ruler = {
+							dynasty = {
+								any_character_in_dynasty = {
+									is_alive = yes
+									is_female = no
+									is_adult = yes
+									is_close_relative = scope:previous_ruler
+								}
+							}
+						}
+					}
+					custom_tooltip = {
+						text = fratricide_succesion_regency_tt1
+					}
+					#Save him
+					previous_ruler = {
+						dynasty = {
+							random_character_in_dynasty = {
+								limit = {
+									is_alive = yes
+									is_female = no
+									is_adult = yes
+									is_close_relative = scope:previous_ruler
+								}
+								save_scope_as = dynasty_member_scope
+							}
+						}
+					}
+					#Set a Temporary regent
+					random_character = {
+						limit = {
+							can_become_a_regent = yes
+							has_estate = estate_type:clergy_estate
+							religion = root.religion
+						}
+						save_temporary_scope_as = new_regent
+					}
+					if = {
+						limit = { not = { exists = scope:new_regent } }
+						create_character = {
+							religion = root.religion
+							estate = estate_type:clergy_estate
+							age = {35 50}
+							female = no
+							save_temporary_scope_as = new_regent
+						}
+					}
+					set_regent = scope:new_regent
+					#Make him the new ruler
+					trigger_event_non_silently = { id = succession.3  days = { 1 30 } }
+				}
+				#There is no close relative
+				#Search for any remaining member of the dynasty
+				else_if = {
+					limit = {
+						previous_ruler = {
+							dynasty = {
+								any_character_in_dynasty = {
+									is_alive = yes
+									is_female = no
+									is_adult = yes
+								}
+							}
+						}
+					}
+					custom_tooltip = {
+						text = fratricide_succesion_regency_tt1
+					}
+					#Save him
+					previous_ruler = {
+						dynasty = {
+							random_character_in_dynasty = {
+								limit = {
+									is_alive = yes
+									is_female = no
+									is_adult = yes
+								}
+								save_scope_as = dynasty_member_scope
+							}
+						}
+					}
+					#Set a Temporary regent
+					random_character = {
+						limit = {
+							can_become_a_regent = yes
+							has_estate = estate_type:clergy_estate
+							religion = root.religion
+						}
+						save_temporary_scope_as = new_regent
+					}
+					if = {
+						limit = { not = { exists = scope:new_regent } }
+						create_character = {
+							religion = root.religion
+							estate = estate_type:clergy_estate
+							age = {35 50}
+							female = no
+							save_temporary_scope_as = new_regent
+						}
+					}	
+					set_regent = scope:new_regent
+					#Make him the new ruler
+					trigger_event_non_silently = { id = succession.3  days = { 1 30 } }
+				}
+				#The dynasty has disappeared, make a new one
+				else = {				
+					custom_tooltip = {
+						text = fratricide_succesion_regency_tt2
+					}
+					root = {
+						random_owned_location = {
+							create_dynasty_from_location = random
+							last_dynasty_in_location = { save_scope_as = target_dynasty }
+						}
+					}
+					if = {
+						limit = { exists = scope:target_dynasty }
+						create_character = {
+							dynasty = scope:target_dynasty
+							religion = root.religion
+							culture = root.culture
+							estate = estate_type:nobles_estate
+							age = { 20 60 }
+							female = no
+							save_scope_as = new_leader
+						}
+					}
+					else = {
+						create_character = {
+							religion = root.religion
+							culture = root.culture
+							estate = estate_type:nobles_estate
+							age = { 20 60 }
+							female = no
+							save_scope_as = new_leader
+						}
+						scope:new_leader = {
+							found_dynasty = random
+						}
+					}
+					#Set a Temporary regent
+					random_character = {
+						limit = {
+							can_become_a_regent = yes
+							has_estate = estate_type:clergy_estate
+							religion = root.religion
+						}
+						save_temporary_scope_as = new_regent
+					}
+					if = {
+						limit = { not = { exists = scope:new_regent } }
+						create_character = {
+							religion = root.religion
+							estate = estate_type:clergy_estate
+							age = {35 50}
+							female = no
+							save_temporary_scope_as = new_regent
+						}
+					}	
+					set_regent = scope:new_regent
+					#Make him the new ruler
+					trigger_event_non_silently = { id = succession.4  days = { 1 30 } }
+				}
+			}
+			#If there is only one eligible son
+			#Make him the new ruler
+			else_if = {
+				limit = {
+					list_size = { name = rival_sons value = 1 }
+				}				
+				custom_tooltip = {
+					text = fratricide_succesion_regency_tt3
+				}
+				random_in_list = {
+					list = rival_sons
+					save_scope_as = new_ruler			
+				}
+				set_new_ruler_with_union_fratricide = { character = scope:new_ruler }
+			}
+			#If there are sons but they are underaged
+			#Wait for them to grow up first
+			else_if = {
+				limit = {
+					list_size = { name = rival_male_children value >= 1 }
+				}
+				custom_tooltip = {
+					text = fratricide_succesion_regency_tt4
+					set_variable = fraticide_succession_has_child_sons
+				}
+				#Set a Temporary regent
+				random_character = {
+					limit = {
+						can_become_a_regent = yes
+						has_estate = estate_type:clergy_estate
+						religion = root.religion
+					}
+					save_temporary_scope_as = new_regent
+				}
+				if = {
+					limit = { not = { exists = scope:new_regent } }
+					create_character = {
+						religion = root.religion
+						estate = estate_type:clergy_estate
+						age = {35 50}
+						female = no
+						save_temporary_scope_as = new_regent
+					}
+				}	
+				set_regent = scope:new_regent
+			}
+			#If there is more than one son
+			#Get a regent and launch the events
+			else = {
+				#Set a Temporary regent
+				random_character = {
+					limit = {
+						can_become_a_regent = yes
+						has_estate = estate_type:clergy_estate
+						religion = root.religion
+					}
+					save_temporary_scope_as = new_regent
+				}
+				if = {
+					limit = { not = { exists = scope:new_regent } }
+					create_character = {
+						religion = root.religion
+						estate = estate_type:clergy_estate
+						age = {35 50}
+						female = no
+						save_temporary_scope_as = new_regent
+					}
+				}	
+				set_regent = scope:new_regent
+				previous_ruler = { save_scope_as = old_ruler	 }
+				trigger_event_non_silently = { id = succession.1  days = { 1 30 } }
+			}
+		}
+		#If we can't find the Previous ruler somehow, we create a new ruler to avoid getting stuck
+		else = {
+			random_character = {
+				limit = {
+					can_become_a_regent = yes
+					has_estate = estate_type:clergy_estate
+					religion = root.religion
+				}
+				save_temporary_scope_as = new_leader
+			}
+			
+			if = {
+				limit = { not = { exists = scope:new_leader } }
+				create_character = {
+					religion = root.religion
+					estate = estate_type:clergy_estate
+					age = 35
+					female = no
+					save_temporary_scope_as = new_leader
+				}
+			}
+
+			# We generate a description which doesn't run effects so new leader might not be set if we create a new character 
+			set_new_ruler = scope:new_leader
+		}
+	}
+}

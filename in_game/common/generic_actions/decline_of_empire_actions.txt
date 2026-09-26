@@ -1,0 +1,206 @@
+﻿cd_inspect_area = {
+	type = disaster
+
+	allow = {
+		scope:actor = {
+			at_war = no
+			is_during_bankruptcy = no
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:complacent_decline_actions_price
+
+	cooldown = {
+		type = cd_inspect_area
+		years = 1
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:decline_of_empire
+			disaster_is_active = yes
+		}
+	}
+
+	#Select area
+	select_trigger = {
+		looking_for_a = area
+		source = actor
+		target_flag = target_area
+		name = "choose_an_area"
+		none_available_msg_key = "no_areas_available"
+		column = { data = name }
+		column = { data = population }
+		column = { data = integration }
+		visible = {
+			any_ownable_location_in_area = {
+				owner ?= scope:actor
+			}
+		}
+
+		enabled = {
+			NOT = {
+				any_province_in_area = { has_province_modifier = recent_inspection_modifier }
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target_area }
+			scope:actor = { trigger_event_silently = decline_of_empire.7 }
+		}
+
+		custom_tooltip = selected_area_inspected_tt
+	}
+
+	ai_will_do = {
+		add = {
+			value = 15
+			desc = BASE_VALUE
+		}
+
+		if = {
+			limit = { exists = scope:target_area }
+			add = {
+				desc = "population divided by area control"
+				value = scope:target_area.population
+				if = {
+					limit = { 
+						scope:target_area = {
+							"area_average_control(scope:actor)" < 0.05
+						}
+					}
+					divide = 0.05
+				}
+				else = {
+					scope:target_area = {
+						divide = "area_average_control(scope:actor)"
+					}
+				}
+				multiply = 0.01
+			}
+
+			scope:target_area = { 
+				every_location_in_area = { 
+					limit = { owner ?= scope:actor }
+					add = 1 
+				}
+			}
+		}
+	}
+}
+
+cd_purge_cabinet_member = {
+	type = disaster
+
+	allow = {
+		scope:actor = {
+			at_war = no
+			is_during_bankruptcy = no
+
+			any_cabinet_character = { 
+				count > 0
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:complacent_decline_actions_price
+
+	cooldown = {
+		type = cd_purge_cabinet_member
+		years = 1
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:decline_of_empire
+			disaster_is_active = yes
+		}
+	}
+
+	#Select character
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = target_character
+		name = "choose_character"
+		none_available_msg_key = "no_characters_available"
+		column = { data = character_info }
+		visible = {
+			in_cabinet = yes
+			is_ruler = no
+			is_heir = no
+			is_regent = no
+			is_consort = no
+		}
+	}
+
+	effect = {
+
+		if = { 
+			limit = { exists = scope:target_character }
+			scope:actor = { trigger_event_non_silently = decline_of_empire.8 }
+			if = {
+				limit = { 
+					scope:target_character = { has_character_modifier = head_of_the_cabinet_modifier } 
+				}
+				custom_tooltip = removal_of_head_of_cabinet_takes_stab_tt
+			}
+		}
+
+		custom_tooltip = selected_character_banned_or_executed_tt
+	}
+
+	ai_will_do = {
+		add = {
+			value = scope:actor.complacency
+			desc = "[complacency|e]"
+		}
+
+		if = {
+			limit = { exists = scope:target_character }
+			add = {
+				value = scope:target_character.days_of_service_in_cabinet
+				divide = 10
+				desc = "days of service in cabinet divided by 10"
+			}
+			if = {
+				limit = { scope:target_character.total_abilities > 0 }
+				add = {
+					value = scope:target_character.total_abilities
+					divide = -5
+					desc = "[target_character.GetName] total abilities"
+				}
+			}
+			else = {
+				add = {
+					value = 200
+					desc = "incapable character"
+				}
+			}
+			if = {
+				limit = { 
+					scope:target_character = { has_character_modifier = entrenched_cabinet_member }
+				}
+				add = 20
+			}
+		}
+	}
+}

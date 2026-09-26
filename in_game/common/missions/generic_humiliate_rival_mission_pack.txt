@@ -1,0 +1,314 @@
+﻿generic_humiliate_rival = {
+	icon = generic_humiliate_rival_mission_pack
+	repeatable = yes
+	player_playstyle = military
+
+	visible = {
+		game_has_missions_enabled = yes
+		num_possible_rivals >= 1
+		NOT = { has_variable = recently_generic_humiliate_rival_variable }
+	}
+
+	on_completion = {
+		set_variable = {
+			name = recently_generic_humiliate_rival_variable
+			years = 20
+		}
+	}
+
+	on_abort = {
+		set_variable = {
+			name = recently_generic_humiliate_rival_variable
+			years = 10
+		}
+	}
+
+	abort = {
+		num_possible_rivals < 1
+	}
+	chance = 3600
+	###########################################
+	###########################################
+
+	mission_impose_embargo = {
+		icon = global_supply_limit_modifier_advance_5
+		requires = { mission_insult_rival }
+
+		enabled = {
+			any_rival = {
+				receiving_scripted_relation = {
+					type = relation_type:embargo_nation
+					target = root
+				}
+			}
+		}
+
+		duration = 0
+		bypass = {
+			capital.region = {
+				NOT = {
+					any_location_in_region = {
+						is_ownable = yes
+						has_owner = yes
+						owner = root
+						is_market_center = yes
+					}
+				}
+			}
+		}
+		on_completion = {
+			if = {
+				limit = { 
+					exists = capital.market
+					scope:target_rival ?= {
+						receiving_scripted_relation = {
+							type = relation_type:embargo_nation
+							target = root
+						}
+					}
+				}
+				capital.market ?= {
+					add_merchant_power = {
+						country = root
+						key = market_dominance_key
+						years = modifier_duration_years_short
+						power = merchant_power_mild_bonus
+					}
+				}
+			}
+			else_if = {
+				limit = { exists = capital.market }
+				capital.market ?= {
+					add_merchant_power = {
+						country = root
+						key = market_dominance_key
+						years = modifier_duration_years_short
+						power = merchant_power_weak_bonus
+					}
+				}
+			}
+		}
+	}
+
+	mission_insult_rival = {
+		icon = bill_of_rights
+
+
+		enabled = {
+			any_rival = {
+				custom_tooltip = {
+					text = has_been_diplomatically_insulted_tt
+					has_opinion = { target = root modifier = opinion_insult }
+				}
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			if = {
+				limit = {
+					has_ruler = yes
+					ruler = {
+						num_of_traits < 3
+					}
+				}
+				custom_tooltip = add_random_dip_ruler_trait_tt	#CAESAR-21205
+				hidden_effect = { add_random_dip_ruler_trait = yes }
+			}
+			else_if = {
+				limit = {
+					has_regent = yes
+					regent = {
+						num_of_traits < 3
+					}
+				}
+				custom_tooltip = add_random_dip_regent_trait_tt	#CAESAR-21205
+				hidden_effect = { add_random_dip_regent_trait = yes }
+			}
+			else = {
+				ruler_or_regent ?= { add_dip = 5 }
+			}
+			custom_tooltip = designate_rival_as_main_threat_tt
+		}
+
+		select_trigger = {
+			looking_for_a = country
+			interaction_source_list = {
+				scope:actor = {
+					every_rival = {
+						limit = {
+							has_opinion = { target = scope:actor modifier = opinion_insult }
+						}
+						add_to_list = source
+					}
+				}
+			}
+			target_flag = target_rival
+			name = "mission_task_select_rival"
+			none_available_msg_key = "mission_task_no_rival"
+			column = { data = name }
+			column = { data = population }
+			column = { data = expected_army_size }
+			column = { data = expected_navy_size }
+			
+		}
+	}
+
+	mission_humiliate_rival = {
+		icon = diplomatic_influence
+		requires = { mission_insult_rival }
+
+		enabled = {
+			custom_tooltip = {
+				text = has_humiliated_any_rival_in_the_last_10_years
+				has_variable = recently_humiliated_rival_variable
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			add_country_modifier = {
+				modifier = supremacy_over_rival_modifier
+				years = modifier_duration_years_long
+				mode = replace
+			}
+		}
+	}
+
+	mission_surpass_rival = {
+		icon = glorious_arms
+		requires = { mission_humiliate_rival }
+		final = yes
+		enabled = {
+			any_rival = {
+				relative_strength = {
+					target = root
+					value < 0.5
+				}
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			custom_tooltip = gain_20_spy_network_on_every_rival_we_surpass_in_relative_strength_tt
+			if = {
+				limit = {
+					any_rival = {
+						relative_strength = {
+							target = root
+							value < 0.5
+						}
+					}
+				}
+				every_rival = {
+					limit = {
+						relative_strength = {
+							target = root
+							value < 0.5
+						}
+					}
+					root = {
+						add_spy_network = {
+							target = prev
+							value = 20
+						}
+					}
+				}
+			}
+
+			if = {
+				limit = {
+					scope:target_rival ?= {
+						relative_strength = {
+							target = root
+							value < 0.5
+						}
+					}
+				}
+				add_prestige = prestige_mild_bonus
+			}
+			else_if = {
+				limit = { exists = scope:target_rival }
+				custom_tooltip = should_complete_stronger_than_rival_tt
+			}
+		}
+	}
+
+	mission_establish_spy_networks = {
+		icon = efficient_spies
+		requires = { mission_insult_rival }
+
+		enabled = {
+			custom_tooltip = {
+				text = 50_spy_network_on_any_rival
+				any_rival = {
+					root = {
+						spy_network = {
+							target = prev
+							value > 30
+						}
+					}
+				}
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			add_country_modifier = {
+				modifier = infiltration_efforts_modifier
+				mode = replace
+				years = modifier_duration_years_normal
+			}
+		}
+	}
+
+	mission_destabilize_rival = {
+		icon = liberty_heroes
+		requires = { mission_establish_spy_networks }
+
+		enabled = {
+			any_rival = {
+				receiving_scripted_relation = {
+					type = relation_type:sow_discontent
+					target = root
+				}
+			}
+			num_of_diplomats > diplomats_mild_bonus
+		}
+
+		duration = 0
+
+		on_completion = {
+			add_diplomats = diplomats_mild_penalty
+			if = {
+				limit = {
+					NOT = {
+						any_rival = {
+							receiving_scripted_relation = {
+								type = relation_type:sow_discontent
+								target = root
+							}
+						}
+					}
+				}
+				custom_tooltip = none_impacted_by_foreign_destabilization_efforts_modifier_tt
+			}
+			else = {
+				every_rival = {
+					limit = {
+						receiving_scripted_relation = {
+							type = relation_type:sow_discontent
+							target = root
+						}
+					}
+					custom_tooltip = impacted_by_foreign_destabilization_efforts_modifier_tt
+					root = { save_scope_as = target_country }
+					trigger_event_silently = generic_mission_events.23
+				}
+			}
+		}
+	}
+}

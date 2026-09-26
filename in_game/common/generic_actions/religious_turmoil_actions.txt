@@ -1,0 +1,235 @@
+﻿rt_push_for_spiritualist = {
+	type = disaster
+
+	sound = UI_action_religion_generic
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:religious_turmoil_actions_price
+
+	cooldown = {
+		type = rt_push_for_spiritualist
+		years = 5
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:religious_turmoil
+			disaster_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			change_societal_value = {
+				type = spiritualist_vs_humanist
+				value = societal_value_move_to_left
+			}
+
+			if = {
+				limit = { has_country_modifier = wave_of_humanism_modifier }
+				remove_country_modifier = wave_of_humanism_modifier
+			}
+			add_country_modifier = {
+				modifier = wave_of_spiritualism_modifier
+				mode = replace
+				years = modifier_duration_years_normal
+			}
+		}	
+	}
+
+	ai_will_do = {
+		add = 5
+		add = {
+			value = scope:actor.modifier:tolerance_heretic
+			multiply = -20
+		}
+		if = {
+			limit = {
+				scope:actor = { societal_value:spiritualist_vs_humanist > 0 }
+			}
+			subtract = scope:actor.societal_value:spiritualist_vs_humanist
+		}
+		else_if = {
+			limit = {
+				scope:actor = { societal_value:spiritualist_vs_humanist < 0 }
+			}
+			add = scope:actor.societal_value:spiritualist_vs_humanist
+		}
+		if = {
+			limit = { scope:actor.modifier:monthly_towards_spiritualist != 0 }
+			add = {
+				value = scope:actor.modifier:monthly_towards_spiritualist
+				multiply = 100
+			}
+		}
+		if = {
+			limit = { scope:actor.modifier:monthly_towards_humanist != 0 }
+			add = {
+				value = scope:actor.modifier:monthly_towards_humanist
+				multiply = -100
+			}
+		}
+		if = {
+			limit = { scope:actor.government_power < 50 }
+			subtract = -25
+		}
+	}
+}
+
+rt_push_for_humanist = {
+	type = disaster
+
+	sound = UI_action_religion_generic
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:religious_turmoil_actions_price
+
+	cooldown = {
+		type = rt_push_for_humanist
+		years = 5
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:religious_turmoil
+			disaster_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			change_societal_value = {
+				type = spiritualist_vs_humanist
+				value = societal_value_move_to_right
+			}
+
+			if = {
+				limit = { has_country_modifier = wave_of_spiritualism_modifier }
+				remove_country_modifier = wave_of_spiritualism_modifier
+			}
+			add_country_modifier = {
+				modifier = wave_of_humanism_modifier
+				mode = replace
+				years = modifier_duration_years_normal
+			}
+		}	
+	}
+
+	ai_will_do = {
+		add = 5
+		add = {
+			value = scope:actor.modifier:tolerance_heretic
+			multiply = 20
+		}
+		if = {
+			limit = {
+				scope:actor = { societal_value:spiritualist_vs_humanist > 0 }
+			}
+			add = scope:actor.societal_value:spiritualist_vs_humanist
+		}
+		else_if = {
+			limit = {
+				scope:actor = { societal_value:spiritualist_vs_humanist < 0 }
+			}
+			subtract = scope:actor.societal_value:spiritualist_vs_humanist
+		}
+		if = {
+			limit = { scope:actor.modifier:monthly_towards_spiritualist != 0 }
+			subtract = {
+				value = scope:actor.modifier:monthly_towards_spiritualist
+				multiply = 100
+			}
+		}
+		if = {
+			limit = { scope:actor.modifier:monthly_towards_humanist != 0 }
+			add = {
+				value = scope:actor.modifier:monthly_towards_humanist
+				multiply = 100
+			}
+		}
+		if = {
+			limit = { scope:actor.government_power < 50 }
+			subtract = -25
+		}
+	}
+}
+
+rt_support_conversion_efforts = {
+	type = disaster
+
+	sound = UI_action_religion_generic
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:religious_turmoil_actions_price
+
+	cooldown = {
+		type = rt_support_conversion_efforts
+		years = 15
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:religious_turmoil
+			disaster_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_country_modifier = {
+				modifier = conversion_efforts_modifier
+				mode = replace
+				years = modifier_duration_years_normal
+			}
+
+			add_estate_satisfaction = { 
+				type = estate_type:clergy_estate 
+				value = estate_satisfaction_mild_bonus 
+			}
+		}	
+	}
+
+	ai_will_do = {
+		add = -50
+		if = {
+			limit = {
+				scope:actor = {
+					any_cabinet = {
+						has_cabinet_action = yes
+						cabinet_action = cabinet_action:promote_religion
+					}
+				}
+			}
+			add = 100
+		}
+		else = { add = -100 }
+		if = {
+			limit = { scope:actor.government_power < 50 }
+			subtract = -25
+		}
+	}
+}

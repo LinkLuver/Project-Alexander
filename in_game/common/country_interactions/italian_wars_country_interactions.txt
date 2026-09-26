@@ -1,0 +1,561 @@
+﻿violate_italian_sovereignty = {
+	type = diplomacy
+	category = CATEGORY_ACCESS_ACTIONS
+
+	ai_limit_per_check = 1
+
+	ai_prerequisite = {
+		
+	}
+
+	potential = {
+		situation:italian_wars = {
+			situation_is_active = yes
+		}
+		scope:actor = {
+			is_leader_of_any_league = yes
+		}
+	}
+
+	allow = {
+		scope:actor = { at_war = yes }
+		situation:italian_wars = { var:iw_tension >= 75 }
+	}
+
+	cooldown = {
+		type = violate_italian_sovereignty
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "violate_italian_sovereignty_select_country"
+		none_available_msg_key = "violate_italian_sovereignty_no_countries"
+		pre_evaluation_sort_value = {
+			if = { limit = { is_during_bankruptcy = yes } add = 100 }
+			if = { limit = { monthly_balance < 0 } add = 20 }
+		}
+		pre_evaluation_number_to_evaluate_fully = 3
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			OR = {
+				capital.region = region:italy_region
+				is_member_of_any_italian_wars_league = yes
+			}
+			at_war = no
+			NOT = { this = scope:actor }
+			NOT = { is_leader_of_any_league = yes }
+			NOR = {
+				international_organization:italian_league_1 ?= {
+					country_has_special_status = {
+						type = special_status:italian_league_sponsor
+						country = root
+					}
+				}
+				international_organization:italian_league_2 ?= {
+					country_has_special_status = {
+						type = special_status:italian_league_sponsor
+						country = root
+					}
+				}
+				international_organization:italian_league_3 ?= {
+					country_has_special_status = {
+						type = special_status:italian_league_sponsor
+						country = root
+					}
+				}
+			}
+			# Not already in the actor's own league
+			NOT = {
+				any_international_organizations_member_of = {
+					has_member = root
+					international_organization_has_leader = yes
+					leader_country = scope:actor
+					OR = {
+						this = international_organization:foreign_league_balkan
+						this = international_organization:foreign_league_france
+						this = international_organization:foreign_league_hre
+						this = international_organization:foreign_league_iberia
+						this = international_organization:italian_league_1
+						this = international_organization:italian_league_2
+						this = international_organization:italian_league_3
+					}
+				}
+			}
+            scope:actor = {
+				custom_tooltip = {
+					text = violate_italian_sovereignty_not_already_full_access_tt
+					NAND = {
+						receives_military_access_from = root
+						receives_food_access_from = root
+					}
+				}
+            }
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:recipient }
+			create_relation = {
+				type = relation_type:italian_wars_forced_access
+				first = scope:actor
+				second = scope:recipient
+				years = 5
+			}
+			scope:recipient = {
+
+				add_opinion = {
+					modifier = opinion_violated_sovereignty
+					target = scope:actor
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = -1
+			desc = "BASE_VALUE"
+		}
+		if = {
+			limit = { exists = scope:recipient }
+			if = {
+				limit = { scope:actor = { wants_military_access_in = scope:recipient } }
+				add = {
+					value = 10
+					desc = "actor wants access in recipient country"
+				}
+			}
+			if = {
+				limit = {
+					scope:recipient = { gives_military_access_to = scope:actor }
+				}
+				subtract = {
+					value = 100
+					desc = "already has access"
+				}
+			}
+			subtract = {
+				value = scope:recipient.num_locations_owned_or_owned_by_subjects_or_below
+				desc = "size of recipient"
+			}
+			if = {
+				limit = {
+					scope:recipient = {
+						NOR = {
+							is_rival_of = scope:actor
+							is_enemy_of = scope:actor
+						}
+					}
+				}
+				subtract = {
+					value = 5
+					desc = "neither rival nor enemy"
+				}
+			}
+		}
+	}
+}
+
+italian_wars_bribe_country = {
+	type = diplomacy
+	category = CATEGORY_ECONOMY_ACTIONS
+
+	ai_limit_per_check = 1
+
+	ai_prerequisite = {
+		monthly_balance > 5
+		num_loans < 1
+		prestige > 10
+		trigger_if = {
+			limit = {
+				prestige < 20
+			}
+			modifier:monthly_prestige > 0
+		}
+		trigger_else = {
+			modifier:monthly_prestige > -0.2
+		}
+	}
+
+	potential = {
+		trigger_if = {
+			limit = {
+				situation:italian_wars = { 
+					situation_is_active = yes
+					has_variable = iw_tension 
+				}
+			}
+			situation:italian_wars = {
+				situation_is_active = yes
+				var:iw_tension >= 25
+			}
+		}
+		trigger_else = { always = no }
+	}
+
+	allow = {
+        scope:actor = { at_war = no }
+        scope:actor = { is_leader_of_any_league = yes }
+	}
+
+    cooldown = {
+        type = italian_wars_bribe_country
+        years = 5
+    }
+	
+	price = price:bribe_voter_for_policy
+    price_modifier = {
+		add = {
+			value = 1
+			desc = "BASE_VALUE"
+        }
+        if = {
+            limit = {
+                scope:actor = { is_leader_of_international_organization = international_organization:italian_league_1 }
+            }
+            add = {
+				desc = "size_of_our_league_tt"
+                value = international_organization:italian_league_1.total_members
+                multiply = 0.1
+                subtract = 0.1
+            }
+        }
+        if = {
+            limit = {
+                scope:actor = { is_leader_of_international_organization = international_organization:italian_league_2 }
+            }
+            add = {
+				desc = "size_of_our_league_tt"
+                value = international_organization:italian_league_2.total_members
+                multiply = 0.1
+                subtract = 0.1
+            }
+        }
+        if = {
+            limit = {
+                scope:actor = { is_leader_of_international_organization = international_organization:italian_league_3 }
+            }
+            add = {
+				desc = "size_of_our_league_tt"
+                value = international_organization:italian_league_3.total_members
+                multiply = 0.1
+                subtract = 0.1
+            }
+        }
+        if = {
+            limit = {
+                scope:actor = { is_leader_of_international_organization = international_organization:foreign_league_france }
+            }
+            add = {
+				desc = "size_of_our_league_tt"
+                value = international_organization:foreign_league_france.total_members
+                multiply = 0.1
+                subtract = 0.1
+            }
+        }
+        if = {
+            limit = {
+                scope:actor = { is_leader_of_international_organization = international_organization:foreign_league_hre }
+            }
+            add = {
+				desc = "size_of_our_league_tt"
+                value = international_organization:foreign_league_hre.total_members
+                multiply = 0.1
+                subtract = 0.1
+            }
+        }
+        if = {
+            limit = {
+                scope:actor = { is_leader_of_international_organization = international_organization:foreign_league_iberia }
+            }
+            add = {
+				desc = "size_of_our_league_tt"
+                value = international_organization:foreign_league_iberia.total_members
+                multiply = 0.1
+                subtract = 0.1
+            }
+        }
+        if = {
+            limit = {
+                scope:actor = { is_leader_of_international_organization = international_organization:foreign_league_balkan }
+            }
+            add = {
+				desc = "size_of_our_league_tt"
+                value = international_organization:foreign_league_balkan.total_members
+                multiply = 0.1
+                subtract = 0.1
+            }
+        }
+	}
+	payee = scope:recipient
+	
+	#we'll supply this as one of the parameters so we won't be shown a UI
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "italian_wars_bribe_country_select_country"
+		none_available_msg_key = "italian_wars_bribe_country_no_countries"
+		pre_evaluation_sort_value = { 
+			#prioritise financially-weak targets; avoids full ai_will_do eval (with its every_international_organization_member loop) for every org member
+			if = { limit = { is_during_bankruptcy = yes } add = 100 }
+			if = { limit = { monthly_balance < 0 } add = 20 }
+		}
+		pre_evaluation_number_to_evaluate_fully = 3
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			capital.region = region:italy_region
+			NOT = { this = scope:actor }
+			NOT = { is_leader_of_any_league = yes }
+			NOT = { has_cooldown = join_a_league }
+            NOT = {
+                any_international_organizations_member_of = {
+                    has_member = root
+                    international_organization_has_leader = yes
+                    leader_country = scope:actor
+                    OR = {
+                        this = international_organization:foreign_league_balkan
+                        this = international_organization:foreign_league_france
+                        this = international_organization:foreign_league_hre
+                        this = international_organization:foreign_league_iberia
+                        this = international_organization:italian_league_1
+                        this = international_organization:italian_league_2
+                        this = international_organization:italian_league_3
+                    }
+                }
+            }
+		}
+		enabled = {
+			at_war = no
+			is_subject = no
+			custom_tooltip = {
+				text = is_not_leader_of_any_leagues_tt
+				is_leader_of_any_league = no
+			}
+			scope:actor = {
+				gold > root.monthly_income_total
+			}
+		}
+	}
+
+	#how much gold do we want to give to the target country
+	select_trigger = {
+		looking_for_a = value
+		target_flag = target_value
+		name = "italian_wars_bribe_country_select_gold_amount"
+		min = 1
+		max = scope:actor.gold
+		step = scope:recipient.monthly_income_total
+		default = {
+			value = scope:recipient.monthly_income_total
+			multiply = 6
+		}
+		ai_override_value = { #avoids 6x parameter sampling that multiplies the every_international_organization_member loop cost
+			value = scope:recipient.monthly_income_total
+			multiply = 6
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = { exists = scope:recipient }
+			custom_tooltip = {
+				text = recipient_wont_be_able_to_join_another_league_tt
+				scope:recipient = {
+					add_cooldown = {
+						type = join_a_league
+						years = 2
+					}
+				}
+			}
+			if = {
+				limit = { exists = scope:target_value }
+				scope:actor = {
+					add_gold = {
+						value = scope:target_value
+						multiply = -1
+					}
+				}
+				scope:recipient = {
+					add_gold = scope:target_value
+				}
+			}
+			scope:actor = {
+                random_international_organizations_member_of = {
+                    limit = {
+                        leader_country ?= scope:actor
+                        OR = {
+                            this = international_organization:italian_league_1
+                            this = international_organization:italian_league_2
+                            this = international_organization:italian_league_3
+                            this = international_organization:foreign_league_france
+                            this = international_organization:foreign_league_iberia
+                            this = international_organization:foreign_league_hre
+                            this = international_organization:foreign_league_balkan
+                        }
+                    }
+                    add_country_to_international_organization = scope:recipient
+                }
+            }
+		}
+	}
+	reject_effect = {
+		if = {
+			limit = { exists = scope:recipient }
+			scope:actor = {
+				add_opinion = {
+					target = scope:recipient
+					modifier = opinion_rejected_bribe_voter_for_policy
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		if = {
+            limit = { exists = scope:recipient }
+            add = {
+                value = scope:recipient.num_locations_owned_or_owned_by_subjects_or_below
+                desc = "location number of recipient and subjects"
+            }
+        }
+		
+		if = {
+			limit = {
+				exists = scope:target_value
+			}
+			#making sure the AI makes actually alluring offers
+			add = {
+				desc = "OFFERED_GOLD"
+				value = {
+					value = scope:target_value
+					divide = 4
+					subtract = {
+						value = scope:recipient.monthly_income_total
+						multiply = 3
+					}
+				}
+			}
+		}
+	}
+
+	diplo_chance = {
+		base = 5
+		in_debt = 5
+	}
+
+	accept = {
+		if = {
+			limit = {
+				scope:recipient = {
+					monthly_balance < 0
+				}
+			}
+			add = {
+				desc = "IN_DEFICIT"
+				value = 10
+			}
+		}
+		if = {
+			limit = {
+				scope:recipient = {
+					is_during_bankruptcy = yes
+				}
+			}
+			add = {
+				desc = "IS_BANKRUPT_TOOLTIP"
+				value = 1000
+			}
+		}
+		if = {
+			limit = { exists = scope:target_value }
+			add = {
+				desc = "OFFERED_GOLD"
+				value = {
+					value = scope:target_value
+					divide = 8
+				}
+			}
+		}
+
+		# Diplomatic factors mirroring ai_desire_to_join: trust, relative strength, opinion of the briber
+		add = {
+			desc = "TARGET_LEADER_TRUST"
+			scope:actor = {
+				scope:recipient = {
+					value = this_trust_of_prev
+					multiply = 0.25
+				}
+			}
+		}
+		subtract = {
+			desc = "TARGET_LEADER_RELATIVE_STRENGTH"
+			value = 25
+			multiply = "scope:recipient.relative_strength(scope:actor)"
+		}
+		add = {
+			desc = "TARGET_LEADER_OPINION"
+			scope:actor = {
+				scope:recipient = {
+					value = this_opinion_of_prev
+					multiply = 0.15
+				}
+			}
+		}
+
+		# Penalty if recipient is already in an Italian league — compare briber against current leader
+		if = {
+			limit = { scope:recipient = { is_member_of_any_italian_wars_league = yes } }
+			if = {
+				limit = { scope:recipient = { is_member_of_international_organization = international_organization:italian_league_1 } }
+				international_organization:italian_league_1.leader_country = { save_temporary_scope_as = league_leader_current }
+			}
+			else_if = {
+				limit = { scope:recipient = { is_member_of_international_organization = international_organization:italian_league_2 } }
+				international_organization:italian_league_2.leader_country = { save_temporary_scope_as = league_leader_current }
+			}
+			else_if = {
+				limit = { scope:recipient = { is_member_of_international_organization = international_organization:italian_league_3 } }
+				international_organization:italian_league_3.leader_country = { save_temporary_scope_as = league_leader_current }
+			}
+			if = {
+				limit = { exists = scope:league_leader_current }
+				subtract = {
+					desc = "LEAGUE_LEADER_CURRENT_TRUST"
+					scope:league_leader_current = {
+						scope:recipient = {
+							value = this_trust_of_prev
+							multiply = 0.25
+						}
+					}
+				}
+				subtract = {
+					desc = "RELATIVE_STRENGTH_LEAGUE_LEADER_CURRENT"
+					value = 25
+					multiply = "scope:recipient.relative_strength(scope:league_leader_current)"
+				}
+				add = {
+					desc = "LEAGUE_LEADER_CURRENT_OPINION"
+					scope:league_leader_current = {
+						scope:recipient = {
+							value = this_opinion_of_prev
+							multiply = -0.15
+						}
+					}
+				}
+			}
+		}
+	}
+}

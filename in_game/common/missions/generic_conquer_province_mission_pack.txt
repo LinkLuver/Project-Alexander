@@ -1,0 +1,444 @@
+﻿generic_conquer_province = {
+	icon = generic_conquer_province
+	repeatable = yes
+	player_playstyle = military
+
+	visible = {
+		game_has_missions_enabled = yes
+		NOT = { has_variable = recently_had_generic_conquer_province_variable }
+	}
+
+	enabled = {
+		any_neighbor_country = {
+			ROOT = { can_declare_war_on = prev }
+		}
+	}
+	
+	chance = 3600
+	on_start = {
+		set_variable = {
+			name = target_navy_size_percentage_variable
+			value = {
+				add = navy_size_percentage
+				add = 0.1
+				max = 0.9
+			}
+		}
+
+		if = {
+			limit = {
+				any_owned_non_rural_location = {
+					is_coastal = yes
+					NOT = {
+						any_buildings_in_location = {
+							owner ?= root
+							building_type = {
+								building_sailors_produced > 0
+							}
+						}
+					}
+				}
+			}
+			ordered_owned_non_rural_location = {
+				limit = {
+					is_coastal = yes
+					NOT = {
+						any_buildings_in_location = {
+							owner ?= root
+							building_type = {
+								building_sailors_produced > 0
+							}
+						}
+					}
+				}
+				order_by = {
+					value = development
+					add = proximity
+				}
+				check_range_bounds = no
+				max = 1
+				save_scope_as = target_navy_port
+			}
+		}
+	}
+	on_completion = {
+		remove_variable = target_navy_size_percentage_variable
+		set_variable = {
+			name = recently_had_generic_conquer_province_variable
+			years = 15
+		}
+	}
+	on_abort = {
+		remove_variable = target_navy_size_percentage_variable
+		set_variable = {
+			name = recently_had_generic_conquer_province_variable
+			years = 10
+		}
+	}
+
+	###########################################
+	###########################################
+
+	mission_war_chest = {
+		icon = court_accounting
+		enabled = {	}
+
+		duration = 365
+
+		modifier_while_progressing = { global_estate_max_tax = 0.1 }
+
+		on_monthly = {
+			random_list = {
+				10 = { trigger_event_non_silently = conquest_mission_events.1 }	#Donation to the War Fund
+				10 = { trigger_event_non_silently = conquest_mission_events.2 }	#Peasants Protest the Push for War
+				10 = { trigger_event_non_silently = conquest_mission_events.3 }	#Burghers Offer Competitive Loans
+				70 = { }
+			}
+		}
+		on_start = {
+			custom_tooltip = monthly_events_about_war_chest_tt
+		}
+	}
+
+	mission_restore_province = {
+		icon = expansionism
+		requires = { mission_conquer_province mission_war_chest }
+
+		enabled = {
+			trigger_if = {
+				limit = { exists = scope:conquest_province }
+				scope:conquest_province = {
+					province_prosperity > 0
+				}
+			}
+			trigger_else = { 
+				custom_tooltip = {
+					text = requirements_after_mission_conquer_province_tt
+					always = no
+				}
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			if = {
+				limit = { exists = scope:conquest_province }
+				custom_tooltip = every_pop_conquest_location_var_province_10_sat_tt
+			}
+			else = { custom_tooltip = non_scope_every_pop_conquest_location_var_province_10_sat_tt }
+			hidden_effect = {
+				scope:conquest_province ?= {
+					every_location_in_province = {
+						every_pop = {
+							limit = { owner = root }
+							add_pop_satisfaction = pop_satisfaction_mild_bonus
+						}
+					}
+				}
+			}
+		}
+	}
+
+	mission_army = {
+		icon = medieval_military
+		enabled = {
+			OR = {
+				custom_tooltip = {
+					text = has_enabled_parliament_grant_levies_tt
+					has_country_modifier = parliament_approved_extra_levies
+				}
+				has_estate_privilege = estate_privilege:peasants_allowed_weapons_privilege
+				navy_size_percentage > 0.75
+				army_size_percentage > 0.75
+				any_character = { is_general = yes }
+			}
+		}
+		bypass = {
+			any_current_war = {
+				OR = {
+					AND = {
+						attacker_leader = root
+						defender_leader = { is_neighbor_of = root }
+					}
+					AND = {
+						defender_leader = root
+						attacker_leader = { is_neighbor_of = root }
+					}
+				}
+			}
+		}
+		duration = 0
+
+		on_completion = {
+			ordered_character = {
+				limit = {
+					OR = {
+						is_female = no
+						modifier:force_allow_as_leader = yes
+					}
+					in_cabinet = no
+					is_artist = no
+				}
+				order_by = {
+					value = total_abilities
+					if = {	#Less likely to pick maxed out chad character because it's a waste of stats
+						limit = { total_abilities >= 295 }
+						multiply = 0.5
+					}
+					if = {	#More likely to pick an active general
+						limit = { is_general = yes }
+						add = 200
+					}
+				}
+				add_adm = 5
+				add_dip = 5
+				add_mil = 5
+			}
+		}
+	}
+
+	mission_fortifications = {
+		icon = offensive_army
+		requires = { mission_conquer_province }
+		enabled = {
+			trigger_if = {
+				limit = { 
+					exists = scope:conquest_province 
+					scope:conquest_province = {
+						any_location_in_province = { is_border = yes }
+					}
+				}
+				scope:conquest_province = {
+					any_location_in_province = {
+						owner ?= root
+						is_border = yes
+						modifier:fort_level > 1
+					}					
+				}
+			}
+			trigger_else = { 
+				custom_tooltip = {
+					text = no_eligible_border_location_tt
+					always = no
+				}
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			if = {
+				limit = { exists = scope:conquest_province }
+				scope:conquest_province = {
+					add_province_modifier = {
+						modifier = mission_defensive_fortification_modifier
+						years = modifier_duration_years_long
+						mode = replace
+					}
+				}
+			}
+			else = { custom_tooltip = mission_fortifications_reward_tt }
+		}
+	}
+
+	mission_obtain_casus_belli = {
+		icon = correct_box_advance_renaissance
+		enabled = {
+			custom_tooltip = {
+				text = has_cb_that_allows_conquest_on_neighbor_country_tt
+				any_neighbor_country = {
+					ROOT = { has_casus_belli_on = prev }
+				}
+			}
+		}
+		duration = 0
+
+		bypass = { 
+			any_current_war = {
+				OR = {
+					AND = {
+						attacker_leader = root
+						defender_leader = { is_neighbor_of = root }
+					}
+					AND = {
+						defender_leader = root
+						attacker_leader = { is_neighbor_of = root }
+					}
+				}
+			}
+		}
+
+
+		on_completion = {
+			add_army_tradition = army_tradition_mild_bonus
+			change_societal_value = {
+				type = belligerent_vs_conciliatory
+				value = societal_value_move_to_left
+			}
+		}
+	}
+
+	mission_declare_war = {
+		icon = regiment_reinforcement_speed_renaissance
+		requires = { mission_obtain_casus_belli mission_army raise_a_navy }
+		enabled = {
+			any_current_war = {
+				OR = {
+					AND = {
+						attacker_leader = root
+						defender_leader = { is_neighbor_of = root }
+					}
+					AND = {
+						defender_leader = root
+						attacker_leader = { is_neighbor_of = root }
+					}
+				}
+			}
+		}
+		duration = 365
+
+		on_monthly = {
+			random_list = {
+				20 = { trigger_event_non_silently = conquest_mission_events.4 }	#Warcrimes in [location]
+				20 = { trigger_event_non_silently = conquest_mission_events.5 }	#War Exhaustion Accumulates
+				20 = { trigger_event_non_silently = conquest_mission_events.6 }	#The Shape of War
+				40 = { }
+			}
+		}
+		on_start = {
+			custom_tooltip = monthly_events_about_the_status_of_war_tt
+		}
+	}
+
+	mission_conquer_province = {
+		icon = diplomatic_influence
+		requires = { mission_declare_war }
+		enabled = {
+			at_war = no
+			any_province = {
+				any_location_in_province = { integration_level = conquered }
+			}
+		}
+
+		duration = 0
+
+		select_trigger = {
+			looking_for_a = province
+			source = actor
+			target_flag = conquest_province
+			name = "select_mission_for_next_mission_tasks"
+			none_available_msg_key = "integrate_province_no_provinces"
+			column = {
+				data = name
+			}
+			column = {
+				data = integration
+			}
+			column = {
+				data = population
+			}
+			visible = {
+				any_location_in_province = { 
+					integration_level = conquered 
+					modifier:local_separatism > 0
+				}
+			}
+		}
+		on_completion = {
+			custom_tooltip = choose_province_for_next_conquest_tasks_tt
+
+			scope:conquest_province ?= {
+				province_capital = { 
+					change_integration_progress = integration_progress_mild_bonus 
+				}
+				every_location_in_province = {
+					limit = { prosperity < 0 }
+					change_prosperity = prosperity_mild_bonus
+				}
+			}
+		}
+	}
+
+	mission_peace_integrate_province = {
+		icon = cultural_acceptance_advance
+		final = yes
+		requires = { mission_conquer_province }
+
+		enabled = {
+			trigger_if = {
+				limit = { exists = scope:conquest_province }
+				OR = {
+					is_integrating = scope:conquest_province.province_definition
+					scope:conquest_province = { province_average_integration > 0.9 }
+				}
+			}
+			trigger_else = { 
+				custom_tooltip = {
+					text = requirements_after_mission_conquer_province_tt
+					always = no
+				}
+			}
+		}
+
+		duration = 730
+		modifier_while_progressing = { global_integration_speed_modifier = 0.1 }
+
+		on_monthly = {
+			random_list = {
+				5 = { trigger_event_non_silently = conquest_mission_events.7 }		#Locals resist integration
+				5 = { trigger_event_non_silently = conquest_mission_events.8 }		#Locals embrace integration
+				5 = { trigger_event_non_silently = conquest_mission_events.9 }		#Cultural Spread
+				5 = { trigger_event_non_silently = conquest_mission_events.10 }	#Religion Spreads
+				5 = { trigger_event_non_silently = conquest_mission_events.11 }	#Bribing Local Nobles
+				75 = { }
+			}
+		}
+
+		on_start = {
+			custom_tooltip = monthly_events_about_integration_tt
+		}
+	}
+
+	raise_a_navy = {
+		icon = global_trade_routes_advance
+
+		enabled = {
+			trigger_if = {
+				limit = { 
+					yearly_sailors > 0 
+					has_variable = target_navy_size_percentage_variable
+				}
+				navy_size_percentage >= var:target_navy_size_percentage_variable
+			}
+			trigger_else = {
+				navy_size_percentage > 0.9
+			}
+			trigger_if = {
+				limit = { exists = scope:target_navy_port }
+				scope:target_navy_port = {
+					any_buildings_in_location = {
+						owner ?= root
+						building_type = {
+							building_sailors_produced > 0
+						}
+					}
+				}
+			}
+		}
+		bypass = {
+			OR = {
+				at_war = yes
+				has_ports = no
+			}
+		}
+		duration = 0
+		on_completion = {
+			scope:target_navy_port ?= {
+				change_development = development_weak_bonus
+			}
+			add_navy_tradition = navy_tradition_weak_bonus
+			add_yearly_sailors = 0.1
+		}
+	}
+}

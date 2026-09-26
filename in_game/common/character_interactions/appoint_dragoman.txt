@@ -1,0 +1,60 @@
+﻿tur_appoint_dragoman = {
+	message = yes
+	on_own_nation = yes
+
+	potential = {
+		scope:actor = {
+			has_unlocked_character_interaction_trigger = {
+                type = tur_appoint_dragoman
+            }
+		}
+	} 
+
+	ai_tick = daily
+	ai_tick_frequency = 120
+
+	allow = {
+		scope:actor = {
+			NOT = {
+				any_character = {
+					has_character_modifier = dragoman_modifier
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = recipient
+		name = "choose_character"
+		column = {
+			data = name
+		}
+		visible = {
+			is_alive = yes
+			is_adult = yes
+            culture != scope:actor.culture
+			NOT = { has_character_modifier = dragoman_modifier }
+		}
+	}
+
+	effect = {
+        scope:recipient = {
+            add_character_modifier = {
+                mode = add_and_extend
+                modifier = dragoman_modifier
+                years = -1
+            }
+        }
+        
+        scope:recipient.culture ?= {
+            add_cultural_influence = cultural_influence_mild_bonus
+            add_cultural_tradition = cultural_tradition_mild_bonus
+        }
+	}
+
+   ai_will_do = {
+		value = 0
+    }
+}

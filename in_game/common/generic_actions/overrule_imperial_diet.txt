@@ -1,0 +1,86 @@
+﻿overrule_imperial_diet = {
+	type = internationalorganization	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+
+	potential = {
+	}
+	allow = {
+	}	 
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:hre
+			modifier:allow_overrule_imperial_diet = yes
+		}
+		enabled = {
+			international_organization_has_leader = yes
+			scope:actor = { is_leader_of_international_organization = root }
+			current_imperial_authority = { value = 50 }
+			OR = {
+				resolution_is_active = resolution:policy_vote
+				has_ongoing_parliament_debate = yes
+			}
+		}
+	}
+	effect = {
+		change_imperial_authority = { value = imperial_authority_unique_penalty }
+		scope:recipient = {
+			if = {
+				limit = {
+					has_variable = io_law_target
+					resolution_is_active = resolution:policy_vote
+				}
+				end_vote = {
+					resolution = resolution:policy_vote
+					vote = var:io_law_target
+				}
+			}
+			else_if = {
+				limit = { has_ongoing_parliament_debate = yes }
+				end_parliament = yes
+			}
+			else = {
+				custom_tooltip = overrule_imperial_diet_at
+			}
+			custom_tooltip = {
+				text = overrule_imperial_diet_ct
+				every_international_organization_member = {
+					limit = { this != scope:actor }
+					add_opinion = {
+						modifier = opinion_overruled_imperial_diet
+						target = scope:actor
+					}
+				}
+			}
+		}
+	}
+	ai_will_do = {
+		#using the HRE parliament as it is a simple binary check 
+		value = -300
+		if = {
+			limit = {
+				exists = scope:recipient
+				scope:recipient = {
+					has_parliament = yes
+					has_ongoing_parliament_debate = yes
+					parliament_issue_will_pass = no
+					parliament_issue = parliament_issue:hre_law_debate
+				}
+			}
+			add = {
+				value = 365
+				subtract = scope:recipient.remaining_parliament_days
+			}
+		}
+	}
+}

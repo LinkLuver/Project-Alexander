@@ -1,0 +1,208 @@
+﻿bul_restore_the_realms_unity = {
+	type = disaster
+	show_message = no
+	potential = {
+	}
+	
+	allow = {
+		scope:actor = {
+			at_war = no
+			is_subject = no
+			any_neighbor_country = {
+				culture = scope:actor.culture
+				NOT = { is_subject_or_below_of = scope:actor }
+			}
+		}
+	}
+	price = price:twilight_of_the_tsardom_disaster_actions_price
+	
+	cooldown = { type = bul_restore_the_realms_unity years = 10 }
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	select_trigger = {
+		looking_for_a = disaster
+		target_flag = recipient
+		name = "choose_disaster"
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:twilight_of_the_tsardom
+			disaster_is_active = yes
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_neighbor_country = {
+					limit = {
+						is_subject = no
+						culture = scope:actor.culture
+						NOT = { is_subject_or_below_of = scope:actor }
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target_country
+		name = "choose_country"
+		column = { data = name }
+		column = { data = great_power_score }
+		column = { data = army_size }
+		enabled = {
+			scope:actor = { can_declare_war_on = root }
+			scope:actor = { NOT = { has_truce_with = scope:target_country } }
+			scope:actor = {
+				NOT = {
+					has_casus_belli_of_type_on = {
+						type = casus_belli:cb_annex
+						target = scope:target_country
+					}
+				}
+			}
+		}
+	}
+
+	effect = { 
+		scope:actor = {
+			add_casus_belli = {
+				target = scope:target_country
+				type = casus_belli:cb_annex
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 10
+		if = {
+			limit = {
+				scope:actor = {
+					relative_strength = {
+						target = scope:target_country
+						value > 0.5
+					}
+				}
+			}
+			add = {
+				value = 100
+				multiply = "scope:actor.relative_strength(scope:target_country)"
+			}
+		}
+		if = {
+			limit = {
+				scope:target_country = { at_war = yes }
+			}
+			add = 10
+		}
+		else = { subtract = 25 }
+	}
+}
+
+bul_reassert_our_authority = {
+	type = disaster
+	show_message = no
+	
+	allow = {
+		scope:actor = {
+			any_owned_location = {
+				has_location_modifier = bul_powerful_local_elites
+			}
+		}
+	}
+	price = price:twilight_of_the_tsardom_disaster_actions_price
+	
+	cooldown = { type = bul_reassert_our_authority years = 20 }
+
+	select_trigger = {
+		looking_for_a = disaster
+		target_flag = recipient
+		name = "choose_disaster"
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:twilight_of_the_tsardom
+			disaster_is_active = yes
+		}
+	}
+
+	effect = { 
+		scope:actor = {
+			every_owned_location = {
+				limit = {
+					has_location_modifier = bul_powerful_local_elites
+				}
+				remove_location_modifier = bul_powerful_local_elites
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 10
+	}
+}
+
+bul_push_for_diplomatic_reintegration = {
+	type = disaster
+	show_message = no
+	
+	allow = {
+		scope:actor = {
+			num_subjects >= 1
+			NOT = {
+				has_country_modifier = bul_diplomatic_reintegration
+			}
+		}
+	}
+	price = price:twilight_of_the_tsardom_disaster_actions_price
+	
+	cooldown = { type = bul_push_for_diplomatic_reintegration years = 20 }
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	select_trigger = {
+		looking_for_a = disaster
+		target_flag = recipient
+		name = "choose_disaster"
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:twilight_of_the_tsardom
+			disaster_is_active = yes
+		}
+	}
+
+	effect = { 
+		scope:actor = {
+			add_country_modifier = {
+				modifier = bul_diplomatic_reintegration
+				years = 10
+				mode = add
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 0
+        if = {
+            limit = {
+                scope:actor = {
+                    any_subject = {
+                    	subject_type = {
+                        	subject_can_be_annexed = yes
+                        }
+                    }
+                }
+            }
+            add = {
+                value = 10
+            }
+        }
+	}
+}

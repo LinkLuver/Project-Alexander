@@ -1,0 +1,76 @@
+﻿peace_destroy_autocephalous_patriarchate = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 30
+		}
+		add = {
+			desc = "DIPLOREASON_IO_SIZE"
+			value = 0
+			scope:loser = {
+				every_international_organizations_member_of = {
+					limit = {
+						international_organization_type = international_organization_type:autocephalous_patriarchate
+						leader_country ?= prev
+					}
+					add = total_members
+				}
+			}
+			multiply = 4
+		}
+	}
+
+	potential = {
+		scope:winner = {
+			religion = scope:loser.religion
+			religion = { has_autocephalous_patriarchates = yes }
+		}
+	}
+
+	allow = {
+		scope:loser = {
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:autocephalous_patriarchate
+				leader_country ?= prev
+				NOT = { has_member = scope:winner }
+			}
+		}
+	}
+
+	base_antagonism = 1.0
+	antagonism_type = antagonism_destroyed_autocephalous_patriarchate
+
+	effect = {
+		scope:loser = {
+			random_international_organizations_member_of = {
+				limit = {
+					international_organization_type = international_organization_type:autocephalous_patriarchate
+					leader_country ?= prev
+				}
+				save_scope_as = target_ap
+			}
+		}
+		custom_tooltip = {
+			text = peace_destroy_autocephalous_patriarchate_members_tt
+			scope:target_ap = {
+				every_international_organization_member = {
+					add_opinion = {
+						target = scope:winner
+						modifier = destroyed_my_autocephalous_patriarchate
+					}
+					add_antagonism = {
+						target = scope:winner
+						modifier = antagonism_destroyed_autocephalous_patriarchate
+					}
+				}
+			}
+		}
+		scope:winner = {
+			destroy_international_organization = { target = scope:target_ap }
+		}
+	}
+
+	ai_desire = {
+		add = 100
+	}
+}

@@ -1,0 +1,78 @@
+﻿annul_casus_belli =  { 
+	type = diplomacy
+	category = CATEGORY_COVERT_ACTIONS
+
+	diplomatic_cost = steal_maps_cost
+
+	potential = {
+		scope:actor = {
+			has_reform = government_reform:hermit_country_reform
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			has_reform = government_reform:hermit_country_reform
+		}
+	}
+
+	block_when_at_war = yes
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+        enabled = {
+			has_casus_belli_on = scope:actor
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = casus_belli
+		target_flag = target
+		name = "annul_casus_belli_select_title"
+		none_available_msg_key = "annul_casus_belli_no_casus_belli"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:recipient = {
+				has_casus_belli_of_type_on = {
+					target = scope:actor
+					type = ROOT
+				}
+			}
+		}
+		enabled = {
+			scope:recipient = {
+				has_casus_belli_of_type_on = {
+					target = scope:actor
+					type = ROOT
+				}
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:recipient = {
+				remove_casus_belli = {
+					target = scope:actor
+					type = scope:target
+				}
+			}
+			scope:actor = {
+				drop_antagonism_bomb = {
+					target = scope:recipient.capital
+					modifier = antagonism_casus_belli_annulled
+				}
+			}
+		}
+	}
+}	

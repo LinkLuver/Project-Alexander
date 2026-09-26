@@ -1,0 +1,171 @@
+﻿# scope:actor = country
+
+create_conquistador = {
+	type = owncountry
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 6
+	player_automated_category = colonies
+
+	allow = {
+		scope:actor = {
+			modifier:allow_conquistadors = yes
+		}
+	}
+	
+	#we don't execute the price for this action because it creates a construction, which needs its own price information in order to be able to restore the price if it is cancelled. We leave the price in here though for display
+	should_execute_price = no
+
+	
+	price = price:recruit_conquistador
+	
+	
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = target
+		name = "recruit_conquistador_select_char_title"
+		none_available_msg_key = "create_conquistador_no_characters"
+		column = {
+			data = character_explorer
+		}
+		visible = {
+			is_valid_for_exploration = yes
+			is_married = no
+			NOT = { has_estate = estate_type:crown_estate }
+			religion = religion:catholic
+		}
+	}
+
+	select_trigger = {
+		top_widget = conquistador_character_top
+		looking_for_a = area
+		target_flag = target_1
+		cache_targets = yes #this list of targets doesn't rely on the previous target so we only need to do it once
+		name = "recruit_conquistador_select_area_title"
+		none_available_msg_key = "create_conquistador_no_areas"
+		column = {
+			data = name
+		}
+		visible = {
+			within_colonial_range_of = scope:actor
+			
+			continent = continent:america
+			scope:actor = {
+				has_discovered_area = prev
+			}
+			is_area_coastal_sea = no
+
+			any_location_in_area = {
+				has_owner = yes
+				NOT = { top_owner = scope:actor }
+				scope:actor = {
+					not = {
+						is_subject_or_below_of = prev.top_owner
+					}
+				}
+				NOT = { dominant_religion.group = scope:actor.religion.group }
+				NOT = { owner ?= { is_subject_type = colonial_nation } }
+				NOT = {
+					owner ?= {
+						receives_defensive_support_from = scope:actor
+					}
+				}
+			}
+
+			# Don't let a Catholic Spain conquistador onto an area where another Christian
+			# power already has a colonial foothold — same religion group as actor anywhere
+			# in the area (direct holding or via colonial nation / trading company subject)
+			# disqualifies the whole area.
+			NOT = {
+				any_location_in_area = {
+					top_owner ?= {
+						religion.group = scope:actor.religion.group
+					}
+				}
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target_1
+			}
+			
+			scope:target_1 = {
+				ordered_location_in_area = {
+					order_by = population
+					max = 1
+					limit = {
+						is_coastal = yes
+						has_owner = yes
+						NOT = { top_owner = scope:actor }
+						scope:actor = {
+							not = { 
+								is_subject_or_below_of = prev.top_owner
+							}
+						}
+						NOT = { dominant_religion.group = scope:actor.religion.group }
+	
+					}
+					save_scope_as = target_location
+				}
+
+				if = {
+					limit = {
+						not = { exists = scope:target_location }
+					}
+
+					#try again, but this time ignore coastal
+					ordered_location_in_area = {
+						order_by = population
+						max = 1
+						limit = {
+							has_owner = yes
+							NOT = { top_owner = scope:actor }
+							scope:actor = {
+								not = { 
+									is_subject_or_below_of = prev.top_owner
+								}
+							}
+							NOT = { dominant_religion.group = scope:actor.religion.group }
+						}
+						save_scope_as = target_location
+					}
+				}
+			}
+
+			scope:actor = {
+				start_conquistador = {
+					area = scope:target_1
+					location = scope:target_location
+					character = scope:target
+					price = scope:price
+					price_modifier = scope:price_modifier
+				}
+			}
+		}
+	}
+	
+	ai_will_do = {	
+		scope:actor = {
+			add = {
+				value = "conquistador_utility(scope:target_1)"
+				save_temporary_value_as = utility_val
+				if = {
+					limit = {
+						scope:utility_val > 0
+					}
+					add = {
+						value = scope:target.total_abilities
+						subtract = 150
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,192 @@
+﻿pa_hre_lessen_tax_burden = {
+	type = international_organization
+	special_status = imperial_prince
+	special_status = free_city
+	special_status = imperial_prelate
+	importance = 1.5
+	potential = {
+		international_organization_type = international_organization_type:hre
+		NOT = { has_cooldown = pa_hre_lessen_tax_burden }
+		international_organization:hre ?= {
+			international_organization_has_law = law:monetary_contribution
+			NOT = { international_organization_has_policy = policy:no_monetary_contribution }
+		}
+	}
+	allow = {
+		is_leader_of_international_organization = scope:recipient
+		scope:recipient.parliament_issue ?= {
+			this != parliament_issue:hre_law_debate
+		}
+	}
+	on_accept = {
+		hidden_effect = { add_cooldown = { type = pa_hre_lessen_tax_burden years = INTERNATIONAL_ORGANIZATION_SAME_AGENDA_COOLDOWN_YEARS } }
+		ordered_international_organization_member = {
+			limit = {
+				has_special_status_in_international_organization = {
+					type = scope:target
+					international_organization = root
+				}
+				country_exists = this
+			}
+			order_by = {
+				value = monthly_income_trade_and_tax
+				multiply = -1	#sorting them by the lowest income ones first
+			}
+			max = 5
+			check_range_bounds = no
+			add_country_modifier = {
+				modifier = pa_hre_lessen_tax_burden_modifier
+				years = 5 
+				mode = add_and_extend
+			}
+		}
+	}
+	ai_will_do = {
+		add = 5
+	}
+	chance = 10
+}
+
+pa_hre_elevate_prussia_to_kingdom = {
+	type = international_organization
+	special_status = elector
+	importance = 2
+	potential = {
+		international_organization_type = international_organization_type:hre
+		international_organization_has_unlocked_parliament_agenda_trigger = { type = pa_hre_elevate_prussia_to_kingdom }
+		c:PRU = {
+			NOT = { is_leader_of_international_organization = root }
+			is_member_of_international_organization = root
+			has_special_status_in_international_organization = { type = scope:target international_organization = root }
+		}
+	}
+	allow = {
+		is_leader_of_international_organization = scope:recipient
+		scope:recipient.parliament_issue ?= {
+			this != parliament_issue:hre_law_debate
+		}
+	}
+	on_accept = {
+		international_organization_lock_parliament_agenda_effect = { type = pa_hre_elevate_prussia_to_kingdom }
+		custom_tooltip = pa_hre_elevate_prussia_to_kingdom_tt
+		hidden_effect = {
+			c:PRU = {
+				trigger_event_non_silently = king_in_prussia.6
+			}
+		}
+	}
+	ai_will_do = {
+		add = 5
+	}
+	chance = 10
+}
+
+pa_hre_grant_imperial_titles = {
+	type = international_organization
+	special_status = elector
+	potential = {
+		international_organization_type = international_organization_type:hre
+		NOT = { has_cooldown = pa_hre_grant_imperial_titles }
+	}
+	allow = {
+		is_leader_of_international_organization = scope:recipient
+		scope:recipient.parliament_issue ?= {
+			this != parliament_issue:hre_law_debate
+		}
+		prestige > 20
+	}
+	on_accept = {
+		hidden_effect = { add_cooldown = { type = pa_hre_grant_imperial_titles years = INTERNATIONAL_ORGANIZATION_SAME_AGENDA_COOLDOWN_YEARS } }
+		save_temporary_scope_value_as = {
+			name = num_of_electors
+			value = "num_countries_with_special_status(scope:target)"
+		}
+		save_temporary_scope_value_as = {
+			name = prestige_to_transfer
+			value = 5
+		}
+		leader_country ?= {
+			add_prestige = {
+				value = scope:num_of_electors
+				multiply = scope:prestige_to_transfer
+				multiply = -1
+			}
+		}
+		every_international_organization_member = {
+			limit = {
+				has_special_status_in_international_organization = {
+					type = scope:target
+					international_organization = root
+				}
+				NOT = {
+					is_leader_of_international_organization = scope:recipient
+				}
+			}
+			add_prestige = {
+				value = scope:prestige_to_transfer
+				multiply = 2
+			}
+		}
+	}
+	ai_will_do = {
+		add = 5
+	}
+	chance = 10
+}
+
+pa_hre_affirmation_of_free_city_rights = {
+	type = international_organization
+	special_status = free_city
+	potential = {
+		international_organization_type = international_organization_type:hre
+		NOT = { has_cooldown = pa_hre_affirmation_of_free_city_rights }
+	}
+	allow = {
+		is_leader_of_international_organization = scope:recipient
+		scope:recipient.parliament_issue ?= {
+			this != parliament_issue:hre_law_debate
+		}
+	}
+	on_accept = {
+		hidden_effect = { add_cooldown = { type = pa_hre_affirmation_of_free_city_rights years = INTERNATIONAL_ORGANIZATION_SAME_AGENDA_COOLDOWN_YEARS } }
+		save_temporary_scope_value_as = {
+			name = num_of_free_cities
+			value = "num_countries_with_special_status(scope:target)"
+		}
+		save_temporary_scope_value_as = {
+			name = prestige_to_transfer
+			value = 0.25
+		}
+		leader_country ?= {
+			add_prestige = {
+				value = scope:num_of_free_cities
+				multiply = scope:prestige_to_transfer
+				multiply = -1
+			}
+			save_scope_as = leader_country_scope
+		}
+		custom_tooltip = {
+			text = pa_hre_affirmation_of_free_city_rights_tt
+			every_international_organization_member = {
+				limit = { has_special_status_in_international_organization = { type = scope:target international_organization = root } }
+				add_stability = stability_mild_bonus
+				if = {
+					limit = {
+						exists = scope:leader_country_scope
+						NOT = { has_opinion = { target = scope:leader_country_scope modifier = opinion_hre_pa_supports_free_cities } }
+					}
+					every_enemy_war_leader = {
+						add_opinion = {
+							target = scope:leader_country_scope
+							modifier = opinion_hre_pa_supports_free_cities
+						}
+					}
+				}
+			}
+		}
+	}
+	ai_will_do = {
+		add = 5
+	}
+	chance = 10
+}

@@ -1,0 +1,321 @@
+﻿reclaim_high_kingship_land = {
+	type = internationalorganization
+	show_message = no
+
+    ai_tick = monthly
+	ai_tick_frequency = 6
+
+	allow = {
+        scope:actor = {
+            at_war = no
+            any_international_organizations_member_of = {
+                international_organization_type = international_organization_type:high_kingship
+                international_organization_has_leader = yes
+                leader_country = prev
+            }
+        }
+        region:ireland_region = {
+           any_ownable_location_in_region = {
+                owner = {
+                    NOT = {
+                        any_international_organizations_member_of = { international_organization_type = international_organization_type:high_kingship }
+                    }
+                }
+            }
+        }
+	}
+
+	price = price:high_kingship_reclaim_land
+
+	cooldown = {
+		type = reclaim_high_kingship_land
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:high_kingship
+		}
+	}
+
+    select_trigger = {
+		looking_for_a = province
+		interaction_source_list = {
+			region:ireland_region = {
+                every_ownable_location_in_region = {
+                    limit = {
+                        owner = {
+                            NOT = {
+                                any_international_organizations_member_of = { international_organization_type = international_organization_type:high_kingship }
+                            }
+                        }
+                        is_province_capital = yes
+                    }
+                    province = { add_to_list = source }
+                }
+            }
+		}
+		target_flag = target_province
+		name = "choose_international_organization"
+		column = { data = name }
+        column = { data = rank }
+        column = { data = population }
+	}
+
+	effect = { #
+		scope:actor = {
+            add_casus_belli = {
+                type = casus_belli:cb_high_kingship_reclamation
+                province = scope:target_province
+                target = scope:target_province.owner
+            }
+        }
+	}
+
+    ai_will_do = {
+        value = -50
+        if = {
+            limit = { exists = scope:target_province }
+            add = scope:actor.stability
+            add = scope:actor.legitimacy
+            add = {
+				value = scope:actor.num_loans
+				multiply = -5
+			}
+            if = {
+                limit = { 
+                    scope:actor = { is_during_bankruptcy = yes } 
+                }
+                subtract = 1000
+            }
+            scope:target_province.owner = {
+                subtract = {	#Better opinion with the province_owner reduces the chances of pressing this button
+                    scope:actor = {
+                        value = this_opinion_of_prev
+                        multiply = 0.1
+                    }
+                }
+            }
+            multiply = {
+                value = 1
+                add = "scope:actor.relative_strength(scope:target_province.owner)"
+            }
+        }
+    }
+}
+
+overthrow_high_king = {
+	icon = claim_high_kingship
+	type = internationalorganization
+	show_message = no
+
+    ai_tick = monthly
+	ai_tick_frequency = 6
+
+	allow = {
+        scope:actor = {
+            at_war = no
+            any_international_organizations_member_of = {
+                international_organization_type = international_organization_type:high_kingship
+                international_organization_has_leader = yes
+                NOT = { leader_country = prev }
+                leader_country = {
+                    scope:actor = { can_declare_war_on = prev }
+                }
+            }
+        }
+	}
+
+	price = price:high_kingship_overthrow
+
+	cooldown = {
+		type = overthrow_high_king
+		years = 10
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:high_kingship
+		}
+	}
+
+    select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+            scope:actor = {
+                every_international_organizations_member_of = {
+                    limit = {
+                        international_organization_type = international_organization_type:high_kingship
+                        international_organization_has_leader = yes
+                        scope:actor = { can_declare_war_on = prev.leader_country }
+                        NOT = { leader_country = scope:actor }
+                    }
+                    leader_country = { add_to_list = source }
+                }
+            }
+		}
+		target_flag = target_country
+		name = "choose_international_organization"
+		column = { data = name }
+        column = { data = population }
+        column = { data = great_power_score }
+	}
+
+	effect = {
+		scope:actor = {
+            add_casus_belli = {
+                type = casus_belli:cb_high_kingship_overthrow
+                target = scope:target_country
+            }
+        }
+	}
+
+    ai_will_do = {
+        value = -50
+        if = {
+            limit = { exists = scope:target_country }
+            add = scope:actor.stability
+            add = scope:actor.legitimacy
+            add = {
+				value = scope:actor.num_loans
+				multiply = -5
+			}
+            if = {
+                limit = { 
+                    scope:actor = { is_during_bankruptcy = yes } 
+                }
+                subtract = 1000
+            }
+            scope:target_country = {
+                subtract = {	#Better opinion with the province_owner reduces the chances of pressing this button
+                    scope:actor = {
+                        value = this_opinion_of_prev
+                        multiply = 0.1
+                    }
+                }
+            }
+            multiply = {
+                value = 1
+                add = "scope:actor.relative_strength(scope:target_country)"
+            }
+        }
+    }
+}
+
+subjugate_high_kingship_member = {
+	icon = claim_high_kingship
+	type = internationalorganization
+	show_message = no
+
+    ai_tick = monthly
+	ai_tick_frequency = 6
+
+	allow = {
+        scope:actor = {
+            at_war = no
+            any_international_organizations_member_of = {
+                international_organization_type = international_organization_type:high_kingship
+                NOT = { leader_country ?= prev }
+                scope:actor = { can_declare_war_on = prev.leader_country }
+            }
+        }
+	}
+
+	price = price:high_kingship_subjugate_member
+
+	cooldown = {
+		type = subjugate_high_kingship_member
+		years = 10
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:high_kingship
+		}
+	}
+
+    select_trigger = {
+		looking_for_a = country
+		target_flag = target_country
+		name = "choose_country"
+		none_available_msg_key = "no_valid_countries"
+		interaction_source_list = {
+			scope:recipient = {
+				every_international_organization_member = {
+					add_to_list = source
+				}
+			}
+		}
+		visible = {
+		}
+		enabled = {
+			this != scope:actor
+			NOT = { is_leader_of_international_organization = scope:recipient }
+			scope:actor = { can_declare_war_on = prev }
+		}
+		column = { data = name }
+		column = { data = population }
+		column = { data = great_power_score }
+	}
+
+	effect = {
+		scope:actor = {
+            add_casus_belli = {
+                type = casus_belli:cb_high_kingship_subjugate
+                target = scope:target_country
+            }
+        }
+	}
+
+    ai_will_do = {
+        value = -50
+        if = {
+            limit = { exists = scope:target_country }
+            add = scope:actor.stability
+            add = scope:actor.legitimacy
+            add = {
+				value = scope:actor.num_loans
+				multiply = -5
+			}
+            if = {
+                limit = { 
+                    scope:actor = { is_during_bankruptcy = yes } 
+                }
+                subtract = 1000
+            }
+            scope:target_country = {
+                subtract = {	#Better opinion with the province_owner reduces the chances of pressing this button
+                    scope:actor = {
+                        value = this_opinion_of_prev
+                        multiply = 0.1
+                    }
+                }
+            }
+            multiply = {
+                value = 1
+                add = "scope:actor.relative_strength(scope:target_country)"
+            }
+        }
+    }
+}

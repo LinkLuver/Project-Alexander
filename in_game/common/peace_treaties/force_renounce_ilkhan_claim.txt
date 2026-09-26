@@ -1,0 +1,67 @@
+﻿peace_force_renounce_ilkhan_claim = {
+	
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 5
+		}
+		add = {
+			desc = "game_concept_population"
+			value = scope:loser.total_population
+			multiply = 0.009
+		}
+	}
+
+	potential = {
+		scope:war = {
+			casus_belli ?= casus_belli:cb_false_ilkhan_claimant
+		}
+		scope:loser = { 
+			has_special_status_in_international_organization = {
+				type = special_status:ilkhan_claimant
+				international_organization = international_organization:ilkhanate
+			}
+		}
+	}
+	
+	allow = {
+
+	}
+
+	effect = {
+		international_organization:ilkhanate = {
+			international_organization_remove_special_status = {
+				type = special_status:ilkhan_claimant
+				country = scope:loser
+			}
+		}
+		scope:loser = {
+			set_variable = { name = forced_to_renounce_ilkhan_claim value = yes years = 5 }
+		}
+	}
+
+	ai_desire = {
+		if = {
+			limit = {
+				scope:winner = {
+					is_rival_of = scope:loser
+				}
+			}
+			add = {
+				desc = "game_concept_rival"
+				value = 10
+			}
+		}
+		if = {
+			limit = {
+				scope:winner.prestige < scope:loser.prestige
+			}
+			add = {
+				desc = "DIPLOREASON_LOWER_PRESTIGE"
+				value = scope:loser.prestige
+				subtract = scope:winner.prestige
+			}
+		}
+	}
+}
+

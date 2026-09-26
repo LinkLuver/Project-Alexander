@@ -1,0 +1,644 @@
+﻿high_kingship_election = {
+	loc = election
+
+	potential = {
+	}
+
+	allow = {
+	}
+
+	#if it's live, then we only want to test this monthly
+	ai_tick = monthly
+
+	# Always live: electing a High King does NOT close the vote -- the next High King is
+	# continuously being voted for. The throne only actually changes hands on a ruler change
+	# (leader_change_trigger_type = rulerchange), which clears the leader (ChooseNewLeader) and
+	# lets the standing vote conclude via should_finalize_vote's vacant-throne gate below.
+	is_live = {
+		always = yes
+	}
+
+	can_vote = {
+		scope:actor = {
+			has_ruler = yes
+			is_member_of_international_organization = scope:recipient
+			ruler ?= {
+				NOT = { modifier:character_blocked_from_high_kingship = yes }
+			}
+			custom_tooltip = {
+				text = HIGH_KINGSHIP_NOT_INCUMBENT_TT
+				NOT = {
+					scope:recipient = { leader_country ?= scope:actor }
+				}
+			}
+		}
+	}
+
+	votes = {
+		scope:actor = {
+			# +1 per High Kingship location the voter holds (script_value iterates owned IO lands).
+			# Also guarantees a non-zero total on day-one ticks (before country_tax_base caches
+			# compute), so the 50%-of-zero threshold can't be met trivially and hand the title to a
+			# random tag via Finalise's iteration order.
+			add = {
+				desc = "HIGH_KINGSHIP_VOTES_LOCATIONS"
+				value = high_kingship_voter_io_locations
+			}
+
+			# +1 per fort level across those High Kingship lands.
+			add = {
+				desc = "HIGH_KINGSHIP_VOTES_FORT_LEVEL"
+				value = high_kingship_voter_fort_levels
+			}
+
+			# +1 per subject (and their subjects) that is also a High Kingship member.
+			add = {
+				desc = "HIGH_KINGSHIP_VOTES_SUBJECTS"
+				value = high_kingship_voter_io_subjects
+			}
+
+			# Higher country rank carries more weight. Shown as a single "Country Rank" line, and
+			# only when it's actually worth something -- a sub-duchy candidate contributes nothing,
+			# so the whole row is hidden (the outer if) rather than displaying a 0.
+			if = {
+				limit = {
+					OR = {
+						country_rank = country_rank:rank_duchy
+						country_rank = country_rank:rank_kingdom
+						country_rank = country_rank:rank_empire
+					}
+				}
+				add = {
+					desc = "HIGH_KINGSHIP_VOTES_COUNTRY_RANK"
+					if = {
+						limit = { country_rank = country_rank:rank_duchy }
+						value = 2
+					}
+					else_if = {
+						limit = { country_rank = country_rank:rank_kingdom }
+						value = 5
+					}
+					else = {
+						value = 10
+					}
+				}
+			}
+
+			# more powerful lords are more convincing, so they are
+			add = {
+				desc = "[tax_base|e]"
+				value = scope:actor.country_tax_base
+			}
+
+			if = {
+				limit = {
+					scope:actor = {
+						ruler ?= { has_character_modifier = overthrew_high_king }
+					}
+				}
+				multiply = {
+					desc = "[ShowModifier('character_overthrew_high_king')]"
+					value = 2
+				}
+			}
+		}
+	}
+
+	requires_explicit_votes = no
+
+	total_votes_needed = {
+		add = {
+			value = scope:total_votes_available
+			multiply = 0.5
+		}
+	}
+
+	should_finalize_vote = {
+		custom_tooltip = {
+			text = OVER_HALF_OF_VOTES
+			scope:recipient = {
+				not = { exists = leader_country }
+			}
+			scope:highest_vote >= scope:total_votes_needed
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:high_kingship
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		source = recipient
+		target_flag = vote
+		allow_self = yes
+		name = "election_select_country"
+		none_available_msg_key = "election_select_no_countries"
+		default_sort = country_tax_base
+		column = {
+			data = name
+		}
+		column = {
+			data = country_tax_base
+		}
+		visible = {
+			can_lead_international_organization = scope:recipient
+		}
+		enabled = {
+			# A candidate subordinate to a fellow member cannot be High King over their own overlord.
+			# Moved here from can_lead_trigger (the "potential" side) so every member still shows as a
+			# potential candidate, just disabled with a reason when they answer to a fellow member.
+			trigger_if = {
+				limit = {
+					any_overlord_or_above = {
+						is_member_of_international_organization = scope:recipient
+					}
+				}
+				custom_tooltip = {
+					text = HIGH_KINGSHIP_CANNOT_LEAD_OVER_OVERLORD
+					always = no
+				}
+			}
+			# We will not raise up a rival. Wrapped in a trigger_if so the line only appears when the
+			# candidate actually is our rival, rather than always showing the raw "war enemy" auto-text.
+			trigger_if = {
+				limit = {
+					exists = scope:actor
+					is_rival_of = scope:actor
+				}
+				custom_tooltip = {
+					text = HIGH_KINGSHIP_VOTE_NOT_RIVAL
+					always = no
+				}
+			}
+			# Being actively at war against the candidate is its own hard blocker (shown only then).
+			trigger_if = {
+				limit = {
+					exists = scope:actor
+					is_at_war_with = scope:actor
+				}
+				custom_tooltip = {
+					text = HIGH_KINGSHIP_VOTE_AT_WAR
+					always = no
+				}
+			}
+			# Subject voting is a hard rule, not a score nudge: only the apex (top overlord) of a chain
+			# may ever be backed. The trigger_if chain surfaces only the one rule that applies to THIS
+			# voter's chain instead of all of them at once. root = candidate, scope:actor = voter.
+			trigger_if = {
+				limit = { scope:actor ?= { NOT = { is_subject = yes } } }
+			}
+			trigger_else_if = {
+				# The candidate is a middle (non-apex) overlord of ours -> never votable.
+				limit = {
+					scope:actor ?= {
+						any_overlord_or_above = { this = root }
+						NOT = { top_overlord ?= root }
+					}
+				}
+				custom_tooltip = {
+					text = HIGH_KINGSHIP_VOTE_ONLY_APEX_OVERLORD
+					always = no
+				}
+			}
+			trigger_else_if = {
+				# Whole chain loyal and our apex is itself a candidate -> we may only back the apex.
+				limit = {
+					scope:actor ?= {
+						NOT = { is_disloyal_subject = yes }
+						NOT = { any_overlord_or_above = { is_disloyal_subject = yes } }
+						top_overlord ?= { can_lead_international_organization = scope:recipient }
+					}
+				}
+				custom_tooltip = {
+					text = HIGH_KINGSHIP_VOTE_LOYAL_TO_APEX
+					scope:actor ?= { top_overlord ?= root }
+				}
+			}
+			trigger_else_if = {
+				# We are the disloyal link (chain above us still loyal) -> we may not back the apex.
+				limit = {
+					scope:actor ?= {
+						is_disloyal_subject = yes
+						NOT = { any_overlord_or_above = { is_disloyal_subject = yes } }
+					}
+				}
+				custom_tooltip = {
+					text = HIGH_KINGSHIP_VOTE_WE_ARE_DISLOYAL
+					NOT = { scope:actor ?= { top_overlord ?= root } }
+				}
+			}
+			trigger_else_if = {
+				# We are loyal but a disloyal subject sits above us -> we may not back the apex.
+				limit = {
+					scope:actor ?= {
+						NOT = { is_disloyal_subject = yes }
+						any_overlord_or_above = { is_disloyal_subject = yes }
+					}
+				}
+				custom_tooltip = {
+					text = HIGH_KINGSHIP_VOTE_DISLOYAL_ABOVE
+					NOT = { scope:actor ?= { top_overlord ?= root } }
+				}
+			}
+			trigger_else = {
+				# Loyal subject whose apex is not itself a candidate: no subject-chain rule applies, so votable.
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:vote
+			}
+			scope:recipient = {
+				set_leader_country = scope:vote
+			}
+		}
+	}
+
+	# Backing a candidate earns their goodwill: the voter gains opinion of whoever they vote for.
+	# Fires whenever a vote is cast/changed (SetCastVote); the modifier decays on its own so it
+	# fades once the election is over.
+	vote_effect = {
+		if = {
+			limit = {
+				exists = scope:vote
+				scope:actor = { NOT = { this ?= scope:vote } }
+			}
+			scope:actor = {
+				add_opinion = {
+					target = scope:vote
+					modifier = opinion_voted_for_high_king
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		scope:vote = {
+			# If this candidate wins they'd become the High King -- so the relevant
+			# character is the candidate's heir (if they're already the HK) or their ruler.
+			if = {
+				limit = {
+					scope:recipient = { leader_country ?= scope:vote }
+				}
+				heir ?= { save_temporary_scope_as = potential_high_king }
+			}
+			else = {
+				ruler ?= { save_temporary_scope_as = potential_high_king }
+			}
+
+			add = {
+				desc = "[tax_base|e]"
+				value = country_tax_base
+				multiply = 10
+			}
+			if = {
+				limit = {
+					this = scope:actor
+				}
+				add = {
+					desc = "LEADERSHIP_VOTE_FOR_SELF"
+					value = 300
+				}
+			}
+			else = {
+				add = {
+					desc = "game_concept_alliance"
+					if = {
+						limit = {
+							is_allied_with = { target = scope:actor }
+						}
+						value = 100
+					}
+				}
+				# Rival/enemy diplomacy bonus — split from one else_if chain into mutually exclusive
+				# adds so each desc sits at the add level and binds in the breakdown.
+				add = {
+					desc = "LEADERSHIP_RIVAL_OF_RIVAL"
+					if = {
+						limit = { any_rival = { is_rival_of = scope:actor } }
+						value = 100
+					}
+				}
+				add = {
+					desc = "LEADERSHIP_RIVAL_OF_ENEMY"
+					if = {
+						limit = {
+							NOT = { any_rival = { is_rival_of = scope:actor } }
+							any_rival = { is_enemy_of = scope:actor }
+						}
+						value = 50
+					}
+				}
+				add = {
+					desc = "LEADERSHIP_ENEMY_OF_RIVAL"
+					if = {
+						limit = {
+							NOT = { any_rival = { is_rival_of = scope:actor } }
+							NOT = { any_rival = { is_enemy_of = scope:actor } }
+							any_enemy = { is_rival_of = scope:actor }
+						}
+						value = 50
+					}
+				}
+				add = {
+					desc = "LEADERSHIP_ENEMY_OF_ENEMY"
+					if = {
+						limit = {
+							NOT = { any_rival = { is_rival_of = scope:actor } }
+							NOT = { any_rival = { is_enemy_of = scope:actor } }
+							NOT = { any_enemy = { is_rival_of = scope:actor } }
+							any_enemy = { is_enemy_of = scope:actor }
+						}
+						value = 50
+					}
+				}
+				add = {
+					desc = "LEADERSHIP_VOTE_SAME_AREA"
+					if = {
+						limit = {
+							capital.area = scope:actor.capital.area
+						}
+						value = 75
+					}
+				}
+				add = {
+					desc = "[primary_culture|e]"
+					if = {
+						limit = {
+							culture != scope:actor.culture
+						}
+						value = -25
+					}
+				}
+				add = {
+					desc = "[common_language|e]"
+					if = {
+						limit = {
+							culture.language != scope:actor.culture.language
+						}
+						value = -25
+					}
+				}
+				add = {
+					desc = "[religion|e]"
+					if = {
+						limit = {
+							religion != scope:actor.religion
+						}
+						value = -100
+					}
+				}
+				# Opinion - desc at the add level (swiss_election pattern) so it binds in the
+				# breakdown UI instead of rendering as "missing key". Raw weight (no multiplier):
+				# at x3 it reached ~+324 and dominated the score, making the electorate one
+				# correlated bloc that flipped to the front-runner all at once.
+				add = {
+					desc = "[opinion|e]"
+					if = {
+						limit = {
+							NOT = { this = scope:actor }
+							scope:actor = { this_opinion_of_prev >= 0 }
+						}
+						scope:actor = {
+							value = this_opinion_of_prev
+						}
+					}
+				}
+				add = {
+					desc = "LEADERSHIP_VOTE_NEGATIVE_OPINION"
+					if = {
+						limit = {
+							NOT = { this = scope:actor }
+							scope:actor = { this_opinion_of_prev < 0 }
+						}
+						scope:actor = {
+							value = this_opinion_of_prev
+						}
+					}
+				}
+				# AI disposition texture: how the voter (scope:actor) regards this candidate. A voter
+				# will not raise up a rival they themselves menace or distrust. Dispositions are
+				# mutually exclusive, so each is its own add with the desc at the add level (binds in
+				# the breakdown). NB: the reverse direction (the candidate's disposition toward the
+				# voter) is deliberately omitted — a player candidate cannot control their own AI
+				# disposition, so it would penalise them for something outside their control.
+				add = {
+					desc = "HIGH_KINGSHIP_OUR_DISPOSITION_FRIENDLY"
+					if = {
+						limit = { scope:actor = { has_ai_disposition_toward = { target = scope:vote disposition = friendly } } }
+						value = 50
+					}
+				}
+				add = {
+					desc = "HIGH_KINGSHIP_OUR_DISPOSITION_WARY"
+					if = {
+						limit = { scope:actor = { has_ai_disposition_toward = { target = scope:vote disposition = wary } } }
+						value = -25
+					}
+				}
+				add = {
+					desc = "HIGH_KINGSHIP_OUR_DISPOSITION_ALARMED"
+					if = {
+						limit = { scope:actor = { has_ai_disposition_toward = { target = scope:vote disposition = alarmed } } }
+						value = -50
+					}
+				}
+				add = {
+					desc = "HIGH_KINGSHIP_OUR_DISPOSITION_RIVALS"
+					if = {
+						limit = { scope:actor = { has_ai_disposition_toward = { target = scope:vote disposition = rivals } } }
+						value = -75
+					}
+				}
+				add = {
+					desc = "HIGH_KINGSHIP_OUR_DISPOSITION_COVETS"
+					if = {
+						limit = { scope:actor = { has_ai_disposition_toward = { target = scope:vote disposition = covets } } }
+						value = -100
+					}
+				}
+				add = {
+					desc = "HIGH_KINGSHIP_OUR_DISPOSITION_DOMINEERING"
+					if = {
+						limit = { scope:actor = { has_ai_disposition_toward = { target = scope:vote disposition = domineering } } }
+						value = -1000
+					}
+				}
+				add = {
+					desc = "HIGH_KINGSHIP_OUR_DISPOSITION_PLANNING_WAR"
+					if = {
+						limit = { scope:actor = { has_ai_disposition_toward = { target = scope:vote disposition = planning_war } } }
+						value = -1000
+					}
+				}
+				# Subject voting is enforced as a hard rule in the vote select_trigger's enabled block
+				# (loyal -> locked to apex, mixed -> locked off apex, disloyal chain -> free, and a
+				# middle overlord can never be voted for), so there is no score nudge here.
+			}
+			add = {
+				desc = "CURRENT_HIGH_KING"
+				if = {
+					limit = {
+						scope:recipient = { leader_country ?= scope:vote }
+					}
+					value = -200
+				}
+			}
+			add = {
+				desc = "PREVIOUS_HIGH_KING"
+				if = {
+					limit = {
+						scope:recipient = { international_organization_has_leader = no }
+						scope:recipient = { last_leader_country ?= scope:vote }
+					}
+					value = -200
+				}
+			}
+			add = {
+				desc = "[ShowCountryRankName('rank_empire')]"
+				if = {
+					limit = {
+						country_rank = country_rank:rank_empire
+					}
+					value = 100
+				}
+			}
+			add = {
+				desc = "[ShowCountryRankName('rank_kingdom')]"
+				if = {
+					limit = {
+						country_rank = country_rank:rank_kingdom
+					}
+					value = 50
+				}
+			}
+			add = {
+				desc = "[ShowCountryRankName('rank_duchy')]"
+				if = {
+					limit = {
+						country_rank = country_rank:rank_duchy
+					}
+					value = 25
+				}
+			}
+			add = {
+				desc = "[heir|e]"
+				if = {
+					limit = {
+						scope:vote = {
+							has_heir = no
+						}
+					}
+					value = -100
+				}
+			}
+			add = {
+				desc = "[prestige|e]"
+				value = prestige
+			}
+			add = {
+				desc = "[legitimacy|e]"
+				if = {
+					limit = { uses_government_power = legitimacy }
+					value = legitimacy
+				}
+			}
+			add = {
+				desc = "[tribal_cohesion|e]"
+				if = {
+					limit = { uses_government_power = tribal_cohesion }
+					value = tribal_cohesion
+				}
+			}
+
+			if = {
+				limit = {
+					exists = scope:potential_high_king
+				}
+
+				scope:potential_high_king = {
+					# Ruler abilities are on a ~0-100 scale, so at full weight they reached
+					# ~+231 (total+mil) and ran away with the vote. Scaled to a bounded nudge.
+					add = {
+						desc = "[mil|e]"
+						value = mil
+						multiply = 0.25
+					}
+					add = {
+						desc = "[total_ability|e]"
+						value = total_abilities
+						multiply = 0.25
+					}
+					add = {
+						desc = "[ShowModifier('character_overthrew_high_king')]"
+						if = {
+							limit = {
+								has_character_modifier = overthrew_high_king
+							}
+							value = 100
+						}
+					}
+					add = {
+						desc = "[dynasty|e]"
+						if = {
+							limit = {
+								dynasty ?= scope:actor.ruler.dynasty
+							}
+							value = 25
+						}
+					}
+					add = {
+						desc = "[general|e]"
+						if = {
+							limit = {
+								is_general = yes
+							}
+							value = 25
+						}
+					}
+					add = {
+						desc = "[general|e] [trait|e]"
+						if = {
+							limit = {
+								has_trait_category = general
+							}
+							value = 25
+						}
+					}
+					add = {
+						desc = "[admiral|e]"
+						if = {
+							limit = {
+								is_admiral = yes
+							}
+							value = 25
+						}
+					}
+					add = {
+						desc = "[admiral|e] [trait|e]"
+						if = {
+							limit = {
+								has_trait_category = admiral
+							}
+							value = 25
+						}
+					}
+				}
+			}
+		}
+	}
+}

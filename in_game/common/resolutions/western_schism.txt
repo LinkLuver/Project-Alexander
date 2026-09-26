@@ -1,0 +1,218 @@
+﻿western_schism_resolution = {
+	
+	potential = {
+		situation:western_schism = {
+			situation_is_active = yes
+		}
+	}
+
+	allow = {
+	}
+
+	can_vote = {
+		or = {
+			scope:recipient = {
+				country_has_special_status = {
+					type = special_status:curia
+					country = scope:actor
+				}
+			}
+			is_target_in_global_variable_list = {
+				name = western_schism_possible_votes
+				target = scope:recipient
+			}
+		}
+	}
+
+	votes = {
+		add = {
+			desc = "[cardinal_s|e]"
+			value = scope:actor.num_cardinals
+		}
+		if = {
+			limit = { scope:actor = { has_variable = western_schism_vote_weight } }
+			add = {
+				desc = accumulated_opinion
+				value = scope:actor.var:western_schism_vote_weight
+			}
+		}
+	}
+
+    vote_ongoing_modifier = {
+        clergy_estate_target_satisfaction = small_permanent_target_satisfaction_penalty
+        monthly_prestige = -0.05
+    }
+
+	total_votes_needed = {
+		add = {
+			value = "religion:catholic.total_cardinals"
+			multiply = 250
+		}
+	}
+
+	should_finalize_vote = {
+		scope:highest_vote >= scope:total_votes_needed
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		interaction_source_list = {
+			international_organization:catholic_church = {
+				add_to_list = source
+			}
+		}
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:catholic_church
+			#no actor = this is just the general "is the vote allowed"
+			trigger_if = {
+				limit = {
+					exists = scope:actor
+				}
+				country_has_special_status = {
+					type = special_status:curia
+					country = scope:actor
+				}
+			}
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = vote
+        allow_null = no
+		allow_self = yes
+		source_global_list = western_schism_possible_votes
+		name = "select_vote"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+		}
+	}
+
+	vote_effect = {
+		scope:actor = {
+			set_variable = {
+				name = western_schism_voted_for
+				value = scope:vote
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:vote }
+			if = {
+				limit = { scope:vote = c:PAP }
+				situation:western_schism = {
+					change_variable = { name = western_schism_pope_score add = 1 }
+				}
+			}
+			else = {
+				situation:western_schism = {
+					change_variable = { name = western_schism_anti_pope_score add = 1 }
+				}
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = { situation:western_schism.var:western_schism_vote_counter = 1 }
+				scope:vote = { trigger_event_non_silently = western_schism.1300 }
+			}
+			else_if = {
+				limit = { situation:western_schism.var:western_schism_vote_counter = 2 }
+				scope:vote = {
+					trigger_event_non_silently = western_schism.1400
+				}
+				religion:catholic = {
+					every_country_in_religion = {
+						limit = {
+							has_variable = western_schism_voted_for
+							NOT = {
+								tag = PAP
+							}
+							situation:western_schism = {
+								NOT = {
+									has_voted_for = {
+										voter = prev
+										resolution = resolution:western_schism_resolution
+										vote = scope:vote
+									}
+								}
+							}
+						}
+						every_owned_location = {
+							limit = {
+								has_building = building_type:seat_of_cardinal
+							}
+							destroy_building_forcefully = "building(building_type:seat_of_cardinal|owner)"
+						}
+					}
+				}
+				every_country = {
+					limit = { has_variable = western_schism_voted_for }
+					remove_variable = western_schism_voted_for
+				}
+			}
+			else = {
+				scope:vote = { trigger_event_non_silently = western_schism.1500 }
+				every_country = {
+					limit = { has_variable = western_schism_voted_for }
+					remove_variable = western_schism_voted_for
+				}
+			}
+			situation:western_schism = {
+				change_variable = { name = western_schism_vote_counter add = 1 }
+			}
+		}
+	}
+
+	show_message = no
+
+	ai_will_do = {
+		if = {
+			limit = {
+				scope:actor = scope:vote
+			}
+			add = 10000
+		}
+        else_if = {
+            limit = {
+				exists = scope:vote
+                scope:vote = c:PAP
+            }
+            #if we like the pope 20 more than the opponent, do it
+            add = -20
+            add = "scope:actor.opinion(c:PAP)"
+            subtract = "scope:actor.opinion(scope:proposer)"
+        }
+        else_if = {
+            limit = {
+				exists = scope:vote
+                scope:vote = scope:proposer
+            }
+            #if we like the opponent 20 more than the pope, do it
+            add = -20
+            add = "scope:actor.opinion(scope:proposer)"
+            subtract = "scope:actor.opinion(c:PAP)"
+        }
+        else = {
+       		#if total difference in opinion is less than 20, do nothing
+            add = "scope:actor.opinion(scope:proposer)"
+            subtract = "scope:actor.opinion(c:PAP)"
+            abs = 0 #abs doesn't care about the number on the right, but you do have to put a number on the right
+            multiply = -1
+            add = 20
+        }
+	}
+}

@@ -1,0 +1,3 @@
+﻿#left/center/right = {
+#}
+

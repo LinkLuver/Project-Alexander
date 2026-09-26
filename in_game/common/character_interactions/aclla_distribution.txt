@@ -1,0 +1,106 @@
+﻿aclla_distribution = { 
+	is_consort_action = no
+	on_own_nation = yes
+	sound = "event:/SFX/UI/Character/Unique/sfx_ui_character_arrange_marriage"
+	message = yes
+	potential = {
+		scope:actor = { modifier:can_use_aclla_distribution = yes }
+	}
+	
+	ai_tick = daily
+	ai_tick_frequency = 90
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = recipient
+		name = "choose_character"
+		column = {
+			data = name
+		}
+		visible = {
+			is_female = yes
+			is_alive = yes
+			is_consort = no
+			is_ruler = no
+			is_heir = no
+		}
+		enabled = {
+			is_adult = yes
+			has_available_marriage_slot = yes
+			modifier:blocked_from_marriage = no
+			NOT = { has_estate = estate_type:burghers_estate }
+			NOT = { has_estate = estate_type:peasants_estate }
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target
+		name = "aclla_distribution_select_title"
+		none_available_msg_key = "aclla_distribution_no_provinces"
+		column = { data = name }
+		column = { data = population }
+		column = { data = satisfaction }
+		visible = {
+			not = { has_province_modifier = aclla_distributed }
+			any_location_in_province = {
+				owner = scope:actor
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				add_province_modifier = {
+					modifier = aclla_distributed
+					years = 20
+					mode = add_and_extend
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			scope:recipient = {
+				add_character_modifier = { modifier = banned_from_cabinet years = 20 mode = add_and_extend }
+				add_character_modifier = { modifier = block_marriage years = 20 mode = add_and_extend }
+				add_character_modifier = { modifier = block_leading_armies_or_navies years = 20 mode = add_and_extend }
+			}
+		}
+	}
+
+	ai_will_do = {
+		# Send them rebellious provinces
+		add = {
+			if = {
+				limit = {
+					scope:target = {
+						province_satisfaction < 0
+					}
+				}
+				value = scope:target.province_satisfaction
+				multiply = -5
+			}
+		}
+
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						has_estate = estate_type:clergy_estate
+					}
+				}
+				value = 100	#Priestess were promised as Acllas quite often
+			}
+		}
+	}
+}	

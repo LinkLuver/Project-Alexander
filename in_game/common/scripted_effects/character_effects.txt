@@ -1,0 +1,384 @@
+﻿#For character scope
+set_to_limited_random_stats = {
+	hidden_effect = {
+		owner ?= {
+			if = {
+				limit = { num_locations > 0 }
+				random_owned_location = { save_scope_as = second_variable_input }
+			}
+			else = { save_scope_as = second_variable_input }
+			if = {
+				limit = {
+					num_locations > 1
+					any_owned_location = { NOT = { this = scope:second_variable_input } }
+				}
+				random_owned_location = {
+					limit = { NOT = { this = scope:second_variable_input } }
+					save_scope_as = third_variable_input
+				}
+			}
+			else = { random_primary_or_accepted_culture = { save_scope_as = third_variable_input } }
+		}
+		set_to_limited_random_stat = {
+			ability = adm
+			min = $min_adm$
+			max = $max_adm$
+		}
+		set_to_limited_random_stat = {
+			ability = dip
+			min = $min_dip$
+			max = $max_dip$
+		}
+		set_to_limited_random_stat = {
+			ability = mil
+			min = $min_mil$
+			max = $max_mil$
+		}
+	}
+}
+#Gives a character limited range of stats
+#Example in script
+#create_character = {
+#	scope = test_character
+#}
+#scope:test_character = {
+#	set_to_limited_random_stats = {
+#		max_adm = 30
+#		min_adm = 15
+#		max_dip = 60
+#		min_dip = 40
+#		max_mil = 80
+#		min_mil = 30
+#	}
+#}
+
+#This effect give your character 15/40/30 at worst and a 30/60/80 at best.
+
+
+banish_character = {
+	custom_description = {
+		text = banish_character_text
+		if = {
+			limit = { exists = owner }
+			owner = { save_scope_as = original_country }
+		}
+		else = {
+			ROOT = { save_scope_as = original_country }
+		}
+		if = {
+			limit = { exists = scope:original_country }
+			scope:original_country = {
+				random_neighbor_country = { save_scope_as = target_banish_country }
+				if = {
+					limit = { NOT = { exists = scope:target_banish_country } }
+					random_country = {
+						limit = { within_diplomatic_range = PREV }
+						save_scope_as = target_banish_country
+					}
+				}
+			}
+		}
+		if = {
+			limit = { exists = scope:target_banish_country }
+			if = {
+				limit = { is_ruler_of = scope:original_country }
+				remove_ruler = scope:original_country
+			}
+			move_country = scope:target_banish_country
+		}
+		else = {
+			kill_character_silently = {
+				target = this
+				reason = vanished
+			}
+		}
+	}
+}
+
+banish_character_to_country_effect = {
+	if = {
+		limit = {
+			country_exists = $target$
+			NOT = { owner = $target$ }
+		}
+		move_country = $target$
+	}
+	else = {
+		banish_character = yes
+	}
+}
+
+imprison_character_effect = {
+	add_character_modifier = {
+		modifier = imprisoned
+		years = $years$
+		mode = add_and_extend
+	}
+	save_scope_as = prisoner_remove_from_cabinet_scope
+	if = {
+		limit = {
+			in_cabinet = yes
+		}
+		owner = {
+			remove_from_cabinet = scope:prisoner_remove_from_cabinet_scope
+		}
+	}
+}
+
+imprison_character_in_country_effect = {
+	if = {
+		limit = {
+			country_exists = $target$
+			NOT = { owner = $target$ }
+		}
+		if = {
+			limit = { is_ruler = yes }
+			owner = {
+				add_opinion = {
+					target = $target$
+					modifier = opinion_imprisoned_our_ruler
+				}
+			}
+		}
+		move_country = $target$
+		imprison_character_effect = { years = $years$ }
+	}
+	else = {
+		imprison_character_effect = { years = $years$ }
+	}
+}
+
+release_character_from_prison_effect = {
+	if = {
+		limit = { has_character_modifier = imprisoned }
+		remove_character_modifier = imprisoned
+	}
+}
+
+tumu_crisis_restore_emperor = {
+	move_country = var:chi_captured_emperor_origin
+	var:chi_captured_emperor_origin = {
+		save_scope_as = target_emperor
+		trigger_event_silently = {
+			id = flavor_chi_mon.7
+		}
+	}
+}
+
+set_character_erratic_behavior = {
+	add_character_modifier = {
+		modifier = erratic
+		years = -1
+		mode = add_and_extend
+	}
+	custom_tooltip = erratic_tooltip
+	hidden_effect = {
+		if = {
+			limit = {
+				OR = {
+					is_ruler = yes
+					is_regent = yes
+				}
+				NOT = { has_variable = has_erratic_modifier }
+			}
+			owner = {
+				trigger_event_silently = character_events.1
+			}
+		}
+	}
+}
+
+set_to_limited_random_artist_skill = {
+	hidden_effect = {
+		if = {
+			limit = { is_artist = yes }
+			add_artist_skill = -100
+			add_artist_skill = $min_skill$
+			#Then determine how much room random stats there should be
+			set_variable = { name = character_max_artist_skill value = $max_skill$ }
+			change_variable = { name = character_max_artist_skill subtract = $min_skill$ }
+			#Then get the random bonus in case max > min
+			if = {
+				limit = { var:character_max_artist_skill > 0 }
+				change_variable = { name = character_max_artist_skill multiply = 100 }
+				set_variable = { name = character_bonus_artist_skill value = this.random_integer }
+				change_variable = { name = character_bonus_artist_skill modulo = var:character_max_artist_skill }
+				change_variable = { name = character_bonus_artist_skill add = 1 }
+				change_variable = { name = character_bonus_artist_skill divide = 100 }
+				add_artist_skill = var:character_bonus_artist_skill
+			}
+		}
+	}
+}
+
+move_to_expedition = {
+	move_country = scope:expedition_initiator
+	add_character_modifier = {
+		mode = replace
+		modifier = chi_on_board_of_expedition
+		years = -1
+	}
+	scope:expedition_initiator = {
+		add_to_variable_list = {
+			name = characters_on_board
+			target = PREV
+		}
+	}
+}
+
+set_nickname_if_none_present = {
+	if = {
+		limit = { has_nickname = no }
+		set_nickname = $nickname$
+	}
+}
+
+add_random_dip_ruler_trait = {
+	custom_tooltip = add_random_dip_ruler_trait_tt
+	random_list = {
+		1 = {
+			trigger = { 
+				ruler ?= { 
+					NOT = { has_trait = careful }
+				}
+			}
+			ruler ?= { add_trait = trait:careful }
+		}
+		1 = {
+			trigger = { 
+				ruler ?= { 
+					NOT = { has_trait = well_connected }
+				}
+			}
+			ruler ?= { add_trait = trait:well_connected }
+		}
+		1 = {
+			trigger = { 
+				ruler ?= { 
+					NOT = { has_trait = secretive }
+				}
+			}
+			ruler ?= { add_trait = trait:secretive }
+		}
+		1 = {
+			trigger = { 
+				ruler ?= { 
+					NOT = { has_trait = intricate_web_weaver }
+				}
+			}
+			ruler ?= { add_trait = trait:intricate_web_weaver }
+		}
+		1 = {
+			trigger = { 
+				ruler ?= { 
+					NOT = { has_trait = charismatic_negotiator }
+				}
+			}
+			ruler ?= { add_trait = trait:charismatic_negotiator }
+		}
+		1 = {
+			trigger = { 
+				ruler ?= { 
+					NOT = { has_trait = silver_tongue }
+				}
+			}
+			ruler ?= { add_trait = trait:silver_tongue }
+		}
+		1 = {
+			trigger = { 
+				ruler ?= { 
+					NOT = { has_trait = well_advised }
+				}
+			}
+			ruler ?= { add_trait = trait:well_advised }
+		}
+	}
+}
+
+add_random_dip_regent_trait = {
+	custom_tooltip = add_random_dip_regent_trait_tt
+	random_list = {
+		1 = {
+			trigger = { 
+				regent ?= { 
+					NOT = { has_trait = careful }
+				}
+			}
+			regent ?= { add_trait = trait:careful }
+		}
+		1 = {
+			trigger = { 
+				regent ?= { 
+					NOT = { has_trait = well_connected }
+				}
+			}
+			regent ?= { add_trait = trait:well_connected }
+		}
+		1 = {
+			trigger = { 
+				regent ?= { 
+					NOT = { has_trait = secretive }
+				}
+			}
+			regent ?= { add_trait = trait:secretive }
+		}
+		1 = {
+			trigger = { 
+				regent ?= { 
+					NOT = { has_trait = intricate_web_weaver }
+				}
+			}
+			regent ?= { add_trait = trait:intricate_web_weaver }
+		}
+		1 = {
+			trigger = { 
+				regent ?= { 
+					NOT = { has_trait = charismatic_negotiator }
+				}
+			}
+			regent ?= { add_trait = trait:charismatic_negotiator }
+		}
+		1 = {
+			trigger = { 
+				regent ?= { 
+					NOT = { has_trait = silver_tongue }
+				}
+			}
+			regent ?= { add_trait = trait:silver_tongue }
+		}
+		1 = {
+			trigger = { 
+				regent ?= { 
+					NOT = { has_trait = well_advised }
+				}
+			}
+			regent ?= { add_trait = trait:well_advised }
+		}
+	}
+}
+
+move_country_with_family = {
+	move_country = $country$
+	every_spouse = {
+		limit = {
+			is_ruler = no
+			is_regent = no
+		}
+		move_country = $country$
+	}
+	every_child = {
+		limit = {
+			OR = {
+				is_heir = no
+				is_heir_of = $country$
+			}
+			NOT = {
+				any_parent = {
+					is_ruler = yes
+					NOT = { is_ruler_of = $country$ }
+				}
+			}
+		}
+		move_country = $country$
+	}
+}

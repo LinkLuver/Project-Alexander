@@ -1,0 +1,1062 @@
+﻿# scope:actor = country, scope:recipient = religion
+
+dissolve_monasteries = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 80
+	automation_tick = monthly
+	automation_tick_frequency = 1
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	
+	message = national_church_action
+	
+	potential = {
+	}
+
+	allow = {
+		scope:actor ?= { 
+			total_effective_building_levels:monastery > 0 
+			modifier:can_have_monasteries = no
+		}
+		
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			is_protestant_religion = yes
+		}
+	}
+
+	effect = {
+		scope:actor = { 
+			ordered_owned_location = {
+				limit = {
+					has_building = building_type:monastery
+				}
+				order_by = population
+				max = 5
+				check_range_bounds = no
+				change_building_level_in_location = {
+					building = building_type:monastery
+					value = -1
+				}
+				owner = {
+					add_gold = {
+						value = scope:actor.monthly_income_trade_and_tax
+						multiply = 0.5
+					}
+				}
+			}
+		}
+	}
+	
+	ai_will_do = {
+		add = -100
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						gold <= {
+							value = scope:actor.monthly_income_trade_and_tax
+							multiply = 4
+						}
+					}
+				}
+				value = 200
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					scope:actor = { #this should also check for monastery in country
+						religion_percentage_in_country = {
+							religion = scope:recipient
+							value > 0
+						}
+					}
+				}
+				value = 200
+			}
+		}
+	}
+}
+
+
+militarise_religious_icons = {
+	type = religious
+
+	sound = UI_action_religion_generic
+
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+		scope:actor.religion = religion:anglican
+	}
+
+	allow = {
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = { 
+			add_army_tradition = army_tradition_ultimate_bonus
+		}
+	}
+	
+
+	ai_will_do = {
+		add = -60
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						at_war = yes
+					}
+				}
+				value = 200
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						any_rival = {
+							can_declare_war_on = prev
+							has_truce_with = prev
+						}
+					}
+				}
+				value = 200
+			}
+		}
+		if = {
+			limit = { scope:actor.modifier:bias_for_militarist_policies > 0 }
+			add = {
+				value = {
+					value = scope:actor.modifier:bias_for_militarist_policies
+					multiply = 2
+				}
+			}
+		}
+	}
+}
+
+
+reformation_diplomacy = {
+	type = religious
+
+	sound = UI_action_religion_generic
+
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+		scope:actor.religion = religion:anglican
+	}
+
+	allow = {
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			scope:actor = {
+				every_known_country = {
+					limit = {
+						is_protestant = yes
+						this != scope:actor
+					}
+					
+					add_opinion = { target = scope:actor modifier = opinion_reformation_diplomacy } 
+				}
+			}
+		}
+		else = {
+			custom_tooltip = reformation_diplomacy_tt
+		}
+	}
+
+
+	ai_will_do = {
+		add = -20
+		add = {
+			if = {
+				limit = { scope:actor.modifier:bias_for_diplomat_policies > 0 }
+				add = {
+					value = {
+						value = scope:actor.modifier:bias_for_diplomat_policies
+					}
+				}
+			}
+		}
+	}
+}
+
+
+deport_heretics = {
+	type = religious
+
+	sound = UI_action_religion_generic
+
+	ai_tick = daily
+	ai_tick_frequency = 360
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+	}
+
+	allow = {
+		scope:actor = {
+			has_colonial_charters = yes
+			religious_unity < 1.0
+		}
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			is_protestant_religion = yes
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = colonial_charter
+		source = actor
+		target_flag = target_colony
+		name = "choose_colonial_charter"
+		column = {
+			data = name
+		}
+	}
+	
+	
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = origin
+		name = "deport_heretics_select_province"
+		none_available_msg_key = "deport_heretics_no_provinces"
+		column = {
+			data = name
+		}
+		column = {
+			data = province_religion_percentage
+		}
+		column = {
+			data = population
+		}
+		default_sort = province_religion_percentage
+		visible = {
+			any_location_in_province = {
+				is_overseas_for_owner = no
+				dominant_religion != scope:actor.religion
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:origin
+			}
+			scope:origin = {
+				dominant_religion = {
+					save_scope_as = target_religion
+				}
+			}
+			if = {
+				limit = {
+					exists = scope:origin
+					exists = scope:target_colony
+					exists = scope:target_religion
+				}
+				add_migration = {
+					owner = scope:actor
+					from = scope:origin.province_definition
+					to = scope:target_colony.province_definition
+					religion = scope:target_religion
+					type = pop_type:peasants
+					amount = 0.100
+					months = 60
+				}
+			}
+		}
+		else = {
+			custom_tooltip = deport_heretics_tt
+		}
+	}
+
+	ai_will_do = {
+		add = -20
+		add = {
+			if = {
+				limit = { scope:actor.modifier:bias_for_tolerant_policies < 0 }
+				add = {
+					value = {
+						value = scope:actor.modifier:bias_for_tolerant_policies
+						multiply = -1
+					}
+				}
+			}
+		}
+	}
+}
+
+
+encourage_innovativeness = {
+	type = religious
+
+	sound = UI_action_religion_generic
+
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+		scope:actor.religion = religion:anglican
+	}
+
+	allow = {
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_research_progress = research_progress_severe_bonus
+		}
+	}
+
+	ai_will_do = {
+		add = -20
+		add = {
+			if = {
+				limit = { scope:actor.modifier:bias_for_scholar_policies > 0 }
+				add = {
+					value = {
+						value = scope:actor.modifier:bias_for_scholar_policies
+					}
+				}
+			}
+		}
+	}
+}
+
+
+progress_of_the_supreme_governor = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 80
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	
+	message = national_church_action
+	
+	potential = {
+		scope:actor.religion = religion:anglican
+	}
+
+	allow = {
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_stability = stability_mild_bonus
+			add_government_power = government_power_extreme_bonus
+		}
+	}
+
+	ai_will_do = {
+		add = -20
+		add = {
+			if = {
+				limit = { scope:actor.modifier:bias_for_diplomat_policies > 0 }
+				add = {
+					value = {
+						value = scope:actor.modifier:bias_for_scholar_policies
+					}
+				}
+			}
+		}
+	}
+}
+
+divorce_ruler = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+	}
+
+	allow = {
+		scope:actor = {
+			has_ruler = yes
+			ruler ?= {
+				num_of_spouses > 0
+			}
+		}
+	}
+	
+	price = price:national_church_power
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			has_tag = church_aspects
+		}
+	}
+
+	select_trigger = {
+		show_if = {
+			scope:actor.ruler ?= {
+				num_of_spouses > 1
+			}
+		}
+		looking_for_a = character
+		source = actor
+		target_flag = target
+		name = "choose_consort_to_divorce_from"
+		column = {
+			data = character_info
+		}
+		interaction_source_list = {
+			scope:actor.ruler ?= {
+				every_spouse = {
+					limit = {
+						is_alive = yes
+					}
+					add_to_list = source
+				}
+			}
+		}
+		visible = {
+		}
+		enabled = {
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			if = {
+				limit = { exists = scope:target }
+				ruler ?= { divorce_character = scope:target }
+			}
+			else = {
+				ruler ?= { divorce_character = first_spouse }
+			}
+		}
+	}
+	
+	ai_will_do = {
+		add = -50
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						modifier:care_about_producing_heirs = yes
+						has_ruler = yes
+						ruler = {
+							location.owner ?= scope:actor #so AI doesn't divorce rulers in player PUs
+						}
+						trigger_if = {
+							limit = { exists = scope:target }
+							scope:target = {
+								is_pregnant = no
+								age_in_years > 35
+							}
+						}
+						trigger_else = {
+							ruler = {
+								first_spouse = {
+									is_pregnant = no
+									age_in_years > 35
+								}
+							}
+							heir ?= {
+								NOT = {
+									father ?= scope:actor.ruler
+								}
+							}
+						}
+					}
+				}
+				add = {
+					value = {
+						value = 100
+					}
+				}
+			}
+		}
+	}
+}
+
+summon_mystic = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+		scope:actor.religion = religion:bosnian_church
+	}
+	allow = {
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			create_character = {
+				culture = culture:bosnian
+				religion = religion:bosnian_church
+				estate = estate_type:clergy_estate
+				adm = { 50 90 }
+				dip = { 50 90 }
+				mil = { 50 90 }
+				save_scope_as = target_character
+			}
+			change_societal_value = { type = belligerent_vs_conciliatory value = societal_value_move_to_left }
+			change_societal_value = { type = spiritualist_vs_humanist value = societal_value_move_to_left }
+		}
+	}
+
+	ai_will_do = {
+		add = -20
+		add = {
+			if = {
+				limit = { scope:actor.modifier:bias_for_scholar_policies > 0 }
+				add = {
+					value = {
+						value = scope:actor.modifier:bias_for_scholar_policies
+					}
+				}
+			}
+		}
+	}
+}
+
+bosnian_church_diplomacy = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+		scope:actor.religion = religion:bosnian_church
+	}
+
+	allow = {
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			scope:actor = {
+				custom_tooltip = {
+					text = improve_opinion_with_all_catholics_tt
+					every_known_country = {
+						limit = {
+							religion = religion:catholic
+						}
+						add_opinion = { target = scope:actor modifier = opinion_bosnian_church_diplomacy }
+					}
+				}
+				change_societal_value = { type = belligerent_vs_conciliatory value = societal_value_tiny_move_to_right }
+				change_societal_value = { type = spiritualist_vs_humanist value = societal_value_tiny_move_to_right }
+			}
+		}
+		else = {
+			custom_tooltip = bosnian_church_diplomacy_tt
+		}
+	}
+
+	ai_will_do = {
+		add = -20
+		add = {
+			if = {
+				limit = { scope:actor.modifier:bias_for_diplomat_policies > 0 }
+				add = {
+					value = {
+						value = scope:actor.modifier:bias_for_diplomat_policies
+					}
+				}
+			}
+		}
+	}
+}
+
+expose_the_enemies_of_the_faith = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+		scope:actor.religion = religion:bosnian_church
+	}
+
+	allow = {
+		scope:actor = {
+			any_spy_network_built_in_us = {
+				spy_network = { target = scope:actor value >= 10 }
+			}
+		}
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			custom_tooltip = {
+				text = expose_the_enemies_of_the_faith_tt
+				every_spy_network_built_in_us = {
+					add_spy_network = { target = scope:actor value = -10 }
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = -20
+		add = {
+			if = {
+				limit = { scope:actor.modifier:bias_for_diplomat_policies > 0 }
+				add = {
+					value = {
+						value = scope:actor.modifier:bias_for_diplomat_policies
+					}
+				}
+			}
+		}
+	}
+}
+
+affirm_the_confession_of_biljno_polje = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+		scope:actor.religion = religion:bosnian_church
+	}
+
+	allow = {
+		scope:actor = { 
+			NOT = {
+				has_country_modifier = affirmation_of_biljno_polje
+			}
+		}
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = { 
+			add_country_modifier = {
+				modifier = affirmation_of_biljno_polje
+				years = 10
+				mode = add
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = -60
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						at_war = yes
+					}
+				}
+				value = 200
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						any_rival = {
+							can_declare_war_on = prev
+							has_truce_with = prev
+						}
+					}
+				}
+				value = 200
+			}
+		}
+		if = {
+			limit = { scope:actor.modifier:bias_for_militarist_policies > 0 }
+			add = {
+				value = {
+					value = scope:actor.modifier:bias_for_militarist_policies
+					multiply = 2
+				}
+			}
+		}
+	}
+}
+
+support_the_krstjani_monasteries = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+		scope:actor.religion = religion:bosnian_church
+	}
+
+	allow = {
+		scope:actor ?= { 
+			total_effective_building_levels:monastery > 0
+		}
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+	
+	effect = {
+		scope:actor = { 
+			custom_tooltip = {
+				text = support_the_krstjani_monasteries_tt
+				random_owned_location = {
+					limit = {
+						has_building = building_type:monastery
+					}
+					province = {
+						save_temporary_scope_as = target_province
+						every_location_in_province = {
+							change_prosperity = prosperity_mild_bonus
+
+							every_pop = {
+								limit = {
+									owner = scope:actor
+									religion = religion:bosnian_church
+								}
+
+								add_pop_satisfaction = pop_satisfaction_mild_bonus
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	ai_will_do = {
+		add = -20
+		add = {
+			if = {
+				limit = { scope:actor.modifier:bias_for_diplomat_policies > 0 }
+				add = {
+					value = {
+						value = scope:actor.modifier:bias_for_diplomat_policies
+					}
+				}
+			}
+		}
+	}
+}
+
+reaffirm_ecclesiastical_decentralization = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+		scope:actor.religion = religion:bosnian_church
+	}
+
+	allow = {
+	}
+	
+	price = price:national_church_power
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+	
+	effect = {
+		scope:actor = { 
+			change_societal_value = { type = centralization_vs_decentralization value = societal_value_move_to_right }
+		}
+	}
+	
+	ai_will_do = {
+		add = -20
+		if = {
+			limit = { scope:actor.modifier:monthly_towards_decentralization > 0 }
+			add = {
+				value = scope:actor.modifier:monthly_towards_decentralization
+				multiply = 10
+			}
+		}
+	}
+}
+
+summon_the_strojnici_council = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	message = national_church_action
+	
+	potential = {
+		scope:actor.religion = religion:bosnian_church
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	cooldown = {
+		years = 10
+		type = summon_the_strojnici_council
+	}
+	
+	effect = {
+		scope:actor = { 
+			trigger_event_non_silently = flavor_bos.4
+		}
+	}
+	
+	ai_will_do = {
+		add = 10
+	}
+}

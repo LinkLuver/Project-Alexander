@@ -1,0 +1,527 @@
+﻿progress_and_literacy = {
+	icon = generic_progress_and_literacy
+	repeatable = yes
+	chance = 3600
+	player_playstyle = diplomatic
+
+	visible = {
+		game_has_missions_enabled = yes
+		NOT = { has_variable = progress_and_literacy_variable }
+	}
+
+	enabled = {
+		OR = {
+			NOT = { societal_value:traditionalist_vs_innovative > 90 }
+			average_country_literacy < 70
+		}
+		num_of_non_rural > 0
+		has_advance = paper_guild_advance
+		has_advance = library_advance
+	}
+
+	on_start = {
+		set_variable = {
+			name = books_in_capital_market_variable
+			value = {
+				add = "capital.market.stockpile_in_market(goods:books)"
+				add = {
+					add = "capital.market.stockpile_in_market(goods:books)"
+					multiply = 0.1
+				}
+			}
+		}
+		if = {
+			limit = { var:books_in_capital_market_variable < 5 }
+			set_variable = {
+				name = books_in_capital_market_variable
+				value = 5
+			}
+		}
+		set_variable = {
+			name = num_advances_variable 
+			value = {
+				add = num_of_advances_researched
+				add = 3
+			}
+		}
+		set_variable = {
+			name = target_traditionalist_vs_innovative_variable
+			value = {
+				add = modifier:monthly_towards_innovative
+				add = 0.1
+			}
+		}
+		set_variable = {
+			name = target_book_production_variable
+			value = {
+				if = {
+					limit = {
+						total_effective_goods_production_buildings = { goods = goods:books value <= 0 }
+					}
+					value = 3
+				}
+				else = { 
+					add = "total_effective_goods_production_buildings(goods:books)"
+					multiply = 1.1
+					ceiling = yes
+				}
+			}
+		}
+
+		set_variable = {
+			name = libraries_needed_variable
+			value = {
+				add = total_effective_building_levels:library
+				add = 1
+				add = {
+					value = total_effective_building_levels:library
+					multiply = 0.1
+					ceiling = yes
+				}
+			}
+		}
+
+		set_variable = {
+			name = num_of_non_rural_variable
+			value = {
+				add = num_of_non_rural
+				divide = 2
+				add = 1
+				ceiling = yes
+			}
+		}
+		set_variable = {
+			name = universities_needed_variable
+			value = {
+				add = total_effective_building_levels:university
+				add = 1
+				add = {
+					value = total_effective_building_levels:university
+					multiply = 0.1
+					ceiling = yes
+				}
+			}
+		}
+
+		if = {
+			limit = { religion.group = religion_group:muslim }
+			set_variable = {
+				name = madrasas_needed_variable
+				value = {
+					add = total_effective_building_levels:madrasa
+					add = 1
+					add = {
+						value = total_effective_building_levels:madrasa
+						multiply = 0.1
+						ceiling = yes
+					}
+				}
+			}
+			set_variable = {
+				name = great_madrasas_needed_variable
+				value = {
+					add = total_effective_building_levels:great_madrasa
+					add = 1
+					add = {
+						value = total_effective_building_levels:great_madrasa
+						multiply = 0.1
+						ceiling = yes
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				any_country_in_diplomatic_range = {
+					any_institutions_embraced = {
+						NOT = { root = { has_embraced_institution = prev } }
+					}
+				}
+			}
+			random_country_in_diplomatic_range = {
+				limit = {
+					any_institutions_embraced = {
+						NOT = { root = { has_embraced_institution = prev } }
+					}
+				}
+				random_institutions_embraced = {
+					limit = {
+						NOT = { root = { has_embraced_institution = prev } }
+					}
+					root = {
+						set_variable = {
+							name = institution_variable
+							value = prev
+						}
+					}
+				}
+			}
+		}
+		random_list = {
+			1 = {
+				trigger = { has_embraced_institution = institution:renaissance }
+				set_variable = build_theatres_variable
+			}
+			1 = {
+				trigger = {
+					capital = {
+						NOT = { has_building_with_at_least_one_level = chancery }
+					}
+				}
+				set_variable = build_chancery_variable
+			}
+			1 = {
+				trigger = {
+					total_effective_building_levels:theater >= num_of_non_rural 
+					capital = { has_building_with_at_least_one_level = chancery }
+				}
+				# Nothing
+			}
+		}
+		set_variable = {
+			name = target_average_country_literacy_variable
+			value = {
+				add = average_country_literacy
+				add = 0.25
+			}
+		}
+	}
+
+	on_abort = {
+		set_variable = {
+			name = progress_and_literacy_variable
+			years = 10
+		}
+		if = {
+			limit = { has_variable = universities_needed_variable }
+			remove_variable = universities_needed_variable
+		}
+		if = {
+			limit = { has_variable = great_madrasas_needed_variable }
+			remove_variable = great_madrasas_needed_variable
+		}
+		if = {
+			limit = { has_variable = libraries_needed_variable }
+			remove_variable = libraries_needed_variable
+		}
+		if = {
+			limit = { has_variable = books_in_capital_market_variable }
+			remove_variable = books_in_capital_market_variable
+		}
+		if = {
+			limit = { has_variable = institution_variable }
+			remove_variable = institution_variable
+		}
+		if = {
+			limit = { has_variable = build_theatres_variable }
+			remove_variable = build_theatres_variable
+		}
+		if = {
+			limit = { has_variable = build_chancery_variable }
+			remove_variable = build_chancery_variable
+		}
+		remove_variable = num_advances_variable
+		remove_variable = target_traditionalist_vs_innovative_variable
+		remove_variable = target_book_production_variable
+		remove_variable = num_of_non_rural_variable
+
+		set_variable = {
+			name = progress_and_literacy_variable
+			years = 5
+		}
+	}
+
+	on_completion = {
+		if = {
+			limit = { has_variable = universities_needed_variable }
+			remove_variable = universities_needed_variable
+		}
+		if = {
+			limit = { has_variable = great_madrasas_needed_variable }
+			remove_variable = great_madrasas_needed_variable
+		}
+		if = {
+			limit = { has_variable = libraries_needed_variable }
+			remove_variable = libraries_needed_variable
+		}
+		if = {
+			limit = { has_variable = books_in_capital_market_variable }
+			remove_variable = books_in_capital_market_variable
+		}
+		if = {
+			limit = { has_variable = institution_variable }
+			remove_variable = institution_variable
+		}
+		if = {
+			limit = { has_variable = build_theatres_variable }
+			remove_variable = build_theatres_variable
+		}
+		if = {
+			limit = { has_variable = build_chancery_variable }
+			remove_variable = build_chancery_variable
+		}
+		remove_variable = num_advances_variable
+		remove_variable = target_traditionalist_vs_innovative_variable
+		remove_variable = num_of_non_rural_variable
+		remove_variable = target_book_production_variable
+
+		set_variable = {
+			name = progress_and_literacy_variable
+			years = 25
+		}
+	}
+
+	mission_ensure_book_production = {
+		icon = library_advance
+		visible = { }
+		requires = { }
+		enabled = {
+			OR = {
+				capital.market ?= { "stockpile_in_market(goods:books)" >= root.var:books_in_capital_market_variable }
+				total_effective_goods_production_buildings = { goods = goods:books value >= root.var:target_book_production_variable }
+			}
+		}
+		duration = 0
+		on_completion = {
+			if = {
+				limit = { produced_in_country:books > 0 }
+				ordered_owned_location = {
+					limit = {
+						any_buildings_in_location = {
+							OR = {
+								building_type = building_type:scriptorium
+								building_type = building_type:printing_press_shop
+								building_type = building_type:printing_manufactory
+								building_type = building_type:printing_mill
+							}
+						}
+					}
+					order_by = {
+						value = market_access
+						multiply = development
+					} 
+					max = 1 
+					check_range_bounds = no
+					add_location_modifier = {
+						modifier = center_of_writing_modifier
+						years = modifier_duration_years_normal
+						mode = replace
+					}
+				}
+			}
+			else = { 
+				custom_tooltip = mission_ensure_book_production_reward_tt 
+				if = {
+					limit = { country_has_estate = estate_type:clergy_estate }
+					add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+				}
+			}
+		}
+	}
+
+	mission_new_institutions = {
+		icon = court_cost_advance_renai
+		visible = { has_variable = institution_variable }
+		requires = { mission_ensure_book_production }
+		enabled = {
+			has_embraced_institution = var:institution_variable
+		}
+		duration = 0
+		on_completion = {
+			change_societal_value = { 
+				type = traditionalist_vs_innovative 
+				value = societal_value_move_to_right
+			}
+			add_research_progress = research_progress_severe_bonus
+		}
+	}
+
+	mission_found_libraries = {
+		icon = genoese_banking_traditions
+		visible = { }
+		requires = { mission_ensure_book_production }
+		enabled = {
+			total_effective_building_levels:library >= root.var:libraries_needed_variable
+		}
+		duration = 0
+		on_completion = {
+			add_country_modifier = {
+				modifier = new_libraries_modifier
+				years = 10
+				mode = replace
+				size = {
+					value = 1
+					multiply = {
+						desc = scales_with_number_of_libraries
+						value = 1
+						add = {
+							value = total_effective_building_levels:library
+							multiply = 0.2
+						}
+					}
+				}
+			}
+		}
+	}
+
+	mission_wave_of_innovation = {
+		icon = artists_advance
+		visible = { }
+		requires = { mission_ensure_book_production }
+		enabled = {
+			modifier:monthly_towards_innovative >= var:target_traditionalist_vs_innovative_variable
+		}
+		duration = 0
+		on_completion = {
+			culture = { add_cultural_influence = cultural_influence_mild_bonus }
+			add_research_progress = research_progress_weak_bonus
+		}
+	}
+
+	mission_build_chancery = {
+		icon = royal_audience_and_chancery
+		visible = { has_variable = build_chancery_variable }
+		requires = { mission_ensure_book_production }
+		enabled = {
+			capital = { 
+				has_building_with_at_least_one_level = chancery 
+				local_control >= 0.8
+			}
+		}
+		duration = 0
+		on_completion = {
+			ordered_owned_location = {
+				limit = {
+					local_control >= 0.8 
+				}
+				order_by = local_control
+				max = 4
+				add_location_modifier = {
+					modifier = proper_administrative_ledgers_modifier
+					years = 5
+				}
+			}
+		}
+	}
+
+	mission_theatrical_expression = {
+		icon = cultural_ties
+		visible = { has_variable = build_theatres_variable }
+		requires = { mission_ensure_book_production }
+		enabled = {
+			total_effective_building_levels:theater >= {
+				value = {
+					add = root.num_of_non_rural
+					min = 1
+				}
+			} 
+		}
+		duration = 0
+		on_completion = {
+			culture = { add_cultural_tradition = cultural_tradition_mild_bonus }
+			custom_tooltip = {
+				text = every_location_with_theater_pops_gain_10_satisfaction_tt
+				every_owned_location = {
+					limit = { has_building_with_at_least_one_level = theater }
+					every_pop = {
+						limit = {
+							owner = root
+						}
+						add_pop_satisfaction = pop_satisfaction_mild_bonus
+					}
+				}
+			}
+		}
+	}
+
+	mission_islamic_colleges = {
+		icon = islamic_schoolars
+		visible = { religion.group = religion_group:muslim }
+		requires = { mission_found_libraries }
+		enabled = {
+			OR = {
+				total_effective_building_levels:madrasa >= var:madrasas_needed_variable
+
+				total_effective_building_levels:great_madrasa >= var:great_madrasas_needed_variable
+			}
+		}
+		duration = 0
+		on_completion = {
+			add_country_modifier = {
+				modifier = new_madrasas_modifier
+				years = 10
+				mode = replace
+			}
+		}
+	}
+
+	mission_houses_of_wisdom = {
+		icon = construction_speed_revolutions
+		requires = { mission_found_libraries }
+		visible = { has_advance = university_advance }
+		enabled = {
+			total_effective_building_levels:university >= var:universities_needed_variable
+		}
+		duration = 0
+		on_completion = {
+			if = {
+				limit = {
+					total_effective_building_levels:university > 0
+				}
+				ordered_owned_location = {
+					limit = { has_building_with_at_least_one_level = university }
+					order_by = average_location_literacy
+					max = 4
+					change_development = development_mild_bonus
+				}
+			}
+			else = { custom_tooltip = four_locations_gain_development_tt }
+		}
+	}
+
+	mission_advances_technology = {
+		icon = alchemy_advance
+		requires = { mission_found_libraries }
+		enabled = {
+			custom_tooltip = {
+				text = researched_5_new_advances_tt
+				num_of_advances_researched >= var:num_advances_variable
+			}
+		}
+		duration = 365
+		modifier_while_progressing = {
+			monthly_towards_innovative = societal_value_huge_monthly_move
+		}
+
+		on_start = { custom_tooltip = monthly_events_about_research_and_thought_tt }
+
+		on_monthly = {
+			random_list = {
+				5 = { trigger_event_silently = generic_mission_events.18 }	#Scholars Gather in [location with University/Madrasa/Great Madrasa]
+				5 = { trigger_event_silently = generic_mission_events.19 }	#A new Scientist Character Appears
+				5 = { trigger_event_silently = generic_mission_events.20 }	#State-Sponsored Scientific Papers
+				5 = { trigger_event_silently = generic_mission_events.21 }	#Heretical Research?
+				5 = { trigger_event_silently = generic_mission_events.22 }	#The Royal Library in [location]
+				75 = { }		
+			}
+		}
+	}
+
+	mission_raise_literacy = {
+		icon = exsurge_domine
+		final = yes
+		requires = { mission_advances_technology }
+		enabled = {
+			average_country_literacy > var:target_average_country_literacy_variable
+		}
+		duration = 0
+
+		on_completion = {
+			add_country_modifier = {
+				modifier = innovation_wave
+				years = modifier_duration_years_normal
+				mode = replace
+			}
+		}
+	}
+}

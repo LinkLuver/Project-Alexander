@@ -1,0 +1,374 @@
+﻿generic_vassal_ties = {
+	icon = generic_vassal_ties
+	repeatable = yes
+	player_playstyle = diplomatic
+
+	visible = {
+		game_has_missions_enabled = yes
+		any_subject = {
+			country_type = location
+			is_subject_type = vassal
+			count > 0
+		}
+		NOT = { has_variable = recently_had_vassal_ties_mission_variable }
+	}
+	chance = 3600
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					limit = { 
+						subject_type = { subject_can_be_annexed = yes }
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = mission_target_subject
+		name = "mission_select_vassal"
+		none_available_msg_key = "mission_no_valid_vassals"
+		column = { data = name }
+		column = { data = population }
+		column = { data = great_power_score }
+	}
+
+	on_start = {
+		if = {
+			limit = {
+				scope:mission_target_subject.capital = {
+					any_neighbor_location = {
+						is_ownable = yes
+						has_owner = yes
+						OR = {
+							owner ?= root
+							owner ?= scope:mission_target_subject
+						}
+						NOT = { has_latest_road_to = prev }
+					}
+				}
+			}
+			set_variable = {
+				name = num_connected_locations_to_cap_variable
+				value = 0
+			}
+			scope:mission_target_subject.capital = {
+				every_neighbor_location = {
+					limit = { 
+						is_ownable = yes
+						has_owner = yes
+						OR = {
+							owner ?= root
+							owner ?= scope:mission_target_subject
+						}
+						NOT = { has_latest_road_to = prev } 
+					}
+					owner = {
+						change_variable = {
+							name = num_connected_locations_to_cap_variable
+							add = 1
+						}
+					}
+				}
+			}
+		}
+		set_variable = {
+			name = mission_chosen_vassal_variable
+			value = scope:mission_target_subject
+		}
+		set_variable = {
+			name = target_relations_variable
+			value = {
+				scope:mission_target_subject = {
+					add = {
+						root = {
+							value = this_opinion_of_prev
+							multiply = 1.25
+						}
+					}
+				}
+				max = 175
+			}
+		}
+		set_variable = {
+			name = subject_capital_buildings_variable
+			value = {
+				value = scope:mission_target_subject.capital.total_building_levels
+				add = 4
+			}
+		}
+		scope:mission_target_subject = { trigger_event_non_silently = generic_mission_events.12 }
+	}
+
+	on_completion = {
+		remove_variable = target_relations_variable
+		set_variable = {
+			name = recently_had_vassal_ties_mission_variable
+			years = 25
+		}
+		if = {
+			limit = { has_variable = num_connected_locations_to_cap_variable }
+			remove_variable = num_connected_locations_to_cap_variable
+		}
+	}
+	on_abort = {
+		set_variable = {
+			name = recently_had_vassal_ties_mission_variable
+			years = 10
+		}
+		remove_variable = target_relations_variable
+		if = {
+			limit = { has_variable = num_connected_locations_to_cap_variable }
+			remove_variable = num_connected_locations_to_cap_variable
+		}
+	}
+
+	###########################################
+	###########################################
+
+	mission_connect_the_capitals = {
+		icon = road_building
+
+		requires = { mission_monetary_assistance }
+		enabled = {
+			trigger_if = {
+				limit = { has_variable = num_connected_locations_to_cap_variable }
+				capital = {
+					any_neighbor_location = {
+						has_latest_road_to = prev
+						count >= {
+							value = {
+								add = root.var:num_connected_locations_to_cap_variable
+								divide = 2
+								ceiling = yes
+							}
+						}
+					}
+				}
+			}
+			trigger_else = { 
+				custom_tooltip = {
+					text = mission_task_will_be_bypassed_tt
+					always = no 
+				}
+			}
+		}
+
+		bypass = {
+			capital = {
+				any_neighbor_location = {
+					is_owned_or_owned_by_subjects_of = root
+					count < 1
+				}
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			if = {
+				limit = { 
+					societal_value:centralization_vs_decentralization > -100 
+					modifier:monthly_towards_centralization > modifier:monthly_towards_decentralization
+				}
+				change_societal_value = { type = centralization_vs_decentralization value = societal_value_minor_move_to_left }
+			}
+			else = {
+				capital ?= { change_prosperity = prosperity_weak_bonus }
+			}
+			scope:mission_target_subject = { 
+				if = {
+					limit = { 
+						societal_value:centralization_vs_decentralization > -100 
+						modifier:monthly_towards_centralization > modifier:monthly_towards_decentralization
+					}
+					change_societal_value = { type = centralization_vs_decentralization value = societal_value_minor_move_to_left }
+				}
+				else = {
+					capital ?= { change_prosperity = prosperity_weak_bonus }
+				}
+				
+			}
+		}
+	}
+
+	mission_joint_military_development = {
+		icon = offensive_army
+		requires = { mission_improve_relations_with_vassal }
+
+		enabled = {
+			giving_scripted_relation = {
+				type = relation_type:support_military
+				target = scope:mission_target_subject
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			scope:mission_target_subject = { 
+				if = {
+					limit = { societal_value:land_vs_naval > 0 }
+					add_navy_tradition = navy_tradition_mild_bonus 
+				}
+				else = {
+					add_army_tradition = army_tradition_mild_bonus 
+				}
+			}
+
+			if = {
+				limit = { societal_value:land_vs_naval > 0 }
+				change_societal_value = {
+					type = land_vs_naval
+					value = societal_value_move_to_right
+				}
+			}
+			else = {
+				change_societal_value = {
+					type = land_vs_naval
+					value = societal_value_move_to_left
+				}
+			}
+		}
+	}
+
+	mission_improve_relations_with_vassal = {
+		icon = cultural_acceptance_advance
+
+
+		enabled = {
+			scope:mission_target_subject ?= {
+				opinion = { target = root value >= root.var:target_relations_variable }
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			scope:mission_target_subject = {
+				add_trust_equilibrium = {
+					modifier = trust_mission_trusted_ties
+					target = root
+				}
+
+				add_liberty_desire = liberty_desire_weak_minus
+			}
+		}
+	}
+
+	mission_monetary_assistance = {
+		icon = debt_and_loans
+		requires = { mission_improve_relations_with_vassal }
+
+		enabled = {
+			has_gifted_gold_to = scope:mission_target_subject
+		}
+
+		duration = 0
+
+		on_completion = {
+			scope:mission_target_subject = {
+				add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+			}
+			add_government_power = government_power_weak_bonus
+		}
+	}
+
+	mission_base_of_power = {
+		icon = crown_power_advance_renaissance
+		requires = { mission_monetary_assistance }
+		final = yes
+		enabled = {
+			scope:mission_target_subject ?= {
+				capital ?= {
+					total_building_levels >= root.var:subject_capital_buildings_variable
+				}
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			scope:mission_target_subject ?= {
+				add_liberty_desire = liberty_desire_weak_minus
+				capital ?= {
+					add_location_modifier = {
+						modifier = center_of_urbanization_modifier
+						years = modifier_duration_years_normal
+						mode = replace
+					}
+				}
+			}
+			if = {
+				limit = {
+					NOT = { exists = scope:mission_target_subject }
+				}
+				custom_tooltip = mission_target_subject_will_lose_lib_desire_gain_center_of_urbanization_modifier_capital_tt
+			}
+		}
+	}
+
+	mission_commence_annexation = {
+		icon = merchant_power_from_maritime_reformation_advance
+		requires = { mission_improve_relations_with_vassal }
+
+		enabled = {
+			is_annexing = scope:mission_target_subject
+		}
+
+		duration = 180
+
+		bypass = {
+			scope:mission_target_subject ?= { 
+				NOT = { is_subject_of = ROOT }
+			}
+		}
+
+
+		on_start = {
+			custom_tooltip = monthly_events_about_annexation_tt
+		}
+
+		on_monthly = {
+			random_list = {
+				10 	= { trigger_event_silently = generic_mission_events.8 }		#Subject Promotes Annexation
+				10 	= { trigger_event_silently = generic_mission_events.9 }		#Subject Annexation Process Sours
+				10 	= { trigger_event_silently = generic_mission_events.10 } 	#Cultural Learnings
+				10 	= { trigger_event_silently = generic_mission_events.11 }	#Friction between Cultures
+				60 	= { }
+			}
+		}
+	}
+
+	mission_complete_annexation = {
+		icon = late_feudal_relations
+		final = yes
+		requires = { mission_commence_annexation }
+		enabled = {
+			custom_tooltip = {
+				text = has_finished_annexing_variable_subject_tt
+				has_variable = annexed_designated_vassal_variable
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			custom_tooltip = {
+			 	text = former_subject_lands_gain_mild_control_bonus_tt
+			 	every_owned_location = {
+					limit = { 
+					   scope:mission_target_subject ?= { has_core = prev }
+					}
+					add_location_modifier = {
+						modifier = new_lands_modifier
+						years = 10
+						mode = replace
+					}
+				}
+			}
+			
+		}
+	}
+}

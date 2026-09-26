@@ -1,0 +1,400 @@
+﻿enforce_rationing_policies = {
+	type = situation
+	show_message = yes
+
+	allow = {
+		scope:actor = {
+			any_market_present_in_country ?= {
+				market_food_percentage < 0.3
+			}
+			stability > 0
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	cooldown = {
+		type = enforce_rationing_policies
+		years = 10
+	}
+
+	price = price:control_the_food_market
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:little_ice_age = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = market
+		source = actor
+		target_flag = target_market
+		name = "select_market"
+		none_available_msg_key = "no_markets_available"
+		column = { data = name }
+		visible = {
+			location = {
+				owner ?= scope:actor
+			}
+		}
+	}
+
+	effect = { 
+		custom_tooltip = {
+			text = locations_in_designated_market_get_enforced_rationing_policy_tt
+			scope:target_market ?= {
+				every_location_in_market = {
+					limit = {
+						has_owner = yes
+						owner = scope:actor 
+						is_province_capital = yes
+					}
+					add_location_modifier = {
+						modifier = enforced_rationing_policy
+						years = 10
+						mode = replace
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = -30
+		if = {
+			limit = { exists = scope:target_market }
+			add = {
+				value = scope:target_market.market_food_percentage
+				multiply = -100
+				add = 50
+			}
+		}
+		add = {
+			value = scope:actor.stability
+			multiply = 0.1
+		}
+	}
+}
+
+expand_provincial_food_production = {
+	type = situation
+	show_message = yes
+
+	allow = {
+		scope:actor = {
+			stability > 0
+			any_province = {
+				area = { has_extended_winter = yes }
+				province_food_percentage < 0.5
+				NOT = { has_province_modifier = expanded_food_production_modifier }
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	cooldown = {
+		type = expand_provincial_food_production
+		years = 1
+	}
+
+	price = price:lia_actions_price
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:little_ice_age = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target_province
+		name = "choose_province"
+		none_available_msg_key = "no_provinces_available"
+		column = { data = name }
+		column = { data = province_food_percentage }
+		column = { data = province_food }
+		visible = {
+			area = { has_extended_winter = yes }
+			NOT = { has_province_modifier = expanded_food_production_modifier }
+			province_food_percentage < 0.5
+		}
+		map_color = {
+			if = {
+				limit = {
+					has_owner = yes
+					owner ?= scope:actor
+				}
+				value = {
+					lerp = {
+						min_color = define:NMapColors|MAP_COLOR_LOW
+						max_color = define:NMapColors|MAP_COLOR_HIGH
+						factor = {
+							value = province.province_food_percentage
+						}
+					}
+				}
+			}
+			#Neutral
+			else = {
+				value = define:NMapColors|DEFAULT_COLOR
+			}
+			
+		}
+	}
+
+	effect = { 
+		custom_tooltip = {
+			text = province_gains_expanded_food_production_modifier_and_potential_tt
+			scope:target_province ?= {
+				if = {
+					limit = { has_province_modifier = expanded_food_production_modifier }
+					add_province_modifier = {
+						modifier = expanded_food_production_modifier
+						months = 6
+						mode = add_and_extend
+					}
+				}
+				else = {
+					add_province_modifier = {
+						modifier = expanded_food_production_modifier
+						years = 5
+						mode = replace
+					}
+				}
+				if = {
+					limit = {
+						any_location_in_province = { 
+							raw_material ?= { is_food = yes } 
+						}
+					}
+					ordered_location_in_province = {
+						limit = { 
+							owner ?= scope:actor 
+							raw_material ?= { is_food = yes } 
+						}
+						order_by = raw_material_output
+						max = 1
+						add_location_modifier = {
+							modifier = expanded_production_of_raw_goods_modifier
+							years = 10
+							mode = replace
+						}
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = -10
+		if = {
+			limit = { exists = scope:target_province }
+			add = {	
+				value = scope:target_province.province_food_percentage
+				multiply = -100
+				add = 25
+			}
+			if = {
+				limit = {
+					scope:target_province = {
+						any_location_in_province = {
+							raw_material ?= { is_food = yes } 
+						}
+					}
+				}
+				add = 10
+			}
+			if = {
+				limit = {
+					scope:target_province = { is_starving = yes }
+				}
+				add = 5
+			}
+			else = { add = -100 }
+		}
+	}
+}
+
+send_food_aid = {
+	type = situation
+	show_message = yes
+
+	allow = {
+		scope:actor = {
+			stability > 0
+			any_province = {
+				area = { has_extended_winter = yes }
+				province_food_percentage < 0.1
+				region = scope:actor.capital.region
+			}
+			any_province = {
+				custom_tooltip = {
+					text = has_not_recently_given_food_tt
+					NOT = { has_variable = recently_gave_food_variable }
+				}
+				region = scope:actor.capital.region
+				province_food_percentage > 0.8
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	cooldown = {
+		type = send_food_aid
+		months = 6
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:little_ice_age = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target_province_taker
+		name = "choose_province_to_receive_food"
+		none_available_msg_key = "no_provinces_available"
+		column = { data = name }
+		column = { data = province_food_percentage }
+		column = { data = province_food }
+		visible = {
+			area = { has_extended_winter = yes }
+			province_food_percentage < 0.1
+			population > 0
+			region = scope:actor.capital.region
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target_province_giver
+		name = "choose_province_to_send_food_to_target_province_taker"
+		none_available_msg_key = "no_provinces_available"
+		column = { data = name }
+		column = { data = province_food_percentage }
+		column = { data = province_food }
+		visible = {
+			this != scope:target_province_taker
+			area = { has_extended_winter = yes }
+			population > 0
+			province_food_percentage > 0.8
+			region = scope:actor.capital.region
+		}
+	}
+
+	effect = { 
+		if = {
+			limit = {
+				exists = scope:target_province_giver
+				exists = scope:target_province_taker
+			}
+			scope:target_province_taker = {
+				if = {
+					limit = {
+						province_capital = { has_road_to = scope:target_province_giver.province_capital }
+					}
+					change_province_food = {
+						value = scope:target_province_giver.province_food
+						multiply = 0.3
+					}
+				}
+				else = {
+					custom_tooltip = due_to_no_road_network_tt
+					change_province_food = {
+						value = scope:target_province_giver.province_food
+						multiply = 0.2
+					}
+				}
+			}
+			custom_tooltip = {
+				text = every_pop_in_target_province_taker_gains_10_satisfaction_tt
+				scope:target_province_taker = {
+					every_location_in_province = {
+						limit = { owner ?= scope:actor }
+						every_pop = { 
+							limit = { owner ?= scope:actor }
+							add_pop_satisfaction = pop_satisfaction_mild_bonus
+						}
+					}
+				}
+			}
+			scope:target_province_giver = { 
+				change_province_food = {
+					value = scope:target_province_giver.province_food
+					multiply = -0.3
+				}
+				hidden_effect = {
+					set_variable = {	#To avoid weird situations
+						name = recently_gave_food_variable
+						years = 2
+					}
+				}
+			}
+		}
+		else = { custom_tooltip = send_food_aid_tt }
+	}
+
+	ai_will_do = {
+		add = -15
+		if = {
+			limit = { 
+				exists = scope:target_province_giver 
+				exists = scope:target_province_taker
+			}
+			add = {
+				value = scope:target_province_taker.population	#Is the taker a significant percentage of the total population ?
+				multiply = 100
+				divide = scope:actor.total_population
+			}
+			add = {
+				value = scope:target_province_giver.province_food
+				subtract = scope:target_province_taker.province_food
+				multiply = 0.01
+			}
+			if = {
+				limit = {
+					scope:target_province_taker = {
+						any_location_in_province = { is_capital = yes }
+					}
+				}
+				add = 5	#They are very likely to keep the capital fed
+			}
+			if = {
+				limit = {
+					NOT = {
+						scope:target_province_giver.province_food >= {	#The food of the giver province is remotely relevant to the food of the taker province
+							add = scope:target_province_taker.province_food
+							multiply = 0.5
+						}
+					}
+				}
+				subtract = -25
+			}
+		}
+	}
+}

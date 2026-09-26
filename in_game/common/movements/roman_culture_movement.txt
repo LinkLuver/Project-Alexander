@@ -1,0 +1,198 @@
+﻿roman_culture_movement = {
+	culture = roman_culture
+
+	potential = {
+		has_dlc = "d008_fate_of_the_phoenix"
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = roman_culture_movement_allow_tt
+			culture:roman_culture = {
+				is_active = no
+			}
+			any_ownable_location = {
+				roman_culture_movement_location_trigger = yes
+			}
+		}
+	}
+
+	monthly_spawn_chance = {
+		value = 0
+
+		every_ownable_location = {
+			limit = { roman_culture_movement_location_trigger = yes }
+			add = {
+				value = 0.01
+				multiply = average_satisfaction
+			}
+		}
+	}
+	spawn = {
+		ordered_ownable_location = {
+			limit = { roman_culture_movement_location_trigger = yes }
+			max = 1
+
+			order_by = {
+				value = population				
+
+				if = {
+					limit = { this = location:rome }
+					add = 1000000
+				}
+				else_if = {
+					limit = { location_rank = location_rank:megalopolis }
+					add = 100000
+				}
+				else_if = {
+					limit = { location_rank = location_rank:city }
+					add = 10000
+				}
+
+				if = {
+					limit = { region = region:italy_region }
+					add = 100000
+				}
+
+				multiply = local_control
+				multiply = average_satisfaction
+			}
+			spawn_movement = {
+				movement_definition = scope:movement_definition
+				supporters = {
+					value = population
+					multiply = 0.15
+				}
+			}
+		}
+	}
+
+	#what's done by spreaders
+	environmental_infection = {
+		value = 0.05
+	}
+
+	required_language_families = { romance_language_family }
+	required_tags = { BYZ ROM }
+	required_religions = { hellenism_religion }
+	required_religion_groups = { christian }
+
+	r0 = { 
+		value = { 0.0 0.01 }
+	}
+
+	calc_interval_days = 1
+
+	development = positive
+	literacy = positive
+	local_control = positive
+	pop_satisfaction = positive
+
+	on_calc_effect ={
+		#5% chance of overall movement waning
+		if = {
+			limit = {
+				5 < {
+					value = random_integer
+					modulo = 100
+				}
+			}
+			add_movement_modifier = {
+				modifier = roman_culture_movement_momentum_waning
+				size = { 0.001 0.003 }
+				mode = add_and_extend
+				recalculate_immediately = yes
+			}
+		}
+
+		#some locations might lose interest
+		while = {
+			count = 5
+			random_location_with_movement = {
+				add_location_modifier = {
+					modifier = roman_culture_movement_momentum_waning_locally
+					size = { 0.001 0.003 }
+					mode = add_and_extend
+				}
+			}
+		}
+	}
+
+	on_spread_to_country = {
+		trigger_event_non_silently = movements.10
+	}
+
+	specific_pop_type_effect = {
+		pop_type = burghers
+		multiplier = 10
+	}
+
+	specific_pop_type_effect = {
+		language = south_italian_language
+		multiplier = 2.0
+	}
+
+	specific_pop_type_effect = {
+		language = north_italian_language
+		multiplier = 1.5
+	}
+
+	specific_pop_type_effect = {
+		language = french_language
+		multiplier = 0.5
+	}
+
+	specific_pop_type_effect = {
+		pop_type = laborers
+		multiplier = 0.00025
+	}
+
+	specific_pop_type_effect = {
+		pop_type = slaves
+		multiplier = 0
+	}
+
+	specific_pop_type_effect = {
+		pop_type = peasants
+		multiplier = 0.0001
+	}
+
+	location_stagnation_chance = {
+		if = {
+			limit = {
+				dominant_culture = culture:roman_culture
+			}
+			value = 1
+		}
+
+	}
+
+	map_color = {
+		if = {
+			limit = {
+				"culture_percentage(culture:roman_culture)" = 0
+			}
+			value = define:NMapColors|MAP_COLOR_NULL
+		}
+		else_if = {
+			limit = {
+				dominant_culture = culture:roman_culture
+			}
+			value = define:NMapColors|MAP_COLOR_HIGH
+		}
+		else_if = {
+			limit = {
+				"culture_percentage(culture:roman_culture)" > 0.05 # location_spread_threshold
+			}
+			value = define:NMapColors|MAP_COLOR_MID
+		}
+		else = {
+			value = define:NMapColors|MAP_COLOR_LOW
+		}
+	}
+	
+	location_spread_threshold = {
+		value = 0.05 # % of the people need to be infected to spread to neighbors
+	}
+
+}

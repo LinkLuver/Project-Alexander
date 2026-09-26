@@ -1,0 +1,119 @@
+﻿force_convert = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_COUNTRY_COST"
+			value = 60
+		}
+		if = {
+			limit = {
+				AND = {
+					scope:winner = { religion = religion:catholic }
+					scope:loser = { religion = religion:hussite }
+					is_situation_active = situation:hussite_wars
+				}
+			}
+			add = {
+				desc = "hussite_wars"
+				value = 10
+			}
+			if = {
+				limit = { scope:loser = c:BOH }
+				add = {
+					desc = "[loser.GetAdjective] [ShowReligionName('hussite')] [population|e]"
+					value = {
+						add = "scope:loser.religion_percentage_in_country(religion:hussite)"
+						multiply = 50
+					}
+				}
+			}
+			else = { 
+				add = {
+					desc = "[loser.GetAdjective] [ShowReligionName('hussite')] [population|e]"
+					value = {
+						add = "scope:loser.religion_percentage_in_country(religion:hussite)"
+						multiply = 25
+					}
+				}
+			}
+		}
+	}	
+	base_antagonism = 1
+	antagonism_type = antagonism_force_convert
+	potential = {
+		scope:loser = {
+			modifier:blocked_from_conversion = no
+		}
+		OR = {
+			scope:war = {
+				is_religious_war = yes
+			}
+			AND = {
+				scope:winner = { religion = religion:catholic }
+				scope:loser = { religion = religion:hussite }
+				is_situation_active = situation:hussite_wars
+			}
+			
+		}
+	}
+	allow = {
+		scope:winner.religion != scope:loser.religion
+		trigger_if = {
+			limit = {
+				scope:war = {
+					is_religious_war = no
+				}
+			}
+			scope:winner.religion.group = scope:loser.religion.group
+		}
+	}
+
+	effect = {
+		force_convert_religion = yes
+		if = {
+			limit = {
+				scope:winner = { religion = religion:catholic }
+				scope:loser = { religion = religion:hussite }
+				is_situation_active = situation:hussite_wars
+			}
+		}
+	}
+
+	ai_desire = {
+		if = {
+			limit = {
+				scope:winner = {
+					government_type = government_type:theocracy
+				}
+			}
+			add = {
+				desc = "is_theocracy"
+				value = 100
+			}
+		}
+		if = {
+			limit = {
+				scope:winner = {
+					ruler_or_regent ?= {
+						has_trait = zealot
+					}
+				}
+			}
+			add = {
+				desc = "is_zealot"
+				value = 50
+			}
+		}
+		if = {
+			limit = {
+				scope:war = {
+					is_religious_war = no
+				}
+			}
+			add = {
+				desc = "religious_war"
+				value = 200
+			}
+		}
+	}
+}
+

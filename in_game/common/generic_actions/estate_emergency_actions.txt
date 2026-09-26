@@ -1,0 +1,791 @@
+﻿ask_for_extra_levies = {
+	type = owncountry
+
+	ai_tick = daily
+	ai_tick_frequency = 180
+	automation_tick = never
+
+	potential = {
+		scope:actor = {
+			any_estate = {
+				estate_tax_base > 0.01
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	cooldown = {
+		type = ask_for_extra_levies_cooldown
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = estate
+		source = actor
+		target_flag = target
+		name = "mission_select_estate"
+		column = {
+			data = name
+		}
+		enabled = {
+			estate_tax_base > 0.01
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_country_modifier = {
+				modifier = estate_emergency_extra_levies
+				months = 12
+				mode = add_and_extend
+			}
+			if = {
+				limit = {
+					any_current_war = { is_a_defender = scope:actor }
+				}
+				add_estate_satisfaction = {
+					type = scope:target.estate_type
+					value = -0.125
+				}
+			}
+			else = {
+				add_estate_satisfaction = {
+					type = scope:target.estate_type
+					value = -0.25
+				}
+			}
+		}
+	}
+
+	ai_prerequisite = {
+		at_war = yes
+		lowest_war_score < -10
+		any_estate = {
+			satisfaction > 0.55
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				exists = scope:target
+				scope:target = { satisfaction > 0.55 }
+				scope:actor = {
+					at_war = yes
+					lowest_war_score < -10
+				}
+			}
+
+			subtract = {
+				desc = "War score pressure"
+				value = scope:actor.lowest_war_score
+			}
+
+			if = {
+				limit = { scope:actor = { max_manpower < 5 } }
+				add = { desc = "Critically low manpower" value = 20 }
+			}
+
+			add = {
+				desc = "Estate satisfaction buffer"
+				value = scope:target.satisfaction
+				multiply = 30
+			}
+
+			if = {
+				limit = { scope:target = { satisfaction < 0.55 } }
+				multiply = 0
+			}
+		}
+	}
+}
+
+
+extraordinary_taxes = {
+	type = owncountry
+
+	ai_tick = daily
+	ai_tick_frequency = 180
+	automation_tick = never
+
+	potential = {
+		scope:actor = {
+			any_estate = {
+				estate_tax_base > 0.01
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	cooldown = {
+		type = extraordinary_taxes_cooldown
+		years = 5
+	}
+
+	# Catholic clergy is tax-free by religion definition (christian.txt: clergy_estate_max_tax = -1.0).
+	# Block the clergy target for Catholic actors so the +5% emergency modifier cannot bypass that rule.
+	select_trigger = {
+		looking_for_a = estate
+		source = actor
+		target_flag = target
+		name = "mission_select_estate"
+		column = {
+			data = name
+		}
+		enabled = {
+			estate_tax_base > 0.01
+			NOR = {
+				AND = {
+					estate_type = estate_type:clergy_estate
+					scope:actor = { religion = religion:catholic }
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			if = {
+				limit = { scope:target = { estate_type = estate_type:nobles_estate } }
+				add_country_modifier = {
+					modifier = estate_emergency_taxes_nobles
+					months = 12
+					mode = add_and_extend
+				}
+			}
+			else_if = {
+				limit = { scope:target = { estate_type = estate_type:burghers_estate } }
+				add_country_modifier = {
+					modifier = estate_emergency_taxes_burghers
+					months = 12
+					mode = add_and_extend
+				}
+			}
+			else_if = {
+				limit = { scope:target = { estate_type = estate_type:clergy_estate } }
+				add_country_modifier = {
+					modifier = estate_emergency_taxes_clergy
+					months = 12
+					mode = add_and_extend
+				}
+			}
+			else_if = {
+				limit = { scope:target = { estate_type = estate_type:peasants_estate } }
+				add_country_modifier = {
+					modifier = estate_emergency_taxes_peasants
+					months = 12
+					mode = add_and_extend
+				}
+			}
+			else_if = {
+				limit = { scope:target = { estate_type = estate_type:tribes_estate } }
+				add_country_modifier = {
+					modifier = estate_emergency_taxes_tribes
+					months = 12
+					mode = add_and_extend
+				}
+			}
+			else_if = {
+				limit = { scope:target = { estate_type = estate_type:dhimmi_estate } }
+				add_country_modifier = {
+					modifier = estate_emergency_taxes_dhimmi
+					months = 12
+					mode = add_and_extend
+				}
+			}
+			else_if = {
+				limit = { scope:target = { estate_type = estate_type:cossacks_estate } }
+				add_country_modifier = {
+					modifier = estate_emergency_taxes_cossacks
+					months = 12
+					mode = add_and_extend
+				}
+			}
+
+			if = {
+				limit = {
+					any_current_war = { is_a_defender = scope:actor }
+				}
+				add_estate_satisfaction = {
+					type = scope:target.estate_type
+					value = -0.125
+				}
+			}
+			else = {
+				add_estate_satisfaction = {
+					type = scope:target.estate_type
+					value = -0.25
+				}
+			}
+		}
+	}
+
+	ai_prerequisite = {
+		OR = {
+			AND = {
+				monthly_balance < -2
+				gold < 100
+			}
+			AND = {
+				at_war = yes
+				gold < 10
+			}
+		}
+		any_estate = { satisfaction > 0.55 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				exists = scope:target
+				scope:target = { satisfaction > 0.55 }
+				scope:actor = {
+					OR = {
+						AND = { monthly_balance < -2 gold < 100 }
+						AND = { at_war = yes gold < 10 }
+					}
+				}
+			}
+
+			if = {
+				limit = { scope:actor = { monthly_balance < 0 } }
+				subtract = {
+					desc = "Monthly deficit"
+					value = scope:actor.monthly_balance
+				}
+			}
+
+			if = {
+				limit = { scope:actor = { at_war = yes lowest_war_score < 0 } }
+				add = { desc = "At war and losing" value = 15 }
+			}
+
+			add = {
+				desc = "Estate satisfaction buffer"
+				value = scope:target.satisfaction
+				multiply = 20
+			}
+
+			if = {
+				limit = { scope:target = { satisfaction < 0.55 } }
+				multiply = 0
+			}
+		}
+	}
+}
+
+
+ask_clergy_for_legitimacy = {
+	type = owncountry
+
+	ai_tick = daily
+	ai_tick_frequency = 180
+	automation_tick = never
+
+	potential = {
+		scope:actor = {
+			country_has_estate = estate_type:clergy_estate
+		}
+		scope:target ?= {
+			estate_type = estate_type:clergy_estate
+		}
+	}
+
+	allow = {
+	}
+	
+	cooldown = {
+		type = ask_clergy_for_legitimacy_cooldown
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = estate
+		source = actor
+		target_flag = target
+		name = "mission_select_estate"
+		column = {
+			data = name
+		}
+		enabled = {
+			estate_type = estate_type:clergy_estate
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_legitimacy = legitimacy_severe_bonus
+			add_estate_satisfaction = {
+				type = scope:target.estate_type
+				value = -0.15
+			}
+		}
+	}
+
+	ai_prerequisite = {
+		legitimacy < 25
+		"estate_satisfaction:clergy_estate" > 0.55
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				scope:actor = {
+					legitimacy < 25
+					"estate_satisfaction:clergy_estate" > 0.55
+				}
+			}
+
+			add = {
+				desc = "Legitimacy deficit"
+				value = 25
+				subtract = scope:actor.legitimacy
+			}
+
+			if = {
+				limit = { scope:actor = { "estate_satisfaction:clergy_estate" < 0.55 } }
+				multiply = 0
+			}
+		}
+	}
+}
+
+
+ask_nobility_for_diplomats = {
+	type = owncountry
+
+	ai_tick = daily
+	ai_tick_frequency = 90
+	automation_tick = never
+
+	cooldown = {
+		type = ask_nobility_for_diplomats_cooldown
+		years = 5
+	}
+
+	potential = {
+		scope:actor = {
+			country_has_estate = estate_type:nobles_estate
+		}
+		scope:target ?= {
+			estate_type = estate_type:nobles_estate
+		}
+	}
+
+	allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = estate
+		source = actor
+		target_flag = target
+		name = "mission_select_estate"
+		column = {
+			data = name
+		}
+		enabled = {
+			estate_type = estate_type:nobles_estate
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_diplomats = 5
+			add_estate_satisfaction = {
+				type = scope:target.estate_type
+				value = -0.15
+			}
+		}
+	}
+
+	ai_prerequisite = {
+		num_of_diplomats <= 1
+		"estate_satisfaction:nobles_estate" > 0.55
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				scope:actor = {
+					num_of_diplomats <= 1
+					"estate_satisfaction:nobles_estate" > 0.55
+				}
+			}
+
+			add = {
+				desc = "Diplomat shortage"
+				value = 3
+				subtract = scope:actor.num_of_diplomats
+				multiply = 5
+			}
+
+			if = {
+				limit = { scope:actor = { "estate_satisfaction:nobles_estate" < 0.55 } }
+				multiply = 0
+			}
+		}
+	}
+}
+
+
+ask_burghers_for_loan = {
+	type = owncountry
+
+	# ai_tick = never — AI bailout still goes through take_estate_loan (real loans against
+	# RemainingLoanCapacity), because the AI needs more headroom than the burgher pool
+	# can typically spare. The grant is a player-only convenience.
+	ai_tick = never
+	automation_tick = never
+
+	potential = {
+		scope:actor = {
+			country_has_estate = estate_type:burghers_estate
+		}
+		scope:target ?= {
+			estate_type = estate_type:burghers_estate
+		}
+	}
+
+	# Burghers must have enough gold to make the grant worthwhile. The C++ effect first caps the
+	# transfer at BURGHER_GRANT_MAX_FRACTION of the pool, THEN refuses to pay out anything below the
+	# BURGHER_GRANT_MIN_TRANSFER floor. So the break-even pool is MIN_TRANSFER / MAX_FRACTION
+	# (5.0 / 0.5 = 10.0): below it the capped amount falls under the floor and the grant no-ops to
+	# 0.00. Gating directly on MIN_TRANSFER (the old behavior) let pools of 5-10 pass the gate yet
+	# still transfer nothing. Deriving the threshold from both defines keeps the gate synced if
+	# either is retuned.
+	allow = {
+		scope:actor = {
+			any_estate = {
+				estate_type = estate_type:burghers_estate
+				estate_gold >= {
+					value = "define:NEconomy|BURGHER_GRANT_MIN_TRANSFER"
+					divide = "define:NEconomy|BURGHER_GRANT_MAX_FRACTION"
+				}
+			}
+		}
+	}
+
+	cooldown = {
+		type = ask_burghers_for_loan_cooldown
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = estate
+		source = actor
+		target_flag = target
+		name = "mission_select_estate"
+		column = {
+			data = name
+		}
+		enabled = {
+			estate_type = estate_type:burghers_estate
+		}
+	}
+
+	# Burghers pay from their own treasury (capped at BURGHER_GRANT_MAX_FRACTION of their pool in C++).
+	# No loan, no interest, no impact on country loan capacity — the bankruptcy spiral the legacy
+	# create_estate_loan caused is gone with it. Requested amount is the legacy 12x trickle for parity
+	# with the old payout ceiling; the C++ cap kicks in when the burghers cannot afford that much.
+	effect = {
+		scope:actor = {
+			transfer_gold_from_estate = {
+				estate_type = estate_type:burghers_estate
+				value = {
+					value = country_estate_loan_size
+					multiply = 12
+				}
+			}
+			add_estate_satisfaction = {
+				type = scope:target.estate_type
+				value = -0.1
+			}
+		}
+	}
+}
+
+
+ask_commoners_for_stability = {
+	type = owncountry
+
+	ai_tick = daily
+	ai_tick_frequency = 180
+	automation_tick = never
+
+	potential = {
+		scope:actor = {
+			OR = {
+				country_has_estate = estate_type:peasants_estate
+				country_has_estate = estate_type:dhimmi_estate
+			}
+		}
+		scope:target ?= {
+			OR = {
+				estate_type = estate_type:peasants_estate
+				estate_type = estate_type:dhimmi_estate
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	cooldown = {
+		type = ask_commoners_for_stability_cooldown
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = estate
+		source = actor
+		target_flag = target
+		name = "mission_select_estate"
+		column = {
+			data = name
+		}
+		enabled = {
+			OR = {
+				estate_type = estate_type:peasants_estate
+				estate_type = estate_type:dhimmi_estate
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_stability = stability_extreme_bonus
+			add_estate_satisfaction = {
+				type = scope:target.estate_type
+				value = -0.2
+			}
+		}
+	}
+
+	ai_prerequisite = {
+		stability < 10
+		OR = {
+			"estate_satisfaction:peasants_estate" > 0.55
+			"estate_satisfaction:dhimmi_estate" > 0.55
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				scope:actor = {
+					stability < 10
+					OR = {
+						"estate_satisfaction:peasants_estate" > 0.55
+						"estate_satisfaction:dhimmi_estate" > 0.55
+					}
+				}
+			}
+
+			add = {
+				desc = "Stability deficit"
+				value = 10
+				subtract = scope:actor.stability
+			}
+
+			if = {
+				limit = {
+					scope:actor = {
+						"estate_satisfaction:peasants_estate" < 0.55
+						"estate_satisfaction:dhimmi_estate" < 0.55
+					}
+				}
+				multiply = 0
+			}
+		}
+	}
+}
+
+
+ask_tribes_for_manpower = {
+	type = owncountry
+
+	ai_tick = daily
+	ai_tick_frequency = 180
+	automation_tick = never
+
+	potential = {
+		scope:actor = {
+			OR = {
+				country_has_estate = estate_type:tribes_estate
+				country_has_estate = estate_type:cossacks_estate
+			}
+			
+			monthly_manpower > 0
+		}
+		scope:target ?= {
+			OR = {
+				estate_type = estate_type:tribes_estate
+				estate_type = estate_type:cossacks_estate
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	cooldown = {
+		type = ask_tribes_for_manpower_cooldown
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = estate
+		source = actor
+		target_flag = target
+		name = "mission_select_estate"
+		column = {
+			data = name
+		}
+		enabled = {
+			OR = {
+				estate_type = estate_type:tribes_estate
+				estate_type = estate_type:cossacks_estate
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_manpower = {
+				value = scope:actor.monthly_manpower
+				multiply = 12
+			}
+			add_estate_satisfaction = {
+				type = scope:target.estate_type
+				value = -0.2
+			}
+		}
+	}
+
+	ai_prerequisite = {
+		at_war = yes
+		max_manpower < 5
+		OR = {
+			"estate_satisfaction:tribes_estate" > 0.55
+			"estate_satisfaction:cossacks_estate" > 0.55
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				scope:actor = {
+					at_war = yes
+					max_manpower < 5
+				}
+			}
+
+			add = {
+				desc = "Manpower shortage"
+				value = 5
+				subtract = scope:actor.max_manpower
+			}
+
+			if = {
+				limit = { scope:actor = { lowest_war_score < -10 } }
+				add = { desc = "Losing war" value = 15 }
+			}
+
+			if = {
+				limit = {
+					scope:actor = {
+						"estate_satisfaction:tribes_estate" < 0.55
+						"estate_satisfaction:cossacks_estate" < 0.55
+					}
+				}
+				multiply = 0
+			}
+		}
+	}
+}
+
+
+call_emergency_parliament = {
+	type = owncountry
+
+	ai_tick = never
+	automation_tick = never
+
+	potential = {
+		scope:actor = {
+			has_parliament = yes
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			is_active_parliament = no
+			months_since_last_parliament_called <= "define:NCountry|PARLIAMENT_COOLDOWN_MONTHS"
+			at_war = yes
+			NOT = {
+				modifier:parliament_abolished = yes
+				modifier:has_a_parliamentary_system = no
+			}
+		}
+	}
+
+	cooldown = {
+		type = call_emergency_parliament_cooldown
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = parliament_issue
+		interaction_source_list = {
+			scope:actor = {
+				every_possible_parliament_issue = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_interaction_source_list = yes
+		cache_targets = yes
+		target_flag = parliament_issue
+		name = "select_parliament_debate"
+		none_available_msg_key = "select_parliament_debate_none_available"
+		column = {
+			data = parliament_issue_widget
+		}
+		visible = {
+			is_available_for = scope:actor
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			set_parliament_location = scope:actor.capital
+			set_parliament_active = yes
+			if = {
+				limit = { exists = scope:parliament_issue }
+				set_parliament_issue = scope:parliament_issue
+				set_parliament_issue_support = {
+					add = {
+						desc = parliament_base_support
+						value = modifier:parliament_base_support
+					}
+					if = {
+						limit = {
+							scope:parliament_issue.estate_type = {
+								always_loyal = no
+							}
+						}
+						add = {
+							desc = estate_power
+							value = "estate_power(scope:parliament_issue.estate_type)"
+						}
+					}
+				}
+			}
+			add_legitimacy = legitimacy_mild_penalty
+		}
+	}
+}

@@ -1,0 +1,74 @@
+﻿high_kingship_overthrow = {
+	blocks_full_annexation = yes
+	
+	cost = {
+		value = 0
+	}
+	
+	base_antagonism = 1
+	antagonism_type = antagonism_high_kingship_overthrow
+
+	potential = {
+		scope:war = {
+			or = {
+				has_casus_belli = no
+				casus_belli = {
+					is_trade_cb = no
+				}
+			}
+		}
+		# are we in the same high kingship together?
+		scope:winner = {
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:high_kingship
+				any_international_organization_member = {
+					this = scope:loser
+				}
+			}
+		}
+	}
+	 
+	allow = {
+		scope:loser = {
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:high_kingship
+				international_organization_has_leader = yes
+				leader_country = scope:loser
+			}
+		}
+	}
+
+	effect = {
+		scope:loser = {
+			ruler ?= {
+				add_character_modifier = { modifier = blocked_from_high_kingship years = -1 mode = add_and_extend }
+				if = { 
+					limit = { has_character_modifier = overthrew_high_king }
+					remove_character_modifier = overthrew_high_king
+				}
+			}
+			every_international_organizations_member_of = {
+				limit = {
+					international_organization_type = international_organization_type:high_kingship
+					international_organization_has_leader = yes
+					leader_country = scope:loser
+				}
+				international_organization_chooses_new_leader = this
+			}
+		}
+		scope:winner = {
+			ruler = {
+				add_character_modifier = { modifier = overthrew_high_king years = -1 mode = add_and_extend }
+				if = { 
+					limit = { has_character_modifier = blocked_from_high_kingship }
+					remove_character_modifier = blocked_from_high_kingship
+				}
+			}
+		}
+	}
+
+	ai_desire = {
+		value = 1000
+	}
+}
+

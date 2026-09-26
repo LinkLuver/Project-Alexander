@@ -1,0 +1,1000 @@
+﻿conduct_keju_examination = {
+	type = internationalorganization
+	
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 3
+	player_automated_category = diplomacy
+
+	potential = {
+		exists = international_organization:middle_kingdom
+		scope:actor = { is_member_of_international_organization = international_organization:middle_kingdom }
+	}
+
+	allow = {
+		international_organization:middle_kingdom = { 
+			var:celestial_authority > 5
+			NOT = { international_organization_has_policy = policy:direct_appointment }
+		}
+		scope:actor = { is_leader_of_international_organization = international_organization:middle_kingdom }
+	}
+	
+	price = price:conduct_keju_examination
+
+	cooldown = {
+		type = conduct_keju_examination
+		years = 3
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:middle_kingdom
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			change_celestial_authority = { value = celestial_authority_very_weak_penalty }
+			if = {
+				limit = { modifier:allow_righteousness = yes }
+				add_righteousness = righteousness_weak_bonus
+			}
+			custom_tooltip = {
+				text = conduct_keju_examination_tt
+				if = {
+					limit = { tag = CHI }
+					random_list = {
+						1 = { trigger_event_silently = imperial_examination_events.1 }
+						1 = {
+							trigger = { current_year < 1375 }	#Liu Bowen
+							trigger_event_silently = imperial_examination_events.2
+						}
+						1 = {
+							trigger = { 
+								current_year > 1418 
+								current_year < 1457 
+							}	#Yu Qian
+							trigger_event_silently = imperial_examination_events.3
+						}
+						1 = {
+							trigger = { 
+								current_year > 1441 
+								current_year < 1478 
+							}	#Han Yong
+							trigger_event_silently = imperial_examination_events.4
+						}
+						1 = {
+							trigger = { 
+								current_year > 1449 
+								current_year < 1499 
+							}	#Xu Pu
+							trigger_event_silently = imperial_examination_events.5
+						}
+						1 = {
+							trigger = { 
+								current_year > 1491 
+								current_year < 1529
+							}	#Wang Yangming
+							trigger_event_silently = imperial_examination_events.6
+						}
+					}
+				}
+				else = { trigger_event_silently = imperial_examination_events.1 }			
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+		add = {
+			desc = "CAN_EASILY_AFFORD"
+			if = {
+				limit = {
+					scope:actor = {
+						gold >= {
+							value = scope:actor.monthly_income_trade_and_tax
+							multiply = 6
+						}
+					}
+				}
+				value = 50
+			}
+		}
+		add = {
+			desc = "NEEDS_COMPETENT_CABINET_MEMBERS"
+			if = {
+				limit = {
+					scope:actor = {
+						NOT = {
+							any_cabinet_character = { total_abilities > 80 }
+						}
+					}
+				}
+				value = 10
+			}
+		}
+		add = {
+			desc = "celestial_authority_HIGH"
+			if = {
+				limit = {
+					international_organization:middle_kingdom.var:celestial_authority > 75
+				}
+				value = 10
+			}
+		}
+		add = {
+			desc = "PASSED_KEJU_POLICY"
+			if = {
+				limit = {
+					international_organization:middle_kingdom = { 
+						international_organization_has_policy = policy:new_keju_formats_policy 
+					}
+				}
+				value = 5
+			}
+		}
+		add = {
+			desc = "NEEDS_MORE_CABINET_CANDIDATES"
+			if = {
+				limit = {
+					scope:actor = {
+						OR = {
+							AND = {
+								modifier:government_size >= 5
+								any_character = {
+									count < 10
+								}
+							}
+							AND = {
+								modifier:government_size = 4
+								any_character = {
+									count < 8
+								}
+							}
+							AND = {
+								modifier:government_size = 3
+								any_character = {
+									count < 6
+								}
+							}
+							AND = {
+								modifier:government_size = 2
+								any_character = {
+									count < 4
+								}
+							}
+							AND = {
+								modifier:government_size = 1
+								any_character = {
+									count < 3
+								}
+							}
+						}
+					}
+				}
+				value = 20
+			}
+		}
+		add = {
+			desc = "IS_BANKRUPT_TOOLTIP"
+			if = {
+				limit = {	
+					scope:actor = { 
+						is_during_bankruptcy = yes
+					}
+				}
+				value = -1000
+			}
+		}
+		add = {
+			desc = "IS_AT_WAR"
+			if = {
+				limit = {	
+					scope:actor = { 
+						at_war = yes
+					}
+				}
+				value = -25
+			}
+		}
+		add = {
+			desc = "CAN_NOT_AFFORD"
+			if = {
+				limit = {
+					scope:actor = {
+						gold <= {
+							value = scope:actor.monthly_income_trade_and_tax
+							multiply = 6
+						}
+					}
+				}
+				value = -60
+			}
+		}
+		add = {
+			desc = "celestial_authority_LOW"
+			if = {
+				limit = {
+					international_organization:middle_kingdom.var:celestial_authority < 75
+				}
+				value = -100
+			}
+		}
+	}
+}
+
+reshape_bureaucracy = {
+	type = internationalorganization
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 3
+	player_automated_category = diplomacy
+
+	potential = {
+		exists = international_organization:middle_kingdom
+		scope:actor = { is_member_of_international_organization = international_organization:middle_kingdom }
+	}
+
+	allow = {
+		international_organization:middle_kingdom = { 
+			var:celestial_authority > 10
+		}
+		scope:actor = { is_leader_of_international_organization = international_organization:middle_kingdom }
+	}
+	
+	price = price:reshape_bureaucracy
+
+	cooldown = {
+		type = reshape_bureaucracy
+		years = 20
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:middle_kingdom
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			change_celestial_authority = { value = celestial_authority_mild_penalty }
+			remove_decree_monthly_celestial_authority_loss = yes
+			if = {
+				limit = { modifier:allow_righteousness = yes }
+				add_righteousness = righteousness_mild_bonus
+			}
+			add_country_modifier = { modifier = reshaped_bureaucracy years = 10 }
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+		add = {
+			desc = "CAN_EASILY_AFFORD"
+			if = {
+				limit = {
+					scope:actor = {
+						gold >= {
+							value = scope:actor.monthly_income_trade_and_tax
+							multiply = 6
+						}
+					}
+				}
+				value = 50
+			}
+		}
+		add = {
+			desc = "celestial_authority_HIGH"
+			if = {
+				limit = {
+					international_organization:middle_kingdom.var:celestial_authority > 75
+				}
+				value = 10
+			}
+		}
+		add = {
+			desc = "IS_BANKRUPT_TOOLTIP"
+			if = {
+				limit = {	
+					scope:actor = { 
+						is_during_bankruptcy = yes
+					}
+				}
+				value = -1000
+			}
+		}
+		add = {
+			desc = "IS_AT_WAR"
+			if = {
+				limit = {	
+					scope:actor = { 
+						at_war = yes
+					}
+				}
+				value = -25
+			}
+		}
+		add = {
+			desc = "CAN_NOT_AFFORD"
+			if = {
+				limit = {
+					scope:actor = {
+						gold <= {
+							value = scope:actor.monthly_income_trade_and_tax
+							multiply = 6
+						}
+					}
+				}
+				value = -60
+			}
+		}
+		add = {
+			desc = "celestial_authority_LOW"
+			if = {
+				limit = {
+					international_organization:middle_kingdom.var:celestial_authority < 75
+				}
+				value = -100
+			}
+		}
+	}
+}
+
+strengthen_ministry = {
+	type = internationalorganization
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 3
+	player_automated_category = diplomacy
+
+	potential = {
+		exists = international_organization:middle_kingdom
+		scope:actor = { is_member_of_international_organization = international_organization:middle_kingdom }
+	}
+
+	allow = {
+		scope:actor = { has_reform = government_reform:three_departments_system }
+	}
+	
+	price = price:strengthen_ministry
+
+	cooldown = {
+		type = strengthen_ministry
+		years = 20
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:middle_kingdom
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = policy
+		target_flag = target_policy
+		name = "select_ministry"
+		none_available_msg_key = "no_ministries"
+		column = {
+			data = policy_name_desc
+		}
+		visible = {
+			OR = {
+				this = policy:ministry_of_rites
+				this = policy:ministry_of_personnel
+				this = policy:ministry_of_revenue
+				this = policy:ministry_of_war
+				this = policy:ministry_of_justice
+				this = policy:ministry_of_works
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target_policy }
+			scope:actor = {
+				if = {
+					limit = { modifier:allow_righteousness = yes }
+					add_righteousness = righteousness_mild_bonus
+				}
+			}
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_rites }
+				scope:actor = {
+					add_country_modifier = { modifier = strengthened_ministry_of_rites years = 20 }
+					custom_tooltip = countries_more_likely_to_accept_invite_to_sect_tt
+				}
+			}
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_personnel }
+				scope:actor = {
+					add_country_modifier = { modifier = strengthened_ministry_of_personnel years = 20 }
+					if = {
+						limit = { is_leader_of_international_organization = international_organization:middle_kingdom }
+						custom_tooltip = better_exams_results_tt
+					}
+				}
+			}
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_revenue }
+				scope:actor = {
+					add_country_modifier = { modifier = strengthened_ministry_of_revenue years = 20 }
+					if = {
+						limit = { is_leader_of_international_organization = international_organization:middle_kingdom }
+						custom_tooltip = better_census_results_tt
+					}
+				}
+			}
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_war }
+				scope:actor = {
+					add_country_modifier = { modifier = strengthened_ministry_of_war years = 20 }
+					if = {
+						limit = { is_leader_of_international_organization = international_organization:middle_kingdom }
+						custom_tooltip = better_reinforce_fortification_results_tt
+					}
+				}
+			}
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_justice }
+				scope:actor = {
+					add_country_modifier = { modifier = strengthened_ministry_of_justice years = 20 }
+					if = {
+						limit = { is_leader_of_international_organization = international_organization:middle_kingdom }
+						custom_tooltip = better_warning_results_tt
+					}
+				}
+			}
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_works }
+				scope:actor = {
+					add_country_modifier = { modifier = strengthened_ministry_of_works years = 20 }
+					if = {
+						limit = { is_leader_of_international_organization = international_organization:middle_kingdom }
+						custom_tooltip = better_infrastructure_works_results_tt
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+		if = {
+			limit = { exists = scope:target_policy }
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_rites }
+				add = "scope:actor.add_static_modifier_utility(strengthened_ministry_of_rites)"
+			}
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_personnel }
+				add = "scope:actor.add_static_modifier_utility(strengthened_ministry_of_personnel)"
+			}
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_revenue }
+				add = "scope:actor.add_static_modifier_utility(strengthened_ministry_of_revenue)"
+			}
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_war }
+				add = "scope:actor.add_static_modifier_utility(strengthened_ministry_of_war)"
+			}
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_justice }
+				add = "scope:actor.add_static_modifier_utility(strengthened_ministry_of_justice)"
+			}
+			if = {
+				limit = { scope:target_policy = policy:ministry_of_works }
+				add = "scope:actor.add_static_modifier_utility(strengthened_ministry_of_works)"
+			}
+		}
+		add = {
+			desc = "CAN_EASILY_AFFORD"
+			if = {
+				limit = {
+					scope:actor = {
+						gold >= {
+							value = scope:actor.monthly_income_trade_and_tax
+							multiply = 6
+						}
+					}
+				}
+				value = 50
+			}
+		}
+		add = {
+			desc = "IS_BANKRUPT_TOOLTIP"
+			if = {
+				limit = {	
+					scope:actor = { 
+						is_during_bankruptcy = yes
+					}
+				}
+				value = -1000
+			}
+		}
+		add = {
+			desc = "IS_AT_WAR"
+			if = {
+				limit = {	
+					scope:actor = { 
+						at_war = yes
+					}
+				}
+				value = -25
+			}
+		}
+		add = {
+			desc = "CAN_NOT_AFFORD"
+			if = {
+				limit = {
+					scope:actor = {
+						gold <= {
+							value = scope:actor.monthly_income_trade_and_tax
+							multiply = 6
+						}
+					}
+				}
+				value = -60
+			}
+		}
+	}
+}
+
+proclaim_decree = {
+	type = internationalorganization
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 3
+	player_automated_category = diplomacy
+
+	potential = {
+		exists = international_organization:middle_kingdom
+		scope:actor = { is_member_of_international_organization = international_organization:middle_kingdom }
+	}
+
+	allow = {
+		international_organization:middle_kingdom = { 
+			var:celestial_authority > 10
+		}
+		scope:actor = { is_leader_of_international_organization = international_organization:middle_kingdom }
+	}
+	
+	price = price:proclaim_decree
+
+	cooldown = {
+		type = proclaim_decree
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:middle_kingdom
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = policy
+		target_flag = target_policy
+		name = "select_decree"
+		none_available_msg_key = "no_decrees"
+		column = {
+			data = policy_name_desc
+		}
+		visible = {
+			OR = {
+				this = policy:expand_palace_bureaucracy_decree
+				this = policy:conduct_population_census_decree
+				this = policy:increase_tariff_control_decree
+				this = policy:issue_great_warnings_decree
+				this = policy:commence_infrastructure_works_decree
+				this = policy:reinforce_fortifications_decree
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target_policy }
+			scope:actor = {
+				change_celestial_authority = { value = celestial_authority_mild_penalty }
+				add_decree_monthly_celestial_authority_loss = yes
+				if = {
+					limit = { modifier:allow_righteousness = yes }
+					add_righteousness = righteousness_mild_bonus
+				}
+				if = {
+					limit = { scope:target_policy = policy:expand_palace_bureaucracy_decree }
+					add_country_modifier = {
+						modifier = expanded_palace_bureaucracy
+						years = 5
+						size = {
+							value = 1
+							add = {
+								desc = middle_kingdom
+								value = {
+									add = international_organization:middle_kingdom.total_members
+									divide = 100
+								}
+							}
+							add = {
+								value = modifier:country_cabinet_efficiency
+								divide = 2
+							}
+						}
+					}
+				}
+				if = {
+					limit = { scope:target_policy = policy:conduct_population_census_decree }
+					add_country_modifier = {
+						modifier = conducted_population_census
+						years = 5
+						size = {
+							value = 1
+							add = {
+								value = {
+									add = international_organization:middle_kingdom.total_members
+									divide = 100
+								}
+							}
+							add = {
+								value = modifier:country_cabinet_efficiency
+								divide = 2
+							}
+							if = {
+								limit = {
+									scope:actor = { has_country_modifier = strengthened_ministry_of_revenue }
+								}
+								add = 0.5
+							}
+						}
+					}
+				}
+				if = {
+					limit = { scope:target_policy = policy:increase_tariff_control_decree }
+					add_country_modifier = {
+						modifier = increased_tariff_control
+						years = 5
+						size = {
+							value = 1
+							add = {
+								value = {
+									add = international_organization:middle_kingdom.total_members
+									divide = 100
+								}
+							}
+							add = {
+								value = modifier:country_cabinet_efficiency
+								divide = 2
+							}
+						}
+					}
+				}
+				if = {
+					limit = { scope:target_policy = policy:issue_great_warnings_decree }
+					add_country_modifier = {
+						modifier = issued_great_warnings
+						years = 5
+						size = {
+							value = 1
+							add = {
+								value = {
+									add = international_organization:middle_kingdom.total_members
+									divide = 100
+								}
+							}
+							add = {
+								value = modifier:country_cabinet_efficiency
+								divide = 2
+							}
+							if = {
+								limit = {
+									scope:actor = { has_country_modifier = strengthened_ministry_of_justice }
+								}
+								add = 0.1
+							}
+						}
+					}
+				}
+				if = {
+					limit = { scope:target_policy = policy:commence_infrastructure_works_decree }
+					add_country_modifier = {
+						modifier = commenced_infrastructure_works
+						years = 5
+						size = {
+							value = 1
+							add = {
+								value = {
+									add = international_organization:middle_kingdom.total_members
+									divide = 100
+								}
+							}
+							add = {
+								value = modifier:country_cabinet_efficiency
+								divide = 2
+							}
+							if = {
+								limit = {
+									scope:actor = { has_country_modifier = strengthened_ministry_of_works }
+								}
+								add = 0.1
+							}
+						}
+					}
+				}
+				if = {
+					limit = { scope:target_policy = policy:reinforce_fortifications_decree }
+					add_country_modifier = {
+						modifier = reinforced_fortifications
+						years = 5
+						size = {
+							value = 1
+							add = {
+								value = {
+									add = international_organization:middle_kingdom.total_members
+									divide = 100
+								}
+							}
+							add = {
+								value = modifier:country_cabinet_efficiency
+								divide = 2
+							}
+							if = {
+								limit = {
+									scope:actor = { has_country_modifier = strengthened_ministry_of_war }
+								}
+								add = 0.1
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+		if = {
+			limit = { exists = scope:target_policy }
+			if = {
+				limit = { scope:target_policy = policy:expand_palace_bureaucracy_decree }
+				add = "scope:actor.add_static_modifier_utility(expanded_palace_bureaucracy)"
+			}
+			if = {
+				limit = { scope:target_policy = policy:conduct_population_census_decree }
+				add = "scope:actor.add_static_modifier_utility(conducted_population_census)"
+			}
+			if = {
+				limit = { scope:target_policy = policy:increase_tariff_control_decree }
+				add = "scope:actor.add_static_modifier_utility(increased_tariff_control)"
+			}
+			if = {
+				limit = { scope:target_policy = policy:issue_great_warnings_decree }
+				add = "scope:actor.add_static_modifier_utility(issued_great_warnings)"
+			}
+			if = {
+				limit = { scope:target_policy = policy:commence_infrastructure_works_decree }
+				add = "scope:actor.add_static_modifier_utility(commenced_infrastructure_works)"
+			}
+			if = {
+				limit = { scope:target_policy = policy:reinforce_fortifications_decree }
+				add = "scope:actor.add_static_modifier_utility(reinforced_fortifications)"
+			}
+		}
+		add = {
+			desc = "CAN_EASILY_AFFORD"
+			if = {
+				limit = {
+					scope:actor = {
+						gold >= {
+							value = scope:actor.monthly_income_trade_and_tax
+							multiply = 6
+						}
+					}
+				}
+				value = 50
+			}
+		}
+		add = {
+			desc = "IS_BANKRUPT_TOOLTIP"
+			if = {
+				limit = {	
+					scope:actor = { 
+						is_during_bankruptcy = yes
+					}
+				}
+				value = -1000
+			}
+		}
+		add = {
+			desc = "IS_AT_WAR"
+			if = {
+				limit = {	
+					scope:actor = { 
+						at_war = yes
+					}
+				}
+				value = -25
+			}
+		}
+		add = {
+			desc = "CAN_NOT_AFFORD"
+			if = {
+				limit = {
+					scope:actor = {
+						gold <= {
+							value = scope:actor.monthly_income_trade_and_tax
+							multiply = 6
+						}
+					}
+				}
+				value = -60
+			}
+		}
+	}
+}
+
+exempt_from_tribute = {
+	type = internationalorganization
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 3
+	player_automated_category = diplomacy
+
+	potential = {
+		exists = international_organization:middle_kingdom
+		scope:actor = { is_leader_of_international_organization = international_organization:middle_kingdom }
+	}
+
+	allow = {
+	}
+	
+	price = price:exempt_from_tribute
+
+	cooldown = {
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:middle_kingdom
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target
+		name = "choose_country"
+		none_available_msg_key = "no_valid_countries"
+		column = {
+			data = name
+		}
+		interaction_source_list = {
+			international_organization:middle_kingdom = {
+				every_international_organization_member = {
+					limit = {
+						this != scope:actor
+					}
+					add_to_list = source
+				}
+			}
+		}
+		visible = {
+		}
+		enabled = {
+			OR = {
+				NOT = { is_subject_of = scope:actor }
+				is_subject_type = tributary
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:recipient = { remove_country_from_international_organization = scope:target }
+			scope:target ?= {
+				if = {
+					limit = {
+						is_subject_of = scope:actor
+						is_subject_type = tributary
+					}
+					scope:actor = { cancel_subject = prev }
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = -1000
+		add = {
+			desc = "IS_BANKRUPT_TOOLTIP"
+			if = {
+				limit = {	
+					scope:actor = { 
+						is_during_bankruptcy = yes
+					}
+				}
+				value = 1000
+			}
+		}
+		add = {
+			desc = "game_concept_opinion"
+			scope:actor = {
+				value = "opinion(scope:target)"
+				divide = -5
+			}
+		}
+		add = {
+			desc = "game_concept_trust"
+			scope:actor = {
+				value = "trust(scope:target)"
+				divide = -5
+			}
+		}
+
+		add = {
+			desc = "RELATIVE_INCOME"
+			value = {
+				value = scope:target.monthly_income_trade_and_tax
+				multiply = {
+					value = 1
+					add = "scope:target.modifier:tribute_payment_received_modifier"
+				}
+			}
+			divide = {
+				value = scope:actor.monthly_income_trade_and_tax
+				min = 1 
+			}
+
+		}
+	}
+}

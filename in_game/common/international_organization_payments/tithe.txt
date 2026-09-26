@@ -1,0 +1,156 @@
+﻿tithe = {
+	get_payer_list = {
+		every_international_organization_member = {
+			limit = { 
+				country_can_pay_tithe = yes
+			}
+
+			#it's the estates that pay
+			every_estate = {
+				add_to_local_variable_list = {
+					name = payers
+					target = this
+				}
+			}
+		}
+	}
+	get_payee_list = {
+		#paying either the leader (c:PAP) or whichever of the two popes you prefer during the western schism
+		if = {
+			limit = {
+				has_global_variable_list = western_schism_possible_votes
+			}
+			every_in_global_list = {
+				variable = western_schism_possible_votes
+				add_to_local_variable_list = {
+					name = payees
+					target = this
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				exists = leader_country
+				leader_country = { is_subject = no }
+			}
+			leader_country = {
+				add_to_local_variable_list = {
+					name = payees
+					target = this
+				}
+			}
+		}
+		else_if = {
+			limit = { has_enabled_currency = gold }
+			add_to_local_variable_list = {
+				name = payees
+				target = this
+			}
+		}
+	}
+	price = tithe_price
+	uses_maintenance = no
+	price_multiplier = {
+		every_international_organization_member = {
+			limit = { 
+				country_can_pay_tithe = yes
+			}
+			add = {
+				desc = "TITHE_PAYMENT_MULTIPLIER"
+				every_estate = {
+					add = estate_taxable_income
+				}
+				multiply = {
+					value = 1
+					add = modifier:tithe_cost_modifier
+					min = 0.1
+				}
+			}
+		}
+		if = {
+			limit = {
+				has_variable = religion
+			}
+			var:religion = {
+				multiply = {
+					desc = "TITHE_RELIGION_MULTIPLIER"
+					value = tithe
+				}
+			}
+		}
+	}
+	proportion_for_payer = {
+		#estate scope here as we're adding estates to the payer list
+		add = {
+			desc = "tithe"
+			value = estate_taxable_income
+		}
+		multiply = {
+			desc = "MODIFIER_TYPE_NAME_tithe_cost_modifier"
+			value = 1
+			add = "owner.modifier:tithe_cost_modifier"
+			min = 0.1
+		}
+	}
+	proportion_for_payee = {
+		if = {
+			limit = {
+				has_global_variable_list = western_schism_possible_votes
+			}
+			#complicated western schism stuff
+			#find who the "other" pope is
+			situation:western_schism = {
+				if = {
+					limit = {
+						prev = var:schism_opponent_country
+					}
+					c:PAP = {
+						save_temporary_scope_as = opponent
+					}
+				}
+				else = {
+					var:schism_opponent_country = {
+						save_temporary_scope_as = opponent
+					}
+				}
+			}
+
+			#find every country that likes us more than they like the opponent
+			scope:recipient = {
+				every_international_organization_member = {
+					limit = { 
+						country_can_pay_tithe = yes
+						trigger_if = {
+							limit = {
+								root = c:PAP
+							}
+							#pope gets the tiebreaker
+							"opinion(root)" >= "opinion(scope:opponent)"
+						}
+						trigger_else = {
+							"opinion(root)" > "opinion(scope:opponent)"
+						}
+					}
+
+					add = {
+						every_estate = {
+							add = estate_taxable_income
+						}
+						multiply = {
+							value = 1
+							add = modifier:tithe_cost_modifier
+							min = 0.1
+						}
+					}
+				}
+			}
+		}
+		else = {
+			#simple, just pay the pope
+			add = {
+				desc = "tithe"
+				value = 1
+			}
+		}
+	}
+}

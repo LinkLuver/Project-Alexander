@@ -1,0 +1,167 @@
+﻿typhus = { #https://en.wikipedia.org/wiki/Typhus
+	#It is actually 3 different diseases
+	#Scrub typhus https://en.wikipedia.org/wiki/Scrub_typhus
+		#Location: This extends from northern Japan and far-eastern Russia in the north, 
+		#to the territories around the Solomon Sea into northern Australia in the south, 
+		#and to Pakistan and Afghanistan in the west
+		#areas of heavy scrub vegetation
+		#Mortality:  4–40%
+		#Vector: Harvest mites on humans or rodents
+	#Epidemic typhus https://en.wikipedia.org/wiki/Epidemic_typhus
+		#Vector: Fleas on rats
+		#Timeline: 2 weeks from contact, After 5–6 days, a macular skin eruption develops
+	#Murine typhus https://en.wikipedia.org/wiki/Murine_typhus
+		#Location:  in tropical and subtropical areas of the world
+		#Vector: Body louse
+
+
+	#script value for how likely the disease is to spawn per month (0..1)
+	monthly_spawn_chance = {
+		#Around 1 outbreaks around the world
+		value = 0.1
+	}
+
+	#effect to spawn the disease somewhere when we've decided it should spawn.
+	spawn = {
+		random_ownable_location = {
+			limit = {
+				#Is there a location with all our triggers and being sieged?
+				trigger_if = {
+					limit = {
+						#Not empty location
+						population > 1
+						is_endemic_typhus_location = yes
+						has_siege = yes
+					}
+					#We search for it
+					#Not empty location
+					population > 1
+					is_endemic_typhus_location = yes
+					has_siege = yes
+				}
+				#If there was no location being sieged, we apply only the other triggers
+				trigger_else = {
+					#Not empty location
+					population > 1
+					is_endemic_typhus_location = yes
+				}
+				#If we can't find an appropiate location we don't spawn
+			}
+			spawn_disease = {
+				disease = scope:disease
+				value = 0.5
+				#save the outbreak created for later
+				save_scope_as = outbreak_scope
+			}
+		}
+	}
+
+	#script value to get the R0 number of the disease, or 
+	#how many people one person will spread the disease to per interval
+	r0 = { 
+		#base
+		value = { 0.5 0.9 }
+
+		#If there is devastation we supose that hygiene conditions are worse and the plague spreads further
+		if = {
+			limit = {
+				prosperity < 0
+			}
+			multiply = 5
+		}
+		multiply = {
+			value = "disease_presence(scope:disease)"
+			multiply = 2
+			add = 1
+		}
+	}
+
+	#script value for how long between spread calculations. 
+	#A lower number = possible faster spread, depending on the effect in spread. 
+	#Nothing in the scope, this will usually just be a number, but could be a random range
+	calc_interval_days = {24 36}
+
+	#script value for how much chance there is of the disease stagnating in a location, 
+	#slowing its advance greatly. (0..1)
+	location_stagnation_chance = {
+		if = {
+			limit = {
+				"disease_presence(scope:disease)" > 0.05
+			}
+			value = "distance_to_squared(scope:disease.origin)"
+			multiply = 0.0006
+			multiply = 0.005
+		}
+		else = {
+			value = "distance_to_squared(scope:disease.origin)"
+			multiply = 0.00006
+		}
+	}
+
+	sub_unit_stagnation_chance = {
+		value = 0.5
+		subtract = {
+			value = "disease_presence(scope:disease)"
+			multiply = 0.5
+		}
+	}
+
+	#script value for how many of the affected should have their fate decided (live and become resistant, or die) 
+	#per calc interval (0..1)
+	percentage_to_meet_their_fate_on_calc = {
+		value = 0.25
+	}
+
+	#modifier applied to locations that have the disease (multiplied by the presence %age)
+	#general bad effects on locations that have this
+	location_modifier = {
+		#Nothing
+	}
+
+	# Typhus returns quickly in poor conditions; immunity is relatively short-lived
+	monthly_resistance_reduction = 0.002
+
+	#script value for mortality rate of the disease (0..1)
+	mortality_rate = {
+		0.04 0.4
+	}
+
+	#script value for how likely it is that a character will die per calc interval (0..1)
+	character_mortality_chance = {
+		value = 0.04
+		multiply = "disease_presence(scope:disease)"
+	}
+
+	#event sent when the disease spreads to a country
+	on_spread_to_country = {
+		trigger_event_non_silently = diseases.1
+	}
+
+	#map color for the disease
+	map_color = {
+		lerp = { #Brown
+			min_color = rgb { 211  157  128 }
+			max_color = rgb { 129 47 3 }
+			factor = "disease_presence(scope:disease)"
+		}
+	}
+	
+	secondary_map_color = {
+		if = {
+			limit = {
+				disease_affects_pops_here = scope:disease
+			}
+			value = rgb { 100  120  188 }
+		}
+	}
+
+	specific_pop_type_effect = {
+		pop_type = nobles multiplier = 0.3
+	}
+	specific_pop_type_effect = {
+		pop_type = clergy multiplier = 0.1
+	}
+	specific_pop_type_effect = {
+		pop_type = burghers multiplier = 0.5
+	}
+}

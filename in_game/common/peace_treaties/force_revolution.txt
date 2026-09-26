@@ -1,0 +1,51 @@
+﻿force_revolution = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 50
+		}
+		add = {
+			desc = "relative_mil_strength_tt"
+			value = 100
+			multiply = "scope:loser.relative_military_strength(scope:winner)"
+		}
+	}
+	
+	potential = {
+		situation:the_revolution = { situation_is_active = yes }
+		scope:war = { 
+			is_no_cb_war = no 
+			casus_belli ?= casus_belli:spread_the_revolution_cb
+		}
+	}
+	allow = {
+		NOT = { revolutionary_target ?= scope:loser }
+		scope:loser = { 
+			is_revolutionary = no 
+			is_subject = no
+			government_type = government_type:monarchy
+			has_any_active_disaster = no
+		}
+	}
+	effect = {
+		scope:loser = {
+			if = {
+				limit = { 
+					NOT = { tag = PAP }
+				}
+				change_government_type = government_type:republic
+			}
+			set_revolution = yes
+			kill_character = {
+				target = scope:loser.ruler_or_regent
+				reason = execution
+				killer = scope:winner.ruler_or_regent
+			}
+			add_stability = stability_extreme_penalty
+		}
+	}
+
+	ai_desire = {
+		value = 1000
+	}
+}

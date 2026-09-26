@@ -1,0 +1,118 @@
+﻿colonial_federation = {
+	has_target = no
+	unique = no
+	expel_members_who_are_targets_of_other_members = yes
+	expel_members_who_are_attackers_at_war_with_other_members = yes
+	expel_members_who_are_defenders_at_war_with_other_members = yes
+	custom_name = colonial_federation_name
+	has_leader_country = yes
+	leader_type = country
+	subject_limited = no #even subjects with limited diplomacy can create these
+	leader_change_method = score
+	months_between_leader_changes = 96
+
+	show_on_diplomatic_map = yes
+	leader_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	#member_color = rgb { 170 215 255 }
+	
+	create_visible_trigger = {
+		is_colonial_subject = yes
+		is_situation_active = situation:colonial_revolution
+	}
+
+	invite_visible_trigger = {
+		always = yes
+	}
+
+	can_declare_war = {
+		trigger_if = {
+			limit = { scope:attacker ?= { is_member_of_international_organization = scope:recipient } }
+			scope:defender ?= { NOT = { is_member_of_international_organization = scope:recipient } }
+		}
+		trigger_else = {
+			always = yes
+		}
+	}
+
+	laws = {
+		mutual_defense_law = assured_defense_policy
+		mutual_offense_law = assured_offense_policy
+	}
+
+	modifier = {
+		scale = {
+			if = {
+				limit = {
+					exists = scope:recipient.leader_country
+					NOT = {
+						scope:recipient.leader_country = this
+					}
+				}
+				value = root.total_population
+				divide = -0.75
+				if = {
+					limit = { scope:recipient.leader_country.total_population > 0 }
+					divide = scope:recipient.leader_country.total_population
+				}
+				add = 1
+			}
+			else = {
+				value = 0
+			}
+		}
+		monthly_prestige = 0.02
+	}
+
+	leader_modifier = {
+		monthly_prestige = 0.05
+	}
+	
+	can_join_trigger = {
+		is_rebel_country = no
+		NOT = { 
+			is_member_of_international_organization_of_type = {
+				type = colonial_federation
+			}
+		}
+		is_colonial_subject = yes
+		is_situation_active = situation:colonial_revolution
+		exists = scope:actor
+		OR = {
+			culture = scope:actor.culture
+			religion = scope:actor.religion
+		}
+		capital.sub_continent = scope:actor.capital.sub_continent
+	}
+	
+	can_leave_trigger = {
+	}
+	
+	auto_leave_trigger = {
+		
+	}
+
+	auto_disband_trigger = {
+		international_organization_lifetime > 2
+		total_members < 2
+	}
+	disband_minimum_member_count = 1
+
+	on_joined = {
+	}
+
+	on_left = {
+	}
+	
+	variables = {
+	}
+
+	ai_desire_to_join = {
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}

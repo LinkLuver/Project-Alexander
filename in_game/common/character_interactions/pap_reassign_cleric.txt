@@ -1,0 +1,152 @@
+﻿pap_reassign_cleric = {
+	
+	message = yes
+	#on_other_nation = yes
+	#on_own_nation = yes
+
+	potential = {
+		scope:actor = {
+			#country
+			modifier:can_reassign_cleric = yes
+			religion = religion:catholic
+		}
+	}
+
+	ai_tick = daily
+	ai_tick_frequency = 100
+
+	allow = {
+		situation:western_schism = { situation_is_active = no }
+		scope:actor = {
+			#country
+			num_of_diplomats >= pap_reassign_cleric_diplomatic_actions_cost
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = character
+		target_flag = recipient
+		name = "choose_character"
+		column = {
+			data = name
+		}
+		visible = {
+			is_alive = yes
+			has_estate = estate_type:clergy_estate
+			religion = religion:catholic
+		}
+		enabled = {
+			is_adult = yes
+			is_ruler = no
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target
+		name = "pap_reassign_cleric_select_title"
+		none_available_msg_key = "pap_reassign_cleric_no_countries"
+		allow_self = yes
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			NOT = { this = scope:recipient.owner }
+			OR = {
+				this = scope:actor
+				AND = {
+					religion = religion:catholic
+					capital = { is_discovered_by = scope:actor }
+					within_diplomatic_range = scope:actor
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:recipient = {
+			move_country = scope:target
+			owner = {
+				if = {
+					limit = { this != scope:actor }					
+					add_opinion = {
+						target = scope:actor
+						modifier = opinion_pap_reassign_cleric_negative
+					}
+				}
+			}
+		}
+
+		scope:target ?= {
+			if = {
+				limit = { this != scope:actor }		
+				add_opinion = {
+					target = scope:actor
+					modifier = opinion_pap_reassign_cleric_positive
+				}
+				scope:actor = {
+					add_spy_network = { 
+						target = scope:target 
+						value = {
+							value = 0.25
+							multiply = scope:recipient.mil
+						}
+					}
+				}
+			}
+		}
+
+		scope:actor = {
+			add_diplomats = {
+				value = pap_reassign_cleric_diplomatic_actions_cost
+				multiply = -1
+			}
+		}
+
+		religion:catholic = {
+			add_reform_desire = {
+				value = reform_desire_severe_increase
+				multiply = scope:recipient.pap_reassign_cleric_score_multiplier
+			}
+		}
+	}
+
+   	ai_will_do = { # Values > 0 will make AI click the command, unless there's another interaction with higher ai_will_do
+		#scope:actor = country 
+		#scope:recipient = character
+
+		if = {
+			limit = {
+				OR = {
+					# dont take from a country that only has 1 cleric
+					scope:recipient.owner = {
+						any_character = {
+							has_estate = estate_type:clergy_estate
+							religion = religion:catholic
+							is_adult = yes
+							is_ruler = no
+							count <= 1
+						}
+					}
+					# dont give to a country that already has a cleric
+					scope:target = {
+						any_character = {
+							has_estate = estate_type:clergy_estate
+							religion = religion:catholic
+							is_adult = yes
+							is_ruler = no
+							count >= 1
+						}
+					}
+				}
+			}
+			value = -1
+		}
+		else = {
+			value = 10
+		}
+	}
+}

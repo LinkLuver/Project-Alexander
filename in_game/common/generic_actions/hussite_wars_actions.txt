@@ -1,0 +1,1089 @@
+﻿convert_heretics_hw_action = {
+	type = situation
+	show_message = no
+	potential = {
+		scope:actor = {
+			NOT = { religion = religion:catholic }	#Only Hussites, Catholics and Bohemia see the situation, so it is fine
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			any_province = { 
+				NOT = { has_province_modifier = hw_heretic_conversions_modifier }
+				any_location_in_province = {
+					is_ownable = yes
+					owner = scope:actor
+					OR = {
+						dominant_religion ?= { this != scope:actor.religion }
+						local_religious_unity < 1.0
+					}
+				}
+			}
+		}
+	}
+	
+	ai_tick = monthly
+	ai_tick_frequency = 4
+	price = price:hussite_wars_actions_price
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	cooldown = {
+		type = convert_heretics_hw_action
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:hussite_wars = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = religion
+		target_flag = target_religion
+		source = actor
+		name = "promote_religion_select_religion"
+		none_available_msg_key = "convert_religion_no_religions"
+		column = {
+			data = name
+		}
+		column = {
+			data = religion_percentage_in_country
+		}
+		default_sort = religion_percentage_in_country
+		visible = {
+			group = religion_group:christian
+			OR = {
+				has_tag = protestant
+				this = religion:catholic
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		target_flag = target
+		source = actor
+		name = "choose_province"
+		none_available_msg_key = "no_provinces_available"
+		column = { data = name }
+		column = { data = province_religion_percentage }
+		column = { data = population }
+		visible = {
+			religion_percentage = {
+				religion = scope:target_religion
+				value < 1
+			}
+		}
+		enabled = {
+			NOT = { has_province_modifier = hw_heretic_conversions_modifier }
+		}
+		map_color = {
+			lerp = {
+				min_color = define:NMapColors|MAP_COLOR_LOW
+				max_color = define:NMapColors|MAP_COLOR_HIGH
+				factor = "province.religion_percentage(scope:target_religion)"
+			}
+		}
+	}
+	effect = { 
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				add_province_modifier = {
+					modifier = hw_heretic_conversions_modifier
+					mode = add_and_extend
+					years = 10
+					size = {
+						value = 1
+						add = {
+							add = "scope:actor.estate_power(estate_type:clergy_estate)"
+							desc = ESTATE_OPINION_TARGET_C_ESTATE_POWER
+						}
+					}
+				}
+			}
+		}
+		else = {
+			custom_tooltip = hw_province_gains_hw_heretic_conversions_modifier_tt
+		}
+		
+	}
+
+	ai_will_do = {
+		add = 5
+
+		if = {
+			limit = { exists = scope:target }
+			add = scope:target.population
+			divide = scope:actor.total_population
+			multiply = 100
+		}
+
+		add = scope:actor.religious_influence
+	}
+}
+
+demand_noble_donations_hw_action = {
+	type = situation
+	show_message = no
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	potential = {
+		scope:actor = {
+			NOT = { religion = religion:catholic }
+			country_has_estate = estate_type:nobles_estate
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			estate_satisfaction:nobles_estate > 0.5
+			"estate_power(estate_type:nobles_estate)" > 0
+		}
+	}
+	price = price:hussite_wars_actions_price
+
+	cooldown = {
+		type = demand_noble_donations_hw_action
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:hussite_wars = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = { 
+		scope:actor = {
+			add_gold = {
+				value = {
+					add = scope:actor.monthly_income_total
+					multiply = {
+						value = 1
+						add = "estate_power(estate_type:nobles_estate)"
+					}
+				}
+			}
+			custom_tooltip = income_depends_on_estate_power_tt
+			add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_mild_penalty }
+		}
+	}
+	
+	
+
+
+	ai_will_do = {
+		add = 100
+	}
+}
+
+demand_clergy_donations_hw_action = {
+	type = situation
+	show_message = no
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	
+	potential = {
+		scope:actor = {
+			NOT = { religion = religion:catholic }
+			country_has_estate = estate_type:clergy_estate
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			estate_satisfaction:clergy_estate > 0.5
+			"estate_power(estate_type:clergy_estate)" > 0
+		}
+	}
+	price = price:hussite_wars_actions_price
+
+	cooldown = {
+		type = demand_clergy_donations_hw_action
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:hussite_wars = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = { 
+		scope:actor = {
+			add_gold = {
+				value = {
+					add = scope:actor.monthly_income_total
+					multiply = {
+						value = 1
+						add = "estate_power(estate_type:clergy_estate)"
+					}
+				}
+			}
+			custom_tooltip = income_depends_on_estate_power_tt
+			add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+		}
+	}
+
+	ai_will_do = {
+		add = 100
+	}
+}
+
+demand_burgher_donations_hw_action = {
+	type = situation
+	show_message = no
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	potential = {
+		scope:actor = {
+			NOT = { religion = religion:catholic }
+			country_has_estate = estate_type:burghers_estate
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			estate_satisfaction:burghers_estate > 0.5
+			"estate_power(estate_type:burghers_estate)" > 0
+		}
+	}
+	price = price:hussite_wars_actions_price
+
+	cooldown = {
+		type = demand_burgher_donations_hw_action
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:hussite_wars = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = { 
+		scope:actor = {
+			add_gold = {
+				value = {
+					add = scope:actor.monthly_income_total
+					multiply = {
+						value = 1
+						add = "estate_power(estate_type:burghers_estate)"
+					}
+				}
+			}
+			custom_tooltip = income_depends_on_estate_power_tt
+			add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_penalty }
+		}
+	}
+
+	ai_will_do = {
+		add = 100
+	}
+}
+
+prepare_defenses_hw_action = {
+	type = situation
+	show_message = no
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	
+	potential = {
+		scope:actor = {
+			NOT = { religion = religion:catholic }	#Only Hussites, Catholics and Bohemia see the situation, so it is fine
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			any_province = {
+				NOT = { has_province_modifier = hw_prepared_defenses_modifier }
+			}
+			gold > 100
+		}
+	}
+	ai_tick = monthly
+	ai_tick_frequency = 4
+	price = price:hussite_wars_actions_price
+
+	cooldown = {
+		type = prepare_defenses_hw_action
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:hussite_wars = this
+			situation_is_active = yes
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = province
+		target_flag = target
+		source = actor
+		name = "choose_province"
+		none_available_msg_key = "no_provinces_available"
+		column = { data = name }
+		column = { data = population }
+		visible = {
+			NOT = { has_province_modifier = hw_prepared_defenses_modifier }
+			NOT = {
+				any_location_in_province = {
+					is_ownable = yes
+					owner = scope:actor
+					NOT = { controller = scope:actor }
+				}
+			}
+		}
+	}
+	effect = { 
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				add_province_modifier = {
+					modifier = hw_prepared_defenses_modifier
+					mode = replace
+					years = 15
+				}
+				if = {
+					limit = { 
+						province_capital = { 
+							NOT = { has_building = building_type:castle }
+						}
+					}
+					province_capital = {
+						construct_building = {
+							building_type = building_type:castle
+							cost_multiplier = 0.1
+							cost_multiplier_reason = "military_cheap_sponsorship"
+						}
+					}
+				}
+			}
+		}
+		else = {
+			custom_tooltip = prepare_defenses_hw_action_tt
+		}
+		scope:actor = {
+			change_societal_value = {
+				type = offensive_vs_defensive
+				value = societal_value_large_move_to_right
+			}
+		}
+		
+	}
+
+	ai_will_do = {
+		add = 100
+	}
+}
+
+align_with_moderates_help_hw_action = {
+	type = situation
+	show_message = no
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	potential = {
+		scope:actor = {
+			NOT = { religion = religion:catholic }	#Only Hussites, Catholics and Bohemia see the situation, so it is fine
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			any_neighbor_country = {
+				NOT = { religion = prev.religion }
+				NOR = {
+					is_at_war_with = prev
+					is_rival_of = prev
+					is_enemy_of = prev
+					AND = {
+						country_exists = international_organization:hre.leader_country
+						OR = {
+							has_mutual_scripted_relation = {
+								type = relation_type:alliance
+								target = international_organization:hre.leader_country
+							}
+							is_subject_of = international_organization:hre.leader_country
+						}
+					}
+				}
+			}
+		}
+	}
+	price = price:hussite_wars_actions_price
+
+	cooldown = {
+		type = align_with_moderates_help_hw_action
+		years = 3
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:hussite_wars = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = { 
+		scope:actor = {
+			if = {
+				limit = { 
+					has_country_modifier = promoted_radicals_modifier
+				}
+				remove_country_modifier = promoted_radicals_modifier
+			}
+			ordered_neighbor_country = {
+				limit = {
+					NOT = { religion = prev.religion }
+					NOR = {
+						is_at_war_with = prev
+						is_rival_of = prev
+						is_enemy_of = prev
+						AND = {
+							country_exists = international_organization:hre.leader_country
+							OR = {
+								has_mutual_scripted_relation = {
+									type = relation_type:alliance
+									target = international_organization:hre.leader_country
+								}
+								is_subject_of = international_organization:hre.leader_country
+							}
+						}
+						has_mutual_scripted_relation = {
+							type = relation_type:alliance
+							target = prev
+						}
+						is_subject_of = prev
+					}
+				}
+				order_by = total_population
+				max = 3
+				add_opinion = {
+					target = scope:actor
+					modifier = opinion_religious_outreach_during_the_hussite_wars_modifier
+				}
+			}
+			add_country_modifier = {
+				modifier = promoted_moderates_modifier
+				years = modifier_duration_years_very_short
+				mode = replace
+			}
+		}
+		custom_tooltip = countries_less_likely_to_join_against_us_tt
+	}
+
+	ai_will_do = {
+		add = -1
+		if = {
+			limit = { 
+				scope:actor ?= { at_war = no }
+			}
+			add = 5
+		}
+		else = { add = -100 }
+	}
+}
+
+align_with_radicals_help_hw_action = {
+	type = situation
+	show_message = no
+	potential = {
+		scope:actor = {
+			NOT = { religion = religion:catholic }	#Only Hussites, Catholics and Bohemia see the situation, so it is fine
+		}
+	}
+
+	allow = {
+		
+	}
+	ai_tick = monthly
+	ai_tick_frequency = 4
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:hussite_wars_actions_price
+
+	cooldown = {
+		type = demand_noble_donations_hw_action
+		years = 3
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:hussite_wars = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = { 
+		scope:actor = {
+			if = {
+				limit = { 
+					has_country_modifier = promoted_moderates_modifier
+				}
+				remove_country_modifier = promoted_moderates_modifier
+			}
+			ordered_neighbor_country = {
+				limit = {
+					NOT = { religion = prev.religion }
+					NOR = {
+						is_at_war_with = prev
+						is_rival_of = prev
+						is_enemy_of = prev
+						AND = {
+							country_exists = international_organization:hre.leader_country
+							OR = {
+								has_mutual_scripted_relation = {
+									type = relation_type:alliance
+									target = international_organization:hre.leader_country
+								}
+								is_subject_of = international_organization:hre.leader_country
+							}
+						}
+						has_mutual_scripted_relation = {
+							type = relation_type:alliance
+							target = prev
+						}
+						is_subject_of = prev
+					}
+				}
+				order_by = total_population
+				max = 5
+				add_opinion = {
+					target = scope:actor
+					modifier = opinion_religious_radicalism_during_the_hussite_wars
+				}
+			}
+			add_country_modifier = {
+				modifier = promoted_radicals_modifier
+				years = modifier_duration_years_very_short
+				mode = replace
+			}
+		}
+		custom_tooltip = countries_more_likely_to_join_against_us_tt
+	}
+
+	ai_will_do = {
+		add = -1
+		if = {
+			limit = { 
+				scope:actor ?= { at_war = yes }
+			}
+			add = 5
+		}
+		else = { add = -100 }
+	}
+}
+
+join_the_imperial_side_hw_action = {
+	type = situation
+	show_message = no
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	
+	potential = {
+		country_exists = international_organization:hre.leader_country
+		country_exists = c:BOH
+		scope:actor = {
+			NOR = {
+				tag = PAP
+				tag = BOH
+			}
+			OR = {
+				religion = religion:hussite
+				religion = religion:catholic
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			at_war = no
+			is_subject = no
+			is_during_bankruptcy = no
+			OR = {
+				capital.region = c:BOH.capital.region
+				is_member_of_international_organization = international_organization:hre
+				is_neighbor_of = c:BOH
+				is_neighbor_of = international_organization:hre.leader_country
+			}
+			NOT = { has_truce_with = c:BOH }
+			NOT = {
+				has_mutual_scripted_relation = {
+					type = relation_type:alliance
+					target = c:BOH
+				}
+			}
+		}
+		international_organization:hre.leader_country = {
+			custom_tooltip = {
+				text = bohemia_and_emperor_at_war_with_both_being_leaders_tt
+				any_current_war = {
+					OR = {
+						AND = {
+							attacker_leader = international_organization:hre.leader_country
+							defender_leader = c:BOH
+						}
+						AND = {
+							attacker_leader = c:BOH
+							defender_leader = international_organization:hre.leader_country
+						}
+					}
+				}
+			}
+			opinion = {
+				target = scope:actor
+				value > 0
+			}
+		}
+	}
+	price = price:hussite_wars_actions_price
+
+	cooldown = {
+		type = join_the_imperial_side_hw_action
+		years = 10
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:hussite_wars = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = { 
+		c:BOH = {
+			if = {
+				limit = {
+					any_current_war = {
+						attacker_leader = international_organization:hre.leader_country
+						defender_leader = c:BOH
+					}
+				}
+				random_current_war = {
+					limit = {
+						attacker_leader = international_organization:hre.leader_country
+						defender_leader = c:BOH
+					}
+					scope:actor = {
+						join_war_as_attacker = { war = prev call_in_subjects = yes }
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					any_current_war = {
+						defender_leader = international_organization:hre.leader_country
+						attacker_leader = c:BOH
+					}
+				}
+				random_current_war = {
+					limit = {
+						defender_leader = international_organization:hre.leader_country
+						attacker_leader = c:BOH
+					}
+					scope:actor = {
+						join_war_as_defender = { war = prev call_in_subjects = yes }
+					}
+				}
+			}
+			else = { custom_tooltip = join_current_war_against_bohemia_tt }
+		}
+	}
+
+	ai_will_do = {
+		subtract = {
+			value = 75
+			desc = BASE_VALUE
+		}
+		if = {
+			limit = { scope:actor.war_exhaustion != 0 }
+			subtract = {
+				desc = war_exhaustion
+				value = scope:actor.war_exhaustion
+				multiply = 10
+			}
+		}
+		if = {
+			limit = { scope:actor.num_loans > 0 }
+			subtract = {
+				value = scope:actor.num_loans
+				multiply = -10
+			}
+		}
+		add = {
+			value = "scope:actor.opinion(international_organization:hre.leader_country)"
+			desc = "[GetUniqueInternationalOrganization('hre').GetLeaderTitle] [opinion|e] of [actor.GetName]"
+		}
+		add = {
+			desc = "[GetUniqueInternationalOrganization('hre').GetLeaderTitle] [diplomatic_reputation|e]"
+			value = international_organization:hre.leader_country.modifier:diplomatic_reputation
+		}
+		subtract = {
+			value = "scope:actor.opinion(c:BOH)"
+			desc = "Our opinion of $BOH$"
+		}
+		subtract = {
+			desc = "[GetCountry('BOH').GetAdjective] [diplomatic_reputation|e]"
+			value = c:BOH.modifier:diplomatic_reputation
+		}
+		# HRE Emperor has a strong duty to suppress heresy within the Empire
+		if = {
+			limit = {
+				scope:actor = { is_leader_of_international_organization = international_organization:hre }
+				c:BOH = { religion = religion:hussite }
+			}
+			add = {
+				value = 35
+				desc = HRE_EMPEROR_SUPPRESSES_HERESY_DESC
+			}
+		}
+		# HRE members are also motivated to fight heresy from within
+		else_if = {
+			limit = {
+				scope:actor = {
+					is_member_of_international_organization = international_organization:hre
+					religion = religion:catholic
+				}
+				c:BOH = { religion = religion:hussite }
+			}
+			add = {
+				value = 20
+				desc = HRE_MEMBER_SUPPRESSES_HERESY_DESC
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = { religion = religion:catholic }
+			}
+			add = {
+				desc = "[GetCountry('BOH').GetAdjective] [heretic_tolerance|e]"
+				value = c:BOH.modifier:tolerance_heretic
+				multiply = 5
+			}
+		}
+		if = {
+			limit = {
+				c:BOH = { has_country_modifier = promoted_radicals_modifier }
+			}
+			add = {
+				desc = "[GetCountry('BOH').GetAdjective] [ShowModifier('promoted_radicals_modifier')]"
+				value = 5
+			}
+		}
+		if = {
+			limit = {
+				c:BOH = { has_country_modifier = promoted_moderates_modifier }
+			}
+			subtract = {
+				desc = "[GetCountry('BOH').GetAdjective] [ShowModifier('promoted_moderates_modifier')]"
+				value = 5
+			}
+		}
+		# Catholics don't pile on when PAP already holds the advantage
+		if = {
+			limit = { scope:actor.religion = religion:catholic }
+			add = {
+				value = "international_organization:hre.leader_country.war_score_versus(c:BOH)"
+				multiply = -100
+			}
+		}
+	}
+}
+
+join_the_hussite_side_hw_action = {
+	icon = hyw_defect_action
+	type = situation
+	show_message = no
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	
+	potential = {
+		country_exists = international_organization:hre.leader_country
+		country_exists = c:BOH
+		scope:actor = {
+			NOR = {
+				tag = PAP
+				tag = BOH
+			}
+			OR = {
+				religion = religion:hussite
+				religion = religion:catholic
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			is_subject = no
+			at_war = no
+			OR = {
+				capital.region = c:BOH.capital.region
+				is_member_of_international_organization = international_organization:hre
+				is_neighbor_of = c:BOH
+				is_neighbor_of = international_organization:hre.leader_country
+			}
+			NOT = { has_truce_with = international_organization:hre.leader_country }
+			NOT = {
+				has_mutual_scripted_relation = {
+					type = relation_type:alliance
+					target = international_organization:hre.leader_country
+				}
+			}
+		}
+		custom_tooltip = {
+			text = bohemia_and_emperor_at_war_with_both_being_leaders_tt
+			c:BOH = {
+				any_current_war = {
+					OR = {
+						AND = {
+							attacker_leader = international_organization:hre.leader_country
+							defender_leader = c:BOH
+						}
+						AND = {
+							attacker_leader = c:BOH
+							defender_leader = international_organization:hre.leader_country
+						}
+					}
+				}
+			}
+		}
+		c:BOH = {
+			opinion = {
+				target = scope:actor
+				value > 0
+			}
+		}
+		
+	}
+	ai_tick = monthly
+	ai_tick_frequency = 4
+	price = price:hussite_wars_actions_price
+
+	cooldown = {
+		type = join_the_imperial_side_hw_action
+		years = 10
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:hussite_wars = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = { 
+		c:BOH = {
+			if = {
+				limit = {
+					any_current_war = {
+						attacker_leader = international_organization:hre.leader_country
+						defender_leader = c:BOH
+					}
+				}
+				random_current_war = {
+					limit = {
+						attacker_leader = international_organization:hre.leader_country
+						defender_leader = c:BOH
+					}
+					scope:actor = {
+						join_war_as_defender = { war = prev call_in_subjects = yes }
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					any_current_war = {
+						defender_leader = international_organization:hre.leader_country
+						attacker_leader = c:BOH
+					}
+				}
+				random_current_war = {
+					limit = {
+						defender_leader = international_organization:hre.leader_country
+						attacker_leader = c:BOH
+					}
+					scope:actor = {
+						join_war_as_attacker = { war = prev call_in_subjects = yes }
+					}
+				}
+			}
+			else = { custom_tooltip = join_current_war_against_emperor_tt }
+		}
+	}
+
+	ai_will_do = {
+		subtract = {
+			value = 75
+			desc = BASE_VALUE
+		}
+		if = {
+			limit = { scope:actor.war_exhaustion != 0 }
+			subtract = {
+				desc = war_exhaustion
+				value = scope:actor.war_exhaustion
+				multiply = 10
+			}
+		}
+		if = {
+			limit = { scope:actor.num_loans > 0 }
+			subtract = {
+				value = scope:actor.num_loans
+				multiply = -10
+			}
+		}
+		subtract = "scope:actor.opinion(international_organization:hre.leader_country)"
+		subtract = {
+			desc = "[GetUniqueInternationalOrganization('hre').GetLeaderTitle] [diplomatic_reputation|e]"
+			value = international_organization:hre.leader_country.modifier:diplomatic_reputation
+		}
+		add = {
+			value = "scope:actor.opinion(c:BOH)"
+			desc = "Our [opinion|e] of $BOH$"
+		}
+		add = {
+			desc = "[GetCountry('BOH').GetAdjective] [diplomatic_reputation|e]"
+			value = c:BOH.modifier:diplomatic_reputation
+		}
+		if = {
+			limit = {
+				scope:actor = { religion = religion:catholic }
+			}
+			add = {
+				desc = "[GetCountry('BOH').GetAdjective] [heretic_tolerance|e]"
+				value = c:BOH.modifier:tolerance_heretic
+				multiply = 5
+			}
+		}
+		if = {
+			limit = {
+				c:BOH = { has_country_modifier = promoted_radicals_modifier }
+			}
+			subtract = {
+				desc = "[GetCountry('BOH').GetAdjective] [ShowModifier('promoted_radicals_modifier')]"
+				value = 5
+			}
+		}
+		if = {
+			limit = {
+				c:BOH = { has_country_modifier = promoted_moderates_modifier }
+			}
+			add = {
+				desc = "[GetCountry('BOH').GetAdjective] [ShowModifier('promoted_moderates_modifier')]"
+				value = 5
+			}
+		}
+		# Hussites don't pile on when BOH already holds the advantage
+		if = {
+			limit = { scope:actor.religion = religion:hussite }
+			add = {
+				value = "c:BOH.war_score_versus(international_organization:hre.leader_country)"
+				multiply = -100
+			}
+		}
+	}
+}

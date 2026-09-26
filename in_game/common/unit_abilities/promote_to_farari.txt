@@ -1,0 +1,77 @@
+﻿promote_to_farari = {
+	toggle = no
+	army_only = yes	
+	map = yes
+	
+	hidden = {
+		OR = {
+			owner = {
+				NOT = { has_advance = farari_corps_advance }
+			}
+			NOT = { any_sub_unit = { OR = { sub_unit_type = unit_type:a_mandekalu_infantry sub_unit_type = unit_type:a_mandekalu_cavalry } } }
+		}
+	}
+
+	allow = {
+		in_combat = no
+		is_moving = no
+		is_exiled = no
+		custom_tooltip = {
+			text = promote_to_farari_tt
+			owner = {
+				trigger_if = {
+					limit = { has_variable = mandekalu_exp }
+					var:mandekalu_exp >= 150
+				}
+				trigger_else = {
+					has_variable = mandekalu_exp
+				}
+			}
+		}
+		unit_location = {
+			owner ?= root.owner
+			controller ?= root.owner
+		}
+	}
+	start_effect = {
+		custom_tooltip = {
+			text = promote_to_farari_ct
+			if = {
+				limit = {
+					owner = {
+						has_variable = mandekalu_exp 
+						var:mandekalu_exp >= 150
+					}
+				}
+				while = {
+					limit = {
+						owner = {
+							var:mandekalu_exp >= 150
+						}
+					}
+					random_sub_unit = {
+						limit = {
+							OR = { 
+								sub_unit_type = unit_type:a_mandekalu_infantry
+								sub_unit_type = unit_type:a_mandekalu_cavalry
+							}
+						}
+						owner = {
+							change_variable = {
+								name = mandekalu_exp
+								subtract = 150
+							}
+						}
+						if = {
+							limit = { sub_unit_type = unit_type:a_mandekalu_cavalry }
+							change_subunit_type = unit_type:a_farari_cavalry
+						}
+						else = {
+							change_subunit_type = unit_type:a_farari_infantry
+						}
+					}
+				}
+			}
+		}
+	}
+}

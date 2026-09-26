@@ -1,0 +1,200 @@
+﻿calvinism_movement = {
+	religion = calvinist
+
+	# Only active once Calvin's Institutes appear and the reformation is running
+	potential = {
+		religion:calvinist = { is_religion_enabled = yes }
+		situation:reformation = {
+			situation_is_active = yes
+		}
+	}
+
+	# Never spawned by the monthly scheduler — spawned by the Calvin event (reformation.7)
+	monthly_spawn_chance = { value = 0 }
+	spawn = { }
+
+	environmental_infection = { value = 0.05 }
+
+	# Slightly lower R0 than Lutheranism — Calvinism spread more selectively.
+	# Phase 1 (Lever 1) — time-phased multiplier anchored to council_of_trent situation lifecycle.
+	# Stochastic { 0.0 X } range form preserves the current spread variance at each phase.
+	r0 = {
+		# Calvinist boom: Calvinism only appears via reformation.7 (John Calvin, ~1530-1535) —
+		# the same window the Council of Trent convenes. Gating the boom behind "Trent not yet
+		# started" (as Lutheranism does) would deny Calvinism any boom at all, since Trent's
+		# can_start opens in 1530. Historically Calvinism's surge (Geneva, France, Netherlands,
+		# Scotland) ran straight through Trent (1545-1563), so the boom is explicitly NOT cut off
+		# by the Council. The movement's `potential` already gates existence on Calvinism being
+		# enabled, so no lower bound is needed — it booms from the moment it spawns until ~48y
+		# into the Reformation (≈ end of the historical Calvinist expansion in the 1560s).
+		if = {
+			limit = {
+				situation:reformation = {
+					years_since_situation_start < 48
+				}
+			}
+			value = { 0.0 0.022 }
+		}
+		# Council of Trent active: world watches, growth slows but does not pause.
+		else_if = {
+			limit = { situation:council_of_trent = { situation_is_active = yes } }
+			value = { 0.0 0.010 }
+		}
+		# Counter-Reformation: Trent ended, <60y since Reformation spawn.
+		else_if = {
+			limit = {
+				situation:council_of_trent = { situation_has_ended = yes }
+				situation:reformation = { years_since_situation_start < 60 }
+			}
+			value = { 0.0 0.003 }
+		}
+		# Stable confessional boundaries: post-Trent and ≥60y since Reformation spawn.
+		else_if = {
+			limit = { situation:council_of_trent = { situation_has_ended = yes } }
+			value = { 0.0 0.0015 }
+		}
+		# Fallthrough: ≥48y into the Reformation with Trent never convened (boom-exhaust safety).
+		else = {
+			value = { 0.0 0.010 }
+		}
+		
+		if = {
+			limit = { exists = root }
+			# Lever 2 — per-location amplifiers (multiplicative on top of the L1 phase value).
+			# Urban tier (graduated, mutually exclusive ranks — only one fires per location).
+			if = {
+				limit = { location_rank ?= location_rank:town }
+				multiply = 1.05
+			}
+			if = {
+				limit = { location_rank ?= location_rank:city }
+				multiply = 1.15
+			}
+			if = {
+				limit = { location_rank ?= location_rank:megalopolis }
+				multiply = 1.20
+			}
+			# Printing press — the canonical Reformation vector. Institution embraced + advance
+			# researched stack, but each fires independently.
+			if = {
+				limit = { owner ?= { has_embraced_institution = institution:printing_press } }
+				multiply = 1.25
+			}
+			if = {
+				limit = { owner ?= { has_advance = printing_press_advance } }
+				multiply = 1.10
+			}
+			# Cluster momentum — neighbor location is majority-Calvinist. Uses dominant_religion
+			# (cached) rather than religion_percentage (recomputes pop tallies per call).
+			# (HRE-Catholic-emperor row from lutheranism is intentionally absent — Calvinism
+			# spread principally outside HRE: Switzerland, Netherlands, Scotland, France.)
+			if = {
+				limit = { any_neighbor_location = { dominant_religion ?= religion:calvinist } }
+				multiply = 1.10
+			}
+
+			# Lever 5 — anti-flip-flop: if location is already strongly Lutheran, Calvinism
+			# spreads at half R0. Prevents oscillating Lutheran → Calvinist → Lutheran in
+			# border regions. Stacks multiplicatively with the L1 phase value above.
+			if = {
+				limit = { "religion_percentage(religion:lutheran)" > 0.3 }
+				multiply = 0.5
+			}
+			add = {
+				desc = movement_factor_scriptorium
+				if = { limit = { has_building_with_at_least_one_level = scriptorium }           value = 0.0010 }
+			}
+			add = {
+				desc = movement_factor_printing_press_shop
+				if = { limit = { has_building_with_at_least_one_level = printing_press_shop }   value = 0.0020 }
+			}
+			add = {
+				desc = movement_factor_paper_guild
+				if = { limit = { has_building_with_at_least_one_level = paper_guild }           value = 0.0005 }
+			}
+			add = {
+				desc = movement_factor_paper_workshop
+				if = { limit = { has_building_with_at_least_one_level = paper_workshop }        value = 0.0010 }
+			}
+			add = {
+				desc = movement_factor_university
+				if = { limit = { has_building_with_at_least_one_level = university }            value = 0.0015 }
+			}
+			add = {
+				desc = movement_factor_friendly_with_pope
+				if = { limit = { owner ?= { opinion = { target = c:PAP value > 100 } } }        value = -0.0020 }
+			}
+			add = {
+				desc = movement_factor_no_cardinals
+				if = { limit = { owner ?= { num_cardinals = 0 } }                               value = 0.0010 }
+			}
+		}
+		else = {
+			add = { desc = movement_factor_scriptorium          value = 0.0010 }
+			add = { desc = movement_factor_printing_press_shop  value = 0.0020 }
+			add = { desc = movement_factor_paper_guild          value = 0.0005 }
+			add = { desc = movement_factor_paper_workshop       value = 0.0010 }
+			add = { desc = movement_factor_university           value = 0.0015 }
+			add = { desc = movement_factor_friendly_with_pope   value = -0.0020 }
+			add = { desc = movement_factor_no_cardinals         value = 0.0010 }
+		}
+	}
+
+	calc_interval_days = {20 40}
+
+	# Only pops of these religions can convert to Lutheranism
+	required_religions = {
+		anglican
+		catharism
+		catholic
+		hussite
+		lollardy
+		lutheran
+		waldensian
+	}
+
+	development = positive
+	literacy = positive
+	local_control = neutral
+	pop_satisfaction = negative
+
+	# Reformed theology had strong burgher AND noble uptake (France, Scotland, Low Countries)
+	specific_pop_type_effect = { pop_type = burghers  multiplier = 3   }
+	specific_pop_type_effect = { pop_type = nobles    multiplier = 1.5   }
+	specific_pop_type_effect = { pop_type = peasants  multiplier = 1.5 }
+	specific_pop_type_effect = { pop_type = clergy    multiplier = 0.7 }
+	specific_pop_type_effect = { pop_type = slaves    multiplier = 0   }
+	specific_pop_type_effect = { religion = hussite   multiplier = 0.5 }
+	specific_pop_type_effect = { religion = lutheran   multiplier = 0.8 }
+	specific_pop_type_effect = { religion = catharism   multiplier = 0.5 }
+
+	location_spread_threshold = { value = 0.05 }
+
+	on_spread_to_country = {
+		trigger_event_non_silently = reformation.200
+	}
+
+	map_color = {
+		if = {
+			limit = {
+				"religion_percentage(religion:calvinist)" = 0
+			}
+			value = define:NMapColors|MAP_COLOR_NULL
+		}
+		else_if = {
+			limit = {
+				dominant_religion = religion:calvinist
+			}
+			value = define:NMapColors|MAP_COLOR_HIGH
+		}
+		else_if = {
+			limit = {
+				"religion_percentage(religion:calvinist)" > 0.05
+			}
+			value = define:NMapColors|MAP_COLOR_MID
+		}
+		else = {
+			value = define:NMapColors|MAP_COLOR_LOW
+		}
+	}
+}

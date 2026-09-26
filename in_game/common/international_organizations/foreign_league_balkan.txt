@@ -1,0 +1,463 @@
+﻿foreign_league_balkan = {
+	has_target = no
+	unique = yes
+	show_on_diplomatic_map = yes
+	expel_members_who_are_targets_of_other_members = yes
+	expel_members_who_are_attackers_at_war_with_other_members = yes
+	expel_members_who_are_defenders_at_war_with_other_members = no
+
+	leader_color = map_iw_balkan
+	member_color = map_iw_balkan_member
+	secondary_map_color_override = {
+		#show cardinal locations
+		if = {
+			limit = {
+				root.owner ?= scope:recipient.leader_country
+			}
+			value = map_iw_balkan
+		}
+	}
+
+	has_leader_country = yes
+	leader_type = country
+	disband_if_no_leader = yes
+	land_ownership_rule = italian_wars_land_ownership
+	non_leader_modifier = {
+		block_from_change_to_empire_rank = yes
+	}
+
+	modifier = { global_war_score_efficiency = 0.2 }
+
+	modifier = {
+		monthly_towards_belligerent = 0.05
+		monthly_towards_offensive = 0.05
+	}
+
+	modifier = {
+		monthly_towards_belligerent = 0.28
+		monthly_towards_offensive = 0.28
+		scale = {
+			add = {
+				value = situation:italian_wars.var:iw_tension
+				multiply = 0.01
+				desc = "[situation_tension|e]"
+			}
+		}
+	}
+
+	leader_modifier = {
+		aggressiveness_modifier = 0.5
+		ai_months_between_wars = -12
+		monthly_war_exhaustion = -0.1
+		scale = {
+			add = {
+				value = 1
+				desc = BASE_VALUE
+			}
+			add = {
+				value = situation:italian_wars.var:iw_tension
+				multiply = 0.01
+				desc = "[situation_tension|e]"
+			}
+		}
+	}
+
+	diplomatic_capacity_cost = {
+		scope:recipient = {
+			add = {
+				desc = "UPKEEP_NUM_MEMBERS"
+				value = total_members
+				multiply = 0.33
+			}
+			add = {
+				desc = "UPKEEP_TOTAL_ECO_BASE"
+				value = international_organization_economical_base
+				multiply = 0.0005
+			}
+		}
+	}
+
+	create_visible_trigger = {
+		always = no
+	}
+
+	invite_visible_trigger = {
+		always = yes
+	}
+
+	on_creation = {
+		add_to_global_variable_list = {
+			name = iw_foreign_leagues_list
+			target = root 
+		}
+	}
+
+	on_disband = {
+		remove_list_global_variable = { name = iw_foreign_leagues_list target = root }
+		leader_country ?= {
+			remove_area_preference = foreign_league_italy_conquest
+		}
+	}
+	
+	#Yes. but you will be removed from the League
+	can_declare_war = {
+		trigger_if = {
+			limit = { scope:attacker ?= { is_member_of_international_organization = scope:recipient } }
+			scope:defender ?= { NOT = { is_member_of_international_organization = scope:recipient } }
+		}
+		trigger_else = {
+			always = yes
+		}
+	}
+	
+	has_military_access = {
+		scope:recipient ?= {
+			is_member_of_international_organization = root
+		}
+		scope:actor ?= {
+			is_member_of_international_organization = root
+		}
+	}
+
+	fleet_basing_rights = {
+		scope:recipient ?= {
+			is_member_of_international_organization = root
+		}
+		scope:actor ?= {
+			is_member_of_international_organization = root
+		}
+	}
+
+	gives_food_access_to_members = yes
+	can_recruit_regiments_in_members = yes
+	can_build_ships_in_members = yes
+
+	#Even if the leader is not an Empire, they will have access to these actions
+	leader_modifier = {
+		allowed_enforce_peace = yes
+		global_manpower_modifier = 0.2
+		num_italian_administrations = 1
+	}
+	
+	can_join_trigger = {
+		NOR = {
+			is_leader_of_international_organization = international_organization:foreign_league_france
+			is_leader_of_international_organization = international_organization:italian_league_1
+			is_leader_of_international_organization = international_organization:foreign_league_hre
+			is_leader_of_international_organization = international_organization:foreign_league_iberia
+			is_leader_of_international_organization = international_organization:italian_league_3
+			is_leader_of_international_organization = international_organization:italian_league_2
+		}
+		at_war = no
+		is_rebel_country = no
+		religion.group = religion_group:christian
+		trigger_if = {
+			limit = {
+				NOT = { tag = PAP }
+			}
+			capital.region = region:italy_region
+			country_rank_level < 4
+		}
+		trigger_if = {
+			limit = { is_subject = no }
+			NOT = { has_cooldown = join_a_league }	
+		}
+		trigger_else = {
+			custom_tooltip = {
+				text = league_subject_can_join_tt
+				scope:recipient ?= {
+					any_international_organization_member = {
+						root = { is_disloyal_subject = no is_subject_or_below_of = prev }
+					}
+				}
+			}
+		}
+	}
+
+	on_joined = {
+		if = {
+			limit = { is_member_of_international_organization = international_organization:foreign_league_france }
+			international_organization:foreign_league_france = {
+				remove_country_from_international_organization = root
+			}
+		}
+		if = {
+			limit = { is_member_of_international_organization = international_organization:foreign_league_hre }
+			international_organization:foreign_league_hre = {
+				remove_country_from_international_organization = root
+			}
+		}
+		if = {
+			limit = { is_member_of_international_organization = international_organization:foreign_league_iberia }
+			international_organization:foreign_league_iberia = {
+				remove_country_from_international_organization = root
+			}
+		}
+		if = {
+			limit = { is_member_of_international_organization = international_organization:italian_league_1 }
+			international_organization:italian_league_1 = {
+				remove_country_from_international_organization = root
+			}
+		}
+		if = {
+			limit = { is_member_of_international_organization = international_organization:italian_league_2 }
+			international_organization:italian_league_2 = {
+				remove_country_from_international_organization = root
+			}
+		}
+		if = {
+			limit = { is_member_of_international_organization = international_organization:italian_league_3 }
+			international_organization:italian_league_3 = {
+				remove_country_from_international_organization = root
+			}
+		}
+
+		every_owned_location = {
+			limit = { region = region:italy_region }
+			scope:recipient = {
+				add_location_to_international_organization = prev
+			}
+		}
+		add_cooldown = {
+			type = join_a_league
+			years = 2
+		}
+	}
+
+	on_left = {
+		every_owned_location = {
+			limit = { region = region:italy_region }
+			scope:recipient = {
+				remove_location_from_international_organization = prev
+			}
+		}
+	}
+	
+	#You cannot leave it while locked in a war next to a fellow League member
+	can_leave_trigger = {
+		NOT = { root = scope:recipient.leader_country }
+		OR = {
+			NOT = { is_subject_of = scope:recipient.leader_country }
+			AND = {
+				is_subject = yes
+				subject_loyalty < 50
+			}
+		}
+	}
+	
+	auto_leave_trigger = {
+		OR = {
+			is_at_war_with = scope:recipient.leader_country
+			AND = {
+				is_subject = yes 
+				exists = top_overlord
+				NOT = { 
+					top_overlord = { is_member_of_international_organization = scope:recipient }
+				}
+			}
+		}
+	}
+	
+	join_offensive_wars_auto_call = {
+		situation:italian_wars = { has_variable = allow_call_members_offensive_wars_variable }
+		scope:recipient ?= {
+			at_war = no
+			is_subject = no
+		}
+	}
+
+	auto_disband_trigger = {
+		total_members < 1
+	}
+	disband_minimum_member_count = 0
+
+	monthly_effect = {
+		every_international_organization_member = {
+			limit = {
+				any_subject = {
+					NOT = { is_member_of_international_organization = root }
+					can_join_international_organization = root
+					subject_loyalty >= 50
+				}
+			}
+			every_subject = {
+				limit = {
+					NOT = { is_member_of_international_organization = root }
+					can_join_international_organization = root
+					subject_loyalty >= 50
+				}
+				if = {
+					limit = { is_member_of_international_organization = international_organization:foreign_league_hre }
+					international_organization:foreign_league_hre = {
+						remove_country_from_international_organization = prev
+					}
+				}
+				if = {
+					limit = { is_member_of_international_organization = international_organization:foreign_league_iberia }
+					international_organization:foreign_league_iberia = {
+						remove_country_from_international_organization = prev
+					}
+				}
+				if = {
+					limit = { is_member_of_international_organization = international_organization:italian_league_1 }
+					international_organization:italian_league_1 = {
+						remove_country_from_international_organization = prev
+					}
+				}
+				if = {
+					limit = { is_member_of_international_organization = international_organization:italian_league_2 }
+					international_organization:italian_league_2 = {
+						remove_country_from_international_organization = prev
+					}
+				}
+				if = {
+					limit = { is_member_of_international_organization = international_organization:italian_league_3 }
+					international_organization:italian_league_3 = {
+						remove_country_from_international_organization = prev
+					}
+				}
+
+				every_owned_location = {
+					limit = { region = region:italy_region }
+					root = {
+						add_location_to_international_organization = prev
+					}
+				}
+				add_cooldown = {
+					type = join_a_league
+					years = 2
+				}
+				root = { add_country_to_international_organization = prev }
+			}
+		}
+	}
+
+	ai_desire_to_join = {
+		add = {
+			value = 5
+			desc = BASE_VALUE
+		}
+
+		# Let's calculate our standing with our current league IO if they exist
+
+		if = {
+			limit = {
+				is_member_of_any_italian_wars_league = yes							# see in_game\common\scripted_triggers\country_triggers.txt
+			}
+			subtract = {															# Trust is a factor that includes diplomatic reputation
+				scope:league_leader_current = {
+					root = {
+						value = this_trust_of_prev
+						multiply = 0.25
+					}
+				}
+				desc = "LEAGUE_LEADER_CURRENT_TRUST"
+			}
+			subtract = {															# Up to +25 if scope actor is 100% stronger than current leader
+				value = 25
+				multiply = "root.relative_strength(scope:league_leader_current)"
+				desc = "RELATIVE_STRENGTH_LEAGUE_LEADER_CURRENT"
+			}
+			add = {																	# From +30 to -30 based on member's opinion of Leader
+				scope:league_leader_current = {
+					root = {
+						value = this_opinion_of_prev
+						multiply = -0.15
+					}
+				}
+				desc = "LEAGUE_LEADER_CURRENT_OPINION"
+			}
+		}
+
+		# Calculations for potential league leader we want to join
+		add = {																			# Trust is a factor that includes diplomatic reputation
+			scope:actor = {
+				root = {
+					value = this_trust_of_prev
+					multiply = 0.25
+				}
+			}
+			desc = "TARGET_LEADER_TRUST"
+		}
+		subtract = {																	# Up to +25 if scope actor is 100% stronger than current leader
+			value = 25
+			multiply = "root.relative_strength(scope:actor)"
+			desc = "TARGET_LEADER_RELATIVE_STRENGTH"
+		}
+		add = {																			# From +30 to -30 based on member's opinion of Leader
+			scope:actor = {
+				root = {
+					value = this_opinion_of_prev
+					multiply = 0.15
+				}
+			}
+			desc = "TARGET_LEADER_OPINION"
+		}
+
+		#The following weights are unique to foreign Leagues, to balance out countries wanting to join
+
+		add = {
+			value = -10
+			desc = "FOREIGN_LEAGUE"
+		}
+		add = {
+			desc = "IW_BALANCE_OF_POWER"
+			value = scope:recipient.total_members
+			multiply = -1
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					OR = {
+						has_or_had_tag = ROM
+						has_variable = unlock_spread_philhellenism_variable
+						has_variable = encourage_latin_militarism_variable
+					}
+					has_societal_value = societal_value_type:latinization_vs_hellenization
+					societal_value:latinization_vs_hellenization < 0
+				}
+			}
+			add = {
+				desc = "[ShowSocietyDirectionName('latinization')]"
+				value = scope:actor.societal_value:latinization_vs_hellenization
+				multiply = -0.1
+			}
+		}
+	}
+
+	#(root = international organization, actor = potential new member, target = target if available)
+	ai_desire_to_allow_new_member = {
+		leader_country = { save_temporary_scope_as = target_country }
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 10
+		}
+		subtract = {
+			desc = "CONQUEST_DESIRE_ON_US"
+			value = "scope:target_country.conquer_desire(scope:actor)"
+		}
+		add = {																			# Trust is a factor that includes diplomatic reputation
+			scope:actor = {
+				scope:target_country = {
+					value = this_trust_of_prev
+					multiply = 0.25
+				}
+			}
+			desc = "TARGET_LEADER_TRUST"
+		}
+		subtract = {																	# Up to +25 if scope actor is 100% stronger than current leader
+			value = 25
+			multiply = "scope:target_country.relative_strength(scope:actor)"
+			desc = "TARGET_LEADER_RELATIVE_STRENGTH"
+		}
+		add = {																			# From +30 to -30 based on member's opinion of Leader
+			scope:actor = {
+				scope:target_country = {
+					value = this_opinion_of_prev
+					multiply = 0.15
+				}
+			}
+			desc = "TARGET_LEADER_OPINION"
+		}
+	}
+}

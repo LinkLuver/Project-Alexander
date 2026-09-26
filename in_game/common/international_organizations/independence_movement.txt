@@ -1,0 +1,397 @@
+﻿independence_movement = {
+	has_target = yes
+	unique = no
+	expel_members_who_are_targets_of_other_members = yes
+	expel_members_who_are_attackers_at_war_with_other_members = yes
+	has_leader_country = yes
+	leader_type = country
+	leader_change_method = none
+	disband_if_no_leader = yes
+	show_on_diplomatic_map = yes
+	subject_limited = no #even subjects with limited diplomacy can create these
+	show_strength_comparison_with_target = yes
+	declare_war_on_target_casus_belli = cb_independence_war
+
+	custom_name = independence_movement_name
+	
+	#member_color = rgb { 40 160 100 }
+	leader_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	target_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_TARGET_COLOR
+
+	join_offensive_wars_always = {
+		custom_tooltip = {
+			text = independence_movement_join_war_always_tt
+			scope:target ?= {
+				this = root.international_organization_target
+			}
+			trigger_if = {
+				limit = {
+					exists = scope:casus_belli
+				}
+				scope:casus_belli = casus_belli:cb_independence_war
+			}
+		}
+	}
+	
+	join_defensive_wars_always = {
+		or = {
+			custom_tooltip = {
+				text = independence_movement_join_war_def_always_tt
+				scope:target ?= {
+					this = root.international_organization_target
+				}
+			}
+			custom_tooltip = {
+				text = independence_movement_join_war_def_always_tt_during
+				scope:recipient = {
+					is_at_war_with = root.international_organization_target
+				}
+			}
+		}
+	}
+
+	create_visible_trigger = {
+		is_subject = yes
+		overlord = scope:target
+	}
+
+	create_enabled_trigger = {
+		is_disloyal_subject = yes
+	}
+
+	invite_visible_trigger = {
+		always = yes
+	}
+
+	can_declare_war = {
+		always = yes
+	}
+
+	potential_target_trigger = {
+		is_overlord = yes
+		any_subject = {
+			is_disloyal_subject = yes
+			not = { is_allied_with = { target = root } }
+			not = { is_at_war_with = root }
+			not = { has_truce_with = root }
+			not = { is_fighting_war_together_with = root }
+		}
+	}
+
+	can_target_trigger = {
+	}
+
+	can_lead_trigger = {
+		is_subject = yes
+	}
+
+    can_join_trigger = {
+		trigger_if = {
+			limit = {
+				exists = scope:recipient
+			}
+			opinion = {
+				target = scope:recipient.leader_country
+				value > 0
+			}
+        }
+		is_rebel_country = no
+        not = { is_allied_with = { target = scope:target } }
+        not = { is_at_war_with = scope:target }
+        not = { has_truce_with = scope:target }
+		not = { is_fighting_war_together_with = scope:target }
+		scope:target = {
+			NOT = {
+				any_overlord_or_above = {
+					this = root
+				}
+			}
+		}
+		#either we can do our own diplomacy; or our overlord is the same as the leader's
+		or = {
+			has_limited_diplomacy = no
+			overlord ?= scope:target
+		}
+	}
+	
+	can_leave_trigger = {
+		always = yes
+	}
+	
+	auto_leave_trigger = {
+		or = {
+			is_allied_with = { target = scope:target }
+			has_truce_with = scope:target
+			AND = {
+				overlord ?= scope:target
+				subject_loyalty > 80
+			}
+		}
+	}
+	
+	auto_disband_trigger = {
+		leader_country = {
+			or = {
+				subject_loyalty > 80
+				not = { overlord ?= scope:target }
+				is_allied_with = { target = scope:target }
+				has_truce_with = scope:target
+			}
+		}
+    }
+
+	on_joined = {
+		if = {
+			limit = {
+				scope:recipient = {
+					total_members = 1
+				}
+			}
+			add_casus_belli = {
+				type = casus_belli:cb_independence_war
+				province = scope:recipient.leader_country.capital.province
+				target = scope:target
+			}
+		}
+		scope:target = {
+			random_current_war = {
+				limit = {
+					attacker_leader = scope:recipient.leader_country
+					defender_leader = scope:target
+				}
+				save_scope_as = independence_war
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:independence_war
+			}
+			join_war_as_attacker = { war = scope:independence_war }
+		}
+	}
+
+	on_left = {
+	}
+	
+	monthly_effect = {
+	}
+	
+    ai_desire_to_join = {
+		#Base value
+		add = {
+			desc = "BASE_REASON"
+			value = -20
+		}
+		if = {
+			limit = {
+				overlord ?= scope:target
+			}
+			add = {
+				desc = "game_concept_subject_loyalty"
+				value = 50
+				subtract = subject_loyalty
+				multiply = 5
+			}
+		}
+        add = {
+            desc = "OPINION_OF_TARGET"
+            scope:target = {
+                value = prev_opinion_of_this
+                multiply = -0.4
+            }
+        }
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			add = {
+				desc = "OPINION_OF_SUBJECT"
+				scope:recipient.leader_country = {
+					value = prev_opinion_of_this
+					multiply = 0.4
+				}
+			}
+			add = {
+				desc = "DIPLOMATIC_REPUTATION_OF_SUBJECT"
+				value = "scope:recipient.leader_country.modifier:diplomatic_reputation"
+				multiply = 3
+			}
+			scope:recipient.leader_country = {
+				save_temporary_value_as = {
+					name = trust
+					value = prev_trust_of_this
+				}
+				if = {
+					limit = {
+						scope:trust > 50
+					}
+					add = {
+						desc = "TRUST_OF_SUBJECT"
+						value = scope:trust
+						subtract = 50
+					}
+				}
+				else = {
+					subtract = {
+						desc = "TRUST_OF_SUBJECT"
+						value = 50
+						subtract = scope:trust
+					}
+				}
+			}
+			if = {
+				limit = {
+					in_union_with = scope:recipient.leader_country
+					is_subject_of = scope:target
+				}
+				add = {
+					desc = "SAME_UNION_AS_LEADER_COUNTRY"
+					value = 200
+				}
+			}
+		}
+       
+        add = {
+            desc = "DIPLOMATIC_REPUTATION_OF_TARGET"
+			value = "scope:target.modifier:diplomatic_reputation"
+			multiply = -3
+        }
+        add = {
+            desc = "TRUST_OF_TARGET"
+            scope:target = {
+                value = prev_trust_of_this
+				subtract = 50
+                multiply = -1
+            }
+        }
+        
+        add = {
+            desc = "ANTAGONISM_OF_TARGET"
+            scope:target = {
+                value = prev_antagonism_towards_this
+            }
+        }
+        add = {
+            desc = "DIPLOREASON_IN_DEBT"
+            value = num_loans
+            multiply = -20
+        }
+        add = {
+            desc = "[war_exhaustion|e]"
+            value = war_exhaustion
+            multiply = -2
+        }
+		save_temporary_value_as = {
+			name = relative_strength_of_io
+			value = {
+				value = 0
+				if = {
+					limit = {
+						exists = scope:recipient
+					}
+					scope:recipient = {
+						every_international_organization_member = {
+							add = country_strength
+						}
+					}
+					add = "root.country_strength"
+				}
+				else = {
+					add = country_strength
+				}		
+			}
+		}
+		save_temporary_value_as = {
+			name = relative_strength_of_target
+			value = {
+				value = 0
+				scope:target = {
+					add = country_strength
+					every_subject = {
+						limit = {
+							exists = scope:recipient 
+							is_member_of_international_organization = scope:recipient 
+						}
+						subtract = country_strength
+					}
+					every_related_country = {
+						type = alliance
+						limit = { 
+							OR = {
+								NOT = { exists = scope:recipient }
+								NOT = { is_member_of_international_organization = scope:recipient } 
+							}						
+						}
+						add = country_strength
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:relative_strength_of_io
+				exists = scope:relative_strength_of_target
+				scope:relative_strength_of_target != 0
+			}
+			add = {
+            	#get a value in range of -50..0..25
+				desc = "RELATIVE_STRENGTH_IO"
+				value = 100
+				multiply = {
+					value = scope:relative_strength_of_io
+					divide = {
+						value = scope:relative_strength_of_target
+						add = scope:relative_strength_of_io
+					}
+				}
+				subtract = 50
+				max = 25
+			}
+		}
+		else = {
+			add = {
+            	#get a value in range of -50..0..25
+				desc = "RELATIVE_STRENGTH_TO_TARGET"
+				value = 100
+				multiply = "root.relative_strength(scope:target)" #this is 0..1
+				subtract = 50
+				max = 25
+			}
+		}
+		if = {
+			limit = { is_during_bankruptcy = yes }
+			add = {
+				desc = "IS_BANKRUPT_TOOLTIP"
+				value = -1000
+			}
+		}
+		if = {
+			limit = { at_war = yes }
+			add = {
+				desc = "IS_AT_WAR"
+				value = -25
+			}
+		}
+		if = {
+			limit = { is_rival_of = root }
+			add = {
+				desc = "RIVAL_OF_ACTOR"
+				value = -100
+			}
+		}
+		if = {
+			limit = { is_rival_of = scope:target }
+			add = {
+				desc = "RIVAL_OF_TARGET"
+				value = 100
+			}
+		}
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}

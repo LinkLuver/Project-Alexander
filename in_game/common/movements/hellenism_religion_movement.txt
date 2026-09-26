@@ -1,0 +1,189 @@
+﻿hellenism_religion_movement = {
+	religion = hellenism_religion
+
+	potential = {
+		has_dlc = "d008_fate_of_the_phoenix"
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = hellenism_religion_movement_allow_tt
+			always = no
+		}
+	}
+
+	monthly_spawn_chance = {
+		value = 0
+		religion:hellenism_religion = {
+			every_holy_site_in_religion = {
+				limit = {
+					location = {
+						has_owner = yes
+						owner = { religion.group = religion_group:christian }
+					}
+				}
+				location = {
+					add = {
+						value = prev.importance
+						multiply = 0.01
+						multiply = average_satisfaction
+					}
+				}
+			}
+		}
+	}
+
+	spawn = {
+		religion:hellenism_religion = {
+			ordered_holy_site_in_religion = {
+				limit = {
+					location = {
+						has_owner = yes
+						owner = { religion.group = religion_group:christian }
+					}
+				}
+				max = 1
+				order_by = {
+					value = importance
+					multiply = location.average_satisfaction
+				}
+				location = {
+					spawn_movement = {
+						movement_definition = scope:movement_definition
+						supporters = {
+							value = population
+							multiply = {
+								value = 0.2
+								multiply = local_control
+								multiply = average_satisfaction
+								min = 0.05
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	environmental_infection = {
+		value = 0.03
+	}
+
+	required_religion_groups = { christian }
+	required_language_families = { romance_language_family }
+	required_languages = { greek_language }
+
+	r0 = {
+		value = { 0.000 0.010 }
+	}
+
+	calc_interval_days = 1
+
+	development = positive
+	literacy = positive
+	local_control = neutral
+	pop_satisfaction = positive
+
+	on_calc_effect = {
+		if = {
+			limit = {
+				5 < {
+					value = random_integer
+					modulo = 100
+				}
+			}
+			add_movement_modifier = {
+				modifier = hellenism_religion_movement_momentum_waning
+				size = { 0.001 0.003 }
+				mode = add_and_extend
+				recalculate_immediately = yes
+			}
+		}
+		while = {
+			count = 5
+			random_location_with_movement = {
+				add_location_modifier = {
+					modifier = hellenism_religion_movement_momentum_waning_locally
+					size = { 0.001 0.003 }
+					mode = add_and_extend
+				}
+			}
+		}
+	}
+
+	on_spread_to_country = {
+		trigger_event_non_silently = movements.20
+	}
+
+	specific_pop_type_effect = {
+		pop_type = nobles
+		multiplier = 5
+	}
+
+	specific_pop_type_effect = {
+		pop_type = burghers
+		multiplier = 3
+	}
+
+	specific_pop_type_effect = {
+		language = greek_language
+		multiplier = 4
+	}
+
+	specific_pop_type_effect = {
+		language = latin_language
+		multiplier = 4
+	}
+
+	specific_pop_type_effect = {
+		pop_type = laborers
+		multiplier = 0.0005
+	}
+
+	specific_pop_type_effect = {
+		pop_type = slaves
+		multiplier = 0
+	}
+
+	specific_pop_type_effect = {
+		pop_type = peasants
+		multiplier = 0.0002
+	}
+
+	location_stagnation_chance = {
+		if = {
+			limit = {
+				dominant_religion = religion:hellenism_religion
+			}
+			value = 1
+		}
+	}
+
+	map_color = {
+		if = {
+			limit = {
+				"religion_percentage(religion:hellenism_religion)" = 0
+			}
+			value = define:NMapColors|MAP_COLOR_NULL
+		}
+		else_if = {
+			limit = {
+				dominant_religion = religion:hellenism_religion
+			}
+			value = define:NMapColors|MAP_COLOR_HIGH
+		}
+		else_if = {
+			limit = {
+				"religion_percentage(religion:hellenism_religion)" > 0.05
+			}
+			value = define:NMapColors|MAP_COLOR_MID
+		}
+		else = {
+			value = define:NMapColors|MAP_COLOR_LOW
+		}
+	}
+
+	location_spread_threshold = {
+		value = 0.05
+	}
+}

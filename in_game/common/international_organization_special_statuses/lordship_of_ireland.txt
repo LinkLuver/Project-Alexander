@@ -1,0 +1,214 @@
+﻿lord_of_ireland = {
+	max_countries = 1
+	priority = 15
+	can_bestow_trigger = {
+		is_leader_of_international_organization = scope:recipient
+	}
+
+	modifier = {
+		country_can_use_lordship_of_ireland_cb = yes
+		monthly_prestige = 0.1
+	}
+	auto_bestowal_trigger = {
+		always = yes
+	}
+	auto_rescind_trigger = {
+		NOT = { is_leader_of_international_organization = scope:recipient }
+	}
+	leader = yes
+	map_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	special_status_power = {
+		value = 100
+	}
+}
+
+lieutenant = {
+	max_countries = 1
+	priority = 10
+
+	modifier = {
+		monthly_prestige = 0.1
+		monthly_legitimacy = 0.1
+		diplomatic_capacity = 1
+		country_can_use_lordship_of_ireland_cb = yes
+	}
+
+	leader_modifier = {
+		government_size = 1
+		diplomatic_capacity = 1
+	}
+
+	can_bestow_trigger = {
+		has_ruler = yes
+		has_regent = no
+		government_type = government_type:monarchy
+		ruler ?= {
+			is_adult = yes
+			scope:recipient.leader_country = {
+				has_ruler = yes
+				ruler != prev
+			}
+		}
+		has_special_status_in_international_organization = {
+			type = special_status:loyalist
+			international_organization = scope:recipient
+		}
+		religion = scope:recipient.leader_country.religion
+	}
+
+	auto_bestowal_trigger = {
+	}
+
+	auto_rescind_trigger = {
+		OR = {
+			has_ruler = no
+			has_regent = yes
+			ruler ?= {
+				is_adult = no
+				scope:recipient.leader_country = {
+					has_ruler = yes
+					ruler = prev
+				}
+			}
+			religion != scope:recipient.leader_country.religion
+		}
+	}
+	
+	on_bestowed_effect = {
+	}
+	
+	on_rescinded_effect = {
+	}
+
+	special_status_power = {
+		value = 50
+	}
+
+	map_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_TIER1_COLOR
+}
+
+loyalist = {
+	priority = 5
+
+	modifier = {
+		monthly_legitimacy = 0.1
+	}
+
+	leader_modifier = {
+	}
+
+	can_bestow_trigger = {
+	}
+
+	auto_bestowal_trigger = {
+		NOR = {	
+			has_special_status_in_international_organization = {
+				type = special_status:lord_of_ireland
+				international_organization = scope:recipient
+			}
+			has_special_status_in_international_organization = {
+				type = special_status:lieutenant
+				international_organization = scope:recipient
+			}
+		}
+
+		religion = scope:recipient.leader_country.religion
+
+		OR = {
+			overlord ?= { this = scope:recipient.leader_country }
+			ruler_or_regent ?= { scope:recipient.leader_country.ruler ?= this }
+		}
+	}
+
+	auto_rescind_trigger = {
+		religion = scope:recipient.leader_country.religion
+		OR = {
+			has_special_status_in_international_organization = {
+				type = special_status:lord_of_ireland
+				international_organization = scope:recipient
+			}
+			has_special_status_in_international_organization = {
+				type = special_status:lieutenant
+				international_organization = scope:recipient
+			}
+			NOR = {
+				overlord ?= { this = scope:recipient.leader_country }
+				ruler_or_regent ?= { scope:recipient.leader_country.ruler ?= this }
+			}
+		}
+	}
+	
+	on_bestowed_effect = {
+	}
+	
+	on_rescinded_effect = {
+	}
+
+	special_status_power = {
+		value = 10
+	}
+
+	map_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_TIER2_COLOR
+}
+
+absentee = {
+	priority = 1
+
+	modifier = {
+		monthly_prestige = 0.1
+		lordship_of_ireland_casus_belli_cost_modifier = 2.0
+	}
+
+	leader_modifier = {
+		monthly_legitimacy = -0.01
+	}
+
+	can_bestow_trigger = {
+	}
+
+	auto_bestowal_trigger = {
+		NOR = {
+			has_special_status_in_international_organization = {
+				type = special_status:lord_of_ireland
+				international_organization = scope:recipient
+			}
+			has_special_status_in_international_organization = {
+				type = special_status:lieutenant
+				international_organization = scope:recipient
+			}
+			has_special_status_in_international_organization = {
+				type = special_status:loyalist
+				international_organization = scope:recipient
+			}
+		}
+	}
+
+	auto_rescind_trigger = {
+		OR = {
+			has_special_status_in_international_organization = {
+				type = special_status:lord_of_ireland
+				international_organization = scope:recipient
+			}
+			has_special_status_in_international_organization = {
+				type = special_status:lieutenant
+				international_organization = scope:recipient
+			}
+			has_special_status_in_international_organization = {
+				type = special_status:loyalist
+				international_organization = scope:recipient
+			}
+		}
+	}
+	
+	on_bestowed_effect = {
+	}
+	
+	on_rescinded_effect = {
+	}
+
+	special_status_power = {
+		value = 0
+	}
+
+	map_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_TIER3_COLOR
+}

@@ -1,0 +1,157 @@
+﻿ilkhanate = {
+
+	has_target = no
+	unique = yes
+	expel_members_who_are_targets_of_other_members = no
+	disband_if_no_leader = no
+
+	show_as_overlord_on_map_trigger = {
+		scope:recipient = {
+			international_organization_has_leader = yes
+		}
+	}
+	
+	has_leader_country = yes
+	leader_title_key = "ILKHANATE_LEADER"
+	leader_type = character
+	leader = {
+		leader_country ?= {
+			if = {
+				limit = { 
+					has_regent = yes
+					has_heir = yes
+				}
+				heir = {
+					add_to_list = leaders
+				}
+			}
+			else = {
+				ruler ?= {
+					add_to_list = leaders
+				}
+			}
+		}
+	}
+	leader_change_trigger_type = none
+	leader_change_method = none
+
+	can_lead_trigger = {
+	}
+
+	# If attacked, the leader will defend
+	only_leader_country_joins_defensive_wars = yes
+	join_defensive_wars_auto_call = {
+		scope:target ?= {
+			NOT = {
+				is_member_of_international_organization = root
+			}
+		}
+	}
+	
+	can_declare_war = {
+		always = yes
+	}
+
+	gives_military_access_to_all_when_at_war = yes
+
+	modifier = {
+		block_from_change_to_empire_rank = yes
+	}
+	
+	leader_modifier = {
+		monthly_prestige = 0.1
+	}
+	
+	create_visible_trigger = {
+		always = no
+	}
+
+	invite_visible_trigger = {
+		any_owned_location = { 
+			OR = {
+				region = region:persia_region
+				region = region:crescent_region
+				region = region:caucasus_region
+				region = region:anatolia_region
+			}
+		}
+	}
+
+	can_join_trigger = {
+		capital = {
+			OR = {
+				region = region:persia_region
+				region = region:crescent_region
+				region = region:caucasus_region
+				region = region:anatolia_region
+			}
+		}
+	}
+	
+	can_leave_trigger = {
+		always = no
+	}
+	
+	auto_leave_trigger = {
+		always = no
+	}
+	
+	auto_disband_trigger = {
+		international_organization_has_leader = no
+		NOT = {
+			any_international_organization_member = {
+				OR = {
+					can_claim_ilkhanate = yes
+					has_special_status_in_international_organization = {
+						type = special_status:ilkhan_claimant
+						international_organization = international_organization:ilkhanate
+					}
+				}
+			}
+		}
+	}
+
+	on_joined = {
+	}
+
+	on_left = {
+	}
+	
+	monthly_effect = {
+		if = {
+			limit = { "num_countries_with_special_status(special_status:ilkhan_claimant)" = 1 }
+			every_international_organization_member = {
+				limit = {
+					has_special_status_in_international_organization = {
+						type = special_status:ilkhan_claimant
+						international_organization = root
+					}
+				}
+				root = {
+					set_leader_country = prev
+					international_organization_remove_special_status = {
+						type = special_status:ilkhan_claimant
+						country = prev
+					}
+				}
+			}
+		}
+	}
+	
+	variables = {
+	}
+
+	special_statuses_implemented = {
+		ilkhan_claimant
+	}
+
+	ai_desire_to_join = {
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}

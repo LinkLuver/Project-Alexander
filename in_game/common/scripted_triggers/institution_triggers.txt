@@ -1,0 +1,263 @@
+﻿# Scope: location
+# Used by can_spawn in game/in_game/common/institution/age_*.txt
+# Each trigger is the body of the institution's "plausible spawn site" rule,
+# i.e. the conditions that apply under has_game_rule = institution_spawn_plausible.
+
+renaissance_plausible_location = {
+	has_owner = yes
+	OR = {
+		area = area:emilia_area
+		area = area:lombardy_area
+		area = area:piemonte_area
+		area = area:tuscany_area
+		area = area:veneto_area
+		area = area:liguria_area
+	}
+	OR = {
+		location_rank = location_rank:city
+		location_rank = location_rank:megalopolis
+		has_building_with_at_least_one_level = university
+	}
+	custom_tooltip = {
+		text = dominant_culture_is_owners_culture
+		dominant_culture = owner.culture
+	}
+}
+
+banking_plausible_location = {
+	has_owner = yes
+	num_pop_type:burghers > 1.0
+	custom_tooltip = {
+		text = dominant_culture_is_owners_culture
+		dominant_culture = owner.culture
+	}
+	OR = {
+		continent = continent:europe
+		sub_continent = sub_continent:north_africa
+		sub_continent = sub_continent:middle_east
+	}
+
+	owner = {
+		societal_value:capital_economy_vs_traditional_economy < -50
+	}
+}
+
+professional_armies_plausible_location = {
+	continent = continent:europe
+	has_owner = yes
+
+	custom_tooltip = {
+		text = dominant_culture_is_owners_culture
+		dominant_culture = owner.culture
+	}
+	modifier:local_manpower > 0
+
+	owner = {
+		societal_value:quality_vs_quantity < -10
+	}
+}
+
+new_world_plausible_location = {
+	OR = {
+		sub_continent = sub_continent:western_europe
+		sub_continent = sub_continent:north_africa
+	}
+	has_owner = yes
+	is_port = yes
+	num_pop_type:burghers >= 2.0
+	custom_tooltip = {
+		text = dominant_culture_is_owners_culture
+		dominant_culture = owner.culture
+	}
+	owner = {
+		OR = {
+			has_discovered_area = area:azores_area
+			has_discovered_area = area:canary_islands_area
+			has_discovered_area = area:south_macaronesia_area
+		}
+	}
+}
+
+printing_press_plausible_location = {
+	owner ?= {
+		produced_in_country:paper > 5
+	}
+	has_institution = institution:renaissance
+
+	num_pop_type:burghers > 1
+	has_building_with_at_least_one_level = university
+
+	owner = {
+		societal_value:traditionalist_vs_innovative > 20
+	}
+}
+
+pike_and_shot_plausible_location = {
+	has_institution = institution:professional_armies
+
+	OR = {
+		continent = continent:europe
+		sub_continent = sub_continent:north_africa
+	}
+
+	owner ?= {
+		army_tradition > 20
+		has_advance = gunpowder_advance
+		has_advance = professional_armies_advance
+	}
+
+	modifier:local_manpower > 0
+
+	owner = {
+		societal_value:land_vs_naval < -20
+	}
+}
+
+confessionalism_plausible_location = {
+	OR = {
+		continent = continent:europe
+		sub_continent = sub_continent:north_africa
+	}
+
+	has_owner = yes
+	has_building_with_at_least_one_level = printing_press_shop
+
+	OR = {
+		location_rank = location_rank:town
+		location_rank = location_rank:city
+		location_rank = location_rank:megalopolis
+	}
+
+	dominant_religion = owner.religion
+	dominant_religion = religion:catholic
+
+	owner = {
+		societal_value:spiritualist_vs_humanist < -25
+	}
+}
+
+global_trade_plausible_location = {
+	has_institution = institution:banking
+	has_institution = institution:new_world
+
+	OR = {
+		continent = continent:europe
+		sub_continent = sub_continent:north_africa
+	}
+
+	is_market_center = yes
+	OR = {
+		location_rank = location_rank:city
+		location_rank = location_rank:megalopolis
+	}
+	market = {
+		total_goods_value_traded > 500
+	}
+}
+
+artillery_institution_plausible_location = {
+	has_institution = institution:professional_armies
+
+	OR = {
+		continent = continent:europe
+		sub_continent = sub_continent:north_africa
+	}
+
+	has_building_with_at_least_one_level = gun_smith
+	has_building_with_at_least_one_level = tools_guild
+
+	owner = {
+		societal_value:offensive_vs_defensive < -20
+	}
+}
+
+manufactories_plausible_location = {
+	has_institution = institution:banking
+
+	OR = {
+		continent = continent:europe
+		sub_continent = sub_continent:north_africa
+	}
+
+	num_pop_type:burghers > 20
+	total_building_levels > 80
+
+	owner = {
+		societal_value:capital_economy_vs_traditional_economy < -30
+	}
+}
+
+scientific_revolution_plausible_location = {
+	has_institution = institution:printing_press
+
+	OR = {
+		continent = continent:europe
+		sub_continent = sub_continent:north_africa
+	}
+
+	has_building_with_at_least_one_level = university
+	average_location_literacy > 30
+
+	owner = {
+		societal_value:traditionalist_vs_innovative >= 20
+	}
+}
+
+military_revolution_plausible_location = {
+	has_institution = institution:pike_and_shot
+	has_institution = institution:artillery_institution
+
+	OR = {
+		continent = continent:europe
+		sub_continent = sub_continent:north_africa
+	}
+
+	is_capital = yes
+	population > 30
+	owner = {
+		yearly_manpower > 2
+		societal_value:offensive_vs_defensive < -20
+	}
+}
+
+enlightenment_plausible_location = {
+	has_institution = institution:scientific_revolution
+
+	OR = {
+		continent = continent:europe
+		sub_continent = sub_continent:north_africa
+	}
+
+	has_building_with_at_least_one_level = university
+	average_location_literacy > 30
+
+	owner = {
+		societal_value:traditionalist_vs_innovative > 20
+	}
+}
+
+industrialization_plausible_location = {
+	has_institution = institution:manufactories
+
+	OR = {
+		continent = continent:europe
+		sub_continent = sub_continent:north_africa
+	}
+
+	num_pop_type:burghers > 20
+	total_building_levels > 120
+
+	owner = {
+		societal_value:capital_economy_vs_traditional_economy < -30
+	}
+}
+
+levee_en_masse_plausible_location = {
+	has_institution = institution:military_revolution
+	owner ?= { capital = root }
+	population > 200
+
+	owner = {
+		societal_value:quality_vs_quantity > 0
+	}
+}

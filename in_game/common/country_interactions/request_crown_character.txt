@@ -1,0 +1,82 @@
+﻿request_crown_character =  { 
+	category = CATEGORY_UNION_ACTIONS
+	type = union
+	ai_tick = monthly
+	ai_tick_frequency = 24
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	potential = {
+		scope:actor = {
+			has_ruler = yes
+			ruler ?= { owner != scope:actor }
+		}
+	}
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = { data = name }
+		visible = {
+            in_union_with = scope:actor
+		}
+        enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = recipient
+		target_flag = target
+		name = "request_crown_character_SELECT_TITLE"
+		none_available_msg_key = "request_crown_character_no_characters"
+		column = { data = character_info }
+		visible = {
+			is_alive = yes
+			is_adult = yes
+			is_consort = no
+			is_ruler = no
+			is_regent = no
+			in_cabinet = no
+			is_general = no
+			is_admiral = no
+			is_explorer = no
+			NOT = { is_heir_of = scope:recipient }
+			has_estate = estate_type:crown_estate
+			modifier:blocked_from_character_interactions = no
+		}
+	}	
+	
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				move_country = scope:actor
+			}
+		}
+	}
+
+	diplo_chance = {
+		opinion = 1
+        diplomatic_reputation = 5
+	}
+	accept = {
+		if = {
+			limit = { exists = scope:target }
+			subtract = {
+				desc = "DIPLOREASON_TARGET_CHARACTER_TOTAL_ABILITIES"
+				value = scope:target.total_abilities
+			}
+			add = {
+				desc = "DIPLOREASON_TARGET_CHARACTER_AGE"
+				value = scope:target.age_in_years
+				subtract = 20 #we do not want part from the youngsters just yet
+				multiply = 3
+			}
+		}
+	}
+	ai_will_do = -10	#not much reason for the AI to do it
+}

@@ -1,0 +1,240 @@
+﻿nanbokuchou_change_sides = {
+	type = situation
+	potential = {
+	}
+	allow = {
+		scope:actor ?= {
+			is_japanese_emperor_or_shogun = no
+			at_war = no
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:nanbokuchou_change_sides
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:nanbokuchou = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			if = {
+				limit = {
+					NOR = {
+						has_variable = supports_northern_court
+						has_variable = supports_southern_court
+					}
+				}
+				trigger_event_non_silently = nanbokuchou.1
+			}
+			else = {
+				if = {
+					limit = { has_variable = supports_northern_court }
+					c:STC = { save_scope_as = target }
+				}
+				else = {
+					c:NTC = { save_scope_as = target }
+				}
+				nanbokuchou_change_sides_effect = yes
+			}
+		}
+	}
+	ai_will_do = {
+		#Base value
+		add = {
+			desc = BASE_VALUE
+			value = 10
+		}
+		scope:actor = {
+			#Do it if they hate their current side
+			if = {
+				limit = {
+					OR = {
+						AND = {
+							has_variable = supports_northern_court
+							OR = {
+								opinion = { target = c:JAP value <= -50 }
+								opinion = { target = c:NTC value <= -50 }
+							}
+						}
+						AND = {
+							has_variable = supports_southern_court
+							opinion = { target = c:STC value <= -50 }
+						}
+					}
+				}
+				add = {
+					value = 100
+					desc = "We hate our current side"
+				}
+			}
+			#Don't do it if they hate the other side
+			if = {
+				limit = {
+					OR = {
+						AND = {
+							has_variable = supports_southern_court
+							OR = {
+								opinion = { target = c:JAP value <= -50 }
+								opinion = { target = c:NTC value <= -50 }
+							}
+						}
+						AND = {
+							has_variable = supports_northern_court
+							opinion = { target = c:STC value <= -50 }
+						}
+					}
+				}
+				add = {
+					value = -100
+					desc = "We have the other side"
+				}
+			}
+			#Do it depending on opinion
+			if = {
+				limit = {
+					has_variable = supports_northern_court
+				}
+				add = {
+					desc = "Our opinion of $JAP$"
+					c:JAP = {
+						scope:actor = {
+							value = this_opinion_of_prev
+							multiply = -0.1
+						}
+					}
+					add = {
+						desc = "Our opinion of $NTC$"
+						c:NTC = {
+							scope:actor = {
+								value = this_opinion_of_prev
+								multiply = -0.1
+							}
+						}
+					}
+				} 
+			}
+			else_if = {
+				limit = {
+					has_variable = supports_southern_court
+				}
+				add = {
+					desc = "Our opinion of $STC$"
+					c:STC = {
+						scope:actor = {
+							value = this_opinion_of_prev
+							multiply = -0.1
+						}
+					}
+				} 
+			}
+		}
+	}
+}
+
+nanbokuchou_declare_neutrality = {
+	type = situation
+	potential = {
+	}
+	allow = {
+		scope:actor = {
+			is_japanese_emperor_or_shogun = no
+			at_war = no
+			custom_tooltip = {
+				text = nanbokuchou_supports_side_tt
+				OR = {
+					has_variable = supports_northern_court
+					has_variable = supports_southern_court
+				}
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:nanbokuchou_declare_neutrality
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:nanbokuchou = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor ?= { nanbokuchou_declare_neutrality_effect = yes }
+	}
+	ai_will_do = {
+		scope:actor = {
+			#Do it if they hate both sides
+			if = {
+				limit = {
+					AND = {
+						AND = {
+							has_variable = supports_northern_court
+							OR = {
+								opinion = { target = c:JAP value <= -50 }
+								opinion = { target = c:NTC value <= -50 }
+							}
+						}
+						AND = {
+							has_variable = supports_southern_court
+							opinion = { target = c:STC value <= -50 }
+						}
+					}
+				}
+				add = {
+					value = 100
+					desc = "We hate both sides"
+				}
+			}
+			#Do it depending on opinion
+			if = {
+				limit = {
+					has_variable = supports_northern_court
+				}
+				add = {
+					desc = "Our opinion of $JAP$"
+					c:JAP = {
+						scope:actor = {
+							value = this_opinion_of_prev
+							multiply = -0.1
+						}
+					}
+				} 
+			}
+			if = {
+				limit = {
+					has_variable = supports_southern_court
+				}
+				add = {
+					desc = "Our opinion of $STC$"
+					c:STC = {
+						scope:actor = {
+							value = this_opinion_of_prev
+							multiply = -0.1
+						}
+					}
+				} 
+			}
+		}
+	}
+}

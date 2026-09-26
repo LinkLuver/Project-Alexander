@@ -1,0 +1,150 @@
+﻿train_general = {
+	type = owncountry
+
+	price = price:train_general
+
+	ai_tick = daily
+	ai_tick_frequency = 180
+
+	automation_tick = daily
+	automation_tick_frequency = 20
+	player_automated_category = replacegenerals
+
+
+
+	potential = {
+	}
+
+	allow = {
+	}
+
+	ai_prerequisite = {
+		num_regiments > 0
+	}
+
+	ai_will_do = {
+		scope:actor = {
+			#first, how many do we need?
+			value = {
+				#how many should we have?
+				value = {
+					value = num_regiments
+					divide = {
+						value = 4
+						multiply = "define:NAI|AVERAGE_FRONTAGE"
+					}
+				}
+
+				#if we're at war, anticipate more need
+				if = {
+					limit = {
+						at_war = yes
+					}
+					add = 1
+				}
+
+				subtract = possible_military_leaders
+
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			custom_tooltip = {
+				text = train_general_effect
+				create_character = {
+					important_character_counts = none
+					skip_update_inheritance = yes
+					skip_on_created_action = yes
+					use_random_core_location = yes
+					trait_category = general
+
+					adm = {
+						integer_range = {
+							min = {
+								#10 for no army tradition, 60 for full
+								value = 10
+								add = {
+									value = army_tradition
+									multiply = 0.5
+								}
+							}
+							max = {
+								#50 for no army tradition, 100 for full
+								value = 50
+								add = {
+									value = army_tradition
+									multiply = 0.5
+								}
+							}
+						}
+						if = {
+							limit = { scope:actor.modifier:train_general_ability != 0 }
+							add = scope:actor.modifier:train_general_ability
+						}
+					}
+					dip = {
+						integer_range = {
+							min = {
+								#10 for no army tradition, 60 for full
+								value = 10
+								add = {
+									value = army_tradition
+									multiply = 0.5
+								}
+							}
+							max = {
+								#50 for no army tradition, 100 for full
+								value = 50
+								add = {
+									value = army_tradition
+									multiply = 0.5
+								}
+							}
+						}
+						if = {
+							limit = { scope:actor.modifier:train_general_ability != 0 }
+							add = scope:actor.modifier:train_general_ability
+						}
+					}
+					mil = {
+						integer_range = {
+							min = {
+								#10 for no army tradition, 60 for full
+								value = 10
+								add = {
+									value = army_tradition
+									multiply = 0.5
+								}
+							}
+							max = {
+								#50 for no army tradition, 100 for full
+								value = 50
+								add = {
+									value = army_tradition
+									multiply = 0.5
+								}
+							}
+						}
+						if = {
+							limit = { scope:actor.modifier:train_general_ability != 0 }
+							add = scope:actor.modifier:train_general_ability
+						}
+					}
+					#they can't be in the cabinet
+					add_character_modifier = {
+						modifier = recruited_in_the_military
+						mode = add_and_extend
+					}
+
+					random_estate_type_trigger = {
+						scope:actor = { estate_type_allowed_in_command = { estate_type = prev } }
+					}
+
+					save_scope_as = new_character
+				}
+			}
+		}
+	}
+}

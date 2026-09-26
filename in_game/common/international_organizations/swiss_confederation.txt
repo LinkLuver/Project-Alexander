@@ -1,0 +1,263 @@
+﻿swiss_confederation = {
+	has_target = no
+	unique = yes
+	expel_members_who_are_targets_of_other_members = no
+
+	has_leader_country = yes
+	leader_title_key = "SWISS_CONFEDERATION_LEADER"
+	leader_type = none
+	show_on_diplomatic_map = yes
+	leader_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	#member_color = rgb { 153 122 108 }
+	leader_change_trigger_type = none
+	leader_change_method = none
+	disband_if_no_leader = no
+	months_between_leader_changes = 48	#So even if no policy is active, the Swiss will always vote every 4 years
+
+	#In the case the Swiss IO gets a character leadership type
+	leader = {
+		if = {
+			limit = { leader_type = country }
+			leader_country ?= {
+				add_to_list = leaders
+			}
+		}
+		else = {
+			leader_country ?= {
+				ruler = {
+					add_to_list = leaders
+				}
+			}
+		}
+	}
+	
+	create_visible_trigger = {
+		always = no
+	}
+
+	invite_visible_trigger = {
+		OR = {
+			is_member_of_international_organization_of_type = { type = swiss_confederation }
+			culture = { has_culture_group = culture_group:swiss_group }
+			AND = {
+				scope:recipient = { international_organization_has_policy = policy:sc_swiss_or_swiss_relative }
+				culture = { language = { save_temporary_scope_as = root_language } }
+				culture_group:swiss_group = {
+					any_culture_in_culture_group = {
+						language = scope:root_language
+					}
+				}
+			}
+		}
+	}
+
+	can_initiate_policy_votes = {
+		is_member_of_international_organization = scope:recipient
+		trigger_if = {
+			limit = {
+				scope:recipient = { international_organization_has_law = law:sc_representative }
+			}
+			is_leader_of_international_organization = scope:recipient
+		}
+	}
+
+	can_declare_war = {
+		always = yes
+	}
+
+	gives_military_access_to_all_when_at_war = yes
+	
+	land_ownership_rule = swiss_confederation_land_ownership
+	antagonism_modifier_for_taking_land_from_fellow_member = 0.5
+	
+	can_join_trigger = {
+		is_subject = no
+		scope:recipient = {
+			international_organization_has_law = law:sc_membership_regulation
+		}
+		OR = {
+			is_neighbor_of_international_organization = scope:recipient
+			capital ?= { is_neighbor_of_international_organization = scope:recipient }
+			capital ?= { is_owned_by_international_organization = scope:recipient }
+		}
+		trigger_if = {
+			limit = {
+				scope:recipient = {
+					NOT = { leader_type = none }
+					OR = {
+						international_organization_has_policy = policy:sc_sovereign_religious_power
+						international_organization_has_policy = policy:sc_sovereign_absolute_power
+					}
+				}
+			}
+			country_exists = scope:recipient.leader_country
+			scope:recipient.leader_country = {
+				this_opinion_of_prev > 150
+			}
+		}
+		trigger_if = {
+			limit = { scope:recipient = { NOT = { international_organization_has_law = law:sc_membership_regulation } } }
+			scope:recipient = { international_organization_has_law = law:sc_membership_regulation }
+		}
+		trigger_if = {
+			limit = { scope:recipient = { international_organization_has_policy = policy:sc_swiss_culture_and_geography } }
+			capital ?= {
+				is_owned_by_international_organization = scope:recipient
+			}
+		}
+		trigger_if = {
+			limit = {
+				scope:recipient = {
+					OR = {
+						international_organization_has_policy = policy:sc_swiss_culture_and_geography
+						international_organization_has_policy = policy:sc_just_swiss_culture
+					}
+				}
+			}
+			culture = { has_culture_group = culture_group:swiss_group }
+		}
+		trigger_if = {
+			limit = {
+				scope:recipient = { international_organization_has_policy = policy:sc_swiss_or_swiss_relative }
+			}
+			OR = {
+				culture = { has_culture_group = culture_group:swiss_group }
+				AND = {
+					culture = { language = { save_temporary_scope_as = root_language } }
+					culture_group:swiss_group = {
+						any_culture_in_culture_group = {
+							language = scope:root_language
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	can_leave_trigger = {
+		always = yes
+	}
+	
+	auto_leave_trigger = {
+		OR = {
+			AND = {
+				is_subject = yes
+				overlord ?= {
+					NOT = { is_member_of_international_organization = scope:recipient }
+				}
+			}
+			num_locations > 80
+		}
+	}
+
+	auto_disband_trigger = {
+		total_members < 2
+	}
+	disband_minimum_member_count = 1
+
+	on_joined = {
+		hidden_effect = {
+			every_owned_location = {
+				limit = {
+					OR = {
+						area = area:central_switzerland_area
+						area = area:eastern_switzerland_area
+						area = area:western_switzerland_area
+					}
+				}
+				scope:recipient = { add_location_to_international_organization = prev }
+			}
+		}
+	}
+
+	on_left = {
+	}
+
+	ai_desire_to_join = {
+		add = {
+			desc = "WE_ARE_SMALL"
+			if = {
+				limit = { num_locations < 8 }
+				value = 25
+			}
+		}
+		if = {
+			limit = { country_rank_level > 1 }
+			subtract = {
+				desc = "game_concept_country_rank"
+				value = {
+					value = country_rank_level
+					multiply = 10
+				}
+			}
+		}
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+	
+	ai_issue_voting_bias = {
+		add = {
+			desc = "INERTIA"
+			value = -1
+		}
+		
+		#passing policies is what makes the empire great, so if the leader can enact one, they will
+		add = {
+			desc = "POLICY_BIAS_LEADER_ALWAYS_WANTS"
+			if = {
+				limit = {
+					scope:recipient.leader_country ?= {
+						this = scope:actor
+					}
+				}
+				#this should end up with 20 for yes and -20 for no from the leader
+				if = {
+					limit = {
+						is_set = scope:vote
+					}
+					value = 1
+				}
+				else = {
+					value = -1
+				}
+				multiply = 20
+			}
+		}
+		
+		#opinion of leader
+		add = {
+			desc = "POLICY_BIAS_OPINION_OF_IO_LEADER"
+			if = {
+				limit = {
+					scope:recipient = {
+						NOT = { leader_type = none }
+						international_organization_has_leader = yes
+					}
+					not = { scope:actor = scope:recipient.leader_country }
+				}
+				scope:recipient = {
+					leader_country = {
+						if = {
+							limit = {
+								is_set = scope:vote
+							}
+							value = 1
+						}
+						else = {
+							value = -1
+						}
+						multiply = {
+							value = "scope:actor.opinion(scope:recipient.leader_country)"
+							multiply = 0.1
+						}
+					}
+				}
+			}
+		}
+	}
+}

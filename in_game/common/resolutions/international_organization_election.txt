@@ -1,0 +1,146 @@
+﻿#Hardcoded
+#Do NOT delete this. This is the default voting resolution when an IO changes its leadership_election_resolution through effects
+international_organization_election = {
+	loc = election
+	potential = { always = yes }
+	allow = {
+	}
+
+	#if it's live, then we only want to test this monthly
+	ai_tick = monthly
+
+	is_live = {
+		scope:recipient = {
+			international_organization_has_leader = no
+		}
+	}
+	votes = {
+		add = {
+			desc = "[elector|e]"
+			value = 1
+		}
+	}
+	total_votes_needed = {
+		add = {
+			value = scope:total_votes_available
+			multiply = 0.5
+		}
+	}
+	requires_explicit_votes = no
+
+	should_finalize_vote = {
+		custom_tooltip = {
+			text = OVER_HALF_OF_VOTES
+			scope:recipient = {
+				not = { exists = leader_country }
+			}
+			scope:highest_vote >= scope:total_votes_needed
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		source = recipient
+		target_flag = vote
+		allow_self = yes
+		name = "election_select_country"
+		none_available_msg_key = "election_select_no_countries"
+		default_sort = country_tax_base
+		column = {
+			data = name
+		}
+		column = {
+			data = country_tax_base
+		}
+		visible = {
+			can_lead_international_organization = scope:recipient
+		}
+	}
+	
+	effect = {
+	}
+
+	ai_will_do = {
+		scope:vote = {
+			if = {
+				limit = {
+					this = scope:actor 
+				}
+				add = {
+					desc = "LEADERSHIP_VOTE_FOR_SELF"
+					value = 25
+				}
+			}
+			add = {
+				desc = "game_concept_rival"
+				if = {
+					limit = {	
+						is_rival_of = scope:actor 
+					}
+					value = -1000
+				}
+			}
+			add = {
+				desc = "game_concept_war"
+				if = {
+					limit = {	
+						is_at_war_with = scope:actor 
+					}
+					value = -1000
+				}
+			}
+			add = {
+				desc = "rank_empire"
+				if = {
+					limit = {	
+						country_rank = country_rank:rank_empire
+					}
+					value = 50
+				}
+			}
+			add = {
+				desc = "rank_kingdom"
+				if = {
+					limit = {	
+						country_rank = country_rank:rank_kingdom
+					}
+					value = 25
+				}
+			}
+			add = {
+				desc = "game_concept_opinion"
+				if = {
+					limit = {
+						not = { this = scope:actor }
+					}
+					scope:actor = {
+						value = this_opinion_of_prev
+						divide = 4
+					}
+				}
+			}
+			add = {
+				desc = "MODIFIER_TYPE_NAME_reasons_to_elect"
+				if = {
+					limit = {	
+						not = { this = scope:actor }
+					}
+					value = scope:actor.modifier:reasons_to_elect
+				}
+			}
+		}
+	}
+}

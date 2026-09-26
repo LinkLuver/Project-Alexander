@@ -1,0 +1,135 @@
+﻿# scope:actor = country, scope:recipient = religion
+host_olympiad = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = monthly
+	ai_tick_frequency = 24
+	automation_tick = monthly
+	automation_tick_frequency = 6
+	player_automated_category = religiousdoctrines
+
+	
+	potential = {
+		has_dlc = "d008_fate_of_the_phoenix" 
+		scope:recipient ?= religion:hellenism_religion
+	}
+
+	allow = {
+		scope:actor = { has_religious_aspect = religious_aspect:olympiad_aspect }
+	}
+
+	cooldown = {
+		type = host_olympiad
+		years = 4
+	}
+	
+	price = price:host_olympiad
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = holy_site
+		source = recipient
+		target_flag = target
+		name = "choose_holy_site"
+		column = {
+			data = name
+		}
+		enabled = { location.owner = scope:actor }
+	}
+
+	effect = {
+
+		if = {
+			limit = { exists = scope:target }
+			custom_tooltip = { text = host_olympiad_effect_tt_location }
+			
+			scope:target.location = {
+				add_location_modifier = {
+					modifier = host_olympiad_location_modifier
+					mode = replace
+					days = 365
+				}
+			}
+
+			scope:actor = { 
+				add_estate_satisfaction = { 
+					type = estate_type:clergy_estate 
+					value = {
+						value = estate_satisfaction_mild_bonus
+						multiply = {
+							value = 1
+							add = {
+								value = 0.1
+								multiply = scope:target.importance
+							}
+						}
+					}
+				}
+				change_societal_value = { 
+					type = spiritualist_vs_humanist 
+					value = {
+						value = societal_value_minor_move_to_left
+						multiply = {
+							value = 1
+							add = {
+								value = 0.1
+								multiply = scope:target.importance
+							}
+						}
+					}
+				}
+				add_religious_influence = { 
+					value = religious_influence_severe_bonus
+					multiply = {
+						value = 1
+						add = {
+							value = 0.1
+							multiply = scope:target.importance
+						}
+					}
+				}
+			}
+		}
+		else =  {
+			scope:actor = { 
+				add_estate_satisfaction = { 
+					type = estate_type:clergy_estate 
+					value = estate_satisfaction_mild_bonus
+				}
+				change_societal_value = { 
+					type = spiritualist_vs_humanist 
+					value = societal_value_minor_move_to_left
+				}
+				add_religious_influence = { 
+					value = religious_influence_severe_bonus
+				}
+			}
+			custom_tooltip = { text = host_olympiad_effect_tt_no_location }
+		}
+
+
+		if = {
+			limit = { exists = scope:target }
+
+
+
+		}
+		else = {
+			custom_tooltip = { text = host_olympiad_location_tt }				
+		}
+	}
+	ai_will_do = {
+		add = 100
+	}
+}

@@ -1,0 +1,378 @@
+﻿loan_icon = {
+	type = religious
+	ai_tick = monthly
+	ai_tick_frequency = 6
+	automation_tick = monthly
+	automation_tick_frequency = 3
+	player_automated_category = religiousdoctrines
+
+	potential = {
+		has_dlc = "d008_fate_of_the_phoenix"
+		scope:actor.religion = religion:orthodox
+	}
+
+	allow = {
+		scope:actor = { 
+			at_war = no
+			any_work_of_art = {
+				work_of_art_type = work_of_art_type:icon
+			}
+		}
+	}
+	
+	price = price:loan_icon_price
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = work_of_art
+		source = actor
+		target_flag = target
+		name = "loan_icon_choose_icon"
+		none_available_msg_key = "no_valid_works_of_art"
+		column = {
+			data = name
+		}
+		visible = {
+			work_of_art_type = work_of_art_type:icon
+		}
+		enabled = {
+			custom_tooltip = {
+				text = icon_not_already_loaned_tt
+				OR = {
+					NOT = { scope:actor = { has_variable_map = lent_icon } }
+					NOT = {
+						scope:actor = {
+							is_key_in_variable_map = {
+								name = lent_icon
+								target = root
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target_country
+		interaction_source_list = {
+			religion:orthodox = {
+				every_country_in_religion = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_targets = yes
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+		}
+		enabled = {
+			opinion = { target = scope:actor value > 0 }
+			custom_tooltip = {
+				text = not_already_receiving_icon_tt
+				OR = {
+					NOT = { has_variable_map = lent_icon }
+					NOT = {
+						is_value_in_variable_map = {
+							name = lent_icon
+							target = scope:actor
+						}
+					}
+				}
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+				exists = scope:target_country
+			}
+			save_temporary_scope_value_as = {
+				name = icon_price_value
+				value = {
+					value = "scope:target_country.monthly_income_trade_and_tax"
+					multiply = "scope:target.art_quality"
+					divide = 1000
+					min = "scope:target.art_quality"
+				}
+			}
+			scope:target_country = {
+				set_variable = {
+					name = lending_icon_price
+					value = scope:icon_price_value
+				}
+			}
+			custom_tooltip = {
+				text = loan_icon_tt
+				scope:target_country = {
+					trigger_event_silently = d008_orthodox_events.1
+				}
+			}
+			if = {
+				limit = {
+					scope:target_country = {
+						OR = {
+							gold < scope:icon_price_value
+							gold < 0
+							num_loans > 0
+						}
+					}
+				}
+				custom_tooltip = loan_icon_bad_economy_tt
+			}
+		}
+		else = {
+			custom_tooltip = loan_icon_tt_no_target
+		}
+	}
+	ai_will_do = {
+		if = {
+			limit = {
+				scope:actor = {
+					monthly_balance < 0
+				}
+			}
+			add = {
+				value = 10
+			}
+		}
+		if = {
+			limit = {
+				scope:target_country = {
+					OR = {
+						gold < 0
+						num_loans > 0
+					}
+				}
+			}
+			add = -1000
+		}
+		add = {
+			desc = "OUR_OPINION_TOOLTIP"
+			value = "scope:actor.opinion(scope:target_country)"
+		}
+		add = {
+			desc = "THEIR_OPINION_TOOLTIP"
+			value = "scope:target_country.opinion(scope:actor)"
+		}
+	}
+}
+
+mend_schism = {
+	type = religious
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = monthly
+	automation_tick_frequency = 12
+	player_automated_category = religiousdoctrines
+
+	price = price:mend_schism_price
+
+	potential = {
+		has_dlc = "d008_fate_of_the_phoenix"
+		scope:actor = {
+			religion = religion:orthodox
+			has_all_pentarchy = yes
+			NOT = {
+				has_country_modifier = mended_schism
+			}
+		}
+	}
+
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			hidden_effect = {
+				add_country_modifier = {
+					modifier = mended_schism
+					years = -1
+				}
+				add_prestige = prestige_extreme_bonus
+			}
+			trigger_event_non_silently = d008_orthodox_events.10
+			religion:catholic = {
+				every_country_in_religion = {
+					limit = { NOT = { tag = PAP } }
+					trigger_event_silently = d008_orthodox_events.12
+				}
+			}
+			c:PAP ?= { trigger_event_silently = d008_orthodox_events.13 }
+		}
+	}
+	ai_will_do = {
+		add = 10
+	}
+}
+
+restore_rome_primacy = {
+	type = religious
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = monthly
+	automation_tick_frequency = 12
+	player_automated_category = religiousdoctrines
+
+	price = price:restore_rome_primacy_price
+
+	potential = {
+		has_dlc = "d008_fate_of_the_phoenix"
+		scope:actor = {
+			religion = religion:orthodox
+			has_all_pentarchy = yes
+			has_societal_value = societal_value_type:latinization_vs_hellenization
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			societal_value:latinization_vs_hellenization < -50
+			OR = {
+				capital != location:rome
+				custom_tooltip = {
+					text = patriarch_not_in_rome_tt
+					any_international_organizations_member_of = {
+						international_organization_type = international_organization_type:autocephalous_patriarchate
+						exists = leader_country
+						leader_country = scope:actor
+						exists = var:seat
+						var:seat != location:rome
+					}
+				}
+			}
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			trigger_event_non_silently = d008_orthodox_events.11
+			if = {
+				limit = {
+					exists = international_organization:catholic_church
+					international_organization:catholic_church = {
+						international_organization_has_law = law:cc_papal_authority
+						NOT = { international_organization_has_policy = policy:invisible_church }
+					}
+				}
+				international_organization:catholic_church = {
+					add_policy_to_international_organization = policy:invisible_church
+				}
+			}
+			c:PAP ?= { trigger_event_silently = d008_orthodox_events.14 }
+		}
+	}
+	ai_will_do = {
+		add = 10
+	}
+}
+
+reestablish_hellenism = {
+	type = religious
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = monthly
+	automation_tick_frequency = 12
+	player_automated_category = religiousdoctrines
+
+	price = price:reestablish_hellenism_price
+
+	potential = {
+		has_dlc = "d008_fate_of_the_phoenix"
+		scope:actor = {
+			has_or_had_tag = BYZ
+			religion.group = religion_group:christian
+			has_societal_value = societal_value_type:latinization_vs_hellenization
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			OR = {
+				societal_value:latinization_vs_hellenization < -90
+				societal_value:latinization_vs_hellenization > 90
+			}
+		}
+		religion:hellenism_religion = {
+			all_holy_sites_owned_by_or_below_of = scope:actor
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			change_religion = religion:hellenism_religion
+			add_religious_aspect = religious_aspect:monism_aspect
+			ruler = {
+				change_character_religion = religion:hellenism_religion
+				every_descendant = {
+					limit = {
+						is_alive = yes
+						owner = scope:actor
+					}
+					change_character_religion = religion:hellenism_religion
+				}
+			}
+
+			capital = {			
+				spawn_movement = {
+					movement_definition = movement_definition:hellenism_religion_movement
+					supporters = {
+						value = population
+						multiply = 0.1
+					}
+				}
+			}
+		}
+		
+	}
+
+	ai_will_do = -1000
+}

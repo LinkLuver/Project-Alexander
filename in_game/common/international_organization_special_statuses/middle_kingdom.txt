@@ -1,0 +1,77 @@
+﻿celestial_governor = {
+	priority = 9
+
+	auto_bestowal_trigger = {
+	}
+
+	can_bestow_trigger = {
+		scope:recipient = {
+			not = {
+				country_has_special_status = {
+					type = scope:source
+					country = root
+				}
+			}
+		}
+		is_member_of_international_organization = scope:recipient
+		scope:recipient = {
+			any_international_organization_member = {
+				this != root
+				has_special_status_in_international_organization = {
+					type = scope:source
+					international_organization = scope:recipient
+				}
+				capital.region = root.capital.region
+			}
+		}
+	}
+
+	auto_rescind_trigger = {
+		NOT = { 
+			is_member_of_international_organization = scope:recipient 
+		}
+	}
+
+	modifier = {
+		global_distance_from_capital_speed_propagation = 0.1
+		country_cabinet_efficiency = 0.1
+		monthly_legitimacy = 0.1
+		monthly_republican_tradition = 0.05
+		monthly_devotion = 0.1
+		monthly_horde_unity = 0.1
+		monthly_tribal_cohesion = 0.1
+		monthly_towards_sinicized = societal_value_large_monthly_move
+	}
+
+	leader_modifier = {
+		max_diplomats = 1
+		monthly_celestial_authority = 0.01
+	}
+
+	max_countries = 4
+	can_be_invited = no
+	on_bestowed_effect = {
+		scope:recipient = {
+			change_variable = {
+				name = num_of_celestial_governors
+				add = 1
+			}
+		}
+	}
+	
+	on_rescinded_effect = {
+		if = {
+			limit = { 
+				scope:recipient = { var:num_of_celestial_governors > 0 }
+			}
+			scope:recipient = {
+				change_variable = {
+					name = num_of_celestial_governors
+					subtract = 1
+				}
+			}
+		}
+	}
+
+	map_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+}

@@ -1,0 +1,1503 @@
+﻿# scope:actor ?= country, scope:recipient = religion
+
+#
+# Imperial Court
+#
+
+get_claim_from_imperial_court = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		scope:actor ?= { 
+			at_war = no
+			NOT = { is_leader_of_international_organization = international_organization:japanese_shogunate }
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:get_claim_from_imperial_court
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target
+		name = "choose_country_to_get_claim"
+		none_available_msg_key = "no_valid_countries"
+		column = { data = name }
+		column = { data = population }
+		interaction_source_list = {
+			religion:shinto = {
+				every_country_in_religion = {
+					add_to_list = source
+				}
+			}
+		}
+		visible = {
+			exists = scope:actor
+			custom_tooltip = {
+				text = get_claim_from_imperial_court_tt
+				this != scope:actor
+				trigger_if = {
+					limit = { is_subject = yes }
+					overlord ?= { this != scope:actor }
+				}
+				NOT = { is_allied_with = { target = scope:actor } }
+				OR = {
+					AND = {
+						scope:actor = { country_type = location }
+						country_type = location
+						is_neighbor_of = scope:actor
+					}
+					AND = {
+						scope:actor = { country_type = building }
+						country_type = building
+						any_owned_foreign_building_location = {
+							OR = {
+								any_foreign_building_countries_in_location = { this = scope:actor }
+								any_neighbor_location = {
+									any_foreign_building_countries_in_location = { this = scope:actor }
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		enabled = {
+			OR = {
+				NOT = { exists = scope:target }
+				scope:target ?= {
+					is_japanese_emperor_or_shogun = no
+					scope:actor ?= { 
+						opinion = { target = scope:target value <= 50 }
+						NOT = { has_casus_belli_of_type_on = { type = casus_belli:cb_japanese_clan_expand_authority target = scope:target } }
+					}
+				}
+			}
+		}
+	}
+
+	cooldown = {
+		type = get_claim_from_imperial_court
+		years = 2
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:actor ?= {
+				add_casus_belli = { 
+					type = casus_belli:cb_japanese_clan_expand_authority 
+					target = scope:target 
+				}
+			}
+		}
+		else = {
+			custom_tooltip = claim_from_imperial_court_tt
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = { exists = scope:target }
+			scope:actor ?= {
+				add = {
+					desc = "game_concept_opinion"
+					value = "opinion(scope:target)"
+					multiply = -1
+				}
+			}
+		}
+	}
+}
+
+get_marriage_from_imperial_court = {
+	type = religiousfaction
+	
+	sound = UI_action_religion_generic
+
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = target
+		name = "marry_kuge"
+		none_available_msg_key = "no_valid_characters"
+		column = {
+			data = character_info
+		}
+		visible = {
+			has_dynasty = yes
+			character_can_marry_trigger = yes
+		}
+	}
+
+	price = price:get_marriage_from_imperial_court
+	
+	cooldown = {
+		type = get_marriage_from_imperial_court
+		years = 2
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			if = {
+				limit = { scope:target = { is_female = no } }
+				scope:actor ?= {
+					create_character = {
+						culture = scope:actor.culture
+						religion = scope:actor.religion
+						age = 18
+						female = yes
+						estate = estate_type:nobles_estate
+						marry_character = scope:target
+					}
+				}
+			}
+			else = {
+				scope:actor ?= {
+					create_character = {
+						culture = scope:actor.culture
+						religion = scope:actor.religion
+						age = 18
+						female = no
+						estate = estate_type:nobles_estate
+						marry_character = scope:target
+					}
+				}
+			}
+		}
+		custom_tooltip = marriage_from_imperial_court_tt
+		scope:actor = {
+			add_legitimacy = legitimacy_weak_bonus
+		}
+	}
+
+	ai_will_do = {
+		# Old rulers must get married
+		if = {
+			limit = {
+				scope:actor ?= {
+					has_ruler = yes
+				}
+			}
+			add = {
+				value = scope:actor.ruler.age_in_years
+				subtract = 22 # This gives a few years to try to find diplomatic marriages first
+				multiply = 5
+			}
+			# Add randomness so they don't all marry on their birthday (or at game start)
+			# This makes it more organic, and gives a few years to try to find diplomatic marriages first
+			add = {
+				value = scope:recipient.random_integer
+				modulo = 1000 # This gives approximately 1% chance first year, 2% second year, etc. 
+				multiply = -10
+			}
+		}
+		# Old heirs must get married
+		if = {
+			limit = {
+				scope:actor ?= { has_heir = yes }
+			}
+			add = {
+				value = scope:actor.heir.age_in_years
+				subtract = 22 # This gives a few years to try to find diplomatic marriages first
+				multiply = 5
+			}
+			# Add randomness so they don't all marry on their birthday (or at game start)
+			# This makes it more organic, and gives a few years to try to find diplomatic marriages first
+			add = {
+				value = scope:recipient.random_integer
+				modulo = 1000 # This gives approximately 1% chance first year, 2% second year, etc. 
+				multiply = -10
+			}
+		}
+		if = {
+			limit = { 
+				exists = scope:target
+			}
+			if = {
+				limit = { scope:target = { is_ruler = yes } }
+				add = 50
+			}
+			if = {
+				limit = { scope:target = { is_heir = yes } }
+				add = 20
+			}
+			if = {
+				limit = { scope:target = { has_dynasty = yes } }
+				add = 5
+			}
+		}
+	}
+}
+
+become_shogun_from_imperial_court = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor ?= {
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:japanese_shogunate
+			}
+		}
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	allow = {
+		scope:actor ?= {
+			has_regent = no
+			has_ruler = yes
+			ruler ?= {
+				NOT = { has_character_modifier = allowed_shogun_title }
+			}
+			is_japanese_emperor_or_shogun = no
+		}
+	}
+
+	cooldown = {
+		type = become_shogun_from_imperial_court
+		years = 5
+	}
+	
+	price = price:become_shogun_from_imperial_court
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { international_organization:japanese_shogunate = { international_organization_has_leader = yes } }
+			scope:actor ?= {
+				ruler = {
+					add_character_modifier = { modifier = allowed_shogun_title years = -1 mode = add }
+				}
+				add_casus_belli = { type = casus_belli:cb_take_shogunate target = international_organization:japanese_shogunate.leader_country }
+			}
+		}
+		else = {
+			international_organization:japanese_shogunate = { set_leader_country = scope:actor }
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = { international_organization:japanese_shogunate = { international_organization_has_leader = yes } }
+			add = {
+				desc = "game_concept_opinion"
+				value = "scope:actor.opinion(international_organization:japanese_shogunate.leader_country)"
+				multiply = -1
+			}
+		}
+	}
+}
+
+#
+# Shogun Court
+#
+
+appease_nobles_estate_from_shogun_court = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		trigger_if = {
+			limit = {
+				international_organization:japanese_shogunate ?= {
+					exists = leader_country
+				}
+			}
+			scope:actor ?= {
+				NOT = { is_at_war_with = international_organization:japanese_shogunate.leader_country }
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:appease_nobles_estate_from_shogun_court
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			add_estate_satisfaction = { type = estate_type:nobles_estate 
+				value = estate_satisfaction_mild_bonus
+			}
+		}
+	}
+
+	cooldown = {
+		type = appease_nobles_estate_from_shogun_court
+		years = 2
+	}
+
+	ai_will_do = {
+		add = "scope:actor.add_estate_satisfaction_utility(nobles_estate|0.1)"
+	}
+}
+
+increase_levies_from_shogun_court = {
+	type = religiousfaction
+	
+	sound = UI_action_religion_generic
+
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		trigger_if = {
+			limit = {
+				international_organization:japanese_shogunate ?= {
+					exists = leader_country
+				}
+			}
+			scope:actor ?= {
+				NOT = { is_at_war_with = international_organization:japanese_shogunate.leader_country }
+			}
+		}
+	}
+	
+	cooldown = {
+		type = increase_levies_from_shogun_court
+		years = 5
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:increase_levies_from_shogun_court
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			add_country_modifier = { 
+				modifier = increased_levies_from_shogun_court 
+				years = 5 
+				mode = add_and_extend
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.add_static_modifier_utility(increased_levies_from_shogun_court)"
+	}
+}
+
+increase_tax_income_from_shogun_court = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		trigger_if = {
+			limit = {
+				international_organization:japanese_shogunate ?= {
+					exists = leader_country
+				}
+			}
+			scope:actor ?= {
+				NOT = { is_at_war_with = international_organization:japanese_shogunate.leader_country }
+			}
+		}
+	}
+
+	cooldown = {
+		type = increase_tax_income_from_shogun_court
+		years = 5
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:increase_tax_income_from_shogun_court
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			add_country_modifier = { 
+				modifier = increased_tax_income_from_shogun_court 
+				years = 5 
+				mode = add_and_extend
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.add_static_modifier_utility(increased_tax_income_from_shogun_court)"
+	}
+}
+
+demand_extra_payment_from_shogun_court = {
+	icon = become_shogun_from_imperial_court
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		international_organization:japanese_shogunate ?= {
+			exists = leader_country
+		}
+		scope:actor ?= {
+			NOT = { is_leader_of_international_organization = international_organization:japanese_shogunate }
+			NOT = { is_at_war_with = international_organization:japanese_shogunate.leader_country }
+			OR = {
+				monthly_income_trade_and_tax > 0
+				monthly_manpower > 0
+			}
+		}
+		international_organization:japanese_shogunate.leader_country ?= {
+			opinion = { target = scope:actor value > 0 }
+		}
+	}
+
+	cooldown = {
+		type = demand_extra_payment_from_shogun_court
+		years = 5
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:demand_extra_payment_from_shogun_court
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			if = {
+				limit = { monthly_income_trade_and_tax > 0 }
+				add_gold = { value = scope:actor.monthly_income_trade_and_tax multiply = 24 }
+			}
+			if = {
+				limit = { monthly_manpower > 0 }
+				add_manpower = { value = scope:actor.monthly_manpower multiply = 3 }
+			}
+		}
+		international_organization:japanese_shogunate.leader_country ?= {
+			add_opinion = { target = scope:actor modifier = opinion_demanded_extra_payment }
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "IS_BANKRUPT_TOOLTIP"
+			if = {
+				limit = {	
+					scope:actor = { 
+						is_during_bankruptcy = yes
+						monthly_income_trade_and_tax > 0
+					}
+				}
+				value = 1000
+			}
+		}
+		add = {
+			desc = "IS_AT_WAR"
+			if = {
+				limit = {	
+					scope:actor = { 
+						at_war = yes
+					}
+				}
+				value = 25
+			}
+		}
+		add = {
+			desc = "NEEDS_MONEY"
+			if = {
+				limit = {
+					scope:actor = {
+						monthly_income_trade_and_tax > 0
+						gold <= {
+							value = scope:actor.monthly_income_trade_and_tax
+							multiply = 6
+						}
+					}
+				}
+				value = 50
+			}
+		}
+		add = {
+			desc = "NEEDS_MANPOWER"
+			if = {
+				limit = {
+					scope:actor = {
+						monthly_manpower > 0
+						gold <= {
+							value = scope:actor.monthly_manpower
+							multiply = 6
+						}
+					}
+				}
+				value = 50
+			}
+		}
+
+	}
+}
+
+
+#
+# Ikko-ikki
+#
+
+increase_peasant_satisfaction_from_ikko_ikki = {
+	type = religiousfaction
+	
+	sound = UI_action_religion_generic
+
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:increase_peasant_satisfaction_from_ikko_ikki
+
+	cooldown = {
+		type = increase_peasant_satisfaction_from_ikko_ikki
+		years = 2
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			add_estate_satisfaction = { type = estate_type:peasants_estate 
+				value = estate_satisfaction_mild_bonus
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.add_estate_satisfaction_utility(peasants_estate|0.1)"
+	}
+}
+
+reduce_rebels_from_ikko_ikki = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		scope:actor ?= {
+			any_rebel = { 	
+				rebel_progress > 0.5
+				rebel_category = religious
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:reduce_rebels_from_ikko_ikki
+
+	cooldown = {
+		type = reduce_rebels_from_ikko_ikki
+		years = 2
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			every_rebel = { 	
+				if = {
+					limit = {
+						rebel_progress > 0.5
+						rebel_category = religious
+					}
+					add_rebel_progress = -0.3
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		scope:actor ?= {
+			every_rebel = { 	
+				add = "scope:actor.short_term_trigger_currency_utility(rebel_progress|1|this)"
+			}
+		}
+	}
+}
+
+allow_safe_refuge = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:allow_safe_refuge
+
+	cooldown = {
+		type = allow_safe_refuge
+		years = 3
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			if = {
+				limit = { country_type = building }
+				random_owned_foreign_building_location = {
+					save_temporary_scope_as = target_location
+					religion:shinto.var:ikko_ikki_enabled = {
+						add_location_to_international_organization = scope:target_location
+					}
+				}
+			}
+			if = {
+				limit = { country_type = location }
+				random_owned_location = {
+					save_temporary_scope_as = target_location
+					religion:shinto.var:ikko_ikki_enabled = {
+						add_location_to_international_organization = scope:target_location
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		#inertia
+		add = -10
+
+		#how useful is the IO?
+		if = {
+			limit = { religion:shinto = { has_variable = ikko_ikki_enabled } }
+			add = {
+				value = "religion:shinto.var:ikko_ikki_enabled.modifier_utility(scope:actor)"
+			}
+		}
+	}
+}
+
+crackdown_their_strongholds = {
+	type = religiousfaction
+	
+	sound = UI_action_religion_generic
+
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		scope:actor ?= {
+			NOT = { is_member_of_international_organization = "religion:shinto.var:ikko_ikki_enabled" }
+			OR = {
+				AND = {
+					country_type = building
+					any_owned_foreign_building_location = {
+						is_owned_by_international_organization = "religion:shinto.var:ikko_ikki_enabled"
+					}
+				}
+				AND = {
+					country_type = location
+					any_owned_location = {
+						is_owned_by_international_organization = "religion:shinto.var:ikko_ikki_enabled"
+					}
+				}
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:crackdown_their_strongholds
+
+	cooldown = {
+		type = crackdown_their_strongholds
+		years = 3
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			if = {
+				limit = { country_type = building }
+				random_owned_foreign_building_location = {
+					save_temporary_scope_as = target_location
+					religion:shinto.var:ikko_ikki_enabled = {
+						remove_location_from_international_organization = scope:target_location
+					}
+				}
+			}
+			if = {
+				limit = { country_type = location }
+				random_owned_location = {
+					save_temporary_scope_as = target_location
+					religion:shinto.var:ikko_ikki_enabled = {
+						remove_location_from_international_organization = scope:target_location
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		#how useful is the IO?
+		add = {
+			value = "religion:shinto.var:ikko_ikki_enabled.modifier_utility(scope:actor)"
+			multiply = -1
+		}
+
+		# are we not in the org?
+		add = {
+			if = {
+				limit = {
+					scope:actor ?= {
+						NOT = {
+							is_member_of_international_organization = "religion:shinto.var:ikko_ikki_enabled"
+						}
+					}
+				}
+				value = 10
+			}
+		}
+	}
+}
+
+
+#
+# Religious sects
+#
+
+increase_literacy_from_religious_sects = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+	}
+
+	cooldown = {
+		type = increase_literacy_from_religious_sects
+		years = 5
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:increase_literacy_from_religious_sects
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			add_country_modifier = { 
+				modifier = increased_literacy_from_religious_sects 
+				years = 5 
+				mode = add_and_extend
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.add_static_modifier_utility(increased_literacy_from_religious_sects)"
+	}
+}
+
+increase_clergy_satisfaction_from_religious_sects = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+	}
+	
+	cooldown = {
+		type = increase_clergy_satisfaction_from_religious_sects
+		years = 2
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:increase_clergy_satisfaction_from_religious_sects
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			add_estate_satisfaction = { type = estate_type:clergy_estate 
+				value = estate_satisfaction_mild_bonus
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.add_estate_satisfaction_utility(clergy_estate|0.1)"
+	}
+}
+
+favor_buddhist_schools_from_religious_sects = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		scope:actor = { 
+			NOT = { has_country_modifier = favoring_buddhism_schools }
+		}
+	}
+	
+	cooldown = {
+		type = favor_buddhist_schools_from_religious_sects
+		years = 10
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:favor_buddhist_schools_from_religious_sects
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			if = {
+				limit = { has_country_modifier = favoring_kami_worship }
+				remove_country_modifier = favoring_kami_worship
+			}
+			add_country_modifier = { modifier = favoring_buddhism_schools years = -1 mode = add_and_extend }
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.add_static_modifier_utility(favoring_buddhism_schools)"
+		subtract = "scope:actor.add_static_modifier_utility(favoring_kami_worship)"
+	}
+}
+
+favor_kami_worship_from_religious_sects = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		scope:actor = { 
+			NOT = { has_country_modifier = favoring_kami_worship }
+		}
+	}
+	
+	cooldown = {
+		type = favor_kami_worship_from_religious_sects
+		years = 10
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:favor_kami_worship_from_religious_sects
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			if = {
+				limit = { has_country_modifier = favoring_buddhism_schools }
+				remove_country_modifier = favoring_buddhism_schools
+			}
+			add_country_modifier = { modifier = favoring_kami_worship years = -1 mode = add_and_extend }
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.add_static_modifier_utility(favoring_kami_worship)"
+		subtract = "scope:actor.add_static_modifier_utility(favoring_buddhism_schools)"
+	}
+}
+
+keep_kami_and_buddha_balanced_from_religious_sects = {
+	icon = favor_buddhist_schools_from_religious_sects
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		scope:actor = { 
+			OR = { 
+				has_country_modifier = favoring_kami_worship
+				has_country_modifier = favoring_buddhism_schools
+			}
+		}
+	}
+	
+	cooldown = {
+		type = keep_kami_and_buddha_balanced_from_religious_sects
+		years = 10
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:keep_kami_and_buddha_balanced_from_religious_sects
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			if = {
+				limit = { has_country_modifier = favoring_kami_worship }
+				remove_country_modifier = favoring_kami_worship
+			}
+			if = {
+				limit = { has_country_modifier = favoring_buddhism_schools }
+				remove_country_modifier = favoring_buddhism_schools
+			}
+		}
+	}
+
+	ai_will_do = {
+		subtract = "scope:actor.add_static_modifier_utility(favoring_kami_worship)"
+		subtract = "scope:actor.add_static_modifier_utility(favoring_buddhism_schools)"
+	}
+}
+
+#Kirishitan
+
+baptize_ruler_from_kirishitan = {
+	icon = allow_safe_refuge
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		scope:actor ?= {
+			ruler ?= { religion.group != religion_group:christian }
+			NOT = { has_country_modifier = limited_kirishitan_movement }
+		}
+	}
+	
+	cooldown = {
+		type = baptize_ruler_from_kirishitan
+		years = 1
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:baptize_ruler_from_kirishitan
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			ruler ?= { change_character_religion = religion:catholic }
+		}
+	}
+
+	ai_will_do = {
+		add = -100
+		add = "scope:actor.religion_percentage_in_country(religion:catholic)"
+		add = "religion:catholic.modifier_utility(scope:actor)"
+	}
+}
+
+hold_public_kirishitan_mass = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		scope:actor ?= {
+			exists = capital
+			NOT = { has_country_modifier = limited_kirishitan_movement }
+		}
+	}
+	
+	cooldown = {
+		type = hold_public_kirishitan_mass
+		years = 2
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:hold_public_kirishitan_mass
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			capital ?= { 
+				save_scope_as = target_location
+				convert_pops_in_location_to_catholic = yes
+			}
+			add_gold = { value = monthly_income_trade_and_tax multiply = 2}
+		}
+
+	}
+
+	ai_will_do = {
+		value = {
+			scope:actor = {
+				value = monthly_income_trade_and_tax
+				multiply = 2
+				save_temporary_value_as = gains
+			}
+		}
+		add = "religion:catholic.modifier_utility(scope:actor)"
+		add = "scope:actor.currency_utility(gold|scope:gains)"
+	}
+}
+
+establish_treaty_with_kirishitan = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+		scope:actor = { 
+			exists = capital
+			NOT = { has_country_modifier = limited_kirishitan_movement }
+		}
+	}
+	
+	cooldown = {
+		type = establish_treaty_with_kirishitan
+		years = 5
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:establish_treaty_with_kirishitan
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			capital ?= { 
+				market = {
+					add_goods_supply = {
+						goods = goods:firearms
+						amount = market_goods_weak_gain
+					}
+				}
+				save_scope_as = target_location
+				convert_pops_in_location_to_catholic = yes
+			}
+			if = {
+				limit = {
+					scope:actor.monthly_manpower > 0
+				}
+				add_manpower = { value = scope:actor.monthly_manpower multiply = 3 }
+			}
+			custom_tooltip = {
+				text = convert_pops_in_location_to_catholic_tt
+				if = {
+					limit = { country_type = building }
+					random_owned_foreign_building_location = {
+						convert_pops_in_location_to_catholic = yes
+					}
+				}
+				if = {
+					limit = { country_type = location }
+					random_owned_location = {
+						convert_pops_in_location_to_catholic = yes
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.currency_utility(manpower|scope:actor.monthly_manpower)"
+		add = "religion:catholic.modifier_utility(scope:actor)"
+	}
+}
+
+limit_movement_of_kirishitan = {
+	type = religiousfaction
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_factions = yes
+		}
+	}
+
+	allow = {
+	}
+	
+	cooldown = {
+		type = limit_movement_of_kirishitan
+		years = 10
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+	
+	price = price:limit_movement_of_kirishitan
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_country_modifier = { modifier = limited_kirishitan_movement years = 10 mode = add_and_extend }
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.add_static_modifier_utility(limited_kirishitan_movement)"
+	}
+}

@@ -1,0 +1,593 @@
+﻿development_of_infrastructure = {
+	icon = generic_infrastructure
+	repeatable = yes
+	chance = 3600
+	player_playstyle = administrative
+
+	visible = {
+		game_has_missions_enabled = yes
+		NOT = { has_variable = recently_completed_development_of_infrastructure }
+		num_provinces > 1
+	}
+	on_start = {
+		set_variable = {
+			name = target_home_region_control_variable
+			value = {
+				add = average_control_in_home_region
+				multiply = 1.1
+				max = 0.9
+			}
+		}
+		if = {
+			limit = {
+				capital = {
+					any_neighbor_location = {
+						is_ownable = yes
+						has_owner = yes
+						owner ?= root
+						NOT = { has_latest_road_to = prev }
+					}
+				}
+			}
+			set_variable = {
+				name = num_connected_locations_to_cap_variable
+				value = 0
+			}
+			capital = {
+				every_neighbor_location = {
+					limit = { 
+						is_ownable = yes
+						has_owner = yes
+						owner ?= root
+						NOT = { has_latest_road_to = prev } 
+					}
+					owner = {
+						change_variable = {
+							name = num_connected_locations_to_cap_variable
+							add = 1
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				capital = {
+					province = { province_food > 0 }
+				}
+			}
+			set_variable = {
+				name = target_province_food_level
+				value = {
+					add = capital.province.province_food
+					add = {
+						value = capital.province.province_food
+						multiply = 0.1
+					}
+				}
+			}
+		}
+		if = {
+			limit = { capital.total_building_levels > 0 }
+			set_variable = {
+				name = target_building_levels_variable
+				value = {
+					value = capital.total_building_levels
+					add = 4
+					max = 70
+				}
+			}
+		}
+		else = {
+			set_variable = {
+				name = target_building_levels_variable
+				value = 3
+			}
+		}
+		if = {
+			limit = { 
+				capital = {
+					OR = {
+						has_building_with_at_least_one_level = royal_court 
+						has_building_with_at_least_one_level = republican_assembly
+					}
+				}
+			}
+			set_variable = alraedy_has_assembly_hall_variable
+		}
+		set_variable = {
+			name = target_capital_province_prosperity_variable
+			value = {
+				add = capital.province.province_prosperity
+				add = 0.2
+				max = 1
+			}
+		}
+		set_variable = {
+			name = target_capital_province_control_variable
+			value = {
+				add = capital.province.province_average_control
+				add = 0.1
+				max = 0.9
+			}
+		}
+		if = {
+			limit = {
+				capital = {
+					NOR = {
+						location_rank = location_rank:town
+						location_rank = location_rank:city
+						location_rank = location_rank:megalopolis
+					}
+				}
+			}
+			set_variable = capital_started_as_rural_location_variable
+		}
+		else_if = {
+			limit = {
+				capital = {
+					location_rank = location_rank:town
+				}
+			}
+			set_variable = capital_started_as_town_location_variable
+		}
+	}
+
+	on_abort = {
+		set_variable = {
+			name = recently_completed_development_of_infrastructure
+			years = 10
+		}
+		if = {
+			limit = { has_variable = num_connected_locations_to_cap_variable }
+			remove_variable = num_connected_locations_to_cap_variable
+		}
+		if = {
+			limit = { has_variable = target_province_food_level }
+			remove_variable = target_province_food_level
+		}
+		if = {
+			limit = { has_variable = capital_started_as_rural_location_variable }
+			remove_variable = capital_started_as_rural_location_variable
+		}
+		if = {
+			limit = { has_variable = capital_started_as_town_location_variable }
+			remove_variable = capital_started_as_town_location_variable
+		}
+		if = {
+			limit = { has_variable = alraedy_has_assembly_hall_variable }
+			remove_variable = alraedy_has_assembly_hall_variable
+		}
+		remove_variable = target_capital_province_prosperity_variable
+		remove_variable = target_home_region_control_variable
+	}
+
+	on_completion = {
+		set_variable = {
+			name = recently_completed_development_of_infrastructure
+			years = 25
+		}
+		if = {
+			limit = { has_variable = num_connected_locations_to_cap_variable }
+			remove_variable = num_connected_locations_to_cap_variable
+		}
+		if = {
+			limit = { has_variable = target_province_food_level }
+			remove_variable = target_province_food_level
+		}
+		if = {
+			limit = { has_variable = capital_started_as_rural_location_variable }
+			remove_variable = capital_started_as_rural_location_variable
+		}
+		if = {
+			limit = { has_variable = capital_started_as_town_location_variable }
+			remove_variable = capital_started_as_town_location_variable
+		}
+		if = {
+			limit = { has_variable = alraedy_has_assembly_hall_variable }
+			remove_variable = alraedy_has_assembly_hall_variable
+		}
+		remove_variable = target_capital_province_prosperity_variable
+		remove_variable = target_home_region_control_variable
+	}
+
+	a_great_capital = {
+		icon = cas_repoblaciones
+		enabled = {
+			capital.total_building_levels >= root.var:target_building_levels_variable
+		}
+
+
+		duration = 0
+
+		on_completion = {
+			if = {
+				limit = { capital.total_building_levels < 5 }
+				capital = { change_development = development_severe_bonus }
+			}
+			else = {
+				capital = {
+					change_development = {
+						value = this.total_building_levels
+						divide = 25
+						round = yes
+						max = 2
+					}
+				}
+				custom_tooltip = this_will_depend_on_how_many_buildings_our_capital_has_in_total_tt
+			}
+		}
+	}
+
+	mission_assembly_halls = {
+		icon = distribution_of_power_advance
+		visible = {
+			OR = {
+				has_advance = royal_court_advance
+				has_advance = republican_assembly_advance
+				NOT = { has_variable = alraedy_has_assembly_hall_variable }
+			}
+			OR = {
+				government_type = government_type:monarchy
+				government_type = government_type:republic
+			}
+		}
+		requires = { a_great_capital }
+		enabled = {
+			capital = {
+				OR = {
+					has_building_with_at_least_one_level = royal_court 
+					has_building_with_at_least_one_level = republican_assembly
+				}
+			}
+		}
+
+
+		duration = 0
+
+		on_completion = {
+			add_country_modifier = { 
+				modifier = symbol_of_power_modifier 
+				years = 5 
+				mode = replace 
+			}
+		}
+	}
+
+	mission_capital_province_prosperity = {
+		icon = debt_and_loans
+		requires = { a_great_capital }
+		enabled = {
+			capital = {
+				province = { province_prosperity >= root.var:target_capital_province_prosperity_variable }
+			}
+		}
+
+
+		duration = 0
+
+		on_completion = {
+			custom_tooltip = {
+				text = artist_events.5.tt
+				capital.province = {
+					every_location_in_province = {
+						limit = { owner ?= root }
+						every_pop = {
+							limit = { owner = root }
+							add_pop_satisfaction = pop_satisfaction_weak_bonus
+						}
+					}
+				}
+			}
+		}
+	}
+
+	mission_capital_province_control = {
+		icon = smooth_administration
+		requires = { a_great_capital }
+		enabled = {
+			capital = {
+				province = { province_average_control > root.var:target_capital_province_control_variable }
+			}
+		}
+		duration = 0
+		on_completion = {
+			capital.province = {
+				add_province_modifier = {
+					modifier = capital_authority_modifier
+					years = 10
+					mode = replace
+				}
+			}
+		}
+	}
+
+	mission_capital_town = {
+		icon = city_building_advance
+		visible = { has_variable = capital_started_as_rural_location_variable }
+		requires = { a_great_capital }
+		enabled = {
+			capital = {
+				OR = {
+					location_rank = location_rank:town
+					location_rank = location_rank:city
+					location_rank = location_rank:megalopolis
+				}
+			}
+		}
+
+
+		duration = 0
+
+		on_completion = {
+			capital = {
+				add_location_modifier = {
+					modifier = capital_expansion_modifier
+					years = 5
+				}
+			}
+		}
+	}
+
+	mission_capital_city = {
+		icon = defenses_of_novgorod
+		visible = { 
+			has_variable = capital_started_as_rural_location_variable 
+		}
+		requires = { 
+			mission_capital_town 
+		}
+		enabled = {
+			capital = {
+				employment_percentage > 0.75
+				any_pop = { 
+					pop_type = pop_type:burghers
+					culture = root.culture
+					religion = root.religion
+				}
+			}
+		}
+		duration = 0
+		on_completion = {
+			if = {
+				limit = {
+					capital = {
+						any_pop = { 
+							pop_type = pop_type:burghers
+							culture = root.culture
+							religion = root.religion
+						}
+					}
+				}
+				capital = {
+					random_pop = {
+						limit = {
+							owner = root
+							pop_type = pop_type:burghers
+							culture = root.culture
+							religion = root.religion
+						}
+						add_pop_size = {
+							value = pop_size 
+							multiply = { 0.05 0.15 }
+						}
+					}
+				}
+			}
+			else = { custom_tooltip = burghers_capital_grow_tt }
+
+			if = {
+				limit = {
+					NOT = { OR = { capital.location_rank = location_rank:city  capital.location_rank = location_rank:megalopolis } }
+				}
+				custom_tooltip = if_we_complete_as_city_we_gain_x_tt
+			}
+			else = {
+				capital = {
+					add_location_modifier = {
+						modifier = center_of_urbanization_modifier
+						years = modifier_duration_years_normal
+						mode = extend
+					}
+				}
+			}
+		}
+	}
+
+	mission_capital_city2 = {
+		icon = defenses_of_novgorod
+		visible = {
+			has_variable = capital_started_as_town_location_variable
+		}
+		requires = { 
+			a_great_capital
+		}
+		enabled = {
+			capital = { 
+				employment_percentage > 0.75
+				OR = { location_rank = location_rank:city  location_rank = location_rank:megalopolis }
+				any_pop = {
+					pop_type = pop_type:burghers
+					culture = root.culture
+					religion = root.religion
+				}
+			}
+		}
+		duration = 0
+		on_completion = {
+			capital = {
+				if = {
+					limit = {
+						any_pop = { 
+							pop_type = pop_type:burghers
+							culture = root.culture
+							religion = root.religion
+						}
+					}
+					random_pop = {
+						limit = {
+							owner = root
+							pop_type = pop_type:burghers
+							culture = root.culture
+							religion = root.religion
+						}
+						add_pop_size = {
+							value = pop_size 
+							multiply = { 0.05 0.15 }
+						}
+					}
+				}
+				else = { custom_tooltip = burghers_capital_grow_tt }
+
+				add_location_modifier = {
+					modifier = center_of_urbanization_modifier
+					years = modifier_duration_years_normal
+					mode = extend
+				}
+			}
+		}
+	}
+
+	mission_food_investment = {
+		icon = expanded_supply_trains
+		visible = { has_variable = target_province_food_level }
+		requires = { mission_capital_province_control }
+		enabled = {
+			capital.province.province_food >= root.var:target_province_food_level
+			capital ?= {
+				market ?= { market_monthly_food_balance > 0 }
+			}
+		}
+
+
+		duration = 0
+
+		on_completion = {
+			custom_tooltip = {
+				text = every_location_in_cap_prov_food_provisions_modifier
+				capital = {
+					province = {
+						every_location_in_province = {
+							add_location_modifier = {
+								modifier = capital_food_provisions_modifier
+								years = 5
+								mode = replace
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	mission_build_roads = {
+		icon = road_building
+		requires = { mission_capital_province_control }
+		enabled = {
+			trigger_if = {
+				limit = { has_variable = num_connected_locations_to_cap_variable }
+				capital = {
+					any_neighbor_location = {
+						has_latest_road_to = prev
+						count >= {
+							value = {
+								add = root.var:num_connected_locations_to_cap_variable
+								divide = 2
+								ceiling = yes
+							}
+						}
+					}
+				}
+			}
+			trigger_else = { 
+				custom_tooltip = {
+					text = mission_task_will_be_bypassed_tt
+					always = no 
+				}
+			}
+		}
+
+		bypass = {
+			OR = {
+				NOT = { has_variable = num_connected_locations_to_cap_variable }
+				var:num_connected_locations_to_cap_variable < 1
+			}
+		}
+
+
+		duration = 0
+
+		on_completion = {
+			change_societal_value = {
+				type = centralization_vs_decentralization
+				value = societal_value_move_to_left
+			}
+		}
+	}
+
+	mission_push_for_centralization = {
+		icon = glorious_arms
+		requires = { mission_capital_province_control }
+		enabled = {
+			modifier:monthly_towards_centralization > modifier:monthly_towards_decentralization
+		}
+
+		modifier_while_progressing = {
+			monthly_towards_centralization = societal_value_huge_monthly_move
+		}
+
+
+		duration = 730
+
+		on_start = { custom_tooltip = monthly_events_about_centralization_tt }
+
+		on_monthly = {
+			random_list = {
+				3 = { trigger_event_silently = generic_mission_events.6 }	#Petition for Decentralization
+				3 = { trigger_event_silently = generic_mission_events.13 }	#Urban Center Attracts Business
+				3 = { trigger_event_silently = generic_mission_events.14 }	#Nobles Resist Centralization
+				3 = { trigger_event_silently = generic_mission_events.15 }	#Rural Neglect
+				3 = { trigger_event_silently = generic_mission_events.16 }	#Standardized Taxation
+				3 = { trigger_event_silently = generic_mission_events.17 }	#New Town Emerges
+				82 = { }
+			}
+		}
+	}
+
+	mission_home_region_control = {
+		final = yes
+		icon = government_size_renaissance
+		requires = { mission_push_for_centralization }
+		enabled = {
+			average_control_in_home_region >= root.var:target_home_region_control_variable
+		}
+		duration = 0
+		on_completion = {
+			ruler_or_regent ?= {
+				add_adm = {
+					value = {
+						add = 15
+						multiply = root.average_control_in_home_region
+						ceiling = yes
+					}
+				}
+				add_dip = {
+					value = {
+						add = 15
+						multiply = root.average_control_in_home_region
+						ceiling = yes
+					}
+				}
+				add_mil = {
+					value = {
+						add = 15
+						multiply = root.average_control_in_home_region
+						ceiling = yes
+					}
+				}
+			}
+			custom_tooltip = will_scale_with_average_home_region_control_tt
+		}
+	}
+
+}

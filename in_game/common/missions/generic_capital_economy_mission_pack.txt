@@ -1,0 +1,1061 @@
+﻿generic_capital_economy = {
+	icon = generic_capital_economy 
+	repeatable = yes
+	player_playstyle = administrative
+	visible = {
+		game_has_missions_enabled = yes
+		num_of_non_rural > 0
+		has_enabled_mission_trigger = { type = generic_capital_economy }
+		country_has_estate = estate_type:burghers_estate
+		NOT = { has_variable = recently_had_generic_capital_economy_variable }
+	}
+
+	enabled = {
+		exists = capital.market
+	}
+	
+	chance = 3600
+	select_trigger = {
+		looking_for_a = market
+		target_flag = mission_target_market
+		interaction_source_list = {
+			scope:actor = {
+				every_market_present_in_country = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "mission_select_market"
+		none_available_msg_key = "mission_no_markets"
+		column = {
+			data = name
+		}
+		visible = {
+			merchant_capacity = {
+				country = scope:actor
+				value > 0
+			}
+		}
+	}
+	on_start = {
+		"estate(estate_type:burghers_estate)" = {
+			root = {
+				set_variable = {
+					name = mission_task_privilege_amount
+					value = {
+						value = 2
+						add = prev.num_privileges
+					}
+				}
+			}
+		}
+		set_variable = {
+			name = mission_target_market
+			value = scope:mission_target_market
+		}
+	}
+	on_completion = {
+		set_variable = {
+			name = recently_had_generic_capital_economy_variable
+			years = 25
+		}
+		disable_mission_effect = { type = generic_capital_economy }
+		remove_variable = mission_task_privilege_amount
+		remove_variable = mission_task_burghers_increase_amount
+		remove_variable = mission_task_control_increase_to_max
+
+		#Industry Focus Cleanup
+		remove_variable = mission_target_goods
+		remove_variable = mission_target_market
+		remove_variable = mission_task_construction_material_output
+		remove_variable = mission_construct_additional_goods_producing_buildings
+		remove_variable = mission_profit_to_beat
+
+		#Trade Focus Cleanup
+		remove_variable = mission_task_merchant_capacity_increase
+		remove_variable = mission_task_merchant_power_increase
+		remove_variable = mission_task_total_goods_value_increase
+		remove_variable = mission_task_num_of_markets
+		remove_variable = mission_task_trade_income_to_beat
+	}
+
+	on_abort = {
+		set_variable = {
+			name = recently_had_generic_capital_economy_variable
+			years = 10
+		}
+		remove_variable = mission_task_privilege_amount
+		remove_variable = mission_task_burghers_increase_amount
+		remove_variable = mission_task_control_increase_to_max
+		remove_variable = mission_target_market
+
+		#Industry Cleanup
+		remove_variable = mission_target_goods
+		remove_variable = mission_task_construction_material_output
+		remove_variable = mission_construct_additional_goods_producing_buildings
+		remove_variable = mission_profit_to_beat
+
+		#Trade Focus Cleanup
+		remove_variable = mission_task_merchant_capacity_increase
+		remove_variable = mission_task_merchant_power_increase
+		remove_variable = mission_task_total_goods_value_increase
+		remove_variable = mission_task_num_of_markets
+		remove_variable = mission_task_trade_income_to_beat
+	}
+
+	mission_grant_burghers_privileges = {
+		icon = cultural_acceptance_advance
+		requires = {  }
+		enabled = {
+			trigger_if = {
+				limit = { has_variable = mission_task_privilege_amount }
+				OR = {
+					AND = {
+						"estate(estate_type:burghers_estate)" = {
+							num_privileges >= root.var:mission_task_privilege_amount
+						}
+						estate_satisfaction:burghers_estate >= 0.5
+					}
+					estate_satisfaction:burghers_estate >= 0.6
+				}
+			}
+			trigger_else = { always = no }
+		}
+		bypass = { 
+			NOT = { country_has_estate = estate_type:burghers_estate } 
+		}	
+		duration = 0
+
+		on_completion = {
+			ordered_owned_non_rural_location = {
+				order_by = {
+					value = development
+					multiply = {
+						value = market_access
+						add = local_control
+					}
+				}
+				max = {
+					value = "estate_power(estate_type:crown_estate)"
+					multiply = 4
+					ceiling = yes
+				}
+				add_location_modifier = {
+					modifier = powerful_center_of_burghers_modifier
+					years = modifier_duration_years_normal
+					mode = replace
+				}
+			}
+			custom_tooltip = up_to_4_locations_decaying_mod_based_on_crown_power_tt
+		}
+	}
+
+	mission_setup_trade = {
+		icon = merchants_and_trade
+		requires = {  }
+		enabled = {
+			num_of_trades > 0
+			any_trade = {
+				OR = {
+					from_market = scope:mission_target_market
+					to_market = scope:mission_target_market
+				}
+			}
+		}
+		on_persistent_completion = {
+			custom_tooltip = designate_urban_location_for_next_task_tt
+			if = {
+				limit = { exists = scope:mission_setup_trade_target_location }
+				set_variable = {
+					name = mission_task_burghers_increase_amount
+					value = {
+						value = scope:mission_setup_trade_target_location.num_pop_type:burghers
+						add = 0.2
+					}
+				}
+			}
+		}
+		#Triggered when the task gets completed
+		select_trigger = {
+			looking_for_a = location
+			source = actor
+			target_flag = mission_setup_trade_target_location
+			name = "mission_task_select_town_or_city"
+			none_available_msg_key = "mission_task_no_town_or_city"
+			column = {
+				data = name
+			}
+			column = {
+				data = population
+			}
+			visible = {
+				has_owner = yes
+				owner = scope:actor
+				market ?= scope:mission_target_market
+				rank_index <= 2
+			}
+		}
+	}
+
+	mission_attracting_new_burghers = {
+		icon = maritime_advance_age_2
+		requires = {
+			mission_grant_burghers_privileges
+			mission_setup_trade
+		}
+		enabled = {
+			trigger_if = {
+				limit = { exists = scope:mission_setup_trade_target_location }
+				scope:mission_setup_trade_target_location = {
+					num_pop_type:burghers >= root.var:mission_task_burghers_increase_amount
+					owner = root
+				}
+			}
+			trigger_else = { 
+				custom_tooltip = {
+					text = triggers_revealed_after_previous_task_complete_tt 
+					always = no
+				}
+			}
+		}
+		bypass = { 
+			NOT = { country_has_estate = estate_type:burghers_estate } 
+		}
+		duration = 0
+
+		on_completion = {
+			change_societal_value = {
+				type = capital_economy_vs_traditional_economy
+				value = societal_value_minor_move_to_left
+			}
+		}
+	}
+
+	mission_embrace_capital_economy = {
+		icon = court_accounting
+		requires = { mission_attracting_new_burghers }
+		duration = 365
+		on_persistent_completion = {
+			if = {
+				limit = { exists = scope:mission_setup_trade_target_location }
+				set_variable = {
+					name = mission_task_control_increase_to_max
+					value = scope:mission_setup_trade_target_location.max_control
+				}
+			}
+		}
+		modifier_while_progressing = {
+			monthly_towards_capital_economy = societal_value_huge_monthly_move
+		}
+
+		on_start = {
+			custom_tooltip = monthly_events_about_capital_economy_tt 
+		}
+
+		on_monthly = {
+			random_list = {
+				5 = { trigger_event_silently = generic_mission_events.24 }
+				5 = { trigger_event_silently = generic_mission_events.25 }
+				5 = { trigger_event_silently = generic_mission_events.26 }
+				5 = { trigger_event_silently = generic_mission_events.27 }
+				5 = { trigger_event_silently = generic_mission_events.28 }
+				75 = { }
+			}
+		}
+	}
+
+	mission_prepare_industry_focus = {
+		icon = rudimentary_coastal_ship_repair
+		visible = {
+			NOT = { mission_task_completed = mission_task:mission_prepare_trade_focus }
+		}
+		requires = { mission_embrace_capital_economy }
+		highlight = {
+			this = scope:mission_setup_trade_target_location
+		}
+		enabled = {
+			trigger_if = {
+				limit = {
+					exists = scope:mission_setup_trade_target_location
+					has_variable = mission_task_control_increase_to_max
+				}
+				scope:mission_setup_trade_target_location = {
+					owner = root
+					controller = root
+					rank_index <= 2
+					province ?= { is_starving = no }
+					has_siege = no
+					local_control >= root.var:mission_task_control_increase_to_max
+				}
+			}
+			trigger_else = { 
+				custom_tooltip = {
+					text = need_mission_embrace_capital_economy_tt
+					always = no 
+				}
+			}
+			NOT = { mission_task_completed = mission_task:mission_prepare_trade_focus }
+		}
+		duration = 0
+		#scope:goods
+		select_trigger = {
+			looking_for_a = goods
+			target_flag = goods
+			name = "mission_select_goods"
+			none_available_msg_key = "mission_no_goods"
+			column = {
+				data = name
+			}
+			visible = {
+				scope:mission_target_market = {
+					NOT = { is_export_banned = root }
+				}
+				goods_category = produced
+				any_production_method = {
+					is_available_for = scope:actor
+					produced_goods ?= root
+				}
+			}
+		}
+		on_persistent_start = {
+			if = {
+				limit = { exists = scope:goods }
+				set_variable = {
+					name = mission_target_goods
+					value = scope:goods
+				}
+			}
+			set_variable = {
+				name = mission_task_construction_material_output
+				value = {
+					value = scope:mission_setup_trade_target_location.raw_material_output
+					divide = 4
+					add = scope:mission_setup_trade_target_location.raw_material_output
+				}
+			}
+			set_variable = {
+				name = mission_target_market
+				value = scope:mission_target_market
+			}
+		}
+		on_completion = {
+			add_country_modifier = {
+				modifier = mission_industry_focus_modifier
+				years = modifier_duration_years_normal
+				mode = replace
+			}
+		}
+		on_persistent_completion = {
+			if = {
+				limit = { NOT = { exists = scope:goods } }
+				ordered_goods = {
+					order_by = "price_in_market(scope:mission_target_market)"
+					limit = {
+						goods_category = produced
+						scope:mission_target_market ?= {
+							NOT = { is_export_banned = PREV }
+						}
+						any_production_method = {
+							is_available_for = root
+							produced_goods ?= prev
+						}
+					}
+					max = 1
+					save_scope_as = goods
+				}
+			}
+		}
+	}
+
+	mission_expand_construction_materials = {
+		icon = rudimentary_coastal_ship_repair
+		visible = { has_variable = mission_target_goods }
+		requires = { mission_prepare_industry_focus }
+		bypass = { mission_task_completed = mission_task:mission_import_construction_materials }
+		highlight = {
+			has_owner = yes
+			owner = root
+			raw_material ?= {
+				OR = {
+					this = goods:lumber
+					this = goods:stone
+					this = goods:sand
+					this = goods:clay
+				}
+			}
+			trigger_if = {
+				limit = { root = { has_variable = mission_task_construction_material_output } }
+				raw_material_output < root.var:mission_task_construction_material_output
+			}
+			is_full_expanded_rgo = no
+		}
+		enabled = {
+			trigger_if = {
+				limit = { has_variable = mission_task_construction_material_output }
+				any_owned_location = {
+					raw_material ?= {
+						OR = {
+							this = goods:lumber
+							this = goods:stone
+							this = goods:sand
+							this = goods:clay
+						}
+					}
+					OR = {
+						raw_material_output >= root.var:mission_task_construction_material_output
+						is_full_expanded_rgo = yes
+					}
+				}
+			}
+			trigger_else = { always = no }
+		}
+
+		on_completion = {
+			add_country_modifier = {
+				modifier = surge_of_materials_modifier
+				years = 5
+				mode = replace
+			}
+			ordered_owned_location = {
+				limit = {
+					OR = {
+						raw_material = goods:lumber
+						raw_material = goods:stone
+						raw_material = goods:sand
+						raw_material = goods:clay
+					}
+				}
+				order_by = raw_material_output
+				check_range_bounds = no
+				max = {
+					value = "estate_power(estate_type:crown_estate)"
+					multiply = 5
+					ceiling = yes
+				}
+				change_prosperity = prosperity_weak_bonus
+			}
+		}
+	}
+	mission_import_construction_materials = {
+		icon = continental_trade
+		visible = { has_variable = mission_target_goods }
+		requires = { mission_prepare_industry_focus }
+		bypass = { mission_task_completed = mission_task:mission_expand_construction_materials }
+		enabled = {
+			trigger_if = {
+				limit = { has_variable = mission_target_market }
+				var:mission_target_market = {
+					any_import = {
+						OR = {
+							goods = goods:lumber
+							goods = goods:stone
+							goods = goods:sand
+							goods = goods:clay
+						}
+					}
+				}
+			}
+			trigger_else = {
+				always = no
+			}
+		}
+		on_completion = {
+			var:mission_target_market ?= {
+				ordered_location_in_market = {
+					limit = {
+						owner ?= root
+					}
+					order_by = {
+						value = population
+						multiply = local_control
+					}
+					max = 2
+	
+					add_location_modifier = {
+						modifier = import_center_modifier
+						mode = replace
+						years = modifier_duration_years_normal
+					}
+				}
+			}
+		}
+	}
+	
+	mission_secure_construction_material = {
+		icon = pyramid_architecture
+		visible = { has_variable = mission_target_goods }
+		requires = {
+			mission_expand_construction_materials
+			mission_import_construction_materials
+		}
+		enabled = {
+			scope:mission_target_market ?= {
+				OR = {
+					market_possible_goods_trade_surplus = { goods = goods:lumber country = root value > 5 }
+					market_possible_goods_trade_surplus = { goods = goods:stone country = root value > 5 }
+					market_possible_goods_trade_surplus = { goods = goods:sand country = root value > 5 }
+					market_possible_goods_trade_surplus = { goods = goods:clay country = root value > 5 }
+				}
+			}
+		}
+		on_completion = {
+			add_estate_satisfaction = { 
+				type = estate_type:burghers_estate
+				value = estate_satisfaction_mild_bonus
+			}
+		}
+	}
+
+	mission_secure_production_resource = {
+		icon = expanded_supply_trains
+		visible = { has_variable = mission_target_goods }
+		requires = { mission_prepare_industry_focus }
+		highlight = {
+			has_owner = yes
+			owner = root
+			raw_material = {
+				any_production_method = {
+					is_available_for = root
+					produced_goods ?= root.var:mission_target_goods
+					requires_goods = prev
+				}
+			}
+		}
+		enabled = {
+			any_production_method = {
+				produced_goods ?= root.var:mission_target_goods
+				is_available_for = root
+				custom_tooltip = {
+					text = mission_secure_production_resource_tt
+					any_required_goods = {
+						is_in_surplus_in_market = { market = scope:mission_target_market country = root value > 0 }
+						count = all
+					}
+				}
+			}
+		}
+		on_persistent_completion = {
+			hidden_effect = {
+				set_variable = {
+					name = mission_construct_additional_goods_producing_buildings
+					value = {
+						value = "total_effective_goods_production_buildings(var:mission_target_goods)"
+						multiply = 1.2
+						ceiling = yes
+					}
+				}
+				round_variable = {
+					name = mission_construct_additional_goods_producing_buildings
+					nearest = 1
+				}
+			}
+		}
+		on_completion = {
+			ordered_owned_location = {
+				limit = {
+					raw_material = {
+						any_production_method = {
+							is_available_for = root
+							produced_goods ?= root.var:mission_target_goods
+							requires_goods = prev
+						}
+					}
+				}
+				order_by = raw_material_output
+				check_range_bounds = no
+				max = {
+					value = "estate_power(estate_type:crown_estate)"
+					multiply = 5
+					ceiling = yes
+				}
+				add_location_modifier = {
+					modifier = secured_raw_materials_modifier
+					years = modifier_duration_years_normal
+					mode = replace
+				}
+			}
+		}
+	}
+
+	mission_construct_goods_industry = {
+		icon = colonial_heritage
+		visible = { mission_task_completed = mission_task:mission_prepare_industry_focus }
+		requires = {
+			mission_secure_construction_material
+			mission_secure_production_resource
+		}
+		highlight = {
+			has_owner = yes
+			owner = root
+		}
+		enabled = {
+			trigger_if = {
+				limit = { has_variable = mission_construct_additional_goods_producing_buildings }
+				total_effective_goods_production_buildings = {
+					goods = var:mission_target_goods
+					value >= var:mission_construct_additional_goods_producing_buildings
+				}
+				always = yes
+			}
+			trigger_else = { 
+				custom_tooltip = {
+					text = when_we_complete_mission_secure_production_resource_tt
+					always = no
+				}
+			}
+		}
+		on_completion = {
+			add_country_modifier = {
+				modifier = advances_in_production_modifier
+				years = modifier_duration_years_normal
+				mode = replace
+			}
+		}
+	}
+
+	mission_satisfy_own_demands = {
+		icon = local_nobility
+		visible = { mission_task_completed = mission_task:mission_prepare_industry_focus }
+		requires = { mission_construct_goods_industry }
+		highlight = {
+			has_owner = yes
+			owner = root
+		}
+		enabled = {
+			scope:mission_target_market ?= {
+				exists = root.var:mission_target_goods
+				NOT = { demands_goods_by_pops = root.var:mission_target_goods }		
+			}
+		}
+		on_completion = {
+			add_stability = stability_mild_bonus
+		}
+	}
+
+	mission_export_produced_goods = {
+		icon = maritime_advance_age_2
+		visible = { mission_task_completed = mission_task:mission_prepare_industry_focus }
+		requires = { mission_construct_goods_industry }
+		highlight = {
+			has_owner = yes
+			owner = root
+		}
+		enabled = {
+			trigger_if = {
+				limit = { 
+					has_variable = mission_target_goods 
+					has_variable = mission_target_market
+				}
+				scope:mission_target_market = {
+					any_export = {
+						owner ?= root
+						goods = root.var:mission_target_goods
+						trade_profit > 0
+					}
+				}
+			}
+			trigger_else_if = {
+				limit = { has_variable = mission_target_market }
+				scope:mission_target_market = {
+					any_export = {
+						owner ?= root
+						trade_profit > 0
+					}
+				}
+			}
+			trigger_else = {
+				capital.market = {
+					any_export = {
+						owner ?= root
+						trade_profit > 0
+					}
+				}
+			}
+		}
+		on_persistent_completion = {
+			hidden_effect = {
+				if = {
+					limit = {
+						exists = root.var:mission_target_goods
+					}
+					scope:mission_target_market = {
+						random_export = {
+							limit = {
+								owner ?= root
+								goods = root.var:mission_target_goods
+								trade_profit > 0
+							}
+							save_scope_as = target_trade
+						}
+					}
+					set_variable = {
+						name = mission_profit_to_beat
+						value = {
+							value = scope:target_trade.trade_profit
+							multiply = 2
+							add = 1
+						}
+					}
+				}
+			}
+		}
+
+		on_completion = {
+			add_country_modifier = {
+				modifier = profitable_exports_modifier
+				years = modifier_duration_years_normal
+				mode = replace
+			}
+		}
+	}
+
+	mission_create_profit = {
+		icon = improve_relation_impact_renaissance
+		visible = { mission_task_completed = mission_task:mission_prepare_industry_focus }
+		requires = {
+			mission_satisfy_own_demands
+			mission_export_produced_goods
+		}
+		final = yes
+		highlight = {
+			has_owner = yes
+			owner = root
+		}
+		enabled = {
+			trigger_if = {
+				limit = { has_variable = mission_profit_to_beat }
+				scope:mission_target_market = {
+					any_export = {
+						owner ?= root
+						goods = root.var:mission_target_goods
+						trade_profit > root.var:mission_profit_to_beat
+					}
+				}
+			}
+			trigger_else = { 
+				custom_tooltip = {
+					text = requires_mission_export_produced_goods_tt
+					always = no 
+				}
+			}
+		}
+		on_completion = {
+			add_country_modifier = {
+				modifier = profit_dividents_modifier
+				years = modifier_duration_years_long
+				mode = replace
+			}
+		}
+	}
+
+	mission_prepare_trade_focus = {
+		visible = {
+			NOT = { mission_task_completed = mission_task:mission_prepare_industry_focus }
+		}
+		icon = merchant_power_from_maritime_reformation_advance
+		requires = { mission_embrace_capital_economy }
+		enabled = {
+			scope:mission_target_market = {
+				has_merchant = root
+				used_merchant_capacity = {
+					country = root
+					value > 5
+				}
+			}
+			NOT = { mission_task_completed = mission_task:mission_prepare_industry_focus }
+		}
+		duration = 0
+		on_persistent_start = {
+			set_variable = {
+				name = mission_task_merchant_capacity_increase
+				value = {
+					value = "scope:mission_target_market.merchant_capacity(root)"
+					multiply = 1.5
+				}
+			}
+			set_variable = {
+				name = mission_task_merchant_power_increase
+				value = {
+					value = "scope:mission_target_market.merchant_power_in_market(root)"
+					if = {
+						limit = { 
+							OR = { 
+								current_age = age_1_traditions
+								current_age = age_2_renaissance
+							}
+						}
+						multiply = 1.15
+					}
+					else_if = {
+						limit = { current_age = age_3_discovery }
+						multiply = 1.2
+					}
+					else_if = {
+						limit = { current_age = age_4_reformation }
+						multiply = 1.25
+					}
+					else_if = {
+						limit = { current_age = age_5_absolutism }
+						multiply = 1.3
+					}
+					else_if = {
+						limit = { current_age = age_6_revolutions }
+						multiply = 1.35
+					}
+				}
+			}
+		}
+		on_completion = {
+			add_country_modifier = {
+				modifier = mission_trade_focus_modifier
+				years = modifier_duration_years_normal
+				mode = replace
+			}
+		}
+	}
+
+	mission_expand_merchant_capacity = {
+		visible = { has_variable = mission_task_merchant_capacity_increase }
+		icon = maritime_advance_age_2
+		requires = { mission_prepare_trade_focus }
+		enabled = { 
+			trigger_if = {
+				limit = { has_variable = mission_task_merchant_capacity_increase }
+				scope:mission_target_market = {
+					merchant_capacity = {
+						country = root
+						value >= root.var:mission_task_merchant_capacity_increase
+					}
+				}
+			}
+			trigger_else = { always = no }
+		}
+		duration = 0
+
+		on_completion = {
+			add_country_modifier = {
+				modifier = rush_of_merchants
+				years = modifier_duration_years_normal
+				mode = extend
+			}
+		}
+	}
+
+	mission_expand_merchant_power = {
+		visible = { has_variable = mission_task_merchant_capacity_increase }
+		icon = global_supply_limit_modifier_advance_5
+		requires = { mission_prepare_trade_focus }
+		enabled = { 
+			trigger_if = {
+				limit = { has_variable = mission_task_merchant_power_increase }
+				scope:mission_target_market = {
+					merchant_power_in_market = {
+						country = root
+						value >= root.var:mission_task_merchant_power_increase
+					}
+				}
+			}
+			trigger_else = { 
+				custom_tooltip = {
+					text = requirements_for_this_task_arent_available_yet_tt
+					always = no 
+				}
+			}
+		}
+		duration = 0
+
+		on_completion = {
+			add_country_modifier = {
+				modifier = si_better_exports
+				years = modifier_duration_years_normal
+				mode = extend
+			}
+		}
+	}
+
+	mission_get_into_profitable_export = {
+		visible = { has_variable = mission_task_merchant_capacity_increase }
+		icon = merchants_and_trade
+		requires = { mission_expand_merchant_capacity }
+		enabled = { 
+			scope:mission_target_market = {
+				any_export = {
+					owner ?= root
+					trade_profit > 0
+					count >= 4
+				}
+			}
+		}
+		duration = 0
+
+		on_completion = {
+			change_gold_effect = { scale = 1 }
+		}
+	}
+
+	mission_get_into_profitable_import = {
+		visible = { has_variable = mission_task_merchant_capacity_increase }
+		icon = merchant_power_from_maritime_reformation_advance
+		requires = { mission_expand_merchant_power }
+		enabled = { 
+			scope:mission_target_market = {
+				any_import = {
+					owner ?= root
+					trade_profit > 0
+					count >= 4
+				}
+			}
+		}
+		duration = 0
+		on_persistent_completion = {
+			set_variable = {
+				name = mission_task_total_goods_value_increase
+				value = {
+					value = scope:mission_target_market.total_goods_value_traded
+					multiply = { 1.05 1.1 }
+				}
+			}
+		}
+
+		on_completion = {
+			change_gold_effect = { scale = 1 }
+		}
+	}
+
+	mission_improve_market_worth = {
+		visible = { has_variable = mission_task_merchant_capacity_increase }
+		icon = court_accounting
+		requires = {
+			mission_get_into_profitable_export
+			mission_get_into_profitable_import
+		}
+		enabled = { 
+			trigger_if = {
+				limit = { has_variable = mission_task_total_goods_value_increase }
+				scope:mission_target_market = {
+					total_goods_value_traded > root.var:mission_task_total_goods_value_increase
+				}
+			}
+			trigger_else = { always = no }
+		}
+		duration = 0
+		on_persistent_completion = {
+			remove_variable = mission_task_total_goods_value_increase
+			set_variable = {
+				name = mission_task_num_of_markets
+				value = {
+					value = num_of_markets_with_merchants
+					add = 3
+				}
+			}
+		}
+
+		on_completion = {
+			custom_tooltip = up_to_5_locations_decaying_mod_based_on_crown_power_and_scale_dev_tt
+			ordered_owned_location = {
+				limit = {
+					market = scope:mission_target_market
+				}
+				order_by = market_access
+				check_range_bounds = no
+				max = {
+					value = "estate_power(estate_type:crown_estate)"
+					multiply = 5
+					ceiling = yes
+				}
+				change_development = {
+					value = development_mild_bonus
+					multiply = market_access
+				}
+			}
+		}
+	}
+
+	mission_trade_in_new_markets = {
+		visible = { has_variable = mission_task_merchant_capacity_increase }
+		icon = route_to_the_indies_advance
+		requires = { mission_improve_market_worth }
+		enabled = { 
+			trigger_if = {
+				limit = { has_variable = mission_task_num_of_markets }
+				num_of_markets_with_merchants >= var:mission_task_num_of_markets
+				always = yes
+			}
+			trigger_else = { always = no }
+		}
+		duration = 0
+		on_persistent_completion = {
+			remove_variable = mission_task_total_goods_value_increase
+			set_variable = {
+				name = mission_task_trade_income_to_beat
+				value = {
+					value = monthly_trade_income
+					multiply = 1.25
+				}
+			}
+		}
+		on_completion = {
+			capital = {
+				add_location_modifier = {
+					modifier = center_of_urban_exchange_modifier
+					years = modifier_duration_years_normal
+					mode = extend
+				}
+			}
+		}
+	}
+
+	mission_light_ships = {
+		visible = { 
+			has_variable = mission_task_merchant_capacity_increase 
+			num_of_ports > 0
+		}
+		icon = global_trade_routes_advance
+		requires = { mission_improve_market_worth }
+		bypass = {
+			num_of_ports = 0
+		}
+		enabled = {
+			OR = {
+				navy_size_percentage >= 0.5
+				total_sub_unit_count:navy_light_ship >= {
+					value = 1
+					add = {
+						value = root.monthly_income_trade_and_tax
+						multiply = 0.05
+					}
+				}
+			}
+		}
+		duration = 0
+
+		on_completion = {
+			add_navy_tradition = navy_tradition_extreme_bonus
+		}
+	}
+
+	mission_embrace_capital_economy_trade_focus = {
+		visible = { has_variable = mission_task_merchant_capacity_increase }
+		icon = improve_relation_impact_renaissance
+		requires = {
+			mission_trade_in_new_markets
+			mission_light_ships
+		}
+		enabled = {
+			trigger_if = {
+				limit = { has_variable = mission_task_trade_income_to_beat }
+				monthly_trade_income >= var:mission_task_trade_income_to_beat
+			}
+			trigger_else = { always = no }
+		}
+		final = yes
+		duration = 0
+		on_completion = {
+			add_country_modifier = {
+				modifier = new_capital_economy
+				years = modifier_duration_years_long
+				mode = replace
+			}
+		}
+	}
+}

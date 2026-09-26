@@ -1,0 +1,203 @@
+﻿lutheranism_movement = {
+	religion = lutheran
+
+	# Only active while the reformation situation is running
+	potential = {
+		situation:reformation = {
+			situation_is_active = yes
+		}
+	}
+
+	# Never spawned by the monthly scheduler — spawned once in reformation on_start
+	monthly_spawn_chance = { value = 0 }
+	spawn = { }
+
+	# How much each spreader character boosts infection in their location per day
+	environmental_infection = { value = 0.05 }
+
+	# Base epidemic growth rate; lower than roman_culture_movement because religion spread is slower.
+	# Phase 1 (Lever 1) — time-phased multiplier anchored to council_of_trent situation lifecycle.
+	# Stochastic { 0.0 X } range form preserves the current spread variance at each phase.
+	r0 = {
+		# Schmalkaldic boom: ≥5y after Reformation spawn, Trent not yet started, capped at 40y
+		# so a player who indefinitely delays Trent doesn't ride the boom forever.
+		if = {
+			limit = {
+				situation:reformation = {
+					years_since_situation_start >= 5
+					years_since_situation_start < 40
+				}
+				NOT = { situation:council_of_trent = { situation_is_active = yes } }
+				NOT = { situation:council_of_trent = { situation_has_ended = yes } }
+			}
+			value = { 0.0 0.030 }
+		}
+		# Council of Trent active: world watches, growth slows but does not pause.
+		else_if = {
+			limit = { situation:council_of_trent = { situation_is_active = yes } }
+			value = { 0.0 0.012 }
+		}
+		# Counter-Reformation: Trent ended, <60y since Reformation spawn — borders harden.
+		else_if = {
+			limit = {
+				situation:council_of_trent = { situation_has_ended = yes }
+				situation:reformation = { years_since_situation_start < 60 }
+			}
+			value = { 0.0 0.004 }
+		}
+		# Stable confessional boundaries: post-Trent and ≥60y since Reformation spawn.
+		else_if = {
+			limit = { situation:council_of_trent = { situation_has_ended = yes } }
+			value = { 0.0 0.002 }
+		}
+		# Fallthrough: pre-boom (<5y post-spawn), or boom-exhaust (≥40y, Trent never convened).
+		else = {
+			value = { 0.0 0.012 }
+		}
+
+		if = {
+			limit = { exists = root }
+			# Lever 2 — per-location amplifiers (multiplicative on top of the L1 phase value).
+			# Urban tier (graduated, mutually exclusive ranks — only one fires per location).
+			if = {
+				limit = { location_rank ?= location_rank:town }
+				multiply = 1.05
+			}
+			if = {
+				limit = { location_rank ?= location_rank:city }
+				multiply = 1.15
+			}
+			if = {
+				limit = { location_rank ?= location_rank:megalopolis }
+				multiply = 1.20
+			}
+			# Printing press — the canonical Reformation vector. Institution embraced + advance
+			# researched stack, but each fires independently.
+			if = {
+				limit = { owner ?= { has_embraced_institution = institution:printing_press } }
+				multiply = 1.25
+			}
+			if = {
+				limit = { owner ?= { has_advance = printing_press_advance } }
+				multiply = 1.10
+			}
+			# HRE princes-vs-Catholic-emperor vector (Lutheran-specific — Calvinism's spread was
+			# principally outside HRE so this row is absent from calvinism_movement.txt).
+			if = {
+				limit = {
+					owner ?= { is_member_of_international_organization = international_organization:hre }
+					international_organization:hre = { leader_country ?= { religion = religion:catholic } }
+				}
+				multiply = 1.10
+			}
+			# Cluster momentum — neighbor location is majority-Lutheran. Uses dominant_religion
+			# (cached) rather than religion_percentage (recomputes pop tallies per call).
+			if = {
+				limit = { any_neighbor_location = { dominant_religion ?= religion:lutheran } }
+				multiply = 1.10
+			}
+	
+			# Lever 5 — anti-flip-flop: if location is already strongly Calvinist, Lutheranism
+			# spreads at half R0. Prevents oscillating Lutheran → Calvinist → Lutheran in
+			# border regions. Stacks multiplicatively with the L1 phase value above.
+			if = {
+				limit = { "religion_percentage(religion:calvinist)" > 0.3 }
+				multiply = 0.5
+			}
+			add = {
+				desc = movement_factor_scriptorium
+				if = { limit = { has_building_with_at_least_one_level = scriptorium }           value = 0.0010 }
+			}
+			add = {
+				desc = movement_factor_printing_press_shop
+				if = { limit = { has_building_with_at_least_one_level = printing_press_shop }   value = 0.0020 }
+			}
+			add = {
+				desc = movement_factor_paper_guild
+				if = { limit = { has_building_with_at_least_one_level = paper_guild }           value = 0.0005 }
+			}
+			add = {
+				desc = movement_factor_paper_workshop
+				if = { limit = { has_building_with_at_least_one_level = paper_workshop }        value = 0.0010 }
+			}
+			add = {
+				desc = movement_factor_university
+				if = { limit = { has_building_with_at_least_one_level = university }            value = 0.0015 }
+			}
+			add = {
+				desc = movement_factor_friendly_with_pope
+				if = { limit = { owner ?= { opinion = { target = c:PAP value > 100 } } }        value = -0.0020 }
+			}
+			add = {
+				desc = movement_factor_no_cardinals
+				if = { limit = { owner ?= { num_cardinals = 0 } }                               value = 0.0010 }
+			}
+		}
+		else = {
+			add = { desc = movement_factor_scriptorium          value = 0.0010 }
+			add = { desc = movement_factor_printing_press_shop  value = 0.0020 }
+			add = { desc = movement_factor_paper_guild          value = 0.0005 }
+			add = { desc = movement_factor_paper_workshop       value = 0.0010 }
+			add = { desc = movement_factor_university           value = 0.0015 }
+			add = { desc = movement_factor_friendly_with_pope   value = -0.0020 }
+			add = { desc = movement_factor_no_cardinals         value = 0.0010 }
+		}
+	}
+
+	calc_interval_days = {20 40}
+
+	# Only pops of these religions can convert to Lutheranism
+	required_religions = {
+		anglican
+		calvinist
+		catharism
+		catholic
+		hussite
+		lollardy
+		waldensian
+	}
+
+	development = positive
+	literacy = positive
+	local_control = neutral
+	pop_satisfaction = negative		# unhappy pops are more receptive to reform
+
+	# Burghers (urban, literate, printing press access) are the primary vector
+	specific_pop_type_effect = { pop_type = burghers  multiplier = 2   }
+	specific_pop_type_effect = { pop_type = peasants  multiplier = 1.5 }
+	specific_pop_type_effect = { pop_type = nobles    multiplier = 1.2  }
+	specific_pop_type_effect = { pop_type = clergy    multiplier = 0.8 }
+	specific_pop_type_effect = { pop_type = slaves    multiplier = 0   }
+	specific_pop_type_effect = { religion = catharism   multiplier = 0.5 }
+
+	# 5% of a location's population must be Lutheran before it seeds neighbours
+	location_spread_threshold = { value = 0.05 }
+
+	on_spread_to_country = {
+		trigger_event_non_silently = reformation.100
+	}
+
+	map_color = {
+		if = {
+			limit = {
+				"religion_percentage(religion:lutheran)" = 0
+			}
+			value = define:NMapColors|MAP_COLOR_NULL
+		}
+		else_if = {
+			limit = {
+				dominant_religion = religion:lutheran
+			}
+			value = define:NMapColors|MAP_COLOR_HIGH
+		}
+		else_if = {
+			limit = {
+				"religion_percentage(religion:lutheran)" > 0.05
+			}
+			value = define:NMapColors|MAP_COLOR_MID
+		}
+		else = {
+			value = define:NMapColors|MAP_COLOR_LOW
+		}
+	}
+}

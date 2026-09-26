@@ -1,0 +1,217 @@
+﻿jurchen_confederation = {
+	has_target = no
+	unique = no
+	expel_members_who_are_targets_of_other_members = no
+
+	custom_name = jurchen_confederation_name
+
+	show_on_diplomatic_map = yes
+	has_leader_country = yes
+	leader_type = country
+	leader_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	#member_color = rgb { 8 99 156 }
+	
+	create_visible_trigger = {
+		always = no
+	}
+
+	invite_visible_trigger = {
+		always = yes
+	}
+
+	can_declare_war = {
+		always = yes
+	}
+	
+	laws = {
+		mutual_defense_law = assured_defense_policy
+		mutual_offense_law = possible_offense_policy
+	}
+
+	modifier = {
+		scale = {
+			if = {
+				limit = {
+					exists = scope:recipient.leader_country
+					not = {
+						scope:recipient.leader_country = this
+					}
+				}
+				value = root.total_population
+				divide = -0.75
+				if = {
+					limit = { scope:recipient.leader_country.total_population > 0 }
+					divide = scope:recipient.leader_country.total_population
+				}
+				add = 1
+			}
+			else = {
+				value = 0
+			}
+		}
+		monthly_tribal_cohesion = 0.03
+	}
+
+	leader_modifier = {
+		global_manpower_modifier = 0.1
+		slave_raid_efficiency = 0.3
+	}
+	
+	can_join_trigger = {
+		not = { 
+			is_member_of_international_organization_of_type = {
+				type = jurchen_confederation
+			}
+		}
+		is_rebel_country = no
+		root.government_type = government_type:tribe
+		culture = { has_culture_group = culture_group:jurchen_group }
+	}
+	
+	can_leave_trigger = {
+	}
+	
+	auto_leave_trigger = {
+		OR = {
+			AND = {
+				NOT = { government_type = government_type:tribe }
+				NOT = { scope:recipient.leader_country = root }
+			}
+			NOT = {
+				culture = { has_culture_group = culture_group:jurchen_group }
+			}
+		}	
+	}
+
+	auto_disband_trigger = {
+		total_members < 2
+	}
+	disband_minimum_member_count = 1
+
+	on_joined = {
+	}
+
+	on_left = {
+	}
+
+	has_military_access = { 
+		scope:recipient ?= {
+			is_member_of_international_organization = root
+		}
+	}
+
+	
+	variables = {
+	}
+
+	ai_desire_to_join = {
+		add = {
+            desc = "OPINION_OF_TARGET"
+            scope:actor = {
+                value = prev_opinion_of_this
+                multiply = 0.2
+            }
+        }
+		add = {
+            #get a value in range of -80..0..20
+            desc = "RELATIVE_STRENGTH_ROOT"
+            value = 100
+            multiply = "scope:actor.relative_strength(root)" #this is 0..1
+            subtract = 80
+        }
+		if = {
+			limit = {
+				OR = {
+					scope:actor = { is_during_bankruptcy = yes }
+					is_during_bankruptcy = yes
+				}	
+			}
+			add = {
+				desc = "IS_BANKRUPT_TOOLTIP"
+				value = -1000
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = { at_war = yes }
+			}
+			add = {
+				desc = "IS_AT_WAR"
+				value = -25
+			}
+		}
+		
+		add = {
+            desc = "game_concept_antagonism"
+            scope:actor = {
+                value = prev_antagonism_towards_this
+            }
+		}
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+
+	ai_issue_voting_bias = {
+		add = {
+			desc = "INERTIA"
+			value = -1
+		}
+		
+		#passing policies is what makes the confederation great, so if the leader can enact one, they will
+		add = {
+			desc = "POLICY_BIAS_LEADER_ALWAYS_WANTS"
+			if = {
+				limit = {
+					scope:recipient = {
+						leader_country = scope:actor
+					}
+				}
+				#this should end up with 20 for yes and -20 for no from the leader
+				if = {
+					limit = {
+						is_set = scope:target_1
+					}
+					value = 1
+				}
+				else = {
+					value = -1
+				}
+				multiply = 20
+			}
+		}
+		
+		#opinion of leader
+		add = {
+			desc = "POLICY_BIAS_OPINION_OF_EMPEROR"
+			if = {
+				limit = {
+					not = { 
+						scope:actor = scope:recipient.leader_country
+					}
+				}
+				scope:recipient = {
+					leader_country = {
+						if = {
+							limit = {
+								is_set = scope:vote
+							}
+							value = 1
+						}
+						else = {
+							value = -1
+						}
+						multiply = {
+							value = "scope:actor.opinion(scope:recipient.leader_country)"
+							multiply = 0.1
+						}
+					}
+				}
+			}
+		}
+	}
+}

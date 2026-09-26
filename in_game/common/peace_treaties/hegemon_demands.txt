@@ -1,0 +1,287 @@
+﻿hegemon_demand_force_embargo = {
+	blocks_full_annexation = yes
+	potential = {
+		scope:winner = {
+			modifier:allow_diplomacy_force_embargo = yes
+		}
+		scope:war = {
+			has_casus_belli = yes
+			casus_belli ?= casus_belli:cb_hegemon_ultimatum
+			original_defender_leader ?= scope:loser	#not checking the actual defender because the source of the casus belli might have been against a subject
+		}
+	}
+	allow = {
+		scope:loser = {
+			num_of_ports > 0
+			is_great_power = no
+			has_markets = yes
+		}
+	}
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 15
+		}
+	}
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target
+		interaction_source_list = {
+			scope:winner = {
+				every_rival = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "force_embargo_select_title"
+		none_available_msg_key = "force_embargo_no_countries"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			can_add_relation = {
+				first = scope:loser
+				second = root
+				type = relation_type:embargo_nation
+			}
+		}
+		enabled = {
+			scope:loser = {
+				NOT = { 
+					giving_scripted_relation = {
+						type = relation_type:embargo_nation
+						target = root
+					}
+				}
+			}
+		}
+	}
+	effect = {
+		scope:winner = {
+			perform_diplomatic_action = {
+				type = force_embargo
+				actor = scope:winner
+				recipient = scope:loser
+				target = scope:target
+				mode = accept
+			}
+			remove_variable = hegemon_war_reason_var
+		}
+	}
+	ai_desire = {
+		add = {
+			desc = "HEGEMON_ULTIMATUM_WAR_AND_DEMAND"
+			value = 5
+		}
+		if = {
+			limit = {
+				scope:winner = {
+					has_variable = hegemon_war_reason_var
+					var:hegemon_war_reason_var = {
+						scope_type = country_interaction
+						this = country_interaction:force_embargo
+					}
+				}
+			}
+			add = {
+				desc = "HEGEMON_ULTIMATUM_WAR_ORIGINAL_DEMAND"
+				value = 100
+			}
+		}
+	}
+}
+
+hegemon_demand_violate_sovereignty = {
+	blocks_full_annexation = yes
+	potential = {
+		scope:winner = {
+			modifier:allow_diplomacy_violate_sovereignty = yes
+		}
+		scope:war = {
+			has_casus_belli = yes
+			casus_belli ?= casus_belli:cb_hegemon_ultimatum
+			original_defender_leader ?= scope:loser	#not checking the actual defender because the source of the casus belli might have been against a subject
+		}
+	}
+	allow = {
+		scope:loser = {
+			is_great_power = no
+			NOT = { gives_food_access_to = scope:winner } 
+			NOT = { gives_military_access_to = scope:winner } 
+		}
+	}
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 15
+		}
+	}
+	effect = {
+		scope:winner = {
+			perform_diplomatic_action = {
+				type = violate_sovereignty
+				actor = scope:winner
+				recipient = scope:loser
+				mode = accept
+			}
+			remove_variable = hegemon_war_reason_var
+		}
+	}
+	ai_desire = {
+		add = {
+			desc = "HEGEMON_ULTIMATUM_WAR_AND_DEMAND"
+			value = 5
+		}
+		if = {
+			limit = {
+				scope:winner = {
+					has_variable = hegemon_war_reason_var
+					var:hegemon_war_reason_var = {
+						scope_type = country_interaction
+						this = country_interaction:violate_sovereignty
+					}
+				}
+			}
+			add = {
+				desc = "HEGEMON_ULTIMATUM_WAR_ORIGINAL_DEMAND"
+				value = 100
+			}
+		}
+	}
+}
+
+hegemon_demand_force_change_court_language = {
+	blocks_full_annexation = yes
+	potential = {
+		scope:winner = {
+			modifier:allow_diplomacy_force_change_court_language = yes
+		}
+		scope:war = {
+			has_casus_belli = yes
+			casus_belli ?= casus_belli:cb_hegemon_ultimatum
+			original_defender_leader ?= scope:loser	#not checking the actual defender because the source of the casus belli might have been against a subject
+		}
+	}
+	allow = {
+		scope:loser = {
+			is_great_power = no
+			not = { court_dialect = scope:winner.court_dialect }
+			NOT = { has_cooldown = force_change_court_language }
+			trigger_if = {
+				limit = {
+					OR = {
+						has_reform = government_reform:papacy_reform
+						has_reform = government_reform:kingdom_of_god_reform
+					}
+				}
+				NOT = { court_language = language:latin_language }
+			}
+		}
+	}
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 15
+		}
+	}
+	effect = {
+		scope:winner = {
+			perform_diplomatic_action = {
+				type = force_change_court_language
+				actor = scope:winner
+				recipient = scope:loser
+				mode = accept
+			}
+			remove_variable = hegemon_war_reason_var
+		}
+	}
+	ai_desire = {
+		add = {
+			desc = "HEGEMON_ULTIMATUM_WAR_AND_DEMAND"
+			value = 5
+		}
+		if = {
+			limit = {
+				scope:winner = {
+					has_variable = hegemon_war_reason_var
+					var:hegemon_war_reason_var = {
+						scope_type = country_interaction
+						this = country_interaction:force_change_court_language
+					}
+				}
+			}
+			add = {
+				desc = "HEGEMON_ULTIMATUM_WAR_ORIGINAL_DEMAND"
+				value = 100
+			}
+		}
+	}
+}
+
+hegemon_demand_force_divert_trade = {
+	blocks_full_annexation = yes
+	potential = {
+		scope:winner = {
+			modifier:allow_diplomacy_force_divert_trade = yes
+		}
+		scope:war = {
+			has_casus_belli = yes
+			casus_belli ?= casus_belli:cb_hegemon_ultimatum
+			original_defender_leader ?= scope:loser	#not checking the actual defender because the source of the casus belli might have been against a subject
+		}
+	}
+	allow = {
+		scope:loser = {
+			is_subject = no
+			has_markets = no
+			is_great_power = no
+			not = {
+				#can only do this to one country
+				receiving_scripted_relation = {
+					type = relation_type:forced_divert_trade
+					target = scope:winner
+				}
+			}
+		}
+	}
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 15
+		}
+	}
+	effect = {
+		scope:winner = {
+			create_relation = {
+				type = relation_type:forced_divert_trade
+				first = scope:actor
+				second = scope:recipient
+			}
+			remove_variable = hegemon_war_reason_var
+		}
+	}
+	ai_desire = {
+		add = {
+			desc = "HEGEMON_ULTIMATUM_WAR_AND_DEMAND"
+			value = 5
+		}
+		if = {
+			limit = {
+				scope:winner = {
+					has_variable = hegemon_war_reason_var
+					var:hegemon_war_reason_var = {
+						scope_type = relation_type
+						this = relation_type:forced_divert_trade
+					}
+				}
+			}
+			add = {
+				desc = "HEGEMON_ULTIMATUM_WAR_ORIGINAL_DEMAND"
+				value = 100
+			}
+		}
+	}
+}

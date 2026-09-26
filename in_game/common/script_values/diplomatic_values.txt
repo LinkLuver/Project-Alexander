@@ -1,0 +1,346 @@
+﻿low_infamy_threshold = 5
+
+ai_spam_protection = {
+	if = {
+		limit = {
+			OR = {
+				current_year < 1345
+				has_cooldown = ai_spam_protection
+			}
+		}
+		add = {
+			desc = "INERTIA"
+			value = -10000
+		}
+	}
+	else = {
+		value = 0
+	}
+}
+
+pap_reassign_cleric_score_multiplier = {
+	value = total_abilities
+	divide = 300
+}
+
+pap_reassign_cleric_diplomatic_actions_cost = {
+	value = 3
+	multiply = scope:recipient.pap_reassign_cleric_score_multiplier
+}
+
+assassinate_character_cost_multiplier = {
+	value = total_abilities
+	divide = 300
+	
+	if = {
+		limit = {
+			has_estate = estate_type:peasants_estate
+		}
+		multiply = 0.5
+	}
+	if = {
+		limit = { is_ruler = yes }
+		multiply = 2.0
+	}
+	if = {
+		limit = { is_heir = yes }
+		multiply = 1.5
+	}
+	if = {
+		limit = { is_regent = yes }
+		multiply = 1.5
+	}
+	if = {
+		limit = { is_general = yes }
+		multiply = 2.0
+	}
+	if = {
+		limit = { is_admiral = yes }
+		multiply = 2.0
+	}
+	if = {
+		limit = { 
+			exists = owner.ruler
+			is_close_relative = owner.ruler 
+		}
+		multiply = 2.0
+	}
+}
+
+############################
+# Basic acceptance values
+###########################
+
+hegemon_demand_base_acceptance = {
+	subtract = {
+		desc = "DIPLOREASON_BAD_FOR_US"
+		value = 100
+	}
+	add = {
+		desc = "DIPLOREASON_THREATENED_BY_ACTOR"
+		value = "scope:actor.threat_level_to(scope:recipient)"
+		multiply = 4
+	}
+	add = {
+		desc = "DIPLOREASON_DIPLOMATIC_REPUTATION"
+		value = "scope:actor.modifier:diplomatic_reputation"
+		multiply = 3
+	}
+}
+
+hegemon_demand_base_will_do = {
+	if = {
+		limit = { scope:actor = { has_casus_belli_of_type_on = { type = casus_belli:cb_hegemon_ultimatum target = scope:recipient } } }
+		subtract = {
+			desc = "DIPLOREASON_WE_HAVE_CASUS_BELLI"
+			value = 1000
+		}
+	}
+	if = {
+		limit = {
+			exists = scope:scripted_relation_type
+		}
+		add = {
+			desc = "DIPLOREASON_THEY_WOULD_ACCEPT"
+			value = "scope:actor.offer_relation_acceptance(scope:scripted_relation_type|scope:recipient)"
+			add = {
+				value = prestige_extreme_penalty
+				multiply = 2
+			}
+		}
+	}
+	if = {
+		limit = { scope:actor = { wants_casus_belli_with = scope:recipient } }
+		add = {
+			desc = "DIPLOREASON_WE_WANT_WAR"
+			value = 100
+		}
+	}
+}
+
+############################
+# Capacity upkeep costs
+###########################
+
+
+#diplomatic costs for IOs/laws in IOs
+assured_defence_upkeep_cost = {
+	add = {
+		desc = "RELATIVE_POPULATION_ADJUSTED_FOR_RANK"
+		value = scope:recipient.international_organization_population
+		divide = {
+			value = total_population
+			min = 1
+		}
+		max = country_rank_level
+	}
+}
+automatic_defence_upkeep_cost = {
+	add = {
+		desc = "RELATIVE_POPULATION_ADJUSTED_FOR_RANK"
+		value = scope:recipient.international_organization_population
+		divide = total_population
+		max = country_rank_level
+		multiply = 0.6
+	}
+}
+possible_defence_upkeep_cost = {
+	add = {
+		desc = "RELATIVE_POPULATION_ADJUSTED_FOR_RANK"
+		value = scope:recipient.international_organization_population
+		divide = total_population
+		max = country_rank_level
+		multiply = 0.5
+	}
+}
+
+assured_offence_upkeep_cost = {
+	add = {
+		desc = "RELATIVE_POPULATION_ADJUSTED_FOR_RANK"
+		value = scope:recipient.international_organization_population
+		divide = {
+			value = total_population
+			min = 1
+		}
+		max = country_rank_level
+	}
+}
+automatic_offence_upkeep_cost = {
+	add = {
+		desc = "RELATIVE_POPULATION_ADJUSTED_FOR_RANK"
+		value = scope:recipient.international_organization_population
+		divide = total_population
+		max = country_rank_level
+		multiply = 0.6
+	}
+}
+possible_offence_upkeep_cost = {
+	add = {
+		desc = "RELATIVE_POPULATION_ADJUSTED_FOR_RANK"
+		value = scope:recipient.international_organization_population
+		divide = total_population
+		max = country_rank_level
+		multiply = 0.5
+	}
+}
+
+rein_in_junior_diplomacy_upkeep_cost = {
+	add = {
+		desc = "UPKEEP_BASE_VALUE"
+		value = 0.2
+	}
+	add = {
+		desc = "RELATIVE_ECONOMICAL_BASE"
+		value = scope:second.country_economical_base
+		divide = {
+			value = scope:first.country_economical_base
+			min = 1 
+		}
+		multiply = 0.5
+		min = 0.5
+	}
+}
+
+# these use first/second as scopes.
+alliance_upkeep_cost = {
+	add = {
+		desc = "UPKEEP_BASE_VALUE"
+		value = 0.5
+	}
+	add = {
+		desc = "RELATIVE_ECO_BASE"
+		value = scope:second.country_economical_base
+		divide = {
+			value = scope:first.country_economical_base
+			min = 1 
+		}
+		multiply = 2.0
+		min = 0.1
+		max = 3.0
+	}
+
+	add = {
+		add = 0.5
+		subtract = {
+			scope:first = {
+				scope:second = {
+					value = this_opinion_of_prev
+				}
+			}
+			divide = 200
+		}
+		desc = "UPKEEP_TARGET_OPINION"
+	}
+
+	if = {
+		limit = {
+			scope:second = {
+				is_great_power = yes
+			}
+		}
+
+		add = {
+			value = 1
+			desc = "UPKEEP_THEY_GREAT_POWER"
+		}
+	}
+
+	if = {
+		limit = {
+			scope:second = {
+				is_regional_power = yes
+			}
+		}
+
+		add = {
+			value = 0.5
+			desc = "UPKEEP_THEY_REGIONAL_POWER"
+		}
+	}
+
+	add = {
+		desc = "UPKEEP_BLOC_SATURATION"
+		value = scope:first.powerful_ally_weight
+		subtract = 1
+		multiply = 0.3
+		min = 0
+	}
+
+}
+
+support_heir_upkeep_cost = {
+	add = {
+		desc = "UPKEEP_BASE_VALUE"
+		value = 0.1
+	}
+	add = {
+		desc = "RELATIVE_POPULATION"
+		value = scope:second.total_population
+		divide = {
+			value = scope:first.total_population
+			min = 1 
+		}
+		multiply = 0.25
+		min = 0.25
+	}
+	divide = {
+		scope:first = {
+			scope:second = {
+				value = this_opinion_of_prev
+			}
+		}
+		divide = 200
+		min = 1
+		desc = "UPKEEP_TARGET_OPINION"
+	}
+	max = {
+		value = scope:second.country_rank_level
+		desc = "UPKEEP_RANK"
+	}
+}
+
+guarantee_upkeep_cost = {
+	add = {
+		value = scope:second.yearly_gold
+		divide = {
+			value = scope:first.yearly_gold
+			min = 1 
+		}
+		
+		desc = "RELATIVE_INCOME"
+
+	}
+	multiply = {
+		value = 0.5
+		desc = "UPKEEP_GUARANTEE"
+	}
+	
+	min = 0.25
+	max = {
+		value = scope:second.country_rank_level
+		desc = "UPKEEP_SUBJECT_RANK"
+	}
+}
+
+military_sponsorship_upkeep_cost = {
+	add = {
+		value = scope:second.yearly_gold
+		divide = {
+			value = scope:first.yearly_gold
+			min = 1
+		}
+
+		desc = "RELATIVE_INCOME"
+
+	}
+	multiply = {
+		value = 0.2
+		desc = "UPKEEP_GUARANTEE"
+	}
+
+	min = 0.25
+	max = {
+		value = scope:second.country_rank_level
+		desc = "UPKEEP_SUBJECT_RANK"
+	}
+}

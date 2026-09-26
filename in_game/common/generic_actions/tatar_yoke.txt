@@ -1,0 +1,174 @@
+﻿break_the_yoke = {
+	type = internationalorganization
+	force_click_and_confirm_or_hold = yes
+	
+	potential = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:tatar_yoke
+			NOT = {
+				is_leader_of_international_organization = international_organization:tatar_yoke
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			is_subject = no
+			NOT = { is_at_war_with = international_organization:tatar_yoke.leader_country }
+			NOT = { has_truce_with = international_organization:tatar_yoke.leader_country }
+			NOT = { receiving_scripted_relation_of_type = relation_type:rein_in_junior_diplomacy }
+		}
+	}
+
+	ai_tick = daily
+	ai_tick_frequency = 80
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	cooldown = {
+		type = break_the_yoke
+		years = 10
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		none_available_msg_key = "leave_international_organization_none"
+		column = {
+			data = name
+		}
+		visible = {
+			this = international_organization:tatar_yoke
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = international_organization:tatar_yoke.leader_country
+			}
+			custom_tooltip = {
+			text = break_tatar_yoke_tt
+				scope:actor = {
+					leave_all_wars_with = international_organization:tatar_yoke.leader_country
+					declare_war_with_cb = {
+						target = international_organization:tatar_yoke.leader_country
+						type = casus_belli:cb_break_free_tatar_yoke
+					}
+				}
+			}
+		}
+		else = { custom_tooltip = break_tatar_yoke_tt }
+	}
+
+	ai_will_do = {
+		add = -20
+		international_organization:tatar_yoke.leader_country ?= {
+			save_temporary_scope_as = target_country
+		}
+		add = {
+			if = {
+				limit = {
+					exists = international_organization:tatar_yoke.leader_country
+					scope:actor = {
+						total_population > scope:target_country.total_population
+					}
+				}
+				add = 30
+			}
+		}
+	}
+}
+
+ask_to_become_tax_collector = {
+	type = internationalorganization
+	
+	potential = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:tatar_yoke
+			NOT = {
+				is_leader_of_international_organization = international_organization:tatar_yoke
+			}
+			exists = international_organization:tatar_yoke.leader_country
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			NOT = { is_at_war_with = international_organization:tatar_yoke.leader_country }
+			NOT = {
+				has_special_status_in_international_organization = {
+					type = special_status:tatar_tax_collector
+					international_organization = international_organization:tatar_yoke
+				}
+			}
+			total_population > 300
+		}
+		international_organization:tatar_yoke = {
+			NOT = {
+				has_cooldown = ask_to_become_tax_collector
+			}
+		}
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		none_available_msg_key = "leave_international_organization_none"
+		column = {
+			data = name
+		}
+		visible = {
+			this = international_organization:tatar_yoke
+		}
+	}
+
+	effect = {
+		custom_tooltip = ask_to_become_tax_collector_tt
+		international_organization:tatar_yoke.leader_country = {
+			trigger_event_silently = flavor_glh.1000
+		}
+		scope:recipient = {
+			add_cooldown = {
+				type = ask_to_become_tax_collector
+				years = 2
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = -20
+		add = {
+			if = {
+				limit = {
+					international_organization:tatar_yoke ?= {
+						any_country_with_special_status_of_type = {
+							type = tatar_overlord
+							save_temporary_scope_as = tatar_overlord
+						}
+						any_country_with_special_status_of_type = {
+							type = tatar_tax_collector
+							save_temporary_scope_as = tatar_collector
+						}
+					}
+					exists = scope:tatar_collector
+					scope:actor = {
+						total_population > "total_population(scope:tatar_collector)"
+					}
+				}
+				add = 30
+			}
+		}
+	}
+}

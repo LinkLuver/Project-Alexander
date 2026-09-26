@@ -1,0 +1,63 @@
+﻿
+# Function that calculates a score between 0 and 1 for the likelihood of the AI to respond to the Treasure Voyage events
+chinese_expedition_scoring_function = {
+	value = 0.5
+	add = { #dip skill of the chosen expedition leader from -0.3 to 0.3
+		value = scope:expedition_initiator.var:chinese_expedition_expedition_leader.dip 
+		divide = 100
+		subtract = 0.5
+		multiply = 0.3
+	}
+	add = { # Inward vs Outward Society Value, from -0.05 to 0.05
+		value = societal_value:outward_vs_inward
+		multiply = -1
+		multiply = 0.05
+	}
+	add = { # Difference in country ranks -0.15 to 0.15
+		value = scope:expedition_initiator.country_rank_level
+		subtract = country_rank_level
+		multiply = 0.05
+	}
+	min = 0
+	max = 1
+}
+
+chinese_expedition_positive_ai_weight = {
+	value = {
+		value = chinese_expedition_scoring_function
+		subtract = 0.5
+		max = 0
+	}
+	multiply = 1.5
+}
+
+chinese_expedition_neutral_ai_weight = {
+	value = 0.5
+}
+
+chinese_expedition_negative_ai_weight = {
+	value = {
+		value = 0.5
+		subtract = chinese_expedition_scoring_function
+		min = 0
+	}
+	multiply = 1.5
+}
+
+chinese_expedition_very_negative_ai_weight = {
+	value = {
+		value = 0.75
+		subtract = chinese_expedition_scoring_function
+		min = 0
+	}
+	multiply = 5
+}
+
+chinese_expedition_very_positive_ai_weight = {
+	value = {
+		value = chinese_expedition_scoring_function
+		subtract = 0.75
+		max = 0
+	}
+	multiply = 5
+}

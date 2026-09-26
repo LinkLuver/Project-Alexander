@@ -1,0 +1,840 @@
+﻿# guelphs_and_ghibellines Action
+#Generic:
+gag_join_faction = {
+	type = situation
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	potential = {
+		OR = {
+			scope:actor = {
+				OR = {
+					is_emperor = yes
+					capital ?= { region = region:italy_region }
+				}
+				religion.group = religion_group:christian
+				NOT = { is_member_of_international_organization = international_organization:ghibellines_io }
+				NOT = { is_member_of_international_organization = international_organization:guelphs_io }
+			}
+			scope:actor = {
+				OR = {
+					is_emperor = yes
+					capital ?= { region = region:italy_region }
+				}
+				religion.group = religion_group:christian
+				OR = {
+					AND = {
+						is_member_of_international_organization = international_organization:ghibellines_io
+						ruler ?= {
+							has_character_modifier = gag_favors_guelphs
+						}
+					}
+					AND = {
+						is_member_of_international_organization = international_organization:guelphs_io
+						ruler ?= {
+							has_character_modifier = gag_favors_ghibellines
+						}
+					}
+				}
+			}
+		}
+	}
+	allow = {
+		scope:actor = {
+			NOT = {
+				country_has_recently_joined_situation_faction = {
+					situation = guelphs_and_ghibellines
+					years = 5
+					variable = gag_recently_joined_a_faction
+				}
+			}
+			NOT = {
+				country_has_recently_left_situation_faction = {
+					situation = guelphs_and_ghibellines
+					years = 2
+					variable = gag_recently_left_a_faction
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:guelphs_and_ghibellines = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = target
+		name = "gag_join_faction_choose_faction"
+		column = { data = name }
+		column = { data = members_size }
+		visible = {
+			OR = {
+				international_organization_type = international_organization_type:ghibellines_io
+				international_organization_type = international_organization_type:guelphs_io
+			}
+			scope:actor = {
+				not = { is_member_of_international_organization = root }
+				can_join_international_organization = root
+			}
+		}
+	}
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			join_situation_faction = {
+				target = scope:actor
+				international_organization = scope:target
+				join_variable = gag_recently_joined_a_faction
+				join_years = 5
+				leave_variable = gag_recently_left_a_faction
+			}
+		}
+		else = { custom_tooltip = gag_join_faction_effect_tt }
+	}
+	ai_will_do = {
+		#how useful is this branch?
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+		}
+		
+		#if we're already in one, subtract the utility of the current one
+		scope:actor = {
+			#not in one? do it NOW!
+			if = {
+				limit = {
+					not = { is_member_of_international_organization_of_type = { type = ghibellines_io } }
+					not = { is_member_of_international_organization_of_type = { type = guelphs_io } }
+				}
+				add = 100
+			}
+			every_international_organizations_member_of = {
+				limit = {
+					OR = {
+						international_organization_type = international_organization_type:ghibellines_io
+						international_organization_type = international_organization_type:guelphs_io
+					}
+				}
+				subtract = {
+					value = "modifier_utility(scope:actor)"
+					#inertia - if we're already in one then moving to another one must be significantly better
+					add = 1
+				}
+			}
+			if = {
+				limit = {
+					exists = scope:actor.ruler
+					exists = scope:target
+					OR = {
+						AND = {
+							scope:actor.ruler ?= {
+								has_character_modifier = gag_favors_guelphs
+							}
+							scope:target ?= {
+								international_organization_type = international_organization_type:guelphs_io
+							}
+						}
+						AND = {
+							scope:actor.ruler ?= {
+								has_character_modifier = gag_favors_ghibellines
+							}
+							scope:target ?= {
+								international_organization_type = international_organization_type:ghibellines_io
+							}
+						}
+					}
+				}
+				add = 100
+			}
+			if = {
+				limit = {
+					scope:actor = {
+						has_variable = gag_force_switched_faction_penalty
+					}
+				}
+				add = -100
+			}
+		}
+	}
+}
+gag_leave_faction = {
+	type = situation
+	
+	ai_tick = monthly
+	ai_tick_frequency = 3
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	show_message = no # leave_situation_faction already shows one.
+
+	potential = {
+		scope:actor = {
+			OR = {
+				is_member_of_international_organization = international_organization:ghibellines_io
+				is_member_of_international_organization = international_organization:guelphs_io
+			}
+			NOT = { tag = PAP }	#The Pope is ALWAYS in a faction
+		}
+	}
+	allow = {
+		scope:actor = {
+			NOT = {
+				country_has_recently_joined_situation_faction = {
+					situation = guelphs_and_ghibellines
+					years = 5
+					variable = gag_recently_joined_a_faction
+				}
+			}
+			NOT = {
+				country_has_recently_left_situation_faction = {
+					situation = guelphs_and_ghibellines
+					years = 2
+					variable = gag_recently_left_a_faction
+				}
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:guelphs_and_ghibellines = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		leave_situation_faction = {
+			target = scope:actor
+			international_organization = international_organization:guelphs_io
+			leave_variable = gag_recently_left_a_faction
+			leave_years = 2
+			join_variable = gag_recently_joined_a_faction
+		}
+		leave_situation_faction = {
+			target = scope:actor
+			international_organization = international_organization:ghibellines_io
+			leave_variable = gag_recently_left_a_faction
+			leave_years = 2
+			join_variable = gag_recently_joined_a_faction
+		}
+	}
+	ai_will_do = {
+		add = -25
+		if = {
+			limit = {
+				exists = ruler
+				exists = scope:target
+				OR = {
+					scope:actor = {
+						AND = {
+							ruler ?= { has_character_modifier = gag_favors_ghibellines }
+							is_member_of_international_organization = international_organization:guelphs_io
+						}
+						AND = {
+							ruler ?= { has_character_modifier = gag_favors_guelphs }
+							is_member_of_international_organization = international_organization:ghibellines_io
+						}
+					}
+				}
+			}
+			add = 25
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					is_member_of_international_organization = international_organization:guelphs_io
+					OR = {
+						is_rival_of = c:PAP
+						is_enemy_of = c:PAP
+					}
+				}
+			}
+			add = 10
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					is_member_of_international_organization = international_organization:ghibellines_io
+				}
+				international_organization:hre ?= {
+					international_organization_has_leader = yes
+					leader_country ?= {
+						OR = {
+							is_rival_of = scope:actor
+							is_enemy_of = scope:actor
+						}
+					}
+				}
+			}
+			add = 10
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					has_variable = gag_force_switched_faction_penalty
+				}
+			}
+			add = -100
+		}
+	}
+}
+#	Leader:
+gag_request_aid_from_faction_member = {
+	type = situation
+	potential = {
+		scope:actor = {
+			OR = {
+				is_member_of_international_organization = international_organization:ghibellines_io
+				is_member_of_international_organization = international_organization:guelphs_io
+			}
+		}
+	}
+	allow = {
+		scope:actor = {
+			at_war = yes
+			custom_tooltip = {
+				text = gag_is_leader_of_either_faction_tt
+				OR = {
+					AND = {
+						is_member_of_international_organization = international_organization:ghibellines_io
+						international_organization:ghibellines_io.leader_country ?= this
+					}
+					AND = {
+						is_member_of_international_organization = international_organization:guelphs_io
+						international_organization:guelphs_io.leader_country ?= this
+					}
+				}
+			}
+		}
+		trigger_if = {
+			limit = { international_organization:guelphs_io.leader_country ?= scope:actor }
+			custom_tooltip = {
+				text = gag_request_aid_from_faction_member_ct
+				international_organization:guelphs_io = { NOT = { has_variable = gag_recently_requested_faction_aid } }
+			}
+		}
+		trigger_if = {
+			limit = { international_organization:ghibellines_io.leader_country ?= scope:actor }
+			custom_tooltip = {
+				text = gag_request_aid_from_faction_member_ct
+				international_organization:ghibellines_io = { NOT = { has_variable = gag_recently_requested_faction_aid } }
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:guelphs_and_ghibellines = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = war
+		source = actor
+		target_flag = target
+		name = "gag_request_aid_from_faction_member_select_war"
+		column = { data = name }
+		visible = {
+			OR = {
+				AND = {
+					attacker_leader = scope:actor
+					OR = {
+						AND = {
+							scope:actor = { is_member_of_international_organization = international_organization:ghibellines_io }
+							defender_leader = { is_member_of_international_organization = international_organization:guelphs_io }
+						}
+						AND = {
+							scope:actor = { is_member_of_international_organization = international_organization:guelphs_io }
+							defender_leader = { is_member_of_international_organization = international_organization:ghibellines_io }
+						}
+					}
+				}
+				AND = {
+					defender_leader = scope:actor
+					OR = {
+						AND = {
+							scope:actor = { is_member_of_international_organization = international_organization:ghibellines_io }
+							attacker_leader = { is_member_of_international_organization = international_organization:guelphs_io }
+						}
+						AND = {
+							scope:actor = { is_member_of_international_organization = international_organization:guelphs_io }
+							attacker_leader = { is_member_of_international_organization = international_organization:ghibellines_io }
+						}
+					}
+				}
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target_1
+		name = "gag_request_aid_from_faction_member_select_country"
+		default_sort = expected_army_size
+		column = { data = name }
+		column = { data = expected_army_size }
+		column = { data = expected_navy_size }
+		allow_self = no
+		visible = {
+			NOT = { scope:actor = this }
+			trigger_if = {
+				limit = { exists = scope:target }
+				NOT = { scope:target = { any_attacker = { this = root } } }
+				NOT = { scope:target = { any_defender = { this = root } } }
+				trigger_if = {
+					limit = { scope:target.attacker_leader = scope:actor }
+					NOT = { has_truce_with = scope:target.defender_leader }
+				}
+			}
+			is_subject = no
+			capital ?= { is_discovered_by = scope:actor }
+			within_diplomatic_range = scope:actor
+			OR = {
+				AND = {
+					is_member_of_international_organization = international_organization:ghibellines_io
+					scope:actor = { is_member_of_international_organization = international_organization:ghibellines_io }
+				}
+				AND = {
+					is_member_of_international_organization = international_organization:guelphs_io
+					scope:actor = { is_member_of_international_organization = international_organization:guelphs_io }
+				}
+			}
+		}
+		map_color = define:NMapColors|MAP_COLOR_HIGH
+	}
+	effect = {
+		hidden_effect = {
+			if = {
+				limit = { international_organization:guelphs_io.leader_country = scope:actor }
+				international_organization:guelphs_io = {
+					set_variable = {
+						name = gag_recently_requested_faction_aid
+						value = yes
+						years = 1
+					}
+				}
+			}
+			if = {
+				limit = { international_organization:ghibellines_io.leader_country = scope:actor }
+				international_organization:ghibellines_io = {
+					set_variable = {
+						name = gag_recently_requested_faction_aid
+						value = yes
+						years = 1
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:target_1
+				exists = scope:target
+			}
+			custom_tooltip = {
+				text = gag_request_aid_from_faction_member_specific_effect_tt
+				scope:target_1 = { trigger_event_silently = guelphs_and_ghibellines.1000 }
+			}
+		}
+		else = { custom_tooltip = gag_request_aid_from_faction_member_effect_tt }
+	}
+	ai_will_do = {
+		add = -10	#They should not spam it all the time
+		if = {
+			limit = {
+				exists = scope:target
+				scope:target ?= {
+					attacker_leader = {
+						OR = {
+							is_member_of_international_organization = international_organization:guelphs_io
+							is_member_of_international_organization = international_organization:ghibellines_io
+						}
+					}
+				}
+			}
+			add = {
+				desc = "game_concept_defensive_wars"
+				value = 25
+			}
+		}
+		if = {
+			limit = {
+				international_organization:guelphs_io.leader_country = scope:actor
+				international_organization:ghibellines_io = { has_variable = gag_recently_requested_faction_aid }
+			}
+			add = {
+				desc = "enemy_faction_called_allies"
+				value = 100
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:target
+				scope:target ?= {
+					NOT = { attacker_leader = scope:actor }
+				}
+			}
+			multiply = {
+				value = "scope:actor.war_score_versus(scope:target.attacker_leader)"
+				multiply = -1
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:target
+				scope:target ?= {
+					NOT = { defender_leader = scope:actor }
+				}
+			}
+			multiply = {
+				value = "scope:actor.war_score_versus(scope:target.defender_leader)"
+				multiply = -1
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+}
+
+
+#Guelphs:
+#	Leader:
+guelphs_sanction_emperor = {
+	type = situation
+	
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	
+	potential = {
+		scope:actor = { is_member_of_international_organization = international_organization:guelphs_io }
+	}
+	allow = {
+		scope:actor = { is_leader_of_international_organization = international_organization:guelphs_io }
+	}
+
+	cooldown = {
+		type = recently_sanctioned
+		years = 10
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:guelphs_and_ghibellines = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		international_organization:guelphs_io ?= {
+			add_international_organization_modifier = {
+				modifier = guelphs_sanction_emperor_own_modifier
+				mode = extend
+				years = modifier_duration_years_normal
+			}
+			international_organization:ghibellines_io ?= {
+				add_international_organization_modifier = {
+					modifier = guelphs_sanction_emperor_modifier
+					mode = extend
+					years = modifier_duration_years_normal
+				}
+			}
+		}
+		if = {
+			limit = { exists = international_organization:hre.leader_country }
+			international_organization:hre.leader_country = {
+				add_opinion = {
+					modifier = opinion_guelphs_sanction_emperor
+					target = scope:actor
+				}
+			}
+		}
+	}
+	ai_will_do = {
+		add = 100	#You always want to annoy the Emperor
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+}
+guelphs_support_imperial_rivals = {
+	icon = guelphs_sanction_emperor
+	type = situation
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	potential = {
+		scope:actor = { is_member_of_international_organization = international_organization:guelphs_io }
+	}
+	allow = {
+		scope:actor = { is_leader_of_international_organization = international_organization:guelphs_io }
+		custom_tooltip = {
+			text = guelphs_support_imperial_rivals_ct
+			international_organization:guelphs_io = { NOT = { has_variable = gag_recently_used_support_action } }
+		}
+		exists = international_organization:hre.leader_country
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:guelphs_and_ghibellines = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target
+		name = "guelphs_support_imperial_rivals_select_rival"
+		default_sort = country_tax_base
+		column = {
+			data = name
+		}
+		column = {
+			data = country_tax_base
+		}
+		allow_self = no
+		visible = {
+			international_organization:hre.leader_country ?= {
+				OR = {
+					is_rival_of = root
+					is_enemy_of = root
+				}
+			}
+			has_ruler = yes
+			ruler ?= {
+				NOT = { has_character_modifier = guelphs_support_imperial_rivals_modifier }
+			}
+			NOT = { is_member_of_international_organization = international_organization:ghibellines_io }
+		}
+	}
+	effect = {
+		hidden_effect = {
+			international_organization:guelphs_io = {
+				set_variable = {
+					name = gag_recently_used_support_action
+					value = yes
+					years = 5
+				}
+			}
+		}
+		if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				ruler ?= {
+					add_character_modifier = {
+						modifier = guelphs_support_imperial_rivals_modifier
+						mode = replace
+						days = -1
+					}
+				}
+			}
+			custom_tooltip = {
+				text = guelphs_support_imperial_rivals_at
+				international_organization:guelphs_io = {
+					every_international_organization_member = {
+						add_opinion_mutual_effect = {
+							modifier = opinion_guelphs_support_imperial_rivals
+							target = scope:target
+						}
+					}
+				}
+			}
+		}
+		else = {
+			custom_tooltip = guelphs_support_imperial_rivals_tt
+			custom_tooltip = guelphs_support_imperial_rivals_bt
+		}
+	}
+	ai_will_do = {
+		add = 100	#AI should always bother the Emperor
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+}
+#	Member:
+
+#Ghibellines:
+#	Leader:
+ghibellines_sanction_pope = {
+	icon = ghibellines_petition_for_imperial_support
+	type = situation
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+
+	potential = {
+		scope:actor = { is_member_of_international_organization = international_organization:ghibellines_io }
+	}
+	allow = {
+		scope:actor = { is_leader_of_international_organization = international_organization:ghibellines_io }
+		
+	}
+
+	cooldown = {
+		type = recently_sanctioned
+		years = 10
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:guelphs_and_ghibellines = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		international_organization:ghibellines_io ?= {
+			
+			add_international_organization_modifier = {
+				modifier = ghibellines_sanction_pope_own_modifier
+				mode = replace
+				years = modifier_duration_years_normal
+			}
+			international_organization:guelphs_io ?= {
+				add_international_organization_modifier = {
+					modifier = ghibellines_sanction_pope_modifier
+					mode = replace
+					years = modifier_duration_years_normal
+				}
+			}
+		}
+		if = {
+			limit = { country_exists = c:PAP }
+			c:PAP = {
+				add_opinion = {
+					modifier = opinion_ghibellines_sanction_pope
+					target = scope:actor
+				}
+			}
+		}
+	}
+	ai_will_do = {
+		add = 100	#You always want to annoy the Pope
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+}
+ghibellines_petition_for_imperial_support = {
+	type = situation
+
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	potential = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:ghibellines_io
+			is_emperor = no
+		}
+		exists = international_organization:hre
+	}
+	allow = {
+		scope:actor = { is_leader_of_international_organization = international_organization:ghibellines_io }
+		custom_tooltip = {
+			text = ghibellines_petition_for_imperial_support_ct
+			international_organization:ghibellines_io = { NOT = { has_variable = gag_recently_used_support_action } }
+		}
+		exists = international_organization:hre.leader_country
+		trigger_if = {
+			limit = {
+				international_organization:hre = {
+					international_organization_has_leader = no
+				}
+			}
+			international_organization:hre = {
+				international_organization_has_leader = yes
+			}
+		}
+		trigger_else = {
+			international_organization:hre.leader_country = {
+				modifier:gag_support_guelphs = no
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:guelphs_and_ghibellines = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		hidden_effect = {
+			international_organization:ghibellines_io = {
+				set_variable = {
+					name = gag_recently_used_support_action
+					value = yes
+					years = 5
+				}
+			}
+		}
+		custom_tooltip = {
+			text = ghibellines_petition_for_imperial_support_tt
+			if = {
+				limit = { international_organization:hre = { international_organization_has_leader = yes } } 
+				scope:actor = { trigger_event_non_silently = guelphs_and_ghibellines.1100 }
+			}
+		}
+	}
+	ai_will_do = {
+		add = 100	#AI should always bother the Emperor
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+}
+#	Member:

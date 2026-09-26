@@ -1,0 +1,102 @@
+﻿peace_claim_delhi = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 100
+		}
+	}
+
+	base_antagonism = 1
+	antagonism_type = antagonism_peace_claim_delhi
+	
+	potential = {
+		scope:war = {
+			casus_belli ?= casus_belli:cb_lodi_claims
+		}
+		scope:winner = {
+			NOT = { tag = DLH }
+		}
+	}
+
+	effect = {
+        scope:winner = {
+            annex_country = {
+                country = scope:loser
+				reason = MilitaryConquest
+            }
+
+            trigger_event_non_silently = flavor_dlh.1002
+        }
+	}
+
+	ai_desire = {
+		if = {
+			limit = {
+				scope:winner = {
+					is_rival_of = scope:loser
+				}
+			}
+			add = {
+				desc = "game_concept_rival"
+				value = 10
+			}
+		}
+		if = {
+			limit = {
+				scope:winner.prestige < scope:loser.prestige
+			}
+			add = {
+				desc = "DIPLOREASON_LOWER_PRESTIGE"
+				value = scope:loser.prestige
+				subtract = scope:winner.prestige
+			}
+		}
+	}
+}
+
+peace_reintegrate_revolter = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 100
+		}
+	}
+
+	base_antagonism = 50
+	antagonism_type = antagonism_peace_claim_delhi
+	potential = {
+		is_situation_active = situation:fall_of_delhi
+		scope:winner = {
+			tag = DLH
+		}
+		scope:loser = {
+			OR = {
+				has_variable = bahmanis_var
+				has_variable = malwa_var
+				has_variable = gujarat_var
+				has_variable = jaunpur_var
+			}
+		}
+	}
+
+	effect = {
+        scope:winner = {
+            annex_country = {
+                country = scope:loser
+				reason = MilitaryConquest
+            }
+			custom_tooltip = gain_5_sop_tt
+			hidden_effect = {
+				change_variable = {
+					name = fall_of_delhi_vote_weight
+					add = 0.05
+				}
+			}
+        }
+	}
+
+	ai_desire = {
+		value = 1000
+	}
+}
+

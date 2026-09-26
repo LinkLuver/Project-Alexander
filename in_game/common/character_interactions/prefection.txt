@@ -1,0 +1,109 @@
+﻿prefection = { 
+	on_own_nation = yes
+	
+	message = yes
+	
+	
+	potential = {
+		scope:actor = {
+			government_type = government_type:monarchy
+			culture = culture:hungarian
+		}
+	}
+	
+	ai_tick = daily
+	ai_tick_frequency = 10
+	
+	allow = {
+		scope:actor = {
+			"estate_power(estate_type:crown_estate)" >= 0.5
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = recipient
+		name = "choose_character"
+		column = {
+			data = name
+		}
+		visible = {
+			is_alive = yes
+			is_female = yes
+		}
+		enabled = {
+			is_adult = yes
+			is_consort = no
+			OR = {
+				has_estate = estate_type:nobles_estate
+				has_estate = estate_type:crown_estate
+			}
+			not = { has_character_modifier = prefection_modifier }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_government_power = government_power_extreme_penalty
+			add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_weak_penalty }
+		}
+		scope:recipient = { add_character_modifier = { modifier = prefection_modifier years = -1 mode = add_and_extend } }
+	}
+
+	ai_will_do = { # Values > 0 will make AI click the command, unless there's another interaction with higher ai_will_do
+		#scope:actor = country 
+		#scope:recipient = character
+
+		add = {
+			value = scope:recipient.total_abilities
+			subtract = 250
+		}
+
+		add = {
+			value = scope:actor.estate_satisfaction:nobles_estate
+			# remap to -1 to 0
+			subtract = 1
+
+			# intensity
+			multiply = 50
+		}
+
+		add = {
+			value = scope:actor.estate_satisfaction:nobles_estate
+			# remap to -1 to 0
+			subtract = 1
+
+			# intensity
+			multiply = 50
+		}
+
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						OR = {
+							is_general = yes
+							is_admiral = yes
+						}
+					}
+				}
+				value = 30
+			}
+		}
+
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						OR = {
+							has_trait_category = general
+							has_trait_category = admiral
+						}
+					}
+				}
+				value = 30
+			}
+		}
+	}
+}	

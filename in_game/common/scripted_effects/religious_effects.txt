@@ -1,0 +1,497 @@
+﻿
+add_religious_influence_if_valid = {
+	if = {
+		limit = {
+			religion = { has_religious_influence = yes }
+		}
+		add_religious_influence = $VALUE$
+	}
+}
+
+excommunicate_effect = {
+	if = {
+		limit = {
+			has_ruler = yes
+		}
+		custom_description = {
+			text = excommunicate
+			ruler = { add_character_modifier = { modifier = excommunicated months = -1 mode = add_and_extend } } 
+			every_neighbor_country = {
+				if = {
+					limit = {
+						religion = religion:catholic
+						OR = {
+							has_ruler = no
+							ruler = { NOT = { has_character_modifier = excommunicated } }
+						}
+					}
+					add_casus_belli = {
+						type = casus_belli:cb_excommunication
+						target = PREV
+					}
+				}
+			}
+		}
+	}
+	else = {
+		custom_tooltip = excommunicate_tt
+	}
+}
+
+lift_excommunication_effect = {
+	custom_tooltip = {
+		text = lift_excommunication_tt
+		ruler ?= { remove_character_modifier = excommunicated }
+	}
+}
+
+interdict_effect = {
+	custom_tooltip = {
+		text = interdict_effect_tt
+		add_country_modifier = {
+			modifier = interdict
+			years = 15
+			mode = add
+		}
+		set_variable = { name = was_recently_under_interdict value = yes days = 10950 }
+	}
+}
+lift_interdict_effect = {
+	custom_tooltip = {
+		text = lift_interdict_effect_tt
+		remove_country_modifier = interdict
+	}
+}
+
+crusade_effect = {
+	custom_tooltip = call_crusade_tt
+	hidden_effect = {
+		create_international_organization = {
+			type = international_organization_type:crusade
+			add_country_to_international_organization = prev
+			set_leader_country = prev
+			save_scope_as = crusade_io
+			every_in_global_list = {
+				variable = pope_crusaders
+				scope:crusade_io = {
+					add_country_to_international_organization = prev
+				}
+			}
+			target = $target$
+		}
+	}
+}
+
+set_papacy_active = {
+	if = {
+		limit = { papacy_active = no }
+		religion:catholic = {
+			remove_religion_modifier = papacy_blocked_modifier
+		}
+	}
+}
+
+set_papacy_inactive = {
+	if = {
+		limit = { papacy_active = yes }
+		religion:catholic = {
+			add_religion_modifier = {
+				modifier = papacy_blocked_modifier
+				years = -1
+				mode = replace
+			}
+		}
+	}
+}
+
+unlock_religious_aspect_effect = {
+	custom_description = {
+		text = unlock_religious_aspect_effect
+		value = religious_aspect:$type$
+		set_variable = {
+			name = unlocked_religious_aspect_$type$
+			value = yes
+		}
+	}
+}
+lock_religious_aspect_effect = {
+	custom_description = {
+		text = lock_religious_aspect_effect
+		value = religious_aspect:$type$
+		remove_variable = unlocked_religious_aspect_$type$
+	}
+}
+
+
+harmony_mild_towards_equilibrium = {
+	custom_tooltip = {
+		text = harmony_mild_towards_equilibrium_tt
+		if = {
+			limit = { harmony < 0}
+			add_harmony = {
+				value = root.harmony
+				max = 10
+				multiply = -1
+			}
+		}
+		if = {
+			limit = { harmony > 0}
+			add_harmony = {
+				value = root.harmony
+				max = 10
+				multiply = -1
+			}
+		}
+	}
+}
+
+harmony_weak_towards_equilibrium = {
+	custom_tooltip = {
+		text = harmony_weak_towards_equilibrium_tt
+		if = {
+			limit = { harmony < 0}
+			add_harmony = {
+				value = root.harmony
+				max = 5
+				multiply = -1
+			}
+		}
+		if = {
+			limit = { harmony > 0}
+			add_harmony = {
+				value = root.harmony
+				max = 5
+				multiply = -1
+			}
+		}
+	}
+}
+
+set_papal_states_schism_cardinal = {
+	c:PAP = {
+		if = {
+			limit = {
+				not = {
+					exists = var:schism_cardinal
+				}
+			}
+			if = {
+				limit = {
+					location:rome = {
+						owner = c:PAP
+						has_building = building_type:seat_of_cardinal
+					}
+				}
+				set_variable = {
+					name = schism_cardinal
+					value = location:rome.cardinal
+				}
+				situation:western_schism = {
+					set_variable = {
+						name = schism_pope_cardinal
+						value = location:rome.cardinal
+					}
+				}
+			}
+			else = {
+				random_cardinal_in_country = {
+					c:PAP = {
+						set_variable = {
+							name = schism_cardinal
+							value = prev
+						}
+					}
+					situation:western_schism = {
+						set_variable = {
+							name = schism_pope_cardinal
+							value = prev
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+set_mutual_religious_view = {
+	set_religious_view = {
+		target = $target$
+		value = $value$
+	}
+	reverse_set_religious_view = {
+		target = $target$
+		value = $value$
+	}
+}
+
+change_mutual_religious_view = {
+	change_religion_view = {
+		target = $target$
+		value = $value$
+	}
+	reverse_change_religion_view = {
+		target = $target$
+		value = $value$
+	}
+}
+
+set_schism_opponent_country = {
+	religion:catholic = {
+		if = {
+			limit = {
+				or = {
+					situation:western_schism = {
+						NOT = { has_variable = schism_opponent_country }
+					}
+					not = { country_exists = situation:western_schism.var:schism_opponent_country }
+					situation:western_schism = {
+						var:schism_opponent_country = {
+							num_cardinals = 0
+						}
+					}
+				}
+			}
+
+			situation:western_schism = {
+				if = {
+					limit = { has_variable = schism_opponent_country }
+					var:schism_opponent_country = {
+						save_temporary_scope_as = old_country
+					}
+				}
+			}
+			
+			ordered_country_in_religion = {
+				limit = {
+					NOT = { this = c:PAP }
+					num_cardinals > 0
+				}
+				order_by = num_cardinals
+				max = 1
+	
+				situation:western_schism = {
+					set_variable = {
+						name = schism_opponent_country
+						value = prev
+					}
+				}
+				add_to_global_variable_list = { name = western_schism_possible_votes target = this } 
+			}
+
+			# make sure the vote lists are up to date, and if anyone has voted for the old country, then switch their vote to the new country
+			if = {
+				limit = { exists = scope:old_country }
+				remove_list_global_variable = {
+					name = western_schism_possible_votes
+					target = scope:old_country
+				}
+				situation:western_schism = {
+					var:schism_opponent_country = {
+						set_variable = {
+							name = western_schism_vote_weight
+							value = "scope:old_country.var:western_schism_vote_weight"
+						}
+					}
+				}
+				scope:old_country = {
+					remove_variable = schism_cardinal
+					remove_variable = western_schism_vote_weight
+				}
+			}
+
+			international_organization:catholic_church = {
+				set_vote = {
+					resolution = resolution:western_schism_resolution
+					voter = situation:western_schism.var:schism_opponent_country
+					vote = situation:western_schism.var:schism_opponent_country
+				}
+				"active_resolution(resolution:western_schism_resolution)" ?= {
+					every_voter = {
+						limit = {
+							exists = scope:old_country
+							prev = {
+								"vote_in_active_resolution(prev)" = scope:old_country
+							}
+						}
+						international_organization:catholic_church = {
+							set_vote = {
+								resolution = resolution:western_schism_resolution
+								voter = prev
+								vote = situation:western_schism.var:schism_opponent_country
+							}
+						}
+					}
+				}
+			}
+		}
+
+		situation:western_schism = {
+			var:schism_opponent_country = {
+				set_schism_opponent_country_schism_cardinal = yes
+			}
+		}
+	}
+}
+
+set_schism_opponent_country_schism_cardinal = {
+	if = {
+		limit = {
+			not = { exists = var:schism_cardinal }
+		}
+		random_cardinal_in_country = {
+			prev = {
+				set_variable = {
+					name = schism_cardinal
+					value = prev
+				}
+			}
+			situation:western_schism = {
+				set_variable = {
+					name = schism_opponent_cardinal
+					value = prev
+				}
+			}
+		}
+	}
+}
+
+#situation effect
+start_western_schism_resolution = {
+	if = {
+		limit = {
+			OR = {
+				NOT = { has_variable = western_schism_pope_score }
+				var:western_schism_pope_score < 2
+			}
+			OR = {
+				NOT = { has_variable = western_schism_anti_pope_score }
+				var:western_schism_anti_pope_score < 2
+			}
+		}
+		set_schism_opponent_country = yes
+
+		var:schism_opponent_country = {
+			#this is the opposing country
+			propose_resolution = {
+				resolution = resolution:western_schism_resolution
+				actor = this
+				recipient = international_organization:catholic_church
+				vote = this
+			}
+
+			set_variable = {
+				name = western_schism_vote_weight
+				value = 0
+			}
+
+			hidden_effect = {
+				c:PAP = {
+					add_opinion = {
+						target = prev
+						modifier = western_schism_opposing_side
+					}
+				}
+				add_opinion = {
+					target = c:PAP
+					modifier = western_schism_opposing_side
+				}
+			}
+		}
+		hidden_effect = {
+			#popes will obviously vote for themselves
+			international_organization:catholic_church = {
+				set_vote = {
+					voter = c:PAP
+					resolution = resolution:western_schism_resolution
+					vote = c:PAP
+					locked = yes
+				}
+				set_vote = {
+					voter = root.var:schism_opponent_country
+					resolution = resolution:western_schism_resolution
+					vote = root.var:schism_opponent_country
+					locked = yes
+				}
+				every_international_organization_member = {
+					limit = { has_variable = western_schism_vote_weight }
+					set_variable = { name = western_schism_vote_weight value = 0 }
+				}
+			}
+			set_variable = { name = western_schism_cardinal_weight_bonus value = 0 }
+		}
+	}
+}
+
+reinstate_the_pope = {
+	$target_province$ = {
+		remove_core = owner
+		add_core = c:PAP
+		change_location_owner = c:PAP
+		if = {
+			limit = {
+				NOT = { has_building = building_type:seat_of_cardinal }
+			}
+			change_building_level_in_location = { building = building_type:seat_of_cardinal value = 1 }
+		}
+	}
+	c:PAP = {
+		set_capital = $target_province$
+		change_religion = religion:catholic
+		change_religion_for_ruler_and_family = { country = c:PAP religion = religion:catholic }
+	}
+	international_organization:catholic_church = {
+		add_country_to_international_organization = c:PAP
+		set_leader_country = c:PAP
+	}
+}
+
+change_protestant_view = {
+	custom_description = {
+		text = change_protestant_view_$value$
+		every_protestant_religion = {
+			set_mutual_religious_view = {
+				target = PREV
+				value = $value$
+			}
+		}
+	}
+}
+
+force_convert_religion = {
+	scope:loser = { 
+		change_religion = scope:winner.religion
+		change_religion_for_ruler_and_family = { country = scope:loser religion = scope:winner.religion }
+		add_cooldown = {
+			type = convert_religion
+			years = 10
+		}
+		ruler_or_regent ?= {
+			change_character_religion = scope:winner.religion
+		}
+		add_prestige = prestige_extreme_penalty
+		if = {
+			limit = { government_type = government_type:theocracy }
+			add_devotion = devotion_radical_penalty
+		}
+	}
+	scope:winner = {
+		add_prestige = prestige_mild_bonus
+	}
+}
+
+add_religious_currency_pilgrimage = {
+	if = {
+		limit = {
+			religion = { has_$currency$ = yes }
+		}
+		add_$currency$ = {
+			value = $currency$_mild_bonus
+			add = {
+				value = 0
+				add = "capital.distance_to_squared(scope:target.location)"
+				multiply = 0.0001
+			}
+			max = 100
+		}
+	}
+}

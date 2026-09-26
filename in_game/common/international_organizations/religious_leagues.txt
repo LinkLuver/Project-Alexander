@@ -1,0 +1,505 @@
+﻿#Protestant Union
+protestant_union = {
+	#Can have only ONE faction like this
+	leader_type = country
+	unique = yes
+	show_on_diplomatic_map = yes
+	expel_members_who_are_targets_of_other_members = no
+	#member_color = war_of_religions_protestant_union_color
+	leader_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	has_leader_country = yes
+	disband_if_no_leader = no
+	can_declare_war = {
+		trigger_if = {
+			limit = { scope:attacker ?= { is_member_of_international_organization = scope:recipient } }
+			scope:defender ?= { NOT = { is_member_of_international_organization = scope:recipient } }
+		}
+		trigger_else = {
+			always = yes
+		}
+	}
+
+	create_visible_trigger = {
+		is_situation_active = situation:war_of_religions
+		is_member_of_international_organization = international_organization:hre
+		OR = {
+			religion = religion:catholic
+			is_protestant = yes
+		}
+	}
+
+	invite_visible_trigger = {
+		is_situation_active = situation:war_of_religions
+		is_member_of_international_organization = international_organization:hre
+		OR = {
+			religion = religion:catholic
+			is_protestant = yes
+		}
+	}
+
+	can_join_trigger = {
+		OR = {
+			is_member_of_international_organization = international_organization:hre
+			is_leader_of_international_organization = international_organization:hre
+		}
+		is_rebel_country = no
+		NOT = { is_member_of_international_organization = international_organization:catholic_league }
+		OR = {
+			religion = religion:catholic
+			is_protestant = yes
+		}
+		NOT = {
+			country_has_recently_joined_situation_faction = {
+				situation = war_of_religions
+				years = 5
+				variable = war_of_religions_join_variable
+			}
+		}
+		NOT = {
+			country_has_recently_left_situation_faction = {
+				situation = war_of_religions
+				years = 2
+				variable = war_of_religions_left_variable
+			}
+		}
+		NOT = {
+			has_cooldown = blocked_from_joining_protestant_union
+		}
+	}
+	can_leave_trigger = {
+		trigger_if = {
+			limit = { exists = root }
+			NOT = {
+				country_has_recently_joined_situation_faction = {
+					situation = war_of_religions
+					years = 5
+					variable = war_of_religions_join_variable
+				}
+			}
+			NOT = {
+				country_has_recently_left_situation_faction = {
+					situation = war_of_religions
+					years = 2
+					variable = war_of_religions_left_variable
+				}
+			}
+			scope:recipient.total_members > 1
+		}
+		trigger_else = { always = no }
+	}
+	can_lead_trigger = {
+		is_member_of_international_organization = international_organization:hre
+		is_subject = no
+		is_protestant = yes
+		trigger_if = {
+			limit = { exists = union }
+			any_union_partner = {
+				NOT = { is_member_of_international_organization = international_organization:catholic_league }
+			}
+		}
+	}
+	auto_leave_trigger = {
+		NOR = {
+			is_member_of_international_organization = international_organization:hre
+			religion.group = religion_group:christian
+		}
+	}
+	join_offensive_wars_always = {
+		custom_tooltip = {
+			text = religious_leagues_join_offensive_war.tt
+			scope:actor = { is_leader_of_international_organization = root }
+			scope:target ?= { is_leader_of_international_organization = international_organization:catholic_league }
+		}
+	}
+	join_defensive_wars_always = { always = yes }
+	#Gets dismantled via an event at the end of the situation
+	auto_disband_trigger = { always = no }
+	monthly_effect = {
+		update_leader_country = yes
+	}
+	modifier = {}
+	leader_modifier = {
+		monthly_prestige = 0.05
+		diplomatic_capacity = 3
+	}
+	on_joined = {
+		hidden_effect = {
+			if = {
+				limit = { current_year < 1610 }
+				random = {
+					chance = {
+						value = 1610
+						subtract = current_year
+					}
+					set_variable = {
+						name = io_join_stagger
+						value = {
+							value = 1610
+							subtract = current_year
+							divide = 100
+						}
+						months = 1
+					}
+				}
+			}
+		}
+	}
+	on_left = {
+		hidden_effect = {
+			every_casus_belli_target = {
+				limit = { root = { has_casus_belli_of_type_on = { target = prev type = casus_belli:cb_religious_superiority } } }
+				root = { remove_casus_belli = { target = prev type = casus_belli:cb_religious_superiority } }
+			}
+		}
+	}
+	ai_desire_to_join = {
+		value = -40
+		if = {
+			limit = { is_protestant = yes }
+			add = {
+				desc = "WE_ARE_PROTESTANT"
+				value = 40
+			}
+		}
+		else_if = {
+			limit = { religion = religion:catholic }
+			add = {
+				desc = "WE_ARE_CATHOLIC"
+				value = -40
+			}
+		}
+		add = {
+			value = {
+				value = modifier:bias_for_tolerant_policies
+				multiply = -1
+			}
+		}
+		if = {
+			limit = {
+				exists = international_organization:protestant_union.leader_country
+				has_positive_opinion = international_organization:protestant_union.leader_country
+			}
+			add = {
+				desc = "OPINION_OF_RELIGIOUS_LEAGUE_LEADER"
+				value = {
+					international_organization:protestant_union = {
+						leader_country = {
+							root = {
+								value = this_opinion_of_prev
+								multiply = 0.2
+							}
+						}
+					}
+				}
+			}
+		}
+		add = {
+			desc = "OPINION_OF_RELIGIOUS_LEAGUE_LEADER"
+			value = {
+				international_organization:catholic_league = {
+					leader_country = {
+						root = {
+							value = this_opinion_of_prev
+							multiply = -0.4
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:recipient
+				scope:recipient = {
+					has_variable = io_join_stagger
+				}
+			}
+			multiply = {
+				desc = "ESTIMATE_IO_SITUATION_FIRST"
+				value = scope:recipient.var:io_join_stagger
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:recipient
+				any_union_partner = {
+					is_member_of_international_organization = scope:recipient
+				}
+			}
+			add = {
+				desc = "DIPLOREASON_UNION_SUPPORTS_ORGANIZATION"
+				value = 500
+			}
+		}
+		if = {
+			limit = {
+				exists = international_organization:catholic_league
+				any_union_partner = {
+					is_member_of_international_organization = international_organization:catholic_league
+				}
+			}
+			subtract = {
+				desc = "DIPLOREASON_UNION_OPPOSES_ORGANIZATION"
+				value = 1000
+			}
+		}
+	}
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}
+
+#Catholic League
+catholic_league = {
+	#Can have only ONE faction like this
+	leader_type = country
+	unique = yes
+	show_on_diplomatic_map = yes
+	expel_members_who_are_targets_of_other_members = no
+	member_color = war_of_religions_catholic_league_color
+	leader_color = war_of_religions_catholic_league_leader_color
+	has_leader_country = yes
+	disband_if_no_leader = no
+	can_declare_war = {
+		trigger_if = {
+			limit = { scope:attacker ?= { is_member_of_international_organization = scope:recipient } }
+			scope:defender ?= { NOT = { is_member_of_international_organization = scope:recipient } }
+		}
+		trigger_else = {
+			always = yes
+		}
+	}
+
+	create_visible_trigger = {
+		is_situation_active = situation:war_of_religions
+		is_member_of_international_organization = international_organization:hre
+		OR = {
+			religion = religion:catholic
+			is_protestant = yes
+		}
+	}
+
+	invite_visible_trigger = {
+		is_situation_active = situation:war_of_religions
+		is_member_of_international_organization = international_organization:hre
+		OR = {
+			religion = religion:catholic
+			is_protestant = yes
+		}
+	}
+
+	can_join_trigger = {
+		OR = {
+			is_member_of_international_organization = international_organization:hre
+			is_leader_of_international_organization = international_organization:hre
+		}
+		is_rebel_country = no
+		NOT = { is_member_of_international_organization = international_organization:protestant_union }
+		OR = {
+			religion = religion:catholic
+			is_protestant = yes
+		}
+		NOT = {
+			country_has_recently_joined_situation_faction = {
+				situation = war_of_religions
+				years = 5
+				variable = war_of_religions_join_variable
+			}
+		}
+		NOT = {
+			country_has_recently_left_situation_faction = {
+				situation = war_of_religions
+				years = 2
+				variable = war_of_religions_left_variable
+			}
+		}
+		NOT = {
+			has_cooldown = blocked_from_joining_catholic_league
+		}
+	}
+	can_leave_trigger = {
+		trigger_if = {
+			limit = { exists = root }
+			NOT = {
+				country_has_recently_joined_situation_faction = {
+					situation = war_of_religions
+					years = 5
+					variable = war_of_religions_join_variable
+				}
+			}
+			NOT = {
+				country_has_recently_left_situation_faction = {
+					situation = war_of_religions
+					years = 2
+					variable = war_of_religions_left_variable
+				}
+			}
+			scope:recipient.total_members > 1
+		}
+		trigger_else = { always = no }
+	}
+	can_lead_trigger = {
+		is_member_of_international_organization = international_organization:hre
+		is_subject = no
+		religion = religion:catholic
+		trigger_if = {
+			limit = { exists = union }
+			any_union_partner = {
+				NOT = { is_member_of_international_organization = international_organization:protestant_union }
+			}
+		}
+	}
+	auto_leave_trigger = {
+		NOR = {
+			is_member_of_international_organization = international_organization:hre
+			religion.group = religion_group:christian
+		}
+	}
+	join_offensive_wars_always = {
+		custom_tooltip = {
+			text = religious_leagues_join_offensive_war.tt
+			scope:actor = { is_leader_of_international_organization = root }
+			scope:target ?= { is_leader_of_international_organization = international_organization:protestant_union }
+		}
+	}
+	join_defensive_wars_always = { always = yes }
+	#Gets dismantled via an event at the end of the situation
+	auto_disband_trigger = { always = no }
+	monthly_effect = {
+		update_leader_country = yes
+	}
+	modifier = {}
+	leader_modifier = {
+		monthly_prestige = 0.05
+		diplomatic_capacity = 3
+	}
+	on_joined = {
+		hidden_effect = {
+			if = {
+				limit = { current_year < 1610 }
+				random = {
+					chance = {
+						value = 1610
+						subtract = current_year
+					}
+					set_variable = {
+						name = io_join_stagger
+						value = {
+							value = 1610
+							subtract = current_year
+							divide = 100
+						}
+						months = 1
+					}
+				}
+			}
+		}
+	}
+	on_left = {
+		hidden_effect = {
+			every_casus_belli_target = {
+				limit = { root = { has_casus_belli_of_type_on = { target = prev type = casus_belli:cb_religious_superiority } } }
+				root = { remove_casus_belli = { target = prev type = casus_belli:cb_religious_superiority } }
+			}
+		}
+	}
+	ai_desire_to_join = {
+		value = -40
+		if = {
+			limit = { religion = religion:catholic }
+			add = {
+				desc = "WE_ARE_CATHOLIC"
+				value = 40
+			}
+		}
+		else_if = {
+			limit = { is_protestant = yes }
+			add = {
+				desc = "WE_ARE_PROTESTANT"
+				value = -40
+			}
+		}
+		add = {
+			value = {
+				value = modifier:bias_for_tolerant_policies
+				multiply = -1
+			}
+		}
+		if = {
+			limit = {
+				exists = international_organization:catholic_league.leader_country
+				has_positive_opinion = international_organization:catholic_league.leader_country
+			}
+			add = {
+				desc = "OPINION_OF_RELIGIOUS_LEAGUE_LEADER"
+				value = {
+					international_organization:catholic_league = {
+						leader_country = {
+							root = {
+								value = this_opinion_of_prev
+								multiply = 0.2
+							}
+						}
+					}
+				}
+			}
+		}
+		add = {
+			desc = "OPINION_OF_RELIGIOUS_LEAGUE_LEADER"
+			value = {
+				international_organization:protestant_union = {
+					leader_country = {
+						root = {
+							value = this_opinion_of_prev
+							multiply = -0.4
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:recipient
+				scope:recipient = {
+					has_variable = io_join_stagger
+				}
+			}
+			multiply = {
+				desc = "ESTIMATE_IO_SITUATION_FIRST"
+				value = scope:recipient.var:io_join_stagger
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:recipient
+				any_union_partner = {
+					is_member_of_international_organization = scope:recipient
+				}
+			}
+			add = {
+				desc = "DIPLOREASON_UNION_SUPPORTS_ORGANIZATION"
+				value = 500
+			}
+		}
+		if = {
+			limit = {
+				exists = international_organization:protestant_union
+				any_union_partner = {
+					is_member_of_international_organization = international_organization:protestant_union
+				}
+			}
+			subtract = {
+				desc = "DIPLOREASON_UNION_OPPOSES_ORGANIZATION"
+				value = 1000
+			}
+		}
+	}
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}

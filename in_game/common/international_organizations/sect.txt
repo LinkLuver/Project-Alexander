@@ -1,0 +1,422 @@
+﻿sect = {
+	has_target = no
+	has_enemies = yes
+	expel_members_who_are_targets_of_other_members = no
+	has_leader_country = no
+	leader_type = none
+	disband_if_no_leader = no
+	can_be_enemy_trigger = {
+		has_variable = disfavoring_sect
+		var:disfavoring_sect = scope:recipient
+	}
+	unique = no
+	land_ownership_rule = sect_land_ownership
+	antagonism_modifier_for_taking_land_from_fellow_member = 0.1
+	custom_name = sect_name
+	can_declare_war = {
+		always = yes
+	}
+	
+	create_visible_trigger = {
+		always = no
+	}
+
+	invite_visible_trigger = {
+		religion = {
+			has_sects = yes
+		}
+		trigger_if = {
+			limit = {
+				exists = scope:recipient
+				scope:recipient = {
+					exists = var:religion
+				}
+			}
+			OR = {
+				AND = {
+					religion = "scope:recipient.var:religion"
+					"scope:recipient.var:religion" != religion:shinto
+				}
+				AND = {
+					religion = religion:shinto
+					has_country_modifier = favoring_buddhism_schools
+					OR = {
+						"scope:recipient.var:religion" = religion:mahayana
+						"scope:recipient.var:religion" = religion:shinto
+					}
+				}
+				AND = {
+					religion = religion:sanjiao
+					"scope:recipient.var:religion" = religion:mahayana
+				}
+			}
+		}
+	}
+
+	modifier = {
+		scale = {
+            #scaled by the %age of all sect memberships
+            value = 0
+            every_international_organization = {
+                limit = {
+					international_organization_type = international_organization_type:sect
+				}
+                add = total_members
+            }
+            save_temporary_value_as = total_sect_memberships
+			scope:recipient = {
+				value = total_members
+				if = {
+					limit = { scope:total_sect_memberships > 0 }
+					divide = scope:total_sect_memberships
+				}
+			}
+		}
+        monthly_prestige = 0.1
+	}
+
+	modifier = {
+		scale = {
+            #scaled by the favor
+			scope:recipient = {
+				value = var:sect_favor
+				divide = 1000
+			}
+		}
+        monthly_legitimacy = 0.3
+		monthly_karma = 0.1
+	}
+
+	can_lead_trigger = {
+		always = yes
+	}
+
+	can_join_trigger = {
+		religion = {
+			has_sects = yes
+		}
+		exists = scope:recipient
+		NOT = { is_member_of_international_organization = scope:recipient }
+		NOT = { is_enemy_of_international_organization = scope:recipient }
+		trigger_if = {
+			limit = { 
+				is_member_of_international_organization_of_type = { type = sect }
+			}
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:sect
+				count < prev.religion.max_sects
+			}
+		}
+		trigger_if = {
+			limit = {
+				scope:recipient = {
+					exists = var:religion
+				}
+			}
+			trigger_if = {
+				limit = {
+					religion = religion:shinto
+				}
+				has_country_modifier = favoring_buddhism_schools
+				OR = {
+					"scope:recipient.var:religion" = religion:mahayana
+					"scope:recipient.var:religion" = religion:shinto
+				}
+			}
+			trigger_else = {
+				OR ={
+					AND = {
+						religion = religion:sanjiao
+						"scope:recipient.var:religion" = religion:mahayana
+					}
+					religion = "scope:recipient.var:religion"
+				}
+			}
+		}
+		OR = {
+			any_subject = {
+				custom_tooltip = {
+					text = join_sect_location_tt
+					OR = {
+						trigger_if = {
+							limit = { country_type = location }
+							any_owned_location = {
+								scope:recipient = { has_location = prev }
+							}
+						}
+						trigger_if = {
+							limit = { country_type = building }
+							any_owned_foreign_building_location = {
+								scope:recipient = { has_location = prev }
+							}
+						}
+						is_member_of_international_organization = scope:recipient
+					}
+				}
+			}
+			any_related_country = {
+				type = alliance
+				custom_tooltip = {
+					text = join_sect_location_tt
+					OR = {
+						trigger_if = {
+							limit = { country_type = location }
+							any_owned_location = {
+								scope:recipient = { has_location = prev }
+							}
+						}
+						trigger_if = {
+							limit = { country_type = building }
+							any_owned_foreign_building_location = {
+								scope:recipient = { has_location = prev }
+							}
+						}
+						is_member_of_international_organization = scope:recipient
+					}
+				}
+			}
+			custom_tooltip = {
+				text = join_sect_location_tt
+				OR = {
+					trigger_if = {
+						limit = { country_type = location }
+						any_owned_location = {
+							scope:recipient = { has_location = prev }
+						}
+					}
+					trigger_if = {
+						limit = { country_type = building }
+						any_owned_foreign_building_location = {
+							scope:recipient = { has_location = prev }
+						}
+					}
+					always = no
+				}
+			}
+		}
+	}
+	
+	can_leave_trigger = {
+		scope:recipient = { NOT = { var:sect_favor > 50 } }
+		trigger_if = {
+			limit = {
+				religion = religion:sanjiao
+				scope:recipient = {
+					OR = {
+						international_organization_has_policy = policy:confucianism_policy
+						international_organization_has_policy = policy:daoism_policy
+					}
+				}
+			}
+			always = no
+		}
+	}
+	
+	auto_leave_trigger = {
+		always = no
+	}
+
+	auto_disband_trigger = {
+		always = no
+	}
+
+	variables = {
+		religion = {
+			format = "SECT_RELIGION_FORMAT"
+		}
+		sect_favor = {
+			format = "SECT_FAVOR_DISPLAY"
+			change_format = "VARIABLE_CHANGE_FORMAT"
+			min = 0
+			max = 100
+			start = 50
+			monthly_change = {
+				#number of members
+				add = {
+					desc = "NUMBER_OF_SECT_FOLLOWERS"
+					value = total_members
+					multiply = 0.075
+					divide = 2.5
+					subtract = 0.075
+				}
+				add = {
+					desc = "SECT_SUPPORTERS"
+					value = 0
+					every_in_list = {
+						variable = sect_supporters
+						add = country_economical_base
+						multiply = 0.001
+					}
+				}
+				subtract = {
+					desc = "SECT_ENEMIES"
+					value = 0
+					every_international_organization_enemy = {
+						add = country_economical_base
+						multiply = 0.001
+					}
+				}
+				add = {
+					desc = "NUM_LOCATIONS"
+					value = 0
+					every_international_organization_owned_location = {
+						add = {
+							value = population
+							multiply = 0.00002
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_joined = {
+		if = {
+			limit = {
+				scope:recipient = {
+					or = {
+						not = { has_variable = religion }
+						not = { exists = var:religion }
+					}
+				}
+			}
+			#default the religion to that of the leader
+			scope:recipient = {
+				set_variable = {
+					name = religion
+					value = root.religion
+				}
+			}
+		}
+		scope:recipient = {
+			var:religion = {
+				add_international_organization = scope:recipient
+			}
+		}
+	}
+
+	on_left = {
+	}
+
+	monthly_effect = {
+		hidden_effect = {
+			random_international_organization_owned_location = {
+				#Add locations when high favor
+				if = {
+					limit = { root = { var:sect_favor > 60 } }
+					random_neighbor_location = {
+						limit = {
+							NOT = { is_owned_by_international_organization = root }
+							dominant_religion ?= root.var:religion
+						}
+						root = { add_location_to_international_organization = prev }
+					}
+				}
+				#Remove locations when low favor
+				if = {
+					limit = { root = { var:sect_favor < 40 } }
+					root = { remove_location_from_international_organization = prev }
+				}
+			
+				#Remove locations that are not the proper religion unless they have a monastery, except for Daoism as it was also spread through non-Buddhists
+				if = {
+					limit = {
+						dominant_religion !=  root.var:religion
+						AND = {
+							dominant_religion ?= {
+								OR = {
+									this = religion:mahayana
+									this = religion:shinto
+									this = religion:sanjiao
+								}
+							}
+							root.var:religion ?= {
+								OR = {
+									this = religion:mahayana
+									this = religion:shinto
+									this = religion:sanjiao
+								}
+							}
+						}
+						OR = {
+							AND = {
+								root = { international_organization_has_policy = policy:daoism_policy }
+								dominant_religion ?= { 
+									NOT = { group = religion_group:folk_asian_group }
+									NOT = { group = religion_group:buddhist }
+								}
+							}
+							root = { NOT = { international_organization_has_policy = policy:daoism_policy } }
+						}
+						location_building_level = {
+							building_type = building_type:monastery
+							value = 0
+						}
+					}
+					root = { remove_location_from_international_organization = prev }
+				}
+			
+			}
+		}
+
+		#Auto-join countries when very high favor
+		if = {
+			limit = { 
+				root = { var:sect_favor > 80 }
+			}
+			every_international_organization_owned_location = {
+				limit = { is_capital = yes }
+				if = {
+					limit = { 
+						has_owner = yes
+						owner ?= {
+							NOT = { is_member_of_international_organization = root }
+							country_can_join_international_organization = root
+						}
+					}
+					root = {
+						add_country_to_international_organization = prev.owner
+					}
+				}
+				if = {
+					limit = {
+						any_foreign_building_countries_in_location ?= {
+							NOT = { is_member_of_international_organization = root }
+							country_can_join_international_organization = root
+						}
+					}
+					every_foreign_building_countries_in_location = {
+						limit = {
+							NOT = { is_member_of_international_organization = root }
+							country_can_join_international_organization = root
+						}
+						root = { add_country_to_international_organization = prev }
+					}
+				}
+			}
+		}
+	}
+	
+	ai_desire_to_join = {
+		#how useful is this branch?
+		add = {
+			value = "scope:recipient.modifier_utility(scope:actor)"
+		}
+		if = {
+			limit = {
+				scope:actor = { has_country_modifier = strengthened_ministry_of_rites }
+			}
+			add = {
+				desc = "ministry_of_rites"
+				value = 10
+			}
+		}
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}

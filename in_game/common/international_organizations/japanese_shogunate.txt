@@ -1,0 +1,212 @@
+﻿japanese_shogunate = {
+
+	has_target = no
+	unique = yes
+	has_leader_country = yes
+	disband_if_no_leader = no
+	expel_members_who_are_targets_of_other_members = no
+	land_ownership_rule = japanese_shogunate_land_ownership
+	antagonism_modifier_for_taking_land_from_fellow_member = 0.5
+	leader_title_key = "JAPANESE_SHOGUNATE_LEADER"
+	leader_type = character
+	leader = {
+		leader_country ?= {
+			if = {
+				limit = { has_regent = yes }
+				heir = {
+					add_to_list = leaders
+				}
+			}
+			else = {
+				ruler = {
+					add_to_list = leaders
+				}
+			}
+		}
+	}
+	leader_change_trigger_type = none
+	leader_change_method = none
+	gives_food_access_to_members = yes
+
+	create_visible_trigger = {
+		always = no
+	}
+
+	invite_visible_trigger = {
+		always = yes
+	}
+
+	invite_enabled_trigger = {
+		is_leader_of_international_organization = international_organization:japanese_shogunate
+	}
+
+	can_lead_trigger = {
+		NOT = {
+			has_special_status_in_international_organization = {
+				type = special_status:japanese_emperor
+				international_organization = international_organization:japanese_shogunate
+			}
+		}
+	}
+
+	#If attacked, all Japan should join to fight
+	join_defensive_wars_auto_call = {
+		scope:target ?= {
+			NOT = {
+				is_member_of_international_organization = root
+			}
+		}
+	}
+	
+	can_declare_war = {
+		#Limits to war only apply until the start of the Sengoku Jidai, at that point, free for all
+		trigger_if = {
+			limit = {
+				NOT = { is_situation_active = situation:sengoku }
+				situation:sengoku = { situation_has_ended = no }
+			}
+			
+			#Disallow wars between members of the same faction while the Nanbokucho situation is not resolved
+			custom_tooltip = {
+				text = same_side_in_nanbokucho_tt
+				NAND = {
+					scope:attacker = { has_variable = supports_northern_court }
+					scope:defender = { has_variable = supports_northern_court }
+				}
+				NAND = {
+					scope:attacker = { has_variable = supports_southern_court }
+					scope:defender = { has_variable = supports_southern_court }
+				}
+				NAND = {
+					scope:attacker = { has_variable = supports_new_imperial_line }
+					scope:defender = { has_variable = supports_new_imperial_line }
+				}
+			}
+
+			#Block wars for the emperor except in the nanbokuchou, but only between both ai
+			trigger_if = {
+				limit = {
+					NOT = { is_situation_active = situation:nanbokuchou }
+					AND = {
+						scope:attacker = { is_ai = yes }
+						scope:defender = { is_ai = yes }
+					}
+				}
+				NOR = {
+					scope:attacker = {
+						AND = {
+							has_special_status_in_international_organization = {
+								type = special_status:japanese_emperor
+								international_organization = international_organization:japanese_shogunate
+							}
+							country_type = building
+						}
+					}
+					scope:defender = {
+						AND = {
+							has_special_status_in_international_organization = {
+								type = special_status:japanese_emperor
+								international_organization = international_organization:japanese_shogunate
+							}
+							country_type = building
+						}
+					}
+				}
+			}
+		}
+		trigger_else = {
+			always = yes
+		}
+	}
+
+	gives_military_access_to_all_when_at_war = yes
+	
+	#This is an additional case for building based countries
+	#Normal countries are handled in gives_military_access_to_all_when_at_war
+	has_military_access = {
+		#this rule only applies when countries are at war
+		scope:war = yes
+
+		#if any Japanese country is at war, the whole Japan is opened up to access for all parties in that war
+		#check that the country we're looking at for access is a member
+		scope:recipient ?= {
+			is_member_of_international_organization = root
+		}
+		scope:actor ?= {
+			country_type = building
+		}
+	}
+
+	modifier = {
+		block_from_change_to_kingdom_rank = yes
+		block_from_change_to_empire_rank = yes
+	}
+	
+	leader_modifier = {
+		monthly_prestige = 0.1
+	}
+	
+	can_join_trigger = {
+		culture = {
+			has_culture_group = culture_group:japanese_group
+		}
+		capital.region = region:japan_region
+	}
+	
+	can_leave_trigger = {
+		always = no
+	}
+	
+	auto_leave_trigger = {
+		always = no
+	}
+	
+	auto_disband_trigger = {
+		always = no
+	}
+
+	on_joined = {
+	}
+
+	on_left = {
+	}
+	
+	monthly_effect = {
+		#auto-join anyone who has their capital in Japan
+		every_international_organization_owned_location = {
+			limit = {
+				is_capital = yes
+				owner = {
+					NOT = { is_member_of_international_organization = root }
+					country_can_join_international_organization = root
+				}
+			}
+			root = {
+				add_country_to_international_organization = prev.owner
+			}
+		}
+
+		#Nanbokuchou situation
+		if = {
+			limit = { is_situation_active = situation:nanbokuchou}
+		}
+	}
+	
+	variables = {
+	}
+
+	special_statuses_implemented = {
+		japanese_emperor
+		shugo_daimyo
+	}
+
+	ai_desire_to_join = {
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}

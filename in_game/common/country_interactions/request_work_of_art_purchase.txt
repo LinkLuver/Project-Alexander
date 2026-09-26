@@ -1,0 +1,118 @@
+﻿request_work_of_art_purchase = {
+	category = CATEGORY_ECONOMY_ACTIONS
+	type = diplomacy
+
+	ai_tick = daily
+	ai_tick_frequency = 360
+
+	ai_prerequisite = {
+		exists = scope:actor
+		scope:actor = { gold >= { value = monthly_income_total multiply = 18 } }
+	}
+
+	price = price:request_work_of_art_purchase
+	price_modifier = {
+		if = {
+			limit = { exists = scope:target }
+			add = {
+				desc = "ART_SALE_VALUE"
+				value = scope:target.art_price
+			}
+		}
+		else = {
+			value = 1
+		}
+	}
+	payer = scope:actor
+	payee = scope:recipient
+
+	potential = {
+	}
+
+	allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			NOT = { this = scope:actor }
+			has_sellable_art = yes
+		}
+		enabled = {
+			NOT = { is_enemy_of = scope:actor }
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = work_of_art
+		source = recipient
+		cache_targets = yes
+		target_flag = target
+		name = "request_woa_purchase_select_art"
+		none_available_msg_key = "request_woa_purchase_no_art"
+		column = {
+			data = name
+		}
+		visible = {
+			art_is_priceless = no
+		}
+	}
+
+	effect = {
+		custom_tooltip = {
+			text = request_work_of_art_purchase_move_art_tt
+			hidden_effect = {
+				scope:target = {
+					move_art_and_owner = { location = scope:actor.capital country = scope:actor }
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = -100
+		# AI buys when wealthy and quality is high
+		if = {
+			limit = {
+				scope:actor = { gold >= { value = monthly_income_total multiply = 18 } }
+				scope:target = { art_quality >= 60 }
+			}
+			add = 50
+		}
+		if = {
+			limit = { scope:actor = { is_enemy_of = scope:recipient } }
+			multiply = 0
+		}
+	}
+
+	diplo_chance = {
+		base = -30
+	}
+
+	accept = {
+		add = {
+			desc = "OUR_OPINION_TOOLTIP"
+			value = "scope:recipient.opinion(scope:actor)"
+			divide = 3
+		}
+		if = {
+			limit = { scope:recipient = { gold < { value = monthly_income_total multiply = 6 } } }
+			add = {
+				desc = "LOW_TREASURY"
+				value = 60
+			}
+		}
+		if = {
+			limit = { scope:target ?= { art_quality >= 70 } }
+			add = {
+				desc = "HIGH_QUALITY_ART"
+				value = -50
+			}
+		}
+	}
+}

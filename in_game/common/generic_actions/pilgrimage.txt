@@ -1,0 +1,215 @@
+﻿pilgrimage_action = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_holy_sites = yes
+		}
+	}
+
+	allow = {
+		scope:actor = { 
+			has_ruler = yes
+			ruler = {
+				NOT = { has_character_modifier = character_on_pilgrimage }
+			}
+		}
+	}
+	
+	cooldown = {
+		type = pilgrimage_action
+		years = 5
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 24
+
+	automation_tick = monthly
+	automation_tick_frequency = 12
+	player_automated_category = religiousdoctrines
+
+	price = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			value = price:pilgrimage_action
+		}
+	}
+	
+	#scope:actor is the country doing the action, scope:target is the holy site
+	price_modifier = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 1
+		}
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			add = {
+				desc = "game_concept_opinion"
+				value = {
+					scope:target.location.owner = {
+						scope:actor = {
+							value = prev_opinion_of_this
+							divide = -400
+						}
+					}
+				}
+			}
+			add = {
+				desc = "DISTANCE_TO_TARGET"
+				value = "scope:actor.capital.distance_to_squared(scope:target.location)"
+				multiply = 0.0001
+			}
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = { data = name }
+	}
+	
+	select_trigger = {
+		looking_for_a = holy_site
+		source = recipient
+		target_flag = target
+		name = "pilgrimage_select_holy_site_title"
+		none_available_msg_key = "pilgrimage_no_holy_sites"
+		column = {
+			data = name
+		}
+		column = { data = owner_flag }
+		column = { data = time }
+		column = { data = gold }
+		column = { data = influence }
+		interaction_source_list = {
+			scope:recipient = {
+				every_holy_site_in_religion = { add_to_list = source }
+			}
+		}
+		cache_interaction_source_list = yes
+		pre_evaluation_sort_value = {
+			value = "scope:actor.capital.distance_to_squared(root.location)"
+			multiply = -1
+		}
+		pre_evaluation_number_to_evaluate_fully = 3
+		enabled = {
+			location.owner ?= {
+				OR = {
+					this = scope:actor
+					is_allied_with = { target = scope:actor }
+					"opinion(scope:actor)" > 50
+				}
+			}
+		}
+	}
+	
+	effect = {
+		scope:actor = {
+			if = {
+				limit = {exists = scope:target}
+				add_religious_currency_pilgrimage = { currency = religious_influence }
+				add_religious_currency_pilgrimage = { currency = purity }
+				add_religious_currency_pilgrimage = { currency = karma }
+				if = {
+					limit = { religion = { has_yanantin = yes } }
+					switch = {
+						trigger = scope:target.god
+						#If male god
+						god:viracocha = { add_yanantin = -20 }
+						god:inti_god = { add_yanantin = -20 }
+						god:illapa_god = { add_yanantin = -20 }
+						god:supay_god = { add_yanantin = -20 }
+						#If female god
+						god:mamaquilla = { add_yanantin = 20 }
+						god:pachamama = { add_yanantin = 20 }
+						god:mama_cocha = { add_yanantin = 20 }
+						god:urpihuachac_god = { add_yanantin = 20 }
+					}
+				}
+				if = {
+					limit = { religion = { modifier:allow_mysticism_vs_jurisprudence = yes} }
+					if = {
+						limit = { societal_value:mysticism_vs_jurisprudence > 0 }
+						change_societal_value = { type = mysticism_vs_jurisprudence value = societal_value_move_to_right }
+					}
+					else = {
+						change_societal_value = { type = mysticism_vs_jurisprudence value = societal_value_move_to_left }
+					}
+				}
+				ruler ?= {
+					add_character_modifier = { 
+						modifier = character_on_pilgrimage
+						months = {
+							value = 2
+							add = {
+								value = "scope:actor.capital.distance_to_squared(scope:target.location)"
+								divide = 2
+								multiply = 0.0001
+							}
+						}
+						mode = add_and_extend
+					}
+					hidden_effect = {
+						set_variable = {
+							name = pilgrimage_holy_site
+							value = scope:target
+							months = 12
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	ai_will_do = {
+		add = "scope:actor.currency_utility(religious_influence|religious_influence_mild_bonus)"
+		add = "scope:actor.currency_utility(purity|purity_mild_bonus)"
+		add = "scope:actor.currency_utility(karma|karma_mild_bonus)"
+		if = {
+			limit = {
+				scope:actor.religion = { has_yanantin = yes }
+			}
+			if = {
+				limit = {scope:target.god = god:viracocha}
+				add = "scope:actor.currency_utility(yanantin|-20)"
+			}
+			else_if = {
+				limit = {scope:target.god = god:inti_god}
+				add = "scope:actor.currency_utility(yanantin|-20)"
+			}
+			else_if = {
+				limit = {scope:target.god = god:illapa_god}
+				add = "scope:actor.currency_utility(yanantin|-20)"
+			}
+			else_if = {
+				limit = {scope:target.god = god:supay_god}
+				add = "scope:actor.currency_utility(yanantin|-20)"
+			}
+			#If female god
+			else_if = {
+				limit = {scope:target.god = god:mamaquilla}
+				add = "scope:actor.currency_utility(yanantin|20)"
+			}
+			else_if = {
+				limit = {scope:target.god = god:pachamama}
+				add = "scope:actor.currency_utility(yanantin|20)"
+			}
+			else_if = {
+				limit = {scope:target.god = god:mama_cocha}
+				add = "scope:actor.currency_utility(yanantin|20)"
+			}
+			else_if = {
+				limit = {scope:target.god = god:urpihuachac_god}
+				add = "scope:actor.currency_utility(yanantin|20)"
+			}
+		}
+	}
+}

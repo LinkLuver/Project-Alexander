@@ -1,0 +1,356 @@
+﻿generic_colonize_explore = {
+	icon = generic_colonize_explore
+	repeatable = yes
+	player_playstyle = military
+
+	visible = {
+		game_has_missions_enabled = yes
+		country_rank_level > 2
+		current_age_or_later = { age = age_3_discovery }
+		has_advance = new_world_advance
+		NOT = { has_variable = recently_had_generic_colonize_variable }
+	}
+
+	enabled = {
+		num_of_ports > 2
+		has_advance = new_world_advance
+	}
+
+	abort = { has_ports = no }
+
+	on_start = {
+		
+	}
+	chance = 3600
+	on_completion = {
+		set_variable = {
+			name = recently_had_generic_colonize_variable
+			years = 25
+		}
+	}
+	on_abort = {
+		set_variable = {
+			name = recently_had_generic_colonize_variable
+			years = 10
+		}
+	}
+
+	###########################################
+	###########################################
+
+	mission_hire_explorer = {
+		icon = new_world_advance
+		requires = { mission_overseas_efforts }
+		enabled = {
+			any_character = { is_explorer = yes }
+		}
+
+		duration = 0
+
+		on_completion = {
+			if = {
+				limit = {
+					any_character = {
+						count > 1
+						is_explorer = yes
+						OR = {
+							adm < 100
+							dip < 100
+							mil < 100
+						}
+					}
+				}
+				trigger_event_non_silently = generic_colonial_exploration_events.1
+			}
+			else_if = {
+				limit = {
+					any_character = {
+						is_explorer = yes
+						OR = {
+							adm < 100
+							dip < 100
+							mil < 100
+						}
+					}
+				}
+				random_character = {
+					limit = { is_explorer = yes }
+					if = {
+						limit = {
+							NOT = {  adm = 100 }
+						}
+						add_adm = {
+							value = {
+								add = 100
+								subtract = adm
+								divide = 10
+								ceiling = yes
+							}
+						}
+					}
+					if = {
+						limit = {
+							NOT = {  dip = 100 }
+						}
+						add_dip = {
+							value = {
+								add = 100
+								subtract = dip
+								divide = 10
+								ceiling = yes
+							}
+						}
+					}
+					if = {
+						limit = {
+							NOT = {  mil = 100 }
+						}
+						add_mil = {
+							value = {
+								add = 100
+								subtract = mil
+								divide = 10
+								ceiling = yes
+							}
+						}
+					}
+				}
+			}
+			else = {
+				add_country_modifier = {
+					modifier = wave_of_great_explorers_modifier
+					years = 5
+					mode = replace
+				}
+			}
+		}
+	}
+	
+	mission_chart_horizon = {
+		icon = por_bombardeiros
+		requires = { mission_overseas_efforts }
+		enabled = { num_explorations > 0 }
+
+		duration = 0
+
+		on_start = {
+			if = {
+				limit = {
+					any_exploration_from_country = {
+						area = {
+							any_location_in_area = {
+								is_ownable = yes
+							}
+						}
+					}
+				}
+				custom_tooltip = yes_land_explo_bonus_tt
+			}
+			else = { custom_tooltip = no_land_explo_bonus_tt }
+			show_as_tooltip = {
+				add_country_modifier = {
+					modifier = focus_on_land_exploration_modifier
+					years = 3
+					mode = replace
+				}
+			}
+			if = {
+				limit = {
+					any_exploration_from_country = {
+						area = {
+							NOT = { 
+								any_location_in_area = {
+									is_ownable = yes
+								}
+							}
+						}
+					}
+				}
+				custom_tooltip = yes_sea_explo_bonus_tt
+			}
+			else = { custom_tooltip = no_sea_explo_bonus_tt }
+			show_as_tooltip = {
+				add_country_modifier = {
+					modifier = focus_on_sea_exploration_modifier
+					years = 3
+					mode = replace
+				}
+			}
+			hidden_effect = {
+				if = {
+					limit = {
+						any_exploration_from_country = {
+							area = {
+								NOT = { 
+									any_location_in_area = {
+										is_ownable = yes
+									}
+								}
+							}
+						}
+					}
+					add_country_modifier = {
+						modifier = focus_on_land_exploration_modifier
+						years = 3
+						mode = replace
+					}
+				}
+
+				if = {
+					limit = {
+						any_exploration_from_country = {
+							area = {
+								any_location_in_area = {
+									is_ownable = yes
+								}
+							}
+						}
+					}
+					add_country_modifier = {
+						modifier = focus_on_sea_exploration_modifier
+						years = 3
+						mode = replace
+					}
+				}
+			}
+		}
+	}
+
+	mission_new_maps = {
+		final = yes
+		icon = mapmaking
+		requires = { mission_chart_horizon }
+		duration = 0
+		enabled = {
+			any_exploration_from_country = {
+				exploration_progress > 50
+			}
+		}
+
+		on_completion = {
+			custom_tooltip = next_completed_exploration_will_fire_event_tt
+			hidden_effect = { 
+				set_variable = {
+					name = mission_new_maps_variable
+					years = 10
+				}			
+			}
+		}
+	}
+
+	mission_overseas_efforts = {
+		icon = ship_building_advance
+		duration = 365
+		on_start = {
+			add_country_modifier = {
+				modifier = era_of_overseas_expansion_modifier
+				years = 5
+				mode = replace
+			}
+		}
+
+		on_completion = {
+			if = {
+				limit = {
+					NOR = {
+						current_age = age_1_traditions
+						current_age = age_2_renaissance
+					}
+				}
+				change_societal_value = { 
+					type = outward_vs_inward 
+					value = societal_value_move_to_left
+				}
+			}
+			else = {
+				add_prestige = prestige_weak_bonus
+			}
+		}
+	}
+
+	mission_settle_horizon = {
+		icon = pioneer_spirit
+		requires = { mission_overseas_efforts }
+		enabled = {
+			num_colonial_charters > 0
+		}
+		duration = 180
+
+		on_start = {
+			custom_tooltip = mission_settle_horizon_tt
+		}
+
+		on_monthly = {
+			random_list = {
+				100 = { }
+				10 = { trigger_event_non_silently = generic_colonial_exploration_events.3 }
+				10 = { trigger_event_non_silently = generic_colonial_exploration_events.4 }
+			}
+		}
+
+		on_completion = {
+			add_research_progress = research_progress_severe_bonus
+		}
+	}
+
+	mission_colonial_ambitions = {
+		final = yes
+		requires = { mission_settle_horizon }
+		icon = maritime_advance_age_4
+		enabled = {
+			any_colonial_country = {
+				is_subject_of = root
+			}
+		}
+
+		duration = 0
+
+		on_completion = {
+			if = {
+				limit = {
+					any_colonial_country = {
+						is_subject_of = root
+					}
+				}
+				ordered_colonial_country = {
+					limit = { is_subject_of = root }
+					order_by = {
+						value = total_population
+						multiply = liberty_desire
+					}
+					check_range_bounds = no
+					add_liberty_desire = liberty_desire_mild_minus
+				}
+			}
+			else = { custom_tooltip = mission_colonial_ambitions_tt }
+			if = {
+				limit = {
+					any_port_in_country = {
+						NOT = { has_location_modifier = entry_port_modifier }
+						OR = {
+							integration_level = integrated
+							integration_level = core
+						}
+					}
+				}
+				ordered_port_in_country = {  
+					limit = {
+						NOT = { has_location_modifier = entry_port_modifier }
+						OR = {
+							integration_level = integrated
+							integration_level = core
+						}
+					}  
+					order_by = population  
+					position = 1
+					check_range_bounds = no
+					add_location_modifier = {
+						modifier = entry_port_modifier
+						years = 5
+						mode = replace
+					}
+				}
+			}
+		}
+	}
+}

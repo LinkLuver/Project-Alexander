@@ -1,0 +1,76 @@
+﻿
+
+albanian_emigration_chance = {
+	value = 100
+	multiply = "this.culture_percentage(culture:albanian)"
+	if = {
+		limit = {
+			owner = {
+				culture != culture:albanian
+				culture:albanian = {
+					NOT = { is_accepted_in = prev }
+				}
+			}
+		}
+		multiply = 2.5
+	}
+	if = {
+		limit = {
+			prosperity < 0
+		}
+		multiply = {
+			value = 1
+			add = {
+				value = prosperity
+				divide = -20
+			}
+		}
+	}
+	subtract = 80
+	min = 0
+}
+
+albanian_immigration_chance = {
+	value = 100
+	multiply = {
+		value = 1
+		subtract = "culture_percentage(culture:albanian)"
+	}
+
+	if = {
+		limit = {
+			owner = {
+				has_estate_privilege = estate_privilege:tribes_land_rights
+			}
+		}
+		multiply = 1.5
+	}
+	
+	if = {
+		limit = {
+			is_key_in_local_variable_map = {
+				name = previous_weights
+				target = province_definition
+			}
+		}
+		multiply = "local_variable_map(previous_weights|province_definition)"
+	}
+
+	# Italian locations will only be targetted if the source is in epirus or albania.
+	if = {
+		limit = {
+			region = region:italy_region
+			scope:source_location = {
+				NOR = {
+					area = area:albania_area
+					province_definition = province_definition:north_epirus_province
+					province_definition = province_definition:south_epirus_province
+				}
+			}
+		}
+		multiply = 0
+	}
+
+	subtract = 80
+	min = 0
+}

@@ -1,0 +1,113 @@
+﻿wotr_bribe_garrison = {
+	type = disaster
+
+	potential = {
+		scope:actor = { has_variable = wotr_bribe_garrison_variable }
+	}
+
+	allow = {
+		scope:actor = { 
+			in_civil_war = yes
+			stability > 0
+		}
+	}
+
+	automation_tick = never
+	price = price:wotr_action_price
+
+	cooldown = {
+		type = wotr_bribe_garrison
+		months = 6
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		interaction_source_list = {
+			disaster_type:war_of_the_roses = {
+				add_to_list = source
+			}
+		}
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:war_of_the_roses
+			disaster_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		interaction_source_list = {
+			scope:actor = {
+				#Any of your forts under rebel occupation
+				every_fort_in_country = {
+					limit = {
+						controller = {
+							this != scope:actor
+							is_rebel_country = yes
+						}
+					}
+					add_to_list = source
+				}
+				#Any rebel forts they currently control
+				random_country_at_war_with = {
+					limit = { is_rebel_country = yes }
+					every_fort_in_country = {
+						limit = { controller ?= prev }
+						add_to_list = source
+					}
+				}
+			}
+		}
+		target_flag = target_siege
+		name = "select_ongoing_siege_to_bribe"
+		none_available_msg_key = "no_ongoing_siege_to_bribe"
+		column = { data = name }
+		column = { data = population }
+		column = { data = rank }
+		
+		#No visible here, we want to show all locations
+		#And sort based on the following triggers:
+		enabled = {
+			garrison_percentage > 0.1
+			has_siege = yes
+			siege = {
+				any_besieging_unit = { owner = scope:actor }
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target_siege }
+			custom_tooltip = {
+				text = chosen_siege_tt
+				scope:actor = { trigger_event_silently = war_of_the_roses.17 }
+			}
+		}
+		else = { custom_tooltip = no_chosen_siege_tt }		
+	}
+
+	ai_will_do = {	#We want the AI to do this very frequently
+		add = -20
+		if = {
+			limit = { 
+				scope:actor.gold <= {
+					value = scope:actor.monthly_income_total
+					multiply = 3
+				}
+			}
+			subtract = 100
+		}
+		if = {
+			limit = { 
+				scope:actor = { is_during_bankruptcy = yes }
+			}
+			subtract = 1000
+		}
+		add = scope:actor.stability
+	}
+}

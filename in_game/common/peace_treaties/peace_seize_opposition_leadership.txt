@@ -1,0 +1,71 @@
+﻿peace_seize_opposition_leadership = {
+	
+	cost = 25
+
+	potential = {
+		scope:war = {
+			or = {
+				has_casus_belli = no
+				casus_belli = {
+					is_trade_cb = no
+				}
+			}
+		}
+		trigger_if = {
+			limit = {
+				exists = scope:loser
+				exists = scope:winner
+				situation:fall_of_delhi = { 
+					situation_is_active = yes
+					any_active_resolution = { this.resolution = resolution:fall_of_delhi_resolution }
+					has_variable = strongest_claimant_capital 
+					has_voted_for = {
+						voter = scope:winner
+						resolution = resolution:fall_of_delhi_resolution
+						vote = "active_resolution(resolution:fall_of_delhi_resolution).resolution_proposer"
+					}
+				}
+			}
+			situation:fall_of_delhi = { var:strongest_claimant_capital = scope:loser.capital }
+			scope:winner = { 
+				has_variable = delhi_claimants_variable 
+				is_subject = no
+			}
+		}
+		trigger_else = {
+			always = no
+		}
+	}
+	
+	allow = { }
+
+	effect = {
+		custom_tooltip = {
+			text = gain_leadership_during_situation_tt
+			situation:fall_of_delhi = {remove_variable = strongest_claimant_capital }
+			scope:loser = { 
+				remove_country_modifier = dlh_situation_modifier 
+				add_prestige = prestige_extreme_penalty
+				add_government_power = government_power_extreme_penalty
+			}
+			scope:winner = {
+				add_country_modifier = {
+					modifier = dlh_situation_modifier
+					months = -1
+					mode = add_and_extend
+				}
+				add_prestige = prestige_extreme_bonus
+				add_government_power = government_power_extreme_bonus
+				situation:fall_of_delhi = {
+					set_variable = {
+						name = strongest_claimant_capital
+						value = scope:winner.capital
+					}
+				}
+			}
+		}
+	}
+
+	ai_desire = 1000
+}
+

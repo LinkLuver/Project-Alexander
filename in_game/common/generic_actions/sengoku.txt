@@ -1,0 +1,1008 @@
+﻿#############################
+#      Imperial Actions     #
+#############################
+sengoku_attempt_imperial_restoration = {
+	type = situation
+	potential = {
+		scope:actor ?= {
+			has_reform = government_reform:japanese_imperial_family
+			country_type = building
+		}
+	}
+	allow = {
+		scope:actor ?= {
+			at_war = no
+			clan_has_valid_landable_location = yes
+			any_owned_foreign_building_location = {
+				count >= 5
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:sengoku_attempt_imperial_restoration
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:sengoku = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			custom_tooltip = {
+				text = sengoku_attempt_imperial_restoration.tt
+				turn_japanese_clan_into_normal_tag = yes
+			}
+			reverse_add_opinion = { modifier = opinion_refused_shogunate_authority target = international_organization:japanese_shogunate.leader_country }
+		}
+		international_organization:japanese_shogunate.leader_country ?= {
+			add_casus_belli = { type = casus_belli:cb_shogunate_reassert_authority target = scope:actor }
+			trigger_event_silently = sengoku.22
+		}
+	}
+	ai_will_do = {
+
+		add = {
+			value = -5
+			desc = BASE_VALUE
+		}
+
+		if = {
+			limit = { country_exists = international_organization:japanese_shogunate.leader_country }
+			add = {
+				value = "scope:actor.opinion(international_organization:japanese_shogunate.leader_country)"
+				multiply = -0.1
+				desc = "Our opinion of the Shogunate leader"
+			}
+		}
+	}
+}
+
+sengoku_force_end_war = {
+	icon = sengoku_attempt_imperial_restoration
+	type = situation
+	potential = {
+		scope:actor ?= {
+			has_reform = government_reform:japanese_imperial_family
+			religion = religion:shinto
+		}
+	}
+	allow = {
+		scope:actor ?= {
+			at_war = no
+			has_ruler = yes
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:sengoku_force_end_war
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:sengoku = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target_country
+		name = "choose_country"
+		none_available_msg_key = "no_valid_countries"
+		column = {
+			data = name
+		}
+		visible = {
+			is_member_of_international_organization = international_organization:japanese_shogunate
+			this != scope:actor
+			religion = religion:shinto
+			at_war = yes
+			any_current_war = {
+				attacker_leader = prev
+			}
+			NOT = { is_at_war_with = scope:actor }
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = war
+		target_flag = target_war
+		source = target_country
+		name = "sengoku_force_end_war_choose_war"
+		none_available_msg_key = "no_valid_wars"
+		column = {
+			data = name
+		}
+		visible = {
+			trigger_if = {
+				limit = { exists = scope:target_country }
+				attacker_leader = scope:target_country
+			}
+			trigger_else = { always = no }
+		}
+	}
+
+
+	effect = {
+		scope:target_country = { trigger_event_non_silently = sengoku.6 }
+	}
+
+	ai_will_do = {
+
+		#Base value added because price of action is somewhat high
+		#Otherwise it defaults to always negative
+		add = {
+			value = 20
+			desc = BASE_VALUE
+		}
+
+		if = {
+			limit = { exists = scope:target_country }
+			add = {
+				value = "scope:actor.opinion(scope:target_country)"
+				multiply = -0.1
+			}
+		}
+	}
+}
+
+##############################
+#      Shogunate Actions     #
+##############################
+
+sengoku_revoke_clans_land = {
+	icon = sengoku_attempt_imperial_restoration
+	type = situation
+	potential = {
+		scope:actor ?= {
+			is_leader_of_international_organization = international_organization:japanese_shogunate
+		}
+	}
+	allow = {
+		scope:actor ?= {
+			at_war = no
+		}
+	}
+
+	cooldown = {
+		type = sengoku_revoke_clans_land
+		months = 6
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:sengoku_revoke_clans_land
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:sengoku = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target_country
+		name = "choose_country"
+		none_available_msg_key = "no_valid_countries"
+		default_sort = select_target_acceptance_total
+		column = {
+			data = name
+		}
+		column = {
+			data = select_target_acceptance_total
+		}
+		visible = {
+			is_member_of_international_organization = international_organization:japanese_shogunate
+			this != scope:actor
+			NOT = {
+				has_casus_belli_of_type_on = { type = casus_belli:cb_japanese_clan_rebel_against_shogunate_authority target = scope:actor }
+			}
+			NOT = {
+				scope:actor = {
+					has_casus_belli_of_type_on = { type = casus_belli:cb_shogunate_reassert_authority target = prev }
+				}
+			}
+			OR = {
+				AND = {
+					country_type = building
+					any_owned_foreign_building_location = {
+						count > 1
+					}
+				}
+				AND = {
+					country_type = location
+					num_locations > 1
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		target_flag = target_location
+		source = target_country
+		name = "choose_location"
+		none_available_msg_key = "no_locations_available"
+		column = {
+			data = name
+		}
+		visible = {
+			trigger_if = {
+				limit = { scope:target_country ?= { country_type = building } }
+				owner ?= scope:actor
+				any_foreign_building_countries_in_location = { this = scope:target_country }
+			}
+			trigger_if = {
+				limit = { scope:target_country ?= { country_type = location } }
+				owner ?= scope:target_country
+				is_capital = no
+			}
+		}
+	}
+
+
+	effect = {
+		scope:target_country ?= { trigger_event_non_silently = sengoku.9 }
+	}
+
+	ai_will_do = {
+		#Base value added because price of action is somewhat high
+		#Otherwise it defaults to always negative
+		add = {
+			value = 20
+			desc = BASE_VALUE
+		}
+
+		if = {
+			limit = { exists = scope:target_country }
+			add = {
+				value = "scope:actor.opinion(scope:target_country)"
+				multiply = -0.1
+			}
+		}
+	}
+
+	ai_acceptance = {
+		# Probability (0-1) that scope:target_country accepts, mirroring sengoku.9 ai_will_select
+		add = {
+			value = 0.5
+			desc = SENGOKU_BASE_ACCEPTANCE_CHANCE
+		}
+		add = {
+			value = "scope:target_country.opinion(scope:actor)"
+			multiply = 0.0015
+			desc = OPINION_OF_ACTOR
+		}
+		add = {
+			value = scope:actor.modifier:diplomatic_reputation
+			multiply = 0.005
+			min = -0.15
+			max = 0.15
+			desc = DIPLOMATIC_REPUTATION
+		}
+		min = 0
+		max = 1
+	}
+}
+
+sengoku_limit_clans_autonomy = {
+	icon = sengoku_attempt_imperial_restoration
+	type = situation
+	potential = {
+		scope:actor ?= {
+			is_leader_of_international_organization = international_organization:japanese_shogunate
+		}
+	}
+	allow = {
+		scope:actor ?= {
+			at_war = no
+		}
+	}
+
+	cooldown = {
+		type = sengoku_limit_clans_autonomy
+		months = 6
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:sengoku_limit_clans_autonomy
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:sengoku = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target_country
+		name = "choose_country"
+		none_available_msg_key = "no_valid_countries"
+		default_sort = select_target_acceptance_total
+		column = {
+			data = name
+		}
+		column = {
+			data = select_target_acceptance_total
+		}
+		visible = {
+			is_member_of_international_organization = international_organization:japanese_shogunate
+			this != scope:actor
+			NOT = {
+				has_casus_belli_of_type_on = { type = casus_belli:cb_japanese_clan_rebel_against_shogunate_authority target = scope:actor }
+			}
+			num_locations < 5
+			country_type = location
+		}
+	}
+
+	effect = {
+		scope:target_country ?= {
+			trigger_event_non_silently = sengoku.12
+		}
+	}
+
+	ai_will_do = {
+		#Base value added because price of action is somewhat high
+		#Otherwise it defaults to always negative
+		add = {
+			value = 20
+			desc = BASE_VALUE
+		}
+
+		if = {
+			limit = { exists = scope:target_country }
+			add = {
+				value = "scope:actor.opinion(scope:target_country)"
+				multiply = -0.1
+			}
+		}
+	}
+
+	ai_acceptance = {
+		# Probability (0-1) that scope:target_country accepts, mirroring sengoku.12 ai_will_select
+		add = {
+			value = 0.5
+			desc = SENGOKU_BASE_ACCEPTANCE_CHANCE
+		}
+		add = {
+			value = "scope:target_country.opinion(scope:actor)"
+			multiply = 0.0015
+			desc = OPINION_OF_ACTOR
+		}
+		add = {
+			value = scope:actor.modifier:diplomatic_reputation
+			multiply = 0.005
+			min = -0.15
+			max = 0.15
+			desc = DIPLOMATIC_REPUTATION
+		}
+		min = 0
+		max = 1
+	}
+}
+
+sengoku_summon_to_court = {
+	icon = sengoku_attempt_imperial_restoration
+	type = situation
+	potential = {
+		scope:actor ?= {
+			is_leader_of_international_organization = international_organization:japanese_shogunate
+		}
+	}
+	allow = {
+		scope:actor ?= {
+			at_war = no
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:sengoku_summon_to_court
+
+	cooldown = {
+		type = sengoku_summon_to_court
+		months = 6
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:sengoku = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target_country
+		name = "choose_country"
+		none_available_msg_key = "no_valid_countries"
+		default_sort = select_target_acceptance_total
+		column = {
+			data = name
+		}
+		column = {
+			data = select_target_acceptance_total
+		}
+		visible = {
+			is_member_of_international_organization = international_organization:japanese_shogunate
+			this != scope:actor
+			scope:actor = {
+				NOT = {
+					has_casus_belli_of_type_on = { type = casus_belli:cb_shogunate_reassert_authority target = prev }
+				}
+			}
+			NOT = {
+				has_casus_belli_of_type_on = { type = casus_belli:cb_japanese_clan_rebel_against_shogunate_authority target = scope:actor }
+			}
+			at_war = no
+			has_ruler = yes
+		}
+	}
+
+	effect = {
+		scope:target_country ?= {
+			trigger_event_non_silently = sengoku.19
+		}
+	}
+
+	ai_will_do = {
+		#Base value added because price of action is somewhat high
+		#Otherwise it defaults to always negative
+		add = {
+			value = 20
+			desc = BASE_VALUE
+		}
+
+		if = {
+			limit = { exists = scope:target_country }
+			add = {
+				value = "scope:actor.opinion(scope:target_country)"
+				multiply = -0.1
+			}
+		}
+	}
+
+	ai_acceptance = {
+		# Probability (0-1) that scope:target_country accepts, mirroring sengoku.19 ai_will_select
+		add = {
+			value = 0.5
+			desc = SENGOKU_BASE_ACCEPTANCE_CHANCE
+		}
+		add = {
+			value = "scope:target_country.opinion(scope:actor)"
+			multiply = 0.0015
+			desc = OPINION_OF_ACTOR
+		}
+		add = {
+			value = scope:actor.modifier:diplomatic_reputation
+			multiply = 0.005
+			min = -0.15
+			max = 0.15
+			desc = DIPLOMATIC_REPUTATION
+		}
+		min = 0
+		max = 1
+	}
+}
+
+#########################
+#      Clan Actions     #
+#########################
+
+sengoku_proclaim_clan_independence = {
+	icon = sengoku_attempt_imperial_restoration
+	type = situation
+	potential = {
+		scope:actor ?= {
+			is_member_of_international_organization = international_organization:japanese_shogunate
+			country_type = building
+			NOT = { has_reform = government_reform:japanese_imperial_family }
+		}
+	}
+	allow = {
+		scope:actor ?= {
+			at_war = no
+			is_subject = no
+			clan_has_valid_landable_location = yes
+			daimyo_is_big_enough_to_be_landed = yes
+		}
+		trigger_if = {
+			limit = {
+				exists = international_organization:japanese_shogunate.leader_country
+			}
+			international_organization:japanese_shogunate.leader_country = {
+				scope:actor = { NOT = { has_truce_with = prev } }
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:sengoku_proclaim_clan_independence
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:sengoku = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			turn_japanese_clan_into_normal_tag = yes
+		}
+		international_organization:japanese_shogunate.leader_country ?= {
+			add_casus_belli = { type = casus_belli:cb_shogunate_reassert_authority target = scope:actor }
+			trigger_event_silently = sengoku.23
+		}
+	}
+	ai_will_do = {
+		#Base value
+		add = {
+			value = -10
+		}
+		#Do it depending on opinion
+		international_organization:japanese_shogunate.leader_country ?= {
+			scope:actor = {
+				add = {
+					value = this_opinion_of_prev
+					multiply = -0.1
+				}
+			}
+		}
+	}
+}
+
+sengoku_increment_recruitment = {
+	icon = sengoku_attempt_imperial_restoration
+	type = situation
+	potential = {
+		scope:actor ?= {
+			is_member_of_international_organization = international_organization:japanese_shogunate
+		}
+	}
+	allow = {
+		scope:actor ?= {
+			at_war = no
+			NOT = { has_country_modifier = sengoku_incrementing_recruitment }
+			monthly_manpower > 0
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:sengoku_increment_recruitment
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:sengoku = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			add_country_modifier = { modifier = sengoku_incrementing_recruitment years = 2 mode = add_and_extend }
+		}
+	}
+	ai_will_do = {
+		add = "scope:actor.add_static_modifier_utility(sengoku_incrementing_recruitment)"
+	}
+}
+
+sengoku_offer_hostage = {
+	icon = sengoku_attempt_imperial_restoration
+	type = situation
+	potential = {
+		scope:actor ?= {
+			is_member_of_international_organization = international_organization:japanese_shogunate
+		}
+	}
+	allow = {
+		scope:actor ?= {
+			at_war = no
+			ruler ?= {
+				any_close_relative = {
+					owner ?= scope:actor
+					OR = {
+						is_adult = no
+						AND = {
+							is_female = yes
+							is_married = no
+						}
+					}
+				}
+			}
+		}
+	}
+
+	cooldown = {
+		type = sengoku_offer_hostage
+		months = 6
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:sengoku_offer_hostage
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:sengoku = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		target_flag = target_character
+		name = "choose_character"
+		none_available_msg_key = "no_valid_characters"
+		column = {
+			data = name
+		}
+		interaction_source_list = {
+			scope:actor.ruler ?= {
+				every_close_relative = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_interaction_source_list = yes
+		visible = {
+			NOT = { has_variable = hostage_character_country }
+			owner ?= scope:actor
+			is_ruler = no
+			OR = {
+				is_adult = no
+				AND = {
+					is_female = yes
+					is_married = no
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target_country
+		name = "choose_country"
+		none_available_msg_key = "no_valid_countries"
+		default_sort = select_target_acceptance_total
+		column = {
+			data = name
+		}
+		column = {
+			data = select_target_acceptance_total
+		}
+		interaction_source_list = {
+			international_organization:japanese_shogunate = {
+				every_international_organization_member = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_interaction_source_list = yes
+		visible = {
+			this != scope:actor
+			at_war = no
+			NOT = {
+				has_trust = { modifier = trust_offered_hostage target = scope:actor }
+				has_opinion = { modifier = opinion_offered_hostage target = scope:actor }
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target_country
+				exists = scope:target_character
+			}
+			scope:target_country = {
+				trigger_event_silently = sengoku.13
+			}
+		}
+	}
+	ai_will_do = {
+		add = 1
+	}
+
+	ai_acceptance = {
+		# Probability (0-1) that scope:target_country accepts, mirroring sengoku.13 ai_will_select
+		add = {
+			value = 0.5
+			desc = SENGOKU_BASE_ACCEPTANCE_CHANCE
+		}
+		add = {
+			value = "scope:target_country.opinion(scope:actor)"
+			multiply = 0.0015
+			desc = OPINION_OF_ACTOR
+		}
+		add = {
+			value = scope:actor.modifier:diplomatic_reputation
+			multiply = 0.005
+			min = -0.15
+			max = 0.15
+			desc = DIPLOMATIC_REPUTATION
+		}
+		min = 0
+		max = 1
+	}
+}
+
+sengoku_ask_for_hostage = {
+	type = situation
+	potential = {
+		scope:actor ?= {
+			is_member_of_international_organization = international_organization:japanese_shogunate
+		}
+	}
+	allow = {
+		scope:actor ?= {
+			at_war = no
+		}
+	}
+
+	cooldown = {
+		type = sengoku_ask_for_hostage
+		months = 6
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:sengoku_ask_for_hostage
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:sengoku = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target_country
+		name = "choose_country"
+		none_available_msg_key = "no_valid_countries"
+		default_sort = select_target_acceptance_total
+		column = {
+			data = name
+		}
+		column = {
+			data = select_target_acceptance_total
+		}
+		interaction_source_list = {
+			international_organization:japanese_shogunate = {
+				every_international_organization_member = {
+					add_to_list = source
+				}
+			}
+		}
+		cache_interaction_source_list = yes
+		visible = {
+			this != scope:actor
+			at_war = no
+			has_variable = sengoku_has_hostage_candidate		# cached monthly in sengoku situation on_monthly
+			NOT = {
+				has_trust = { modifier = trust_offered_hostage target = scope:actor }
+				has_opinion = { modifier = opinion_offered_hostage target = scope:actor }
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = target_country
+		target_flag = target_character
+		name = "choose_character"
+		none_available_msg_key = "no_valid_characters"
+		column = {
+			data = name
+		}
+		
+		interaction_source_list = {
+			scope:target_country = {
+				ruler ?= {
+					every_close_relative = {
+						add_to_list = source
+					}
+				}
+			}
+		}
+		visible = {
+			NOT = { has_variable = hostage_character_country }
+			owner ?= scope:target_country
+			is_ruler = no
+			OR = {
+				is_adult = no
+				AND = {
+					is_female = yes
+					is_married = no
+				}
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target_country
+				exists = scope:target_character
+			}
+			scope:target_country = {
+				trigger_event_non_silently = sengoku.16
+			}
+		}
+	}
+	ai_will_do = {
+		add = 1
+	}
+
+	ai_acceptance = {
+		# Probability (0-1) that scope:target_country accepts, mirroring sengoku.16 ai_will_select
+		add = {
+			value = 0.5
+			desc = SENGOKU_BASE_ACCEPTANCE_CHANCE
+		}
+		add = {
+			value = "scope:target_country.opinion(scope:actor)"
+			multiply = 0.0015
+			desc = OPINION_OF_ACTOR
+		}
+		add = {
+			value = scope:actor.modifier:diplomatic_reputation
+			multiply = 0.005
+			min = -0.15
+			max = 0.15
+			desc = DIPLOMATIC_REPUTATION
+		}
+		min = 0
+		max = 1
+	}
+}
+
+sengoku_prove_heritage = {
+	icon = sengoku_attempt_imperial_restoration
+	type = situation
+	potential = {
+		scope:actor ?= {
+			is_member_of_international_organization = international_organization:japanese_shogunate
+			NOT = { has_reform = government_reform:japanese_imperial_family }
+		}
+	}
+	allow = {
+		scope:actor ?= {
+			at_war = no
+		}
+	}
+
+	cooldown = {
+		type = sengoku_prove_heritage
+		years = 5
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	price = price:sengoku_prove_heritage
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:sengoku = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor ?= {
+			add_legitimacy = legitimacy_extreme_bonus
+		}
+	}
+	ai_will_do = {
+		add = "scope:actor.currency_utility(legitimacy|legitimacy_extreme_bonus)"
+	}
+}

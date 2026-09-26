@@ -1,0 +1,291 @@
+﻿change_liturgical_language = {
+	type = owncountry
+	
+	
+	ai_tick = monthly
+	ai_tick_frequency = 36
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = governmentreforms
+	
+	potential = {
+	}
+
+	allow = {
+		scope:actor = {
+			OR = {
+				religion = {
+					has_fixed_liturgical_language = no
+				}
+				is_protestant = yes
+			}
+			
+		}
+	}
+
+	price = price:change_liturgical_language
+
+	select_trigger = {
+		looking_for_a = dialect
+		target_flag = target
+		interaction_source_list = {
+			scope:actor = {
+				court_dialect = {
+					add_to_list = source
+				}
+				culture = {
+					dialect = {
+						add_to_list = source
+					}
+				}
+				liturgical_dialect = {
+					add_to_list = source
+				}
+				every_past_liturgical_dialect =	{
+					add_to_list = source
+				}
+				dominant_dialect ?= {
+					add_to_list = source
+				}
+				capital ?= {
+					dominant_dialect = {
+						add_to_list = source
+					}
+					market = {
+						dialect = {
+							add_to_list = source
+						}
+					}
+				}
+				every_accepted_culture = {
+					dialect	 = {
+						add_to_list = source
+					}
+				}
+				every_international_organizations_member_of = {
+					leader_country ?= {
+						court_dialect = {
+							add_to_list = source
+						}
+					}
+				}
+				every_overlord_or_above = {
+					court_dialect = {
+						add_to_list = source
+					}
+				}
+				ruler ?= {
+					dialect = {
+						add_to_list = source
+					}
+					dynasty ?= {
+						dynasty_head ?= {
+							dialect = {
+								add_to_list = source
+							}
+						}
+					}
+				}
+				# Every estate with > 25% relative power contributes its preferred dialect.
+				every_estate = {
+					limit = { power > 0.25 }
+					dialect ?= {
+						add_to_list = source
+					}
+				}
+			}
+		}
+		name = "change_liturgical_language_select_dailect"
+		none_available_msg_key = "change_liturgical_language_no_dialect"
+		column = {
+			data = name
+		}
+		column = {
+			data = power
+		}
+		visible = {
+		}
+		enabled = {
+			NOT = { scope:actor = { liturgical_dialect = root } }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			set_liturgical_language = scope:target
+		}
+	}
+	
+	ai_will_do = {
+		subtract = {
+			value = 0.8
+			multiply = {
+				value = 1
+				add = scope:actor.modifier:language_change_threshold_modifier
+			}
+			scope:actor.liturgical_language = {
+				add = "liturgical_language_utility(scope:actor)"
+			}
+		}
+		scope:target = {
+			add = "liturgical_language_utility(scope:actor)"
+		}
+	}
+}
+
+change_court_language = {
+	type = owncountry
+
+	ai_tick = monthly
+	ai_tick_frequency = 36
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = governmentreforms
+
+	potential = {
+	}
+
+	allow = {
+		scope:actor = {
+			modifier:prevented_from_changing_court_language_by_overlord = no
+			not = { has_cooldown = force_change_court_language }
+			not = { has_cooldown = change_court_language }
+			NOT = { has_country_modifier = parliament_recently_changed_court_language }
+			trigger_if = {
+				limit = {
+					is_subject = yes
+				}
+				subject_type = {
+					only_allowed_overlord_court_language = no
+				}
+			}
+			trigger_if = {
+				limit = {
+					OR = {
+						has_reform = government_reform:papacy_reform
+						has_reform = government_reform:kingdom_of_god_reform
+					}
+					court_language = language:latin_language
+				}
+				always = no
+			}
+		}
+	}
+
+	cooldown = {
+		type = change_court_language
+		years = 10
+	}
+
+	price = price:change_court_language
+
+	select_trigger = {
+		looking_for_a = dialect
+		target_flag = target
+		interaction_source_list = {
+			scope:actor = {
+				court_dialect = {
+					add_to_list = source
+				}
+				culture = {
+					dialect = {
+						add_to_list = source
+					}
+				}
+				liturgical_dialect = {
+					add_to_list = source
+				}
+				every_past_court_dialect = {
+					add_to_list = source
+				}
+				dominant_dialect ?= {
+					add_to_list = source
+				}
+				capital ?= {
+					dominant_dialect = {
+						add_to_list = source
+					}
+					market = {
+						dialect = {
+							add_to_list = source
+						}
+					}
+				}
+				every_accepted_culture = {
+					dialect = {
+						add_to_list = source
+					}
+				}
+				every_international_organizations_member_of = {
+					leader_country ?= {
+						court_dialect = {
+							add_to_list = source
+						}
+					}
+				}
+				every_overlord_or_above = {
+					court_dialect = {
+						add_to_list = source
+					}
+				}
+				ruler ?= {
+					dialect = {
+						add_to_list = source
+					}
+					dynasty ?= {
+						dynasty_head ?= {
+							dialect = {
+								add_to_list = source
+							}
+						}
+					}
+				}
+				# Every estate with > 25% relative power contributes its preferred dialect.
+				every_estate = {
+					limit = { power > 0.25 }
+					dialect ?= {
+						add_to_list = source
+					}
+				}
+			}
+		}
+		name = "change_liturgical_language_select_dailect"
+		none_available_msg_key = "change_liturgical_language_no_dialect"
+		column = {
+			data = name
+		}
+		column = {
+			data = power
+		}
+		visible = {
+		}
+		enabled = {
+			NOT = { scope:actor ?= { court_dialect ?= root } }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			set_court_language = scope:target
+		}
+	}
+	
+	ai_will_do = {
+		subtract = {
+			value = 0.8
+			multiply = {
+				value = 1
+				add = scope:actor.modifier:language_change_threshold_modifier
+			}
+			scope:actor.court_language = {
+				add = "court_language_utility(scope:actor)"
+			}
+		}
+		scope:target ?= {
+			add = "court_language_utility(scope:actor)"
+		}
+	}
+}
+

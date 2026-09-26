@@ -1,0 +1,88 @@
+﻿dismiss_prince = { 
+	is_consort_action = no
+	on_own_nation = yes
+		
+	message = yes
+	
+	
+	potential = {
+		scope:actor = {
+			succession_law = heir_selection:veche_selection
+		}
+	}
+	
+	ai_tick = daily
+	ai_tick_frequency = 30
+	allow = {
+		scope:actor = {
+			OR = {
+				government_power >= 10
+				stability < 0
+			}
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = recipient
+		name = "choose_character"
+		column = {
+			data = name
+		}
+		visible = {
+			is_ruler = yes
+			is_alive = yes
+			scope:actor = {
+				ruler = root
+			}
+		}
+		enabled = {
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = -15
+		}
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						NOT = { culture = scope:actor.culture }
+					}
+				}
+				value = 10
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						NOT = { religion = scope:actor.religion }
+					}
+				}
+				value = 10
+			}
+		}
+	}
+	
+	effect = {
+		scope:actor = {
+			if = {
+				limit = {
+					stability > 0
+				}
+				add_government_power = government_power_extreme_penalty
+			}
+			add_prestige = prestige_extreme_penalty
+		}
+		scope:recipient = {
+			remove_ruler = scope:actor
+			set_variable = {
+				name = veche_got_dismissed
+				value = yes
+			}
+		}
+	}
+}

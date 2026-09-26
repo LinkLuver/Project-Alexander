@@ -1,0 +1,278 @@
+﻿#Guelphs
+guelphs_io = {
+	#Can have only ONE faction like this
+	has_leader_country = yes
+    leader_type = country
+    leader_change_method = score
+    leader_change_trigger_type = timed
+    months_between_leader_changes = 1
+    leader_score = {
+        value = country_tax_base
+    }
+	unique = yes
+	show_on_diplomatic_map = yes
+	expel_members_who_are_targets_of_other_members = no
+	#member_color = gag_guelphs_color
+	leader_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	disband_if_no_leader = no
+	#The faction members fought against each other too
+	can_declare_war = { always = yes }
+	gives_military_access_to_all_when_at_war = yes
+
+	create_visible_trigger = {
+		always = no
+	}
+
+	invite_visible_trigger = {
+		always = yes
+	}
+
+	can_join_trigger = {
+		capital.region = region:italy_region
+		in_civil_war = no
+		OR = {
+			NOT = { is_member_of_international_organization = international_organization:ghibellines_io }
+			AND = {
+				is_member_of_international_organization = international_organization:ghibellines_io
+				ruler ?= {
+					has_character_modifier = gag_favors_guelphs
+				}
+			}
+		}
+		religion.group = religion_group:christian
+		international_organization:hre ?= {
+			OR = {
+				NOT = {
+					exists = leader_country
+				}
+				AND = {
+					exists = leader_country
+					NOT = { leader_country = root }
+				}
+			}
+		}
+
+		NOT = {
+			country_has_recently_left_situation_faction = {
+				situation = guelphs_and_ghibellines
+				years = 2
+				variable = gag_recently_left_a_faction
+			}
+		}
+	}
+
+	on_joined = {
+		if = {
+			limit = {
+				is_member_of_international_organization = international_organization:ghibellines_io
+			}
+			international_organization:ghibellines_io = {
+				remove_country_from_international_organization = root
+			}
+		}
+	}
+
+	#...but never flee it
+	can_leave_trigger = {
+		trigger_if = {
+			limit = { exists = root }
+			NOT = {
+				country_has_recently_joined_situation_faction = {
+					situation = guelphs_and_ghibellines
+					years = 5
+					variable = gag_recently_joined_a_faction
+				}
+			}
+			NOT = { tag = PAP }
+		}
+		trigger_else = { always = no }
+	}
+	can_lead_trigger = {
+		is_subject = no
+		is_member_of_international_organization = scope:recipient
+		NOT = { has_variable = gag_blocked_from_leading }
+		religion = religion:catholic
+		capital ?= {
+			region = region:italy_region
+		}
+	}
+	auto_leave_trigger = {
+		NOT = { tag = PAP }
+		OR = {
+			#is_emperor = yes
+			trigger_if = {
+				limit = { exists = international_organization:hre.leader_country }
+				international_organization:hre.leader_country = root
+			}
+			NOT = { religion.group = religion_group:christian }
+		}
+	}
+	#Gets dismantled via an event at the end of the situation
+	auto_disband_trigger = { always = no }
+	monthly_effect = {}
+	modifier = {
+		burghers_estate_target_satisfaction = medium_permanent_target_satisfaction
+		clergy_estate_target_satisfaction = small_permanent_target_satisfaction
+		excluded_from_imperial_protection = yes
+	}
+	leader_modifier = { monthly_prestige = 0.05 }
+	on_left = {
+		if = {
+			limit = { has_variable = gag_blocked_from_leading }
+			remove_variable = gag_blocked_from_leading
+		}
+		if = {
+			limit = { has_casus_belli_of_type = casus_belli:cb_gag_force_country_into_faction }
+			remove_all_casus_belli_of_type = casus_belli:cb_gag_force_country_into_faction
+		}
+	}
+	on_disband = {
+		every_international_organization_member = {
+			limit = { has_casus_belli_of_type = casus_belli:cb_gag_force_country_into_faction }
+			remove_all_casus_belli_of_type = casus_belli:cb_gag_force_country_into_faction
+		}
+	}
+	ai_desire_to_join = {
+
+	}
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}
+
+#Ghibellines
+ghibellines_io = {
+	#Can have only ONE faction like this
+	has_leader_country = yes
+    leader_type = country
+    leader_change_method = score
+    leader_change_trigger_type = timed
+    months_between_leader_changes = 1
+    leader_score = {
+        value = country_tax_base 
+    }
+	unique = yes
+	show_on_diplomatic_map = yes
+	expel_members_who_are_targets_of_other_members = no
+	#member_color = gag_ghibellines_color
+	leader_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	disband_if_no_leader = no
+	#The faction members fought against each other too
+	can_declare_war = { always = yes }
+	gives_military_access_to_all_when_at_war = yes
+
+	create_visible_trigger = {
+		always = no
+	}
+
+	invite_visible_trigger = {
+		always = yes
+	}
+
+	can_join_trigger = {
+		OR = {
+			is_emperor = yes
+			capital.region = region:italy_region
+		}
+		is_rebel_country = no
+		OR = {
+			NOT = { is_member_of_international_organization = international_organization:guelphs_io }
+			AND = {
+				is_member_of_international_organization = international_organization:guelphs_io
+				ruler ?= {
+					has_character_modifier = gag_favors_ghibellines
+				}
+			}
+		}
+		religion.group = religion_group:christian
+		modifier:gag_support_guelphs = no
+		NOT = {
+			country_has_recently_left_situation_faction = {
+				situation = guelphs_and_ghibellines
+				years = 2
+				variable = gag_recently_left_a_faction
+			}
+		}
+	}
+
+	on_joined = {
+		if = {
+			limit = {
+				is_member_of_international_organization = international_organization:guelphs_io
+			}
+			international_organization:guelphs_io = {
+				remove_country_from_international_organization = root
+			}
+		}
+	}
+	
+	#...but never flee it
+	can_leave_trigger = {
+		trigger_if = {
+			limit = { exists = root }
+			NOT = {
+				country_has_recently_joined_situation_faction = {
+					situation = guelphs_and_ghibellines
+					years = 5
+					variable = gag_recently_joined_a_faction
+				}
+			}
+		}
+		trigger_else = { always = no }
+	}
+	can_lead_trigger = {
+		is_subject = no
+		is_member_of_international_organization = scope:recipient
+		NOT = { has_variable = gag_blocked_from_leading }
+		religion = religion:catholic
+		capital ?= {
+			region = region:italy_region
+		}
+	}
+	auto_leave_trigger = {
+		OR = {
+			tag = PAP
+			NOT = { religion.group = religion_group:christian }
+			modifier:gag_support_guelphs = yes
+		}
+	}
+	#Gets dismantled via an event at the end of the situation
+	auto_disband_trigger = { always = no }
+	monthly_effect = {}
+	modifier = {
+		nobles_estate_target_satisfaction = medium_permanent_target_satisfaction
+		peasants_estate_target_satisfaction = small_permanent_target_satisfaction
+		monthly_religious_influence = -0.1
+		ghibelline_imperial_protection = yes
+	}
+	leader_modifier = { monthly_prestige = 0.05 }
+	on_left = {
+		if = {
+			limit = { has_variable = gag_blocked_from_leading }
+			remove_variable = gag_blocked_from_leading
+		}
+		if = {
+			limit = { has_casus_belli_of_type = casus_belli:cb_gag_force_country_into_faction }
+			remove_all_casus_belli_of_type = casus_belli:cb_gag_force_country_into_faction
+		}
+	}
+	on_disband = {
+		every_international_organization_member = {
+			limit = { has_casus_belli_of_type = casus_belli:cb_gag_force_country_into_faction }
+			remove_all_casus_belli_of_type = casus_belli:cb_gag_force_country_into_faction
+		}
+	}
+   
+	ai_desire_to_join = {
+
+	}
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}

@@ -1,0 +1,377 @@
+﻿spread_reformation_through_trade = {
+	type = situation
+
+	potential = {
+		scope:actor = {
+			religion = religion:catholic
+			country_type = building
+		}
+	}
+
+	allow = {
+		is_situation_active = situation:reformation
+		scope:actor = {
+			any_owned_foreign_building = {
+				building_type = building_type:hanseatic_kontor
+				linked_pop = {
+					religion = religion:catholic
+				}
+			}
+		}
+	}
+
+	cooldown = {
+		type = spread_reformation_through_trade
+		years = 10
+	}
+
+	automation_tick = never
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:reformation = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = religion
+		target_flag = target
+		name = "convert_religion_select_religion"
+		none_available_msg_key = "convert_religion_no_religions"
+		column = {
+			data = name
+		}
+		visible = {
+			OR = {
+				root = religion:lutheran
+				root = religion:calvinist
+			}
+			is_religion_enabled = yes
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:actor = {
+				every_owned_foreign_building = {
+					limit = {
+						building_type = building_type:hanseatic_kontor
+					}
+					linked_pop = {
+						if = {
+							limit = {
+								religion = religion:catholic
+							}
+							change_pop_religion = scope:target
+							split_pop = {
+								fraction = 0.5
+								religion = religion:catholic
+							}
+						}
+					}
+				}
+			}
+		}
+		else = {
+			custom_tooltip = spread_reformation_through_trade_tt
+		}
+	}
+
+	ai_will_do = {
+		add = 100
+	}
+}
+
+embrace_the_reformation = {
+	type = situation
+
+	potential = {
+		scope:actor = {
+			religion = religion:catholic
+			NOT = {
+				tag = PAP
+			}
+		}
+	}
+
+	allow = {
+		is_situation_active = situation:reformation
+		trigger_if = {
+			limit = {
+				scope:actor = {
+					is_human = no
+				}
+			}
+			religion:lutheran = {
+				num_countries_in_religion < 20
+			}
+			religion:calvinist = {
+				num_countries_in_religion < 20
+			}
+			scope:actor = {
+				OR = {
+					religion_percentage_in_country = {
+						religion = religion:lutheran
+						value > 0
+					}
+					religion_percentage_in_country = {
+						religion = religion:calvinist
+						value > 0
+					}
+				}
+			}
+		}
+		trigger_else = {
+			scope:actor = {
+				OR = {
+					religion_percentage_in_country = {
+						religion = religion:lutheran
+						value > 0
+					}
+					religion_percentage_in_country = {
+						religion = religion:calvinist
+						value > 0
+					}
+				}
+			}
+		}
+	}
+
+	cooldown = {
+		type = convert_religion
+		years = 10
+	}
+
+	automation_tick = never
+	ai_tick_frequency = 12
+
+	ai_prerequisite = {
+		OR = {
+			religion_percentage_in_country = {
+				religion = religion:lutheran
+				value > 0
+			}
+			religion_percentage_in_country = {
+				religion = religion:calvinist
+				value > 0
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:reformation = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = religion
+		target_flag = target
+		name = "convert_religion_select_religion"
+		none_available_msg_key = "convert_religion_no_religions"
+		column = {
+			data = name
+		}
+		visible = {
+			OR = {
+				root = religion:lutheran
+				root = religion:calvinist
+			}
+			is_religion_enabled = yes
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:actor = {
+				#save the current heir selection to re-apply it after
+				random_current_policy = {
+					limit = {
+						OR = {
+							this = policy:heir_special_succession
+							this = policy:heir_same_religion
+							this = policy:heir_same_religion_group
+							this = policy:heir_any_religion
+						}
+					}
+					save_temporary_scope_as = target_policy
+				}
+
+				change_religion = scope:target
+				change_religion_for_ruler_and_family = { country = scope:actor religion = scope:target }
+				if = {
+					limit = {
+						government_type = government_type:theocracy
+					}
+					add_stability = stability_severe_penalty
+					add_prestige = prestige_severe_penalty
+					change_government_type = government_type:monarchy
+				}
+				ruler ?= { remove_character_modifier = enacted_placitum_regium }
+				
+				add_policy = scope:target_policy
+			}
+		}
+		else = {
+			custom_tooltip = embrace_the_reformation_tt
+		}
+	}
+
+	ai_will_do = {
+		add = -100
+		add = {
+			if = {
+				limit = {
+					scope:target = {
+						num_countries_in_religion < 10
+					}
+					scope:actor = { #this could also check for lutheran_preachers calvinist_preachers in country
+						religion_percentage_in_country = {
+							religion = scope:target
+							value > 0
+						}
+					}
+				}
+				value = 1000 #countries will convert once more than 10% of their country is of that religion
+				multiply = "scope:actor.religion_percentage_in_country(scope:target)"
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					scope:target = {
+						num_countries_in_religion > 9
+						num_countries_in_religion < 20
+					}
+					scope:actor = { #this could also check for lutheran_preachers calvinist_preachers in country
+						religion_percentage_in_country = {
+							religion = scope:target
+							value > 0
+						}
+					}
+				}
+				value = 500  #countries will convert once more than 20% of their country is of that religion
+				multiply = "scope:actor.religion_percentage_in_country(scope:target)"
+			}
+		}
+	}
+}
+
+sponsor_the_reformation = {
+	type = situation
+
+	potential = {
+		scope:actor = {
+			OR = {
+				religion = religion:catholic
+				religion = religion:anglican
+				religion = religion:calvinist
+				religion = religion:catharism
+				religion = religion:lutheran
+				religion = religion:hussite
+				religion = religion:lollardy
+				religion = religion:waldensian
+			}
+			NOT = {
+				tag = PAP
+			}
+			country_type = location
+		}
+	}
+
+	allow = {
+		is_situation_active = situation:reformation
+		scope:actor = {
+			NOT = {
+				any_movement_in_country = {
+					num_locations_affected > 0
+				}
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:sponsor_the_reformation
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = {
+			data = name
+		}
+		visible = {
+			situation:reformation = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = movement
+		target_flag = target
+		name = "sponsor_the_reformation_select_movement"
+		none_available_msg_key = "sponsor_the_reformation_no_movements"
+		column = {
+			data = name
+		}
+		visible = {
+			always = yes
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:actor = {
+				random_owned_location = {
+					limit = {
+						has_road_to_capital = yes
+					}
+					save_scope_as = new_movement_location
+				}
+			}
+			scope:target = {
+				spread_to_location = {
+					location = scope:new_movement_location
+					supporters_percent = {
+						value = 0.2
+						multiply = scope:new_movement_location.local_control
+						multiply =scope:new_movement_location.average_satisfaction
+						min = 0.05
+					}
+				}
+			}
+		}
+		else = {
+			custom_tooltip = sponsor_the_reformation_tt
+		}
+	}
+
+	ai_will_do = {
+		add = -100
+	}
+}

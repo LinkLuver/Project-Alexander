@@ -1,0 +1,316 @@
+﻿pw_push_for_serfdom = {
+	type = disaster
+
+	allow = {
+		scope:actor = {
+			estate_satisfaction:peasants_estate > estate_satisfaction_mild_bonus
+			societal_value:serfdom_vs_free_subjects > -95
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:peasants_war_actions_price
+
+	cooldown = {
+		type = pw_push_for_serfdom
+		years = 1
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:peasants_war
+			disaster_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			change_societal_value = {
+				type = serfdom_vs_free_subjects
+				value = societal_value_minor_move_to_left
+			}
+
+			add_estate_satisfaction = { 
+				type = estate_type:peasants_estate 
+				value = estate_satisfaction_mild_penalty 
+			}
+		}	
+	}
+
+	ai_will_do = {
+		add = 5
+		add = {
+			value = "scope:actor.estate_power(estate_type:nobles_estate)"
+			multiply = 10
+		}
+		add = {
+			value = "scope:actor.estate_power(estate_type:peasants_estate)"
+			multiply = -10
+		}
+		add = {
+			value = scope:actor.modifier:global_nobles_estate_power
+			multiply = 10
+		}
+		add = {
+			value = scope:actor.modifier:global_peasants_estate_power
+			multiply = -10
+		}
+		if = {
+			limit = {
+				scope:actor = { societal_value:serfdom_vs_free_subjects > 0 }
+			}
+			subtract = scope:actor.societal_value:serfdom_vs_free_subjects
+		}
+		else_if = {
+			limit = {
+				scope:actor = { societal_value:serfdom_vs_free_subjects < 0 }
+			}
+			add = {
+				value = scope:actor.societal_value:serfdom_vs_free_subjects
+				multiply = -1
+			}
+		}
+		if = {
+			limit = { scope:actor.modifier:monthly_towards_serfdom > 0 }
+			add = {
+				value = scope:actor.modifier:monthly_towards_serfdom
+				multiply = 100
+			}
+		}
+		if = {
+			limit = { scope:actor.modifier:monthly_towards_free_subjects > 0 }
+			subtract = {
+				value = scope:actor.modifier:monthly_towards_free_subjects
+				multiply = 100
+			}
+		}
+		if = {
+			limit = { scope:actor.government_power < 50 }
+			subtract = -30
+		}
+		if = {
+			limit = { scope:actor.stability > 20 }
+			add = scope:actor.stability
+		}
+		else = { 
+			add = {
+				value = scope:actor.stability 
+				multiply = -10 
+			}
+		}
+	}
+}
+
+pw_push_for_free_subjects = {
+	type = disaster
+
+	allow = {
+		scope:actor = {
+			estate_satisfaction:nobles_estate > estate_satisfaction_mild_bonus
+			societal_value:serfdom_vs_free_subjects < 95
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:peasants_war_actions_price
+
+	cooldown = {
+		type = pw_push_for_serfdom
+		years = 1
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:peasants_war
+			disaster_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			change_societal_value = {
+				type = serfdom_vs_free_subjects
+				value = societal_value_minor_move_to_right
+			}
+
+			add_estate_satisfaction = { 
+				type = estate_type:nobles_estate 
+				value = estate_satisfaction_mild_penalty 
+			}
+		}	
+	}
+
+	ai_will_do = {
+		add = 5
+		add = {
+			value = "scope:actor.estate_power(estate_type:nobles_estate)"
+			multiply = -10
+		}
+		add = {
+			value = "scope:actor.estate_power(estate_type:peasants_estate)"
+			multiply = 10
+		}
+		add = {
+			value = scope:actor.modifier:global_peasants_estate_power
+			multiply = 10
+		}
+		add = {
+			value = scope:actor.modifier:global_nobles_estate_power
+			multiply = -10
+		}
+		if = {
+			limit = {
+				scope:actor = { societal_value:serfdom_vs_free_subjects > 0 }
+			}
+			add = scope:actor.societal_value:serfdom_vs_free_subjects
+		}
+		else_if = {
+			limit = {
+				scope:actor = { societal_value:serfdom_vs_free_subjects < 0 }
+			}
+			subtract = scope:actor.societal_value:serfdom_vs_free_subjects
+		}
+		if = {
+			limit = { scope:actor.modifier:monthly_towards_free_subjects > 0 }
+			add = {
+				value = scope:actor.modifier:monthly_towards_free_subjects
+				multiply = 100
+			}
+		}
+		if = {
+			limit = { scope:actor.modifier:monthly_towards_serfdom > 0 }
+			subtract = {
+				value = scope:actor.modifier:monthly_towards_serfdom
+				multiply = 100
+			}
+		}
+		if = {
+			limit = { scope:actor.government_power < 50 }
+			subtract = 30
+		}
+		if = {
+			limit = { scope:actor.stability > 20 }
+			add = scope:actor.stability
+		}
+		else = { 
+			add = {
+				value = scope:actor.stability 
+				multiply = -10 
+			}
+		}
+
+		if = {
+			limit = { scope:actor = { societal_value:serfdom_vs_free_subjects = 100 } }
+			multiply = 0
+		}
+
+		if = {
+			limit = { scope:actor = { estate_satisfaction:nobles_estate < 0.3 } }
+			add = -50
+		}
+	}
+}
+
+pw_crush_rebellion = {
+	type = disaster
+	
+	potential = {
+		scope:actor = {
+			any_rebel = { rebel_progress > 0.3 }
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:peasants_war_actions_price
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:peasants_war
+			disaster_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = rebels
+		source = actor
+		target_flag = target
+		name = "rtr_negotiate_with_rebels_select_rebels"
+		none_available_msg_key = "rtr_negotiate_with_rebels_no_rebels"
+		column = { data = name }
+		column = { data = rebel_progress }
+		column = { data = monthly_progress }
+		enabled = { rebel_progress > 0.3 }
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:target = { add_rebel_progress = -0.3 }
+			custom_tooltip = {
+				text = pw_crush_rebellion_tt
+				scope:target = {
+					every_pops_supporting_rebel = { add_pop_satisfaction = pop_satisfaction_weak_penalty }
+				}
+			}
+		}
+		else = {
+			custom_tooltip = pw_crush_rebellion_tt
+			custom_tooltip = pw_rebel_progress_reduction_tt
+			
+		}
+		scope:actor = {
+			if = {
+				limit = { modifier:allow_righteousness = yes }
+				add_righteousness = righteousness_weak_penalty
+			}
+		}
+	}
+
+	ai_will_do = {	#AI will do this more likely if it has powerful revolts brewing
+		add = -50
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						any_rebel = { 
+							rebel_progress >= 0.5
+							count >= 4
+						}
+					}
+				}
+				value = 200
+			}
+		}
+		if = {
+			limit = { scope:actor.stability < 0 }
+			add = -1000
+		}
+		else = { add = scope:actor.stability }
+		if = {
+			limit = { scope:actor.government_power < 50 }
+			add = -1000
+		}
+		else = { add = scope:actor.government_power }
+	}
+}

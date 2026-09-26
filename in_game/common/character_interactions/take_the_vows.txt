@@ -1,0 +1,105 @@
+﻿take_the_vows = {
+	
+	message = yes
+	on_own_nation = yes
+	
+	
+	potential = {
+		scope:actor = {
+			#country
+			religion = religion:catholic
+		}
+	}
+
+	ai_tick = daily
+	ai_tick_frequency = 180
+
+	allow = {
+		scope:actor = {
+			#country
+			OR = {
+				has_ruler = yes
+				AND = {
+					has_regent = yes
+					succession_law = heir_selection:abbess_elective_female
+				}
+			}
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = recipient
+		name = "choose_character"
+		column = {
+			data = name
+		}
+		visible = {
+			is_alive = yes
+			is_ruler = no
+		}
+		enabled = {
+			has_dynasty = yes
+			trigger_if = {
+				limit = {
+					scope:actor = {
+						has_ruler = yes
+						ruler = { has_dynasty = yes	}
+						NOT = { succession_law = heir_selection:abbess_elective_female }
+					}
+				}
+				dynasty = scope:actor.ruler.dynasty
+			}
+			religion = scope:actor.religion
+			NOT = { has_estate = estate_type:clergy_estate }
+			is_adult = yes
+			is_married = no
+			is_general = no
+			is_admiral = no
+			is_heir = no
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			if = {
+				limit = { scope:recipient = { is_heir = yes } }
+				add_government_power = government_power_weak_penalty
+			}
+			else = {
+				add_government_power = government_power_extreme_penalty
+			}
+			add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_weak_bonus }
+			change_societal_value = { type = spiritualist_vs_humanist value = societal_value_minor_move_to_left }
+		}
+		scope:recipient = {
+			add_character_modifier = { modifier = taken_the_vows years = -1 mode = add_and_extend recalculate_immediately = yes }
+			change_character_estate = estate_type:clergy_estate
+		}
+	}
+
+   ai_will_do = { # Values > 0 will make AI click the command, unless there's another interaction with higher ai_will_do
+		#scope:actor = country 
+		#scope:recipient = character
+
+		add = {
+			# if it is under 30 total ability score
+			value = 300
+			subtract = scope:recipient.total_abilities
+			subtract = 270
+		}
+
+		add = {
+			# if clergy has under 50% satisfaction, and scale it up depending on how depserately you need their satisfaction
+			value = 1
+			subtract = scope:actor.estate_satisfaction:clergy_estate
+
+			multiply = 2
+			subtract = 1
+
+			# intensity
+			multiply = 60
+		}	
+   }
+}

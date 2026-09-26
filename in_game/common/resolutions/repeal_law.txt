@@ -1,0 +1,72 @@
+﻿repeal_law =
+{
+	#special hardcoded
+	potential = {
+		scope:actor = {
+			is_ai = no	#the ai should not use it, but players should be able to have access to if necessary
+		}
+	}
+
+	allow = {
+	}
+
+    days = 1
+
+	requires_vote = {
+		always = no
+	}
+	 
+	select_trigger = {
+		top_widget = law_card_header_at_io_policy_select
+		map_mode = international_organization
+		looking_for_a = international_organization
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+		enabled = {
+			leader_country ?= scope:actor
+		}
+	}
+
+	select_trigger = {
+		top_widget = law_card_header_at_io_policy_select
+		map_mode = international_organization
+		looking_for_a = law
+		target_flag = vote
+		name = "repeal_law_select_law"
+		none_available_msg_key = "enact_policy_no_laws"
+		column = {
+			data = name
+		}
+		visible = {
+			requires_vote = no
+			NOT = { has_tag = forbids_no_policy }
+			scope:recipient = {
+				not = {
+					law_is_locked_in_international_organization = root
+				}
+				international_organization_has_law = root
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:vote
+			}
+			scope:recipient = {
+				remove_law_from_international_organization = scope:vote
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 0	#there should be no reason for the AI to really repeal any laws
+		#this resolution exists due to code shenanigans
+	}
+}

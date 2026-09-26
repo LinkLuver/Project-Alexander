@@ -1,0 +1,588 @@
+﻿hre_election = {
+	loc = hre_election
+	potential = { always = yes }
+	allow = {
+	}
+
+	can_vote = {
+		scope:actor = {
+			is_elector = yes
+			is_member_of_international_organization = international_organization:hre
+		}
+	}
+
+	#if it's live, then we only want to test this monthly
+	ai_tick = monthly
+
+	is_live = {
+		scope:recipient ?= {
+			international_organization_has_leader = no
+		}
+	}
+	votes = {
+		add = {
+			desc = "[elector|e]"
+			value = 1
+		}
+	}
+	total_votes_needed = {
+		add = {
+			value = scope:total_votes_available
+			multiply = 0.5
+		}
+	}
+	#do not change this.
+	requires_explicit_votes = no
+
+	should_finalize_vote = {
+		OR = {
+			custom_tooltip = {
+				text = OVER_HALF_OF_VOTES
+				scope:recipient = {
+					international_organization_has_leader = no
+				}
+				scope:highest_vote >= scope:total_votes_needed
+			}
+			custom_tooltip = {
+				text = HRE_ELECTORS_DEADLOCK
+				scope:recipient = {
+					international_organization_has_leader = no
+					international_organization_leader_reign > 2
+					num_of_electors = 0
+					any_international_organization_elector = {
+						root = {
+							vote_is_locked = {
+								voter = prev
+								resolution = resolution:hre_election
+							}
+						}
+						percent >= 0.5
+					}
+				}
+			}
+		}
+		hidden_trigger = {
+			trigger_if = {
+				limit = {
+					scope:recipient = {
+						international_organization_has_leader = no
+					}
+					scope:highest_vote < scope:total_votes_needed
+				}
+				always = no	#it is a hidden trigger as we do not want this to be shown in GUI, and ensures that in case of a deadlock the second condition is is shown as "fulfilled" but doesn't end the resolution
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:hre
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			continent:europe = {
+				every_country_with_capital_in_geography = {
+					limit = {
+						can_lead_international_organization = scope:recipient
+					}
+					add_to_list = source
+				}
+			}
+		}
+		ai_interaction_source_list = {
+			continent:europe = {
+				every_country_with_capital_in_geography = {
+					limit = {
+						can_lead_international_organization = scope:recipient
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = vote
+		allow_self = yes
+		cache_interaction_source_list = yes
+		name = "election_select_country"
+		none_available_msg_key = "election_select_no_countries"
+		default_sort = country_tax_base
+		pre_evaluation_sort_value = country_tax_base
+		pre_evaluation_number_to_evaluate_fully = 25
+		column = {
+			data = name
+		}
+		column = {
+			data = country_tax_base
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					exists = scope:actor #actor is around when we're doing voting. No actor = finalising the election
+				}
+				OR = {
+					this = scope:actor
+					is_member_of_international_organization = scope:recipient
+					scope:actor = {
+						knows_country = root
+					}
+				}
+				trigger_if = {
+					limit = {
+						this = scope:actor
+						scope:recipient = {
+							modifier:allow_self_vote = no
+						}
+					}
+					is_emperor = no
+				}
+			}
+		}
+		enabled = {
+			can_lead_international_organization = scope:recipient
+			trigger_if = {
+				limit = {
+					hre_voting_bound_to_religion = yes
+				}
+				hre_country_is_of_imperial_religion = yes
+			}
+			trigger_if = {
+				limit = {
+					hre_voting_bound_to_religion_group = yes
+				}
+				hre_country_is_of_imperial_religion_group = yes
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				scope:vote ?= { can_lead_international_organization = scope:recipient }
+			}
+			scope:recipient = { set_leader_country = scope:vote }
+			if = {
+				limit = { 
+					scope:recipient = { 
+						has_variable = hre_fixed_succession
+						var:hre_fixed_succession != scope:vote
+						international_organization_has_policy = policy:erbkaisertum_policy
+					}
+				}
+				scope:recipient = { remove_policy_from_international_organization = policy:erbkaisertum_policy }
+			}
+			if = {
+				limit = {
+					scope:recipient = {
+						international_organization_has_policy = policy:hre_religion_catholic
+					}
+				}
+				scope:vote.ruler_or_heir_if_regent = {
+					change_character_religion = religion:catholic
+				}
+			}
+			if = {
+				limit = {
+					scope:recipient = {
+						international_organization_has_policy = policy:hre_religion_lutheran
+					}
+				}
+				scope:vote.ruler_or_heir_if_regent = {
+					change_character_religion = religion:lutheran
+				}
+			}
+			if = {
+				limit = {
+					scope:recipient = {
+						international_organization_has_policy = policy:hre_religion_hussite
+					}
+				}
+				scope:vote.ruler_or_heir_if_regent = {
+					change_character_religion = religion:hussite
+				}
+			}
+			if = {
+				limit = {
+					scope:recipient = {
+						international_organization_has_policy = policy:hre_religion_calvinist
+					}
+				}
+				scope:vote.ruler_or_heir_if_regent = {
+					change_character_religion = religion:calvinist
+				}
+			}
+		}
+	}
+	vote_effect = {
+		assert_if = {
+			limit = {
+				exists = scope:vote
+				scope:vote = {
+					NOT = { can_lead_international_organization = scope:recipient }
+				}
+			}
+			text = "Detective. Arriving. On the scene."
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = { exists = scope:vote }
+			scope:vote = {
+				if = {
+					limit = {
+						is_member_of_international_organization = scope:recipient
+					}
+					#different sizes in the hre
+					if = {
+						limit = {
+							total_population_in_international_organization = {
+								international_organization = scope:recipient
+								value >= 1000
+							}
+						}
+						add = {
+							desc = "HRE_DOMINANT_NATION"
+							value = 75
+						}
+					}
+					else_if = {
+						limit = {
+							total_population_in_international_organization = {
+								international_organization = scope:recipient
+								value >= 500
+							}
+						}
+						add = {
+							desc = "HRE_LARGE_NATION"
+							value = 50
+						}
+					}
+					else_if = {
+						limit = {
+							total_population_in_international_organization = {
+								international_organization = scope:recipient
+								value < 100
+							}
+						}
+						add = {
+							desc = "HRE_TINY_NATION"
+							value = -50
+						}
+					}
+					else_if = {
+						limit = {
+							total_population_in_international_organization = {
+								international_organization = scope:recipient
+								value < 250
+							}
+						}
+						add = {
+							desc = "HRE_SMALL_NATION"
+							value = -25
+						}
+					}
+					#different ranks in the hre
+					if = {
+						limit = { scope:recipient = { international_organization_has_policy = policy:golden_bull_policy } }
+						if = {
+							limit = {	
+								country_rank = country_rank:rank_empire
+							}
+							add = {
+								desc = "rank_empire"
+								value = 50
+							}
+						}
+						else_if = {
+							limit = {	
+								country_rank = country_rank:rank_kingdom
+							}
+							add = {
+								desc = "rank_kingdom"
+								value = 25
+							}
+						}
+						else_if = {
+							limit = {	
+								country_rank = country_rank:rank_duchy
+							}
+							add = {
+								desc = "rank_duchy"
+								value = 10
+							}
+						}
+					}
+				}
+				else = {
+					add = {
+						desc = "HRE_ELECTION_NOT_A_MEMBER"
+						value = -100
+					}
+				}
+				#with erbkaisertum, we always choose the leader again
+				if = {
+					limit = {
+						exists = scope:recipient
+						scope:recipient = {
+							international_organization_has_policy = policy:erbkaisertum_policy
+							last_leader_country ?= scope:vote
+						}
+					}
+					add = {
+						desc = "erbkaisertum_policy"
+						value = 100000
+					}
+				}
+				else_if = {
+					limit = {
+						exists = scope:recipient
+						is_ai = no	#check ONLY the player as this is a very heavy trigger and the AI is incapable of voting for any non-eligible country anyways
+						NOT = { can_lead_international_organization = scope:recipient }
+					}
+					subtract = {
+						desc = "LEADERSHIP_CANNOT_LEAD_ORGANIZATION"
+						value = 100000
+					}
+				}
+				#voting for themselves?
+				if = {
+					limit = {
+						this = scope:actor
+					}
+					add = {
+						desc = "LEADERSHIP_VOTE_FOR_SELF"
+						value = 25
+					}
+				}
+				if = {
+					limit = {	
+						this = scope:actor 		
+						scope:recipient = {
+							"active_resolution(resolution:hre_election)" = {
+								any_voter = {
+									this != scope:actor
+									save_temporary_scope_as = voter
+									scope:recipient = {
+										has_cached_or_cast_vote_for = {
+											voter = scope:voter
+											resolution = resolution:hre_election
+											vote = scope:actor
+										}
+									}
+								}
+							}
+						}
+					}
+					add = {
+						desc = "LEADERSHIP_VOTE_FOR_SELF_OTHER_VOTERS"
+						value = 200
+					}
+				}
+
+				#rival?
+				if = {
+					limit = { is_rival_of = scope:actor }
+					add = {
+						desc = "game_concept_rival"
+						value = -1000
+					}
+				}
+
+				#at war?
+				if = {
+					limit = { is_at_war_with = scope:actor }
+					add = {
+						desc = "game_concept_war"
+						value = -200
+					}
+				}
+
+				#diplomacy
+				if = {
+					limit = { NOT = { this = scope:actor } }
+					if = {
+						limit = { is_allied_with = { target = scope:actor } }
+						add = {
+							desc = "HAS_ALLIANCE"
+							value = 30
+						}
+					}
+					if = {
+						limit = { has_royal_marriage_with = scope:actor }
+						add = {
+							desc = "game_concept_royal_marriage"
+							value = 20
+						}
+					}
+					if = {
+						limit = { same_dynasty_as = { target = scope:actor } }
+						add = {
+							desc = "opinion_same_dynasty"
+							value = 30
+						}
+					}
+				}
+
+				#great power score
+				add = {
+					desc = "game_concept_tax_base"
+					value = country_tax_base
+					if = {
+						limit = {
+							scope:recipient = {
+								international_organization_has_law = law:golden_bull 
+							}
+						}		
+						multiply = 0.15
+					}
+					else = {
+						multiply = 0.05
+					}
+					#non-hre members should have it significantly harder
+					if = {
+						limit = { NOT = { is_member_of_international_organization = scope:recipient } }
+						divide = 10
+					}
+					if = {
+						limit = {
+							scope:recipient = {
+								international_organization_has_leader = no
+								international_organization_leader_reign >= LONG_IMPERIAL_REGENCY_YEARS
+							}
+						}
+						# When a long HRE regency occurs infinitely increase the great power score effect of voting until a new emperor is found
+						# This should prevent 25Y or longer interregnums
+						multiply = {
+							value = 1
+							add = {
+								value = scope:recipient.international_organization_leader_reign
+								subtract = LONG_IMPERIAL_REGENCY_YEARS
+								divide = 10
+							}
+						}
+					}
+				}
+
+				#misc diplo reasons
+				if = {
+					limit = { not = { this = scope:actor } }
+					add = {
+						desc = "HRE_ELECTION_REASON_TO_ELECT"
+						value = modifier:reasons_to_elect
+					}
+					add = {
+						desc = "game_concept_diplomatic_reputation"
+						value = modifier:diplomatic_reputation
+						multiply = 3
+					}
+					add = {
+						desc = "game_concept_opinion"
+						if = {
+							limit = {	
+								scope:recipient = {
+									international_organization_has_law = law:golden_bull 
+								}
+							}
+							scope:actor = {
+								value = this_opinion_of_prev
+								divide = 2
+							}
+						}
+						else = {
+							scope:actor = {
+								value = this_opinion_of_prev
+							}
+						}
+					}
+
+					if = {
+						limit = { scope:actor = { is_subject_or_below_of = scope:vote } }
+						add = {
+							desc = "IS_OUR_OVERLORD"
+							value = 50
+						}
+					}
+					else_if = {
+						limit = {
+							scope:recipient = {
+								any_international_organization_elector = {
+									is_subject_or_below_of = scope:vote
+								}
+							}
+						}
+						add = {
+							desc = "HRE_HAS_ANOTHER_ELECTOR_SUBJUGATED"
+							value = -50
+						}
+					}
+				}
+
+				#legitimacy
+				if = {
+					limit = { uses_government_power = legitimacy }
+					add = {
+						desc = "game_concept_legitimacy"
+						value = legitimacy
+						divide = 2
+						subtract = 25
+					}
+				}
+
+				#prestige
+				add = {
+					desc = "game_concept_prestige"
+					value = prestige
+					subtract = 50
+					divide = 2
+				}
+
+				#dynastic power
+				add = {
+					desc = "game_concept_dynastic_power"
+					value = "dynastic_power(scope:recipient)"
+					multiply = 4
+					max = 300
+				}
+
+				#court language
+				if = {
+					limit = { court_language = language:german_language }
+					add = {
+						desc = "HRE_ELECTION_GERMAN_COURT_LANGUAGE"
+						value = 25
+					}
+				}
+
+				#don't reelect emperors which are way too aggressive
+				add = {
+					desc = "game_concept_antagonism"
+					value = "scope:actor.antagonism(scope:vote)"
+					multiply = -2
+
+				}
+				if = {
+					limit = {
+						is_member_of_international_organization = international_organization:guelphs_io
+					}
+					add = {
+						desc = "opinion_guelphs_support_imperial_rivals"
+						value = -50
+					}
+				}
+			}
+		}
+		else = {
+			value = 0
+		}
+	}
+}

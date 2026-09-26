@@ -1,0 +1,504 @@
+﻿autocephalous_patriarchate = {
+	has_target = no
+	unique = no
+	custom_name = autocephalous_patriarchate_name
+	alert_view_tab = overview
+	can_declare_war = {
+		always = yes
+	}
+	has_leader_country = yes
+	expel_members_who_target_the_leader = yes
+	expel_members_who_are_targets_of_other_members = no
+	leader_type = country
+	leader_change_trigger_type = none
+	create_visible_trigger = {
+		always = no #handled by another generic action
+	}
+	invite_visible_trigger = {
+		always = yes
+	}
+	on_creation = {
+		if = {
+			limit = { exists = scope:actor }
+			set_leader_country = scope:actor
+			set_up_patriarch_for_io = yes
+			if = {
+				limit = {
+					has_dlc = "d008_fate_of_the_phoenix"
+				}
+				if = {
+					limit = {
+						var:seat ?= {
+							is_pentarchy_seat = yes
+						}
+					}
+					var:seat = { save_scope_as = target_pentarchy }
+					if = {
+						limit = {
+							scope:target_patriarch = { has_variable = is_pentarch }
+						}
+						scope:actor = { select_suitable_patriarch = { pentarchy = yes } }
+					}
+					religion:orthodox = {
+						if = {
+							limit = {
+								is_key_in_variable_map = { name = pentarchy target = scope:target_pentarchy }
+							}
+							"variable_map(pentarchy|scope:target_pentarchy)" ?= {
+								remove_variable = is_pentarch
+							}
+						}
+						add_to_variable_map = {
+							name = pentarchy
+							key = scope:target_pentarchy
+							value = scope:target_patriarch
+						}
+					}
+					scope:target_patriarch = {
+						set_pentarch_variable = { location = scope:target_pentarchy}
+					}
+					scope:actor = {
+						add_pentarchy_modifier = { location = scope:target_pentarchy }
+					}
+				}
+			}
+		}
+	}
+
+	modifier = {
+		scale = {
+			if = {
+				limit = {
+					exists = scope:recipient
+					exists = scope:recipient.leader_country
+					not = {
+						scope:recipient.leader_country = this
+					}
+					scope:recipient = {
+						#is the seat also a holy site? If so we can gain bonuses as an "honorary" AP!
+						var:seat ?= {
+							is_location_holy_site_for = scope:recipient.var:religion
+						}
+					}
+				}
+				value = root.total_population
+				multiply = -0.75
+				if = {
+					limit = {
+						scope:recipient = { international_organization_has_leader = yes }
+						scope:recipient.leader_country.total_population > 0
+						scope:recipient.leader_country.total_population > root.total_population
+					}
+					divide = scope:recipient.leader_country.total_population
+				}
+				else = {
+					divide = root.total_population
+				}
+				add = 1
+			}
+			else = {
+				value = 0
+			}
+		}
+		monthly_prestige = 0.02
+		monthly_legitimacy = 0.02
+	}
+	modifier = {
+		scale = {
+			if = {
+				limit = {
+					exists = scope:recipient
+					not = {
+						scope:recipient.leader_country ?= this
+					}
+					scope:recipient = {
+						#is the seat also a holy site? If so we can gain bonuses as an "honorary" AP!
+						var:seat ?= {
+							is_location_holy_site_for = scope:recipient.var:religion
+						}
+					}
+				}
+				value = 1
+			}
+			else = {
+				value = 0
+			}
+		}
+		monthly_religious_influence = 0.05
+	}
+
+	modifier = {
+		scale = {
+			if = {
+				limit = {
+					exists = scope:recipient
+					scope:recipient ?= {
+						var:seat ?= {
+							owner ?= {
+								OR = {
+									not = { is_member_of_international_organization_of_type = { type = autocephalous_patriarchate } }
+									not = {
+										autocephalous_patriarchate = scope:recipient
+									}
+								}
+							}
+						}
+					}
+				}
+				value = 1
+			}
+			else = {
+				value = 0
+			}
+		}
+		monthly_religious_influence = -0.1
+	}
+	
+	leader_modifier = {
+		monthly_prestige = 0.05
+		monthly_legitimacy = 0.05
+	}
+	
+	can_lead_trigger = {
+		always = yes
+	}
+
+	can_join_trigger = {
+		is_rebel_country = no
+		OR = {
+			religion = {
+				has_autocephalous_patriarchates = yes
+			}
+			custom_tooltip = {
+				text = formed_union_of_brest
+				has_variable = union_of_brest_flag
+			}
+		}
+		trigger_if = {
+			limit = {
+				exists = scope:recipient
+				scope:recipient = {
+					exists = var:religion
+				}
+			}
+			religion = "scope:recipient.var:religion"
+		}
+		trigger_if = {
+			limit = {
+				has_variable = left_autocephalous_patriarchate
+				exists = var:left_autocephalous_patriarchate # Check that the variable actually includes a valid value in it
+			}
+			custom_tooltip = {
+				text = recently_left_patriarchate_tt
+				var:left_autocephalous_patriarchate != scope:recipient
+			}
+		}
+		custom_tooltip = {
+			text = we_are_not_already_ap_leader_tt
+			NOT = {
+				any_international_organizations_member_of = {
+					international_organization_type = international_organization_type:autocephalous_patriarchate
+					leader_country ?= root
+				}
+			}
+		}
+	}
+	
+	can_leave_trigger = {
+		always = no
+	}
+	
+	auto_leave_trigger = {
+		not = { religion = "scope:recipient.var:religion" }
+		scope:recipient = {
+			leader_country = {
+				opinion = {
+					target = root
+					value < -50
+				}
+			}
+		}
+	}
+
+	auto_disband_trigger = {
+		trigger_if = {
+			limit = {
+				custom_tooltip = {
+					text = formed_union_of_brest
+					has_variable = catholic_patriarchate
+				}
+			}
+			leader_country = {
+				NOT = { has_estate_privilege = estate_privilege:plc_empower_orthodox_nobility }
+			}
+		}
+		trigger_else = {
+			always = no
+		}
+	}
+
+	on_joined = {
+		#make sure we leave any others we're already in
+		every_international_organizations_member_of = {
+			limit = {
+				international_organization_type = international_organization_type:autocephalous_patriarchate
+				not = { this = scope:recipient }
+			}
+			remove_country_from_international_organization = {
+				country = root
+				reason = DecidedToLeave
+			}
+		}
+		if = {
+			limit = {
+				scope:recipient = {
+					or = {
+						not = { has_variable = religion }
+						not = { exists = var:religion }
+					}
+				}
+			}
+			#default the religion to that of the leader
+			scope:recipient = {
+				set_variable = {
+					name = religion
+					value = root.religion
+				}
+			}
+		}
+		scope:recipient = {
+			var:religion = {
+				add_international_organization = scope:recipient
+			}
+		}
+		if = {
+			limit = {
+				scope:recipient = {
+					or = { 
+						not = { has_variable = seat }
+						not = { exists = var:seat }
+					}
+				}
+			}
+			if = {
+				limit = {
+					any_holy_site_in_country = {
+						is_holy_site_for = root.religion
+					}
+				}
+				#default the seat to the first holy site that matches the criteria
+				random_holy_site_in_country = {
+					limit = {
+						is_holy_site_for = root.religion
+					}
+					scope:recipient = {
+						set_variable = {
+							name = seat
+							value = prev.location
+						}
+					}
+				}
+			}
+			else = {
+				#default the seat to the capital of the leader
+				scope:recipient = {
+					set_variable = {
+						name = seat
+						value = root.capital
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:recipient = {
+					NOT = { has_variable = patriarch }
+				}
+			}
+			scope:recipient = {
+				set_leader_country = root
+				set_up_patriarch_for_io = yes
+			}
+		}
+	}
+
+	on_left = {
+		#if they're still a nation that needs to be part of an AP, they've probably been kicked out because of being a coalition target or something
+		if = {
+			limit = {
+				country_exists = root
+				not = { is_member_of_international_organization_of_type = { type = autocephalous_patriarchate } }
+				religion = {
+					has_autocephalous_patriarchates = yes
+				}
+			}
+			if = { #See if we can join an existing AP before creating one
+				limit = {
+					religion = {
+						any_religion_international_organization = {
+							international_organization_type = international_organization_type:autocephalous_patriarchate
+							io_within_diplomatic_range = root
+							root = { country_can_join_international_organization = prev }
+							leader_country ?= {
+								opinion = { target = root value >= 0 }
+								root = { this_opinion_of_prev >= 0 }
+							}
+						}
+					}
+				}
+				religion = {
+					random_religion_international_organization = {
+						limit = {
+							international_organization_type = international_organization_type:autocephalous_patriarchate
+							io_within_diplomatic_range = root
+							root = { country_can_join_international_organization = prev }
+							leader_country ?= {
+								opinion = { target = root value >= 0 }
+								root = { this_opinion_of_prev >= 0 }
+							}
+						}
+						add_country_to_international_organization = root
+					}
+				}
+			}
+			else = {
+				create_international_organization = {
+					type = international_organization_type:autocephalous_patriarchate
+					add_country_to_international_organization = prev
+					set_leader_country = prev
+				}
+			}
+		}
+		set_variable = {
+			name = left_autocephalous_patriarchate
+			value = scope:recipient
+			years = 5
+		}
+	}
+	
+	on_disband = {
+		every_international_organization_member = {
+			limit = {
+				religion = {
+					has_autocephalous_patriarchates = yes
+				}
+			}
+			save_temporary_scope_as = country_to_add
+			if = { #See if we can join an existing AP before creating one
+				limit = {
+					religion = {
+						any_religion_international_organization = {
+							international_organization_type = international_organization_type:autocephalous_patriarchate
+							io_within_diplomatic_range = scope:country_to_add
+							scope:country_to_add = { country_can_join_international_organization = prev }
+							leader_country ?= {
+								opinion = { target = scope:country_to_add value >= 0 }
+								scope:country_to_add = { this_opinion_of_prev >= 0 }
+							}
+						}
+					}
+				}
+				religion = {
+					random_religion_international_organization = {
+						limit = {
+							international_organization_type = international_organization_type:autocephalous_patriarchate
+							io_within_diplomatic_range = scope:country_to_add
+							scope:country_to_add = { country_can_join_international_organization = prev }
+							leader_country ?= {
+								opinion = { target = scope:country_to_add value >= 0 }
+								scope:country_to_add = { this_opinion_of_prev >= 0 }
+							}
+						}
+						add_country_to_international_organization = scope:country_to_add
+					}
+				}
+			}
+			else = {
+				create_international_organization = {
+					type = international_organization_type:autocephalous_patriarchate
+					creator = scope:country_to_add
+					add_country_to_international_organization = prev
+					set_leader_country = prev
+				}
+			}
+		}
+		var:patriarch ?= {
+			remove_variable = is_patriarch
+		}
+	}
+	
+	variables = {
+		religion = {
+			format = "RELIGION_FORMAT"
+		}
+		seat = {
+			format = "AUTOCEPHALOUS_PATRIARCHY_SEAT_FORMAT"
+			monthly_change_hidden = yes
+		}
+	}
+
+	ai_desire_to_join = {
+		if = {
+			limit = { country_rank_level > 1 }
+			subtract = {
+				desc = "game_concept_country_rank"
+				value = {
+					value = country_rank_level
+					multiply = 20
+				}
+			}
+		}
+		subtract = {
+			desc = "game_concept_tax_base"
+			value = country_tax_base
+		}
+		add = {
+			desc = "game_concept_opinion"
+			value = {
+				value = "root.opinion(scope:actor)"
+				divide = 4      # max ±50 at ±200 opinion
+			}
+		}
+		add = {
+			desc = "game_concept_diplomatic_reputation"
+			value = {
+				value = "scope:actor.modifier:diplomatic_reputation"
+				multiply = 0.5  # +0.5 reasons per 1 diprep
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:actor
+				OR = {
+					culture ?= scope:actor.culture
+					ruler ?= {
+						culture ?= scope:actor.culture
+					}
+				}
+			}
+			add = {
+				desc = "PRIMARY_OR_RULER_CULTURE_EQUAL_TO_LEADER_CULTURE"
+				value = 25
+			}
+		}
+		if = {
+			limit = {
+				any_international_organizations_member_of = { 
+					international_organization_type = international_organization_type:autocephalous_patriarchate
+					leader_country ?= root
+				}
+			}
+			subtract = {
+				desc = "IS_LEADER_OF_AN_AP"
+				value = 1000
+			}
+		}
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}
