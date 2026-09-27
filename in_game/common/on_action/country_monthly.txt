@@ -1,0 +1,302 @@
+﻿#P:A TODO Manual cleanup of file required
+
+monthly_country_pulse = {
+	on_actions = {
+		on_papal_opinion_added
+		on_papal_opinion_removed
+		on_papacy_reform_removed
+		on_papal_authority_updated
+		france_naples_administration_broken
+		on_new_appanage
+		on_vassalized_appanage
+		on_former_independent_appanage
+		on_disloyal_independent_appanage
+		on_annexing_subject_monthly_pulse
+		#on_settle_the_frontier_monthly_pulse #P:A Removed vanilla reference
+		wor_on_wallenstein_prison_occupation
+		wor_on_wallenstein_prison_timeout
+		on_fraticide_underage_succession_waiting
+	}
+	
+	random_events = {
+		#10 = empires.1 #P:A TODO Associated event was removed
+		#10 = empires.2 #P:A TODO Associated event was removed
+		#10 = empires.3 #P:A TODO Associated event was removed
+		#1 = border_friction.1 #P:A TODO Associated event was removed
+		#1 = border_friction.2 #P:A TODO Associated event was removed
+		
+		#20 = flavor_dan.9 #Skane Fish Market comes to an end #P:A TODO Associated event was removed
+		#10 = flavor_pol.1200 #Nicolaus Copernicus #P:A TODO Associated event was removed
+
+		#30 = war_of_religions.1201 #P:A TODO Associated event was removed
+		#100 = war_of_religions.1204 #P:A TODO Associated event was removed
+
+		#20 = war_of_religions.1401 #P:A TODO Associated event was removed
+
+		#10 = little_ice_age.4 #P:A TODO Associated event was removed
+	
+		chance_to_happen = 5
+	}
+	
+	
+	
+	events = {
+		#earthquake events 
+		earthquake_events.1			#Earthquake in Constantinople
+		earthquake_events.1000		#The Gallipoli Earthquake
+
+		#other events
+		#devotion_events.21			#Change government form if low devotion #P:A TODO Associated event was removed
+		#banking.1					#Spawn the Fuggers #P:A TODO Associated event was removed
+		#banking.3					#Spawn the Welser #P:A TODO Associated event was removed
+		#military_order_events.9 	#The Banners of Outremer #P:A TODO Associated event was removed
+		#flavor_pap.9000 			#Give Rome back to the Pope #P:A TODO Associated event was removed
+		#flavor_pap.9001				#Or he'll come for someone else's land #P:A TODO Associated event was removed
+		#mayan_events.1				#The Start of a New K'atun #P:A TODO Associated event was removed
+		#flavor_plc.15 #P:A TODO Associated event was removed
+
+		#turmoil_in_brandenburg.1200 #Hohenzollern event for the Emperor if they have BB as subject #P:A TODO Associated event was removed
+		#turmoil_in_brandenburg.2 #Get rid of a modifier which serves no longer a purpose to BB #P:A TODO Associated event was removed
+	}
+}
+
+on_papal_opinion_added = {
+	trigger = {
+		OR = {
+			modifier:papal_relations < 0
+			modifier:papal_relations > 0
+		}
+		#country_exists = c:PAP #P:A Removed vanilla reference
+		not = { tag = PAP }
+		always = no #P:A Removed vanilla reference
+	}
+	effect = {
+		#c:PAP = { #P:A Removed vanilla reference
+			#remove_opinion = {
+				#target = prev
+				#modifier = opinion_papal_relations
+			#}
+		#}
+		#reverse_add_opinion = { #P:A Removed vanilla reference
+			#target = c:PAP
+			#modifier = opinion_papal_relations
+			#scale = modifier:papal_relations
+		#}
+	}
+}
+
+on_papal_opinion_removed = {
+	trigger = {
+		#country_exists = c:PAP #P:A Removed vanilla reference
+		not = { tag = PAP }
+		#c:PAP = { #P:A Removed vanilla reference
+			#has_opinion = {
+				#target = prev
+				#modifier = opinion_papal_relations
+			#}
+		#}
+		modifier:papal_relations = 0
+		always = no #P:A Removed vanilla reference
+	}
+	effect = {
+		#c:PAP = { #P:A Removed vanilla reference
+			#remove_opinion = {
+				#target = prev
+				#modifier = opinion_papal_relations
+			#}
+		#}
+	}
+}
+
+on_papal_authority_updated = {
+	trigger = {
+		tag = PAP
+		#country_exists = c:PAP #P:A Removed vanilla reference
+		#is_member_of_international_organization = international_organization:catholic_church #P:A Removed vanilla reference
+		always = no #P:A Removed vanilla reference
+	}
+	effect = {
+		if = {
+			limit = {
+				#international_organization:catholic_church = { #P:A Removed vanilla reference
+					#var:papal_authority >= 75
+				#}
+				always = no #P:A Removed vanilla reference
+			}
+			#religion:catholic = { #P:A Removed vanilla reference
+				#add_religion_modifier = {
+					#modifier = high_papal_authority
+					#days = -1
+				#}
+				#remove_religion_modifier = low_papal_authority
+			#}
+		}
+		else_if = {
+			limit = {
+				#international_organization:catholic_church = { #P:A Removed vanilla reference
+					#var:papal_authority < 25
+				#}
+				always = no #P:A Removed vanilla reference
+			}
+			#religion:catholic = { #P:A Removed vanilla reference
+				#add_religion_modifier = {
+					#modifier = low_papal_authority
+					#days = -1
+				#}
+				#remove_religion_modifier = high_papal_authority
+			#}
+		}
+		else = {
+			#religion:catholic = { #P:A Removed vanilla reference
+				#remove_religion_modifier = high_papal_authority
+				#remove_religion_modifier = low_papal_authority
+			#}
+		}
+	}
+}
+
+on_papacy_reform_removed = {
+	trigger = {
+		tag = PAP
+		#NOT = { #P:A Removed vanilla reference
+			#has_reform = government_reform:papacy_reform #P:A Removed vanilla reference
+		#}
+	}
+	effect = {
+		#trigger_event_non_silently = catholic_flavor.9000 #P:A TODO Associated event was removed
+	}
+}
+
+france_naples_administration_broken = {
+	trigger = {
+		has_variable = france_naples_union
+		#NOT = { c:NAP ?= { in_union_with = c:FRA } } #P:A Removed vanilla reference
+	}
+	effect = {
+		if = {
+			limit = {
+				has_country_modifier = fra_aligned_neapolitan_court
+			}
+			remove_country_modifier = fra_aligned_neapolitan_court
+		}	
+		if = {
+			limit = {
+				has_country_modifier = fra_tight_grip_over_neapolitan_court
+			}
+			remove_country_modifier = fra_tight_grip_over_neapolitan_court
+		}			
+		if = {
+			limit = {
+				has_country_modifier = fra_neapolitan_court_autonomy
+			}
+			remove_country_modifier = fra_neapolitan_court_autonomy
+		}	
+		#c:NAP = { #P:A Removed vanilla reference
+			#if = {
+				#limit = {
+					#has_country_modifier = nap_aligned_neapolitan_court
+				#}
+				#remove_country_modifier = nap_aligned_neapolitan_court
+			#}	
+			#if = {
+				#limit = {
+					#has_country_modifier = nap_tight_grip_over_neapolitan_court
+				#}
+				#remove_country_modifier = nap_tight_grip_over_neapolitan_court
+			#}			
+			#if = {
+				#limit = {
+					#has_country_modifier = nap_neapolitan_court_autonomy
+				#}
+				#remove_country_modifier = nap_neapolitan_court_autonomy
+			#}			
+		#}
+		remove_variable = france_naples_union		
+	}	
+}
+
+wor_on_wallenstein_prison_occupation = {
+	trigger = {
+		global_var:wallensteins_prison ?= {
+			has_siege = yes
+			siege = {
+				any_besieging_unit = {
+					owner = {
+						has_variable = wallenstein_rescue_mission
+					}
+				}
+			}
+		}
+	}
+	effect = {
+		#trigger_event_non_silently = war_of_religions.1203 #P:A TODO Associated event was removed
+	}
+}
+
+wor_on_wallenstein_prison_timeout = {
+	trigger = {
+		global_var:wallensteins_prison ?= {
+			has_siege = yes
+			siege = {
+				any_besieging_unit = {
+					owner = {
+						has_variable = wallenstein_rescue_mission
+					}
+				}
+			}
+		}
+	}
+	effect = {
+		#trigger_event_silently = war_of_religions.1204 #P:A TODO Associated event was removed
+	}
+}
+
+# root = overlord
+# scope:target = subject
+on_annexing_subject_monthly_pulse = {
+	on_actions = {
+	}
+	
+	random_events = {
+		#1 = subject_interaction_events.46 #P:A TODO Associated event was removed
+		#1 = subject_interaction_events.47 #P:A TODO Associated event was removed
+		#1 = subject_interaction_events.48 #P:A TODO Associated event was removed
+		#1 = flavor_fra.1102 #P:A TODO Associated event was removed
+		100 = 0
+
+		chance_to_happen = 1
+	}
+}
+
+on_fraticide_underage_succession_waiting = {
+	trigger = {
+		has_variable = fraticide_succession_has_child_sons
+	}
+	effect = {
+		if = {
+			limit = {
+				list_size = { name = rival_male_children value > 0 }
+			}
+			if = {
+				limit = {
+					any_in_list = {
+						list = rival_male_children
+						is_alive = yes
+						is_adult = yes
+					}
+				}
+				#trigger_event_silently = succession.5 #P:A TODO Associated event was removed
+			}
+			else = {
+				every_in_list = {
+					list = rival_male_children
+					limit = { is_alive = no }
+					remove_from_list = rival_male_children
+				}
+			}
+		}
+		else = {
+			#trigger_event_silently = succession.5 #P:A TODO Associated event was removed
+		}
+	}
+}

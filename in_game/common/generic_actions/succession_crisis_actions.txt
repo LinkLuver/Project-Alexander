@@ -1,0 +1,577 @@
+﻿#P:A TODO Manual cleanup of file required
+sc_seek_foreign_aid = {
+	type = disaster
+
+	allow = {
+		scope:actor = { 
+			in_civil_war = no
+			at_war = no 
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:succession_crisis_price
+
+	cooldown = {
+		type = sc_seek_foreign_aid
+		years = 1
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		interaction_source_list = {
+			scope:actor = {
+				every_active_disaster = {
+					limit = {
+						OR = {
+							disaster_type = disaster_type:succession_crisis
+							#disaster_type = disaster_type:castilian_civil_war #P:A Removed vanilla reference
+							#disaster_type = disaster_type:byzantine_succession_crisis #P:A Removed vanilla reference
+						}
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			OR = {
+				#disaster_type = disaster_type:byzantine_succession_crisis #P:A Removed vanilla reference
+				#disaster_type = disaster_type:castilian_civil_war #P:A Removed vanilla reference
+				disaster_type = disaster_type:succession_crisis
+			}
+			disaster_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_neighbor_country = {
+					limit = {
+						NOT = { has_variable = recently_chosen_for_sc_seek_foreign_aid_variable }
+					}
+					add_to_list = source
+				}
+			}
+
+			if = {
+				limit = {
+					scope:actor = {
+						#any_active_disaster = { disaster_type = disaster_type:byzantine_succession_crisis } #P:A Removed vanilla reference
+						always = no #P:A Removed vanilla reference
+					}
+				}
+				area:marmara_area = {
+					every_country_with_capital_in_geography = { 
+						limit = { 
+							NOT = { has_variable = recently_chosen_for_sc_seek_foreign_aid_variable } 
+						} 
+						add_to_list = source 
+					}
+				}
+				area:west_anatolia_area = {
+					every_country_with_capital_in_geography = { 
+						limit = { 
+							NOT = { has_variable = recently_chosen_for_sc_seek_foreign_aid_variable } 
+						} 
+						add_to_list = source 
+					}
+				}
+			}
+			if = {
+				limit = { 
+					scope:actor ?= { 
+						exists = capital
+						capital.continent = continent:europe
+						#religion = religion:catholic #P:A Removed vanilla reference
+						always = no #P:A Removed vanilla reference
+					}
+					#country_exists = c:PAP #P:A Removed vanilla reference
+					#c:PAP = {  #P:A Removed vanilla reference
+						#NOT = { has_variable = recently_chosen_for_sc_seek_foreign_aid_variable }
+					#}
+					always = no #P:A Removed vanilla reference
+				}
+				#c:PAP = { add_to_list = source } #P:A Removed vanilla reference
+			}
+		}
+		cache_interaction_source_list = yes
+		target_flag = target_country
+		name = "SELECT_COUNTRY"
+		none_available_msg_key = "no_country_available"
+		column = { data = name }
+		column = { data = great_power_score }
+		column = { data = expected_army_size }
+		column = { data = expected_navy_size }
+		enabled = {
+			NOR = {
+				is_at_war_with = scope:actor
+				is_subject_of = scope:actor
+				is_subject = yes
+				scope:actor = { is_subject_of = root }
+				is_rival_of = scope:actor
+				is_enemy_of = scope:actor
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target_country }
+			#scope:actor = { trigger_event_non_silently = succession_crisis.6 } #P:A TODO Associated event was removed
+			hidden_effect = {
+				scope:target_country = {
+					set_variable = { name = recently_chosen_for_sc_seek_foreign_aid_variable years = 5 }
+				}
+			}
+		}
+		else = { custom_tooltip = sc_seek_foreign_aid_tt }
+	}
+
+	ai_will_do = {
+		add = -5
+		if = {
+			limit = { exists = scope:target_country }
+			add = {	#More likely to do it to a country that is comparatively stronger than us
+				value = "scope:target_country.relative_strength(scope:actor)"
+				multiply = 100
+			}
+			if = {
+				limit = {	#Never with a rival or enemy
+					scope:target_country = {
+						OR = { 
+							is_rival_of = scope:actor
+							is_enemy_of = scope:actor
+						}
+					}
+				}
+				subtract = {
+					value = -1000
+					desc = "[target_country.GetName] is a rival or enemy"
+				}
+			}
+			else = {
+				add = {
+					value = "scope:actor.opinion(scope:target_country)"
+					multiply = 0.2
+				}
+			}
+			add = {	#Check each other's antagonism towards the other
+				scope:actor = {
+					scope:target_country = {
+						value = this_antagonism_towards_prev
+						multiply = -5
+					}
+				}
+			}
+			add = {
+				scope:target_country = {
+					scope:actor = {
+						value = this_antagonism_towards_prev
+						multiply = -5
+					}
+				}
+			}
+			add = scope:target_country.modifier:diplomatic_reputation
+
+			if = {
+				limit = {
+					scope:target_country = { has_variable = recently_chosen_for_sc_seek_foreign_aid_variable }
+					scope:actor = { 
+						any_neighbor_country = { count > 1 }
+					}
+				}
+				add = -100
+			}
+		}
+	}
+}
+
+sc_commission_dynastic_history = {
+	type = disaster
+
+	potential = {
+		scope:actor = {
+			has_ruler = yes
+			ruler ?= { has_dynasty = yes }
+		}
+	}
+
+	allow = {
+		scope:actor = { 
+			in_civil_war = no
+			at_war = no 
+			any_artist = {
+				artist_type = writer
+			}
+		}
+	}
+
+	cooldown = {
+		type = sc_commission_dynastic_history
+		years = 20
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:hire_artist
+
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		interaction_source_list = {
+			scope:actor = {
+				every_active_disaster = {
+					limit = {
+						OR = {
+							disaster_type = disaster_type:succession_crisis
+							#disaster_type = disaster_type:castilian_civil_war #P:A Removed vanilla reference
+							#disaster_type = disaster_type:byzantine_succession_crisis #P:A Removed vanilla reference
+						}
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_is_active = yes
+			OR = {
+				#disaster_type = disaster_type:byzantine_succession_crisis #P:A Removed vanilla reference
+				#disaster_type = disaster_type:castilian_civil_war #P:A Removed vanilla reference
+				disaster_type = disaster_type:succession_crisis
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		name = "choose_writer"
+		none_available_msg_key = "invite_artist_no_characters"
+		target_flag = target_character
+		column = {
+			data = character_artist
+		}
+		visible = {
+			artist_type = writer
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				NOT = { exists = scope:target_character }
+			}
+			custom_tooltip = {
+				text = selected_writer_will_compile_and_grant_legitimacy_based_on_woa_quality_tt
+				
+			}
+		}
+		else = {
+			custom_tooltip = {
+				text = target_character_will_compile_a_history_of_our_dynasty_tt
+				#scope:actor = { trigger_event_silently = succession_crisis.8 } #P:A TODO Associated event was removed
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = -25
+		if = {
+			limit = {
+				scope:actor.gold <= {
+					value = scope:actor.monthly_income_total
+					multiply = 5
+				}
+			}
+			subtract = 30
+		}
+		else = { add = 5 }
+		if = {
+			limit = { scope:actor.government_power < 80 }
+			add = 25
+		}
+		else = { subtract = 25 }
+		subtract = {
+			value = scope:actor.num_loans
+			multiply = 5
+		}
+	}
+}
+
+sc_ask_help_from_the_nobility = {
+	type = disaster
+
+	ai_tick = monthly
+	ai_tick_frequency = 8
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	potential = {
+		scope:actor = { country_has_estate = estate_type:nobles_estate }
+	}
+
+	allow = {
+		scope:actor = { 
+			in_civil_war = no
+			at_war = no
+			num_possible_estate_privileges:nobles_estate > 0
+			trigger_if = {
+				limit = { has_variable = succession_crisis_pretender_variable }
+				var:succession_crisis_pretender_variable = {
+					has_support_from = pop_type:nobles
+				}
+			}
+		}
+	}
+	price = price:succession_crisis_price
+
+	cooldown = {
+		type = sc_ask_help_from_the_nobility
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		interaction_source_list = {
+			scope:actor = {
+				every_active_disaster = {
+					limit = {
+						OR = {
+							disaster_type = disaster_type:succession_crisis
+							#disaster_type = disaster_type:castilian_civil_war #P:A Removed vanilla reference
+							#disaster_type = disaster_type:byzantine_succession_crisis #P:A Removed vanilla reference
+						}
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			OR = {
+				#disaster_type = disaster_type:byzantine_succession_crisis #P:A Removed vanilla reference
+				#disaster_type = disaster_type:castilian_civil_war #P:A Removed vanilla reference
+				disaster_type = disaster_type:succession_crisis
+			}
+			disaster_is_active = yes
+		}
+	}
+
+	effect = {
+		custom_tooltip = {
+			text = succession_crisis_9_tt
+			#scope:actor = { trigger_event_silently = succession_crisis.9 } #P:A TODO Associated event was removed
+		}
+	}
+
+	ai_will_do = {
+		add = -50
+		if = {
+			limit = {
+				scope:actor = {
+					estate_satisfaction:nobles_estate < 0.5
+				}
+			}
+			add = 100
+		}
+		if = {
+			limit = {
+				scope:actor.prestige > 10
+			}
+			add = scope:actor.prestige
+		}
+	}
+}
+
+sc_ask_help_from_the_clergy = {
+	type = disaster
+
+	potential = {
+		scope:actor = { country_has_estate = estate_type:clergy_estate }
+	}
+
+	allow = {
+		scope:actor = { 
+			in_civil_war = no
+			at_war = no
+			num_possible_estate_privileges:clergy_estate > 0
+			trigger_if = {
+				limit = { has_variable = succession_crisis_pretender_variable }
+				var:succession_crisis_pretender_variable = {
+					has_support_from = pop_type:nobles
+				}
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:succession_crisis_price
+
+	cooldown = {
+		type = sc_ask_help_from_the_clergy
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		interaction_source_list = {
+			scope:actor = {
+				every_active_disaster = {
+					limit = {
+						OR = {
+							disaster_type = disaster_type:succession_crisis
+							#disaster_type = disaster_type:castilian_civil_war #P:A Removed vanilla reference
+							#disaster_type = disaster_type:byzantine_succession_crisis #P:A Removed vanilla reference
+						}
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			OR = {
+				#disaster_type = disaster_type:byzantine_succession_crisis #P:A Removed vanilla reference
+				#disaster_type = disaster_type:castilian_civil_war #P:A Removed vanilla reference
+				disaster_type = disaster_type:succession_crisis
+			}
+			disaster_is_active = yes
+		}
+	}
+
+	effect = {
+
+		custom_tooltip = {
+			text = succession_crisis_10_tt
+			#scope:actor = { trigger_event_silently = succession_crisis.10 } #P:A TODO Associated event was removed
+		}
+	}
+
+	ai_will_do = {
+		add = -50
+		if = {
+			limit = {
+				scope:actor = {
+					estate_satisfaction:clergy_estate < 0.5
+				}
+			}
+			add = 100
+		}
+		if = {
+			limit = {
+				scope:actor.prestige > 10
+			}
+			add = scope:actor.prestige
+		}
+	}
+}
+
+sc_ask_help_from_the_burghers = {
+	type = disaster
+
+	potential = {
+		scope:actor = { country_has_estate = estate_type:burghers_estate }
+	}
+
+	allow = {
+		scope:actor = { 
+			in_civil_war = no
+			at_war = no
+			num_possible_estate_privileges:burghers_estate > 0
+			trigger_if = {
+				limit = { has_variable = succession_crisis_pretender_variable }
+				var:succession_crisis_pretender_variable = {
+					has_support_from = pop_type:nobles
+				}
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:succession_crisis_price
+
+	cooldown = {
+		type = sc_ask_help_from_the_burghers
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		interaction_source_list = {
+			scope:actor = {
+				every_active_disaster = {
+					limit = {
+						OR = {
+							disaster_type = disaster_type:succession_crisis
+							#disaster_type = disaster_type:castilian_civil_war #P:A Removed vanilla reference
+							#disaster_type = disaster_type:byzantine_succession_crisis #P:A Removed vanilla reference
+						}
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			OR = {
+				#disaster_type = disaster_type:byzantine_succession_crisis #P:A Removed vanilla reference
+				#disaster_type = disaster_type:castilian_civil_war #P:A Removed vanilla reference
+				disaster_type = disaster_type:succession_crisis
+			}
+			disaster_is_active = yes
+		}
+	}
+
+	effect = {
+		custom_tooltip = {
+			text = succession_crisis_11_tt
+			#scope:actor = { trigger_event_silently = succession_crisis.11 } #P:A TODO Associated event was removed
+		}
+	}
+
+	ai_will_do = {
+		add = -50
+		if = {
+			limit = {
+				scope:actor = {
+					estate_satisfaction:burghers_estate < 0.5
+				}
+			}
+			add = 100
+		}
+		if = {
+			limit = {
+				scope:actor.prestige > 10
+			}
+			add = scope:actor.prestige
+		}
+	}
+}

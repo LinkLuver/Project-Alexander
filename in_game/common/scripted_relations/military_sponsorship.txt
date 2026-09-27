@@ -1,0 +1,315 @@
+﻿#P:A TODO Manual cleanup of file required
+military_sponsorship =  {
+	type = diplomacy
+	relation_type = oneway	
+	break_on_war = yes
+	uses_diplo_capacity = receiving
+	diplomatic_capacity_cost = military_sponsorship_upkeep_cost
+	break_on_becoming_subject = yes
+	receiving_color = rgb { 60 120 0 }
+	giving_color = rgb { 40 100 0 }
+    institution_spread_to_second = monthly_institution_spread_weak
+	gold_to_second = {
+		value = scope:first.monthly_income_trade_and_tax
+		multiply = 0.1
+		max = {
+			value = scope:second.monthly_income_trade_and_tax
+			multiply = 0.5
+		}
+		min = 0
+	}
+	receiving_modifier_scale = {
+		add = {
+			desc = "BASE"
+			value = 1
+		}
+		add = military_sponsorship_upkeep_cost
+	}
+	relation_type_for_ai = friendly
+	category = {
+		offer = CATEGORY_ECONOMY_ACTIONS
+		request = CATEGORY_ECONOMY_ACTIONS
+		cancellation = CATEGORY_ECONOMY_ACTIONS
+		break = CATEGORY_ECONOMY_ACTIONS
+	}
+
+	visible = {
+		scope:actor = {			
+            has_limited_diplomacy = no
+			modifier:target_of_military_sponsorships = no
+		}
+		scope:recipient = {
+			modifier:target_of_military_sponsorships = yes
+		}
+		scope:actor.religion = scope:recipient.religion
+	}
+
+	offer_enabled = {
+		trigger_if = {
+			limit = {
+				scope:actor = { modifier:target_of_military_sponsorships = yes }
+			}
+			scope:recipient = { modifier:target_of_military_sponsorships = no }
+		}
+		trigger_if = {
+			limit = {
+				scope:actor = { modifier:target_of_military_sponsorships = no }
+			}
+			scope:recipient = { modifier:target_of_military_sponsorships = yes }
+		}
+		scope:recipient = {
+			religion = scope:actor.religion
+			not = {
+				giving_scripted_relation = {
+					type = relation_type:block_foreign_building
+					target = scope:actor
+				}
+			}
+			not = {
+				any_related_country = {
+					type = military_sponsorship
+					count >= {
+						value = 2
+						add = country_rank_level
+					}
+				}
+			}
+		}
+	}
+
+	offer_effect = {
+		if = {
+			limit = {
+				#country_exists = c:PAP #P:A Removed vanilla reference
+				scope:actor = {
+					not = { tag = PAP }
+				}
+				always = no #P:A Removed vanilla reference
+			}
+			#c:PAP = { #P:A Removed vanilla reference
+				#add_opinion = {
+					#target = scope:actor
+					#modifier = opinion_sponsoring_military_order
+				#}
+			#}
+		}
+	}
+	cancel_effect = {
+		if = {
+			limit = {
+				scope:actor = { not = { tag = PAP } }
+				#country_exists = c:PAP #P:A Removed vanilla reference
+				scope:actor = {
+					NOT = {
+						has_scripted_relation_of_type = relation_type:military_sponsorship
+					}
+				}
+				always = no #P:A Removed vanilla reference
+			}
+			#c:PAP = { #P:A Removed vanilla reference
+				#remove_opinion = {
+					#target = scope:actor
+					#modifier = opinion_sponsoring_military_order
+				#}
+			#}
+		}
+	}
+	break_effect = {
+		if = {
+			limit = {
+				scope:actor = { not = { tag = PAP } }
+				#country_exists = c:PAP #P:A Removed vanilla reference
+				scope:actor = {
+					NOT = {
+						has_scripted_relation_of_type = relation_type:military_sponsorship
+					}
+				}
+				always = no #P:A Removed vanilla reference
+			}
+			#c:PAP = { #P:A Removed vanilla reference
+				#remove_opinion = {
+					#target = scope:actor
+					#modifier = opinion_sponsoring_military_order
+				#}
+			#}
+		}
+	}
+	
+	will_expire_trigger = {
+		OR = {
+			scope:first = {
+				OR = {
+					giving_scripted_relation = {
+						type = relation_type:block_foreign_building
+						target = scope:first
+					}
+					not = { religion = scope:second.religion }
+					modifier:target_of_military_sponsorships = yes
+					has_limited_diplomacy = yes
+				}
+			}
+			scope:second = {
+				OR = {
+					has_limited_diplomacy = yes
+					not = { modifier:target_of_military_sponsorships = yes }
+					not = { religion = scope:first.religion }
+				}
+			}
+		}
+	}
+	wants_to_give_diplo_chance = {
+        base = -60
+        trust_in_actor = 1
+        positive_opinion = 0.5
+        negative_opinion = -1
+        border_distance = -0.01
+        strategic_interest = 1
+        common_threat = 3
+        relative_strength = 40
+		too_many_loans = -1000
+	}
+	wants_to_give = {
+		if = {
+			limit = {
+				scope:recipient = {
+					modifier:target_of_military_sponsorships = yes
+				}
+			}
+			add = {
+				desc = "DIPLOREASON_GOOD_FOR_US"	#An order should always say yes to it
+				value = 100
+			}
+		}
+		else = {
+			add = {
+				desc = "THEIR_OPINION_TOOLTIP"
+				value = "scope:recipient.opinion(scope:actor)"
+				divide = 2
+			}
+			add = {
+				desc = "DIPLOREASON_DIPLOMATIC_REPUTATION"
+				scope:actor = {
+					value = modifier:diplomatic_reputation
+					multiply = 5
+				}
+			}
+			add = {
+				desc = "DISTANCE_TO_TARGET"
+				scope:recipient = {
+					value = "border_distance_to(scope:actor)"
+					multiply = -0.02
+				}
+			}
+			if = {
+				limit = {
+					scope:recipient = {
+						any_neighbor_country = {
+							expected_army_size >= scope:recipient.expected_army_size
+							NOT = { religion = scope:recipient.religion }
+							NOT = { is_subject_of = scope:recipient }
+							NOT = { is_subject_of = scope:actor }
+							NOT = { is_allied_with = { target = scope:recipient } }
+						}
+					}
+				}
+				add = {
+					desc = "THEY_THREATENED_BY_RELIGIOUS_ENEMIES"
+					add = 50
+				}
+			}
+		}
+		add = {
+			desc = "game_concept_rival"
+			if = {
+				limit = {	
+					scope:recipient = { 
+						is_rival_of = scope:actor 
+					}
+				}
+				value = -1000
+			}
+		}
+		add = {
+			desc = "WOULD_PUT_US_INTO_DEFICIT"
+			if = {
+				limit = {	
+					scope:recipient = {
+						monthly_balance < {
+							value = scope:recipient.monthly_income_trade_and_tax
+							multiply = 0.05
+							max = scope:actor.monthly_income_trade_and_tax
+						}
+					}
+				}
+				value = -1000
+			}
+		}
+	}
+	wants_to_receive = {
+		if = {
+			limit = {
+				scope:recipient = {
+					modifier:target_of_military_sponsorships = yes
+				}
+			}
+			add = {
+				desc = "DIPLOREASON_GOOD_FOR_US"	#An order should always say yes to it
+				value = 100
+			}
+		}
+		else = {
+			add = {
+				desc = "THEIR_OPINION_TOOLTIP"
+				value = "scope:recipient.opinion(scope:actor)"
+				divide = 2
+			}
+			add = {
+				desc = "THEIR_TRUST_TOOLTIP"
+				value = "scope:recipient.trust(scope:actor)"
+				divide = 5
+			}
+			add = {
+				desc = "DIPLOREASON_DIPLOMATIC_REPUTATION"
+				scope:actor = {
+					value = modifier:diplomatic_reputation
+					multiply = 5
+				}
+			}
+			add = {
+				desc = "DISTANCE_TO_TARGET"
+				scope:recipient = {
+					value = "border_distance_to(scope:actor)"
+					multiply = -0.02
+				}
+			}
+			if = {
+				limit = {
+					scope:recipient = {
+						any_neighbor_country = {
+							expected_army_size >= scope:recipient
+							NOT = { religion = scope:recipient.religion }
+							NOT = { is_subject_of = scope:recipient }
+							NOT = { is_subject_of = scope:actor }
+							NOT = { is_allied_with = { target = scope:recipient } }
+						}
+					}
+				}
+				add = {
+					desc = "THEY_THREATENED_BY_RELIGIOUS_ENEMIES"
+					add = 50
+				}
+			}
+		}
+		add = {
+			desc = "game_concept_rival"
+			if = {
+				limit = {	
+					scope:recipient = { 
+						is_rival_of = scope:actor 
+					}
+				}
+				value = -1000
+			}
+		}
+	}
+}

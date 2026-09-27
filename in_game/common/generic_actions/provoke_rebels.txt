@@ -1,0 +1,101 @@
+﻿provoke_rebels = {
+	type = owncountry
+	
+	allow = {
+		scope:actor = {
+			any_rebel = {
+                rebel_progress > 0.7
+                rebel_progress < 1.0
+            }
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:provoke_rebels_price
+	
+	select_trigger = {
+		looking_for_a = rebels
+		source = actor
+		target_flag = target
+		name = "rtr_negotiate_with_rebels_select_rebels"
+		none_available_msg_key = "rtr_negotiate_with_rebels_no_rebels"
+		column = {
+            data = name
+        }
+		column = {
+            data = rebel_progress
+        }
+		column = {
+            data = monthly_progress
+        }
+		enabled = {
+            rebel_progress > 0.7
+            rebel_progress < 1.0
+        }
+	}
+
+	effect = {
+		if = {
+			limit = { 
+                exists = scope:target
+            }
+			scope:target = {
+                add_rebel_progress = 0.3
+            }
+		}
+		else = {
+			custom_tooltip = provoke_rebels_tt
+		}
+		scope:actor = {
+			if = {
+				limit = {
+                    modifier:allow_righteousness = yes
+                }
+				add_righteousness = righteousness_weak_penalty
+			}
+		}
+	}
+
+	ai_will_do = {
+		# Ai wants to provoke pretender rebels as their crisis modifiers are terrible
+		# other rebels AI can just ignore
+
+		add = {
+			value = -50
+			desc = "base"
+		}
+
+		if = {
+			limit = {
+				scope:target = {
+					rebel_category = pretender
+				}
+			}
+			add = {
+				value = 200
+				desc = "Pretenders"
+			}
+		}
+
+		if = {
+			limit = {
+                scope:actor.stability < 0
+            }
+			add = { 
+				value = -1000
+				desc = "Low stability" 
+			}
+		}
+
+		if = {
+			limit = {
+                scope:actor.government_power < 50
+            }
+			add = {
+				value = -1000
+				desc = "Low government power"
+			}
+		}
+	}
+}

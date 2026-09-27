@@ -1,0 +1,149 @@
+﻿add_bureaucracy_action = {
+	type = owncountry
+	
+	ai_tick = never
+
+	potential = {
+		scope:actor = {
+			any_current_bureaucracy = { count < scope:actor.max_bureaucracy_slots }
+		}
+	}
+
+	allow = {
+	}
+
+	price = {
+		if = {
+			limit = {
+				exists = scope:target_bureaucracy
+			}
+			scope:target_bureaucracy = {
+				value = "implementation_price(scope:actor)"
+			}
+		}
+	}
+	price_modifier = {
+		add = {
+			value = 1
+			desc = BASE_VALUE
+		}
+		if = {
+			limit = { exists = scope:target_bureaucracy }
+			divide = {
+				desc = "MODIFIER_TYPE_NAME_global_bureaucracy_implementation_efficiency"
+				value = 1
+				add = scope:actor.modifier:global_bureaucracy_implementation_efficiency
+				min = 0.5
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = bureaucracy_type
+		source = actor
+		target_flag = target_bureaucracy
+		name = "select_bureaucracy"
+		none_available_msg_key = "no_bureaucracies_available"
+		column = { data = name }
+		visible = {
+			scope:actor = {
+				not = { 
+					has_bureaucracy_of_type = root
+				}
+				bureaucracy_type_is_visible = root
+			}
+		}
+		enabled = {
+			scope:actor = {
+				bureaucracy_type_is_enabled = root
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target_bureaucracy }
+			scope:actor = { add_bureaucracy = scope:target_bureaucracy }
+		}
+	}
+	
+	ai_will_do = {
+		value = -1 #handled in code
+	}
+}
+
+remove_bureaucracy_action = {
+	type = owncountry
+	
+	ai_tick = never
+
+	potential = {
+		scope:actor = {
+			any_current_bureaucracy = { count > 0 }
+		}
+	}
+
+	price = {
+		if = {
+			limit = {
+				exists = scope:target_bureaucracy
+			}
+			scope:target_bureaucracy = {
+				value = "removal_price(scope:actor)"
+			}
+		}
+	}
+	price_modifier = {
+		add = {
+			value = 1
+			desc = BASE_VALUE
+		}
+		if = {
+			limit = { exists = scope:target_bureaucracy }
+			add = {
+				desc = "[entrenchment|e]"
+				value = scope:target_bureaucracy.entrenchment
+				multiply = 0.01
+			}
+			divide = {
+				desc = "MODIFIER_TYPE_NAME_global_bureaucracy_removal_efficiency"
+				value = 1
+				add = scope:actor.modifier:global_bureaucracy_removal_efficiency
+				min = 0.5
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = bureaucracy
+		interaction_source_list = {
+			scope:actor = {
+				every_current_bureaucracy = { 
+					add_to_list = source 
+				}
+			}
+		}
+		target_flag = target_bureaucracy
+		name = "select_bureaucracy"
+		none_available_msg_key = "no_bureaucracies_available"
+		column = { data = name }
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target_bureaucracy }
+			scope:actor = {
+				every_current_bureaucracy = {
+					limit = { bureaucracy_type = scope:target_bureaucracy.bureaucracy_type }
+					scope:actor = { remove_bureaucracy = prev }
+				}
+			}
+		}
+		else = { scope:actor = { add_prestige = 5 }}
+	}
+	
+	ai_will_do = {
+		value = -1 #handled in code
+	}
+}
+

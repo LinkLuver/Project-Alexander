@@ -1,0 +1,731 @@
+﻿generic_traditional_economy = {
+	icon = generic_traditional_economy 
+	repeatable = yes
+	player_playstyle = administrative
+
+	visible = {
+		game_has_missions_enabled = yes
+		country_has_estate = estate_type:peasants_estate
+		NOT = { has_variable = recently_had_generic_traditional_economy_variable }
+		any_owned_rural_location = {
+			proximity > 0
+			location_population_percentage < 0.9
+		}
+	}
+	chance = 3600
+	abort = {
+		
+	}
+	on_start = {
+		set_variable = {
+			name = peasants_relations_variable
+			value = {
+				add = estate_satisfaction:peasants_estate
+				add = 0.1
+				min = 0.1
+				max = 0.6
+			}
+		}
+	}
+
+	on_abort = {
+		set_variable = {
+			name = recently_had_generic_traditional_economy_variable
+			years = 10
+		}
+		remove_variable = target_location_building_num_variable
+		remove_variable = target_location_fishing_village_variable
+		remove_variable = target_location_market_village_variable
+		remove_variable = target_location_irregation_variable
+		remove_variable = target_location_masons_variable
+		remove_variable = target_location_proximity_goal_variable
+	}
+	on_completion = {
+		set_variable = {
+			name = recently_had_generic_traditional_economy_variable
+			years = 25
+		}
+		remove_variable = target_location_building_num_variable
+		remove_variable = target_location_fishing_village_variable
+		remove_variable = target_location_market_village_variable
+		remove_variable = target_location_irregation_variable
+		remove_variable = target_location_masons_variable
+		remove_variable = target_location_proximity_goal_variable
+	}
+
+	###########################################
+	###########################################
+
+	mission_increase_workforce = {
+		icon = glorious_arms
+		requires = { mission_market_villages }
+
+		enabled = {
+			trigger_if = {
+				limit = { 
+					exists = scope:mission_target_location 
+					has_variable = target_location_pop_size
+				}
+				scope:mission_target_location.population >= root.var:target_location_pop_size
+			}
+		}
+
+		duration = 0
+		bypass = {
+			trigger_if = {
+				limit = { exists = scope:mission_target_location }
+				scope:mission_target_location.prosperity < -50
+			}
+			trigger_else = { always = no }
+		}
+		on_completion = {
+			scope:mission_target_location ?= {
+				province = {
+					add_province_modifier = {
+						modifier = provincial_expansion_modifier
+						years = modifier_duration_years_normal
+						mode = replace
+					}
+				}
+			}
+		}
+	}
+
+	mission_connect_location_to_capital = {
+		icon = road_building
+		requires = { mission_peasants_estate_satisfaction }
+
+		enabled = {
+			trigger_if = {
+				limit = { has_variable = target_location_proximity_goal_variable }
+				scope:mission_target_location ?= { 
+					proximity >= root.var:target_location_proximity_goal_variable
+				}
+			}
+			trigger_else = {
+				custom_tooltip = {
+					text = when_we_choose_appropriate_location_tt
+					always = no
+				}
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			if = {
+				limit = { 
+					exists = scope:mission_target_location 
+					scope:mission_target_location.province = {
+						NOT = {
+							any_location_in_province = { proximity > 0 }
+						}
+					}
+				}
+				custom_tooltip = every_location_in_province_connected_tt
+			}
+			else_if = {
+				limit = { exists = scope:mission_target_location }
+				scope:mission_target_location ?= {
+					province = {
+						every_location_in_province = {
+							limit = {
+								proximity > 0
+							}
+							add_location_modifier = {
+								modifier = capital_connection_modifier
+								years = modifier_duration_years_normal
+								mode = replace
+								size = {
+									add = {
+										desc = "[proximity|e]"
+										value = proximity
+										multiply = 0.01	#Scale the modifier with the proximity of each location
+										min = 0.1
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			else = { custom_tooltip = designated_location_capital_connection_modifier_tt }
+		}
+	}
+
+	mission_increase_rgo_level = {
+		icon = rgo_size_advance_renaissance
+		requires = { mission_market_villages }
+
+		enabled = {
+			trigger_if = {
+				limit = { 
+					NOT = { exists = scope:mission_target_location }
+				}
+				custom_tooltip = {
+					text = when_we_choose_appropriate_location_tt
+					always = no
+				}
+			}
+			trigger_else = {
+				scope:mission_target_location = {
+					is_full_expanded_rgo = yes
+					NOT = {
+						any_buildings_in_location = {
+							building_category = rgo_building_category
+							building_levels_under_construction >= 1
+						}
+					}
+				}
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			if = {
+				limit = { exists = scope:mission_target_location }
+				scope:mission_target_location = {
+					add_location_modifier = {
+						modifier = rural_development_modifier
+						years = modifier_duration_years_normal
+						mode = replace
+					}
+				}
+			}
+			else = { custom_tooltip = location_gains_rural_development_modifier_tt }
+		}
+	}
+
+	mission_peasants_estate_satisfaction = {
+		icon = abolished_serfdom
+
+		enabled = {
+			trigger_if = {
+				limit = { has_variable = peasants_relations_variable }
+				estate_satisfaction:peasants_estate >= var:peasants_relations_variable
+			}
+			trigger_else = {
+				estate_satisfaction:peasants_estate >= 0.6
+			}
+		}
+		duration = 0
+		select_trigger = {
+			looking_for_a = location
+			interaction_source_list = {
+				scope:actor = {
+					every_owned_rural_location = {
+						limit = {
+							is_city = no
+							location_population_percentage < 0.9
+							proximity > 0
+						}
+						add_to_list = source
+					}
+				}
+			}
+			target_flag = mission_target_location
+			name = "mission_task_select_rural_settlement"
+			none_available_msg_key = "mission_task_no_rural_settlement"
+			column = { data = name }
+			column = { data = population }
+			column = { data = raw_material }
+		}
+		on_persistent_completion = {
+			custom_tooltip = {
+				text = designate_rural_location_for_next_task_tt
+				if = {
+					limit = { 
+						scope:mission_target_location ?= {
+							OR = {
+								is_adjacent_to_lake = yes
+								has_river = yes
+							}
+						}
+					}
+					set_variable = {
+						name = target_location_irregation_variable
+						value = {
+							add = "scope:mission_target_location.location_building_level(building_type:irrigation_systems)"
+							multiply = 1.1
+							add = 1
+							min = 1
+							max = {
+								value = 1
+								add = {
+									value = scope:mission_target_location.development
+									multiply = 0.2
+								}
+								if = {
+									limit = {
+										scope:mission_target_location = { has_river = yes }
+									}
+									add = 2
+								}
+								add = root.modifier:irrigant_cap_level
+							}
+							ceiling = yes
+						}
+					}
+				}
+				if = {
+					limit = {
+						scope:mission_target_location ?= { is_coastal = yes }
+					}
+					set_variable = {
+						name = target_location_fishing_village_variable
+						value = {
+							add = "scope:mission_target_location.location_building_level(building_type:fishing_village)"
+							multiply = 1.1
+							min = 1
+							
+							ceiling = yes
+							max = {
+								add = 1
+								add = {
+									value = scope:mission_target_location.development
+									multiply = 0.1
+								}
+								add = {
+									value = scope:mission_target_location.max_rgo_workers
+									multiply = 0.5
+								}
+								if = {
+									limit = {
+										scope:mission_target_location = { has_river = yes }
+									}
+									add = 1
+								}
+							}
+						}						
+					}
+				}
+				set_variable = {
+					name = target_location_market_village_variable
+					value = {
+						add = "scope:mission_target_location.location_building_level(building_type:market_village)"
+						multiply = 1.1
+						min = 1
+						
+						ceiling = yes
+						max = {
+							add = 1
+							add = {
+								value = scope:mission_target_location.development
+								multiply = 0.1
+							}
+							add = {
+								value = scope:mission_target_location.max_rgo_workers
+								multiply = 0.5
+							}
+							if = {
+								limit = {
+									scope:mission_target_location = { has_river = yes }
+								}
+								add = 1
+							}
+						}
+					}
+				}
+				set_variable = {
+					name = target_location_masons_variable
+					value = {
+						add = "scope:mission_target_location.location_building_level(building_type:mason)"
+						multiply = 1.1
+						min = 1
+						
+						ceiling = yes
+						max = {
+							add = 1
+							add = {
+								value = scope:mission_target_location.development
+								multiply = 0.1
+							}
+							add = {
+								value = scope:mission_target_location.population
+								multiply = 0.05
+							}
+							if = {
+								limit = {
+									OR = { scope:mission_target_location.location_rank = location_rank:city  scope:mission_target_location.location_rank = location_rank:megalopolis }
+								}
+								add = {
+									desc = "BUILDING_LEVEL_IS_CITY"
+									value = 5
+								}
+							}
+						}
+					}
+				}
+				set_variable = {
+					name = target_location_clothmakers_variable
+					value = {
+						add = "scope:mission_target_location.location_building_level(building_type:rural_clothmaker)"
+						multiply = 1.1
+						min = 1
+						
+						ceiling = yes
+						max = {
+							add = 1
+							add = {
+								value = scope:mission_target_location.development
+								multiply = 0.1
+							}
+							add = {
+								value = scope:mission_target_location.population
+								multiply = 0.05
+							}
+							if = {
+								limit = {
+									OR = { scope:mission_target_location.location_rank = location_rank:city  scope:mission_target_location.location_rank = location_rank:megalopolis }
+								}
+								add = {
+									desc = "BUILDING_LEVEL_IS_CITY"
+									value = 5
+								}
+							}
+						}
+					}
+				}
+				set_variable = {
+					name = target_location_building_num_variable
+					value = {
+						add = scope:mission_target_location.num_buildings
+						multiply = 1.1
+						min = 1
+						
+						ceiling = yes
+						max = 12
+					}
+				}
+				set_variable = {
+					name = target_location_pop_size
+					value = {
+						add = scope:mission_target_location.population
+						multiply = 1.05
+						min = 1
+					}
+				}
+				set_variable = {
+					name = target_location_proximity_goal_variable
+					value = {
+						add = scope:mission_target_location.proximity
+						add = 10
+						max = 100
+					}
+				}
+				
+			}
+			custom_tooltip = selected_rural_proximity_and_less_90_percent_pop_tt
+		}
+	}
+
+	mission_market_villages = {
+		icon = expanded_supply_trains
+		requires = { mission_peasants_estate_satisfaction }
+
+		enabled = {
+			trigger_if = {
+				limit = {
+					NOT = { exists = scope:mission_target_location }
+				}
+				custom_tooltip = {
+					text = when_we_choose_appropriate_location_tt
+					always = no
+				}
+			}
+			trigger_else = {
+				scope:mission_target_location = {
+					location_building_level = {
+						building_type = building_type:market_village
+						value >= root.var:target_location_market_village_variable
+					}
+					prosperity > 0
+				}
+			}
+		}
+
+		on_completion = {
+			if = {
+				limit = {
+					exists = scope:mission_target_location
+					scope:mission_target_location = {
+						province = {
+							NOT = {
+								any_location_in_province = { has_building_with_at_least_one_level = republican_assembly }
+							}
+						}
+					}
+				}
+				custom_tooltip = mission_target_loc_province_gets_modifier_tt
+			}
+			else_if = {
+				limit = {
+					NOT = { exists = scope:mission_target_location }
+				}
+				custom_tooltip = mission_generic_province_gets_modifier_tt
+			}
+			scope:mission_target_location ?= {
+				province = {
+					every_location_in_province = {
+						limit = {
+							location_building_level = {
+								building_type = building_type:market_village
+								value >= 1
+							}
+						}
+						add_location_modifier = {
+							modifier = local_markets_modifier
+							mode = replace
+							years = modifier_duration_years_normal
+							size = {
+								value = 1
+								add = {
+									desc = scales_with_levels_of_market_village_tt
+									value = "location_building_level(building_type:market_village)"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	mission_embrace_trad_economy = {
+		icon = colonial_tradition
+		requires = { mission_market_villages }
+
+		duration = 365
+		modifier_while_progressing = { monthly_towards_traditional_economy = societal_value_huge_monthly_move }
+	}
+
+	mission_prosperous_production = {
+		icon = food_advance_renaissance
+		final = yes
+		requires = { mission_increase_rgo_level mission_masons mission_embrace_trad_economy }
+
+		enabled = {
+			trigger_if = {
+				limit = { 
+					NOT = { exists = scope:mission_target_location }
+				}
+				custom_tooltip = {
+					text = when_we_choose_appropriate_location_tt
+					always = no
+				}
+			}
+			trigger_else = {
+				scope:mission_target_location = {
+					num_buildings > root.var:target_location_building_num_variable
+				}
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			if = {
+				limit = { exists = scope:mission_target_location }
+				scope:mission_target_location = {
+					add_location_modifier = {
+						modifier = rural_center_modifier
+						years = modifier_duration_years_long
+						mode = replace
+					}
+				}
+			}
+			else = { custom_tooltip = location_gains_prod_eff_modifier_tt }
+		}
+	}
+
+	mission_fishing_villages = {
+		icon = fishing_habits
+		requires = { mission_peasants_estate_satisfaction }
+
+		enabled = {
+			trigger_if = {
+				limit = {
+					exists = scope:mission_target_location
+					NOT = { has_variable = target_location_fishing_village_variable }
+				}
+				custom_tooltip = {
+					text = mission_target_location_not_coastal
+					always = no
+				}
+			}
+			trigger_else_if = {
+				limit = {
+					NOT = { exists = scope:mission_target_location }
+				}
+				custom_tooltip = {
+					text = when_we_choose_appropriate_location_coastal_tt
+					always = no
+				}
+			}
+			trigger_else = {
+				scope:mission_target_location = {
+					location_building_level = {
+						building_type = building_type:fishing_village
+						value >= root.var:target_location_fishing_village_variable
+					}
+					prosperity > 0
+				}
+			}
+		}
+
+		bypass = {
+			trigger_if = {
+				limit = { exists = scope:mission_target_location }
+				NOT = { has_variable = target_location_fishing_village_variable }
+			}
+			trigger_else = { always = no }
+		}
+
+		duration = 0
+		on_completion = {
+			scope:mission_target_location ?= { change_prosperity = prosperity_severe_bonus }
+		}
+	}
+
+	mission_cloth_makers = {
+		icon = fla_cloth
+		requires = { mission_market_villages }
+
+		enabled = {
+			trigger_if = {
+				limit = {
+					NOT = { exists = scope:mission_target_location }
+				}
+				custom_tooltip = {
+					text = when_we_choose_appropriate_location_tt
+					always = no
+				}
+			}
+			trigger_else = {
+				scope:mission_target_location = {
+					location_building_level = {
+						building_type = building_type:rural_clothmaker
+						value >= root.var:target_location_clothmakers_variable
+					}
+					prosperity > 0
+				}
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			if = {
+				limit = { exists = scope:mission_target_location }
+				custom_tooltip = {
+					text = expand_mission_target_location_cloth_makers_2_levels_tt
+					scope:mission_target_location = {
+						set_variable = {
+							name = extra_levels_clothmaker_variable
+							years = 10
+						}
+					}
+				}
+			}
+			else = { custom_tooltip = expand_location_cloth_makers_2_levels_tt }
+		}
+	}
+
+	mission_irrigation = {
+		icon = khm_invest_in_irrigation
+		requires = { mission_peasants_estate_satisfaction }
+
+		enabled = {
+			trigger_if = {
+				limit = {
+					exists = scope:mission_target_location
+					NOT = { has_variable = target_location_irregation_variable }
+				}
+				custom_tooltip = {
+					text = mission_target_location_no_lake_or_river_tt
+					always = no
+				}
+			}
+			trigger_else_if = {
+				limit = {
+					NOT = { exists = scope:mission_target_location }
+				}
+				custom_tooltip = {
+					text = when_we_choose_appropriate_location_river_lake_tt
+					always = no
+				}
+			}
+			trigger_else = {
+				scope:mission_target_location = {
+					location_building_level = {
+						building_type = building_type:irrigation_systems
+						value >= root.var:target_location_irregation_variable
+					}
+					prosperity > 0
+				}
+			}
+		}
+
+		duration = 0
+		bypass = {
+			trigger_if = {
+				limit = { exists = scope:mission_target_location }
+				NOT = { has_variable = target_location_irregation_variable }
+			}
+			trigger_else = { always = no }
+		}
+		on_completion = {
+			scope:mission_target_location ?= {
+				every_pop = {
+					limit = {
+						OR = {
+							pop_type = pop_type:peasants
+							pop_type = pop_type:laborers
+						}
+					}
+					add_pop_satisfaction = pop_satisfaction_severe_bonus
+				}
+			}
+		}
+	}
+
+	mission_masons = {
+		icon = pyramid_architecture
+		requires = { mission_irrigation }
+
+		enabled = {
+			trigger_if = {
+				limit = {
+					NOT = { exists = scope:mission_target_location }
+				}
+				custom_tooltip = {
+					text = when_we_choose_appropriate_location_tt
+					always = no
+				}
+			}
+			trigger_else = {
+				scope:mission_target_location = {
+					location_building_level = {
+						building_type = building_type:mason
+						value >= root.var:target_location_masons_variable
+					}
+					prosperity > 0
+				}
+			}
+		}
+
+		duration = 0
+		on_completion = {
+			if = {
+				limit = { exists = scope:mission_target_location }
+				scope:mission_target_location ?= {
+					province = {
+						add_province_modifier = {
+							modifier = cheaper_building_materials_modifier
+							years = modifier_duration_years_short
+							mode = replace
+						}
+					}
+				}
+			}
+			else = { custom_tooltip = mission_target_loc_province_cheap_masonry_tt }
+		}
+	}
+}

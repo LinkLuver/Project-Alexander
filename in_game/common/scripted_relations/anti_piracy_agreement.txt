@@ -1,0 +1,91 @@
+﻿anti_piracy_agreement =  { 
+	type = diplomacy
+	relation_type = oneway
+	break_on_war = yes
+	annulled_by_peace_treaty = yes
+	annullment_favours_required = 5
+	relation_type_for_ai = hostile
+	diplomatic_cost_request = anti_piracy_agreement_cost
+	category = {
+		offer = CATEGORY_HOSTILE_ACTIONS
+		request = CATEGORY_HOSTILE_ACTIONS
+		break = CATEGORY_HOSTILE_ACTIONS
+        cancellation = CATEGORY_HOSTILE_ACTIONS
+	}
+
+	visible = {
+		scope:actor = {
+			has_ports = yes
+		}
+		scope:recipient = {
+			has_ports = yes
+		}
+	}
+
+	offer_visible = { always = no }
+	cancel_visible = { always = no }
+
+	request_enabled = {
+		scope:actor = {
+			any_port_in_country = {
+				sea_zone = {
+					has_privateers_from = scope:recipient
+				}
+			}
+		}
+	}
+	
+	break_enabled = {
+		scope:actor = {
+			not = {
+				has_truce_with = scope:recipient
+			}
+		}		
+	}
+
+	request_effect = {
+        scope:actor = {
+            add_truce_with = { target = scope:recipient }
+			every_port_in_country = {
+				limit = {
+					sea_zone = {
+						has_privateers_from = scope:recipient
+					}
+				}
+				sea_zone = {
+					area = {
+						dismiss_privateer = scope:recipient
+					}
+				}
+			}
+        }
+	}
+
+	wants_to_give_diplo_chance = {
+		base = -10
+		actor_is_rival = -100
+		giving_defensive_support = 5
+		receiving_defensive_support = 10
+		same_international_organization = 10
+		trust_in_actor = 1
+		negative_opinion = -0.5
+		positive_opinion = 0.1
+		royal_ties = 0.25
+	}
+
+	wants_to_give = {
+		add = {
+			desc = "CUSTOM_SEARCH_FILTER_AREA_HAS_PRIVATEERS_NAME"
+			scope:actor = {
+				every_port_in_country = {
+					limit = {
+						sea_zone = {
+							has_privateers_from = scope:recipient
+						}
+					}
+					subtract = 10
+				}
+			}
+		}
+	}
+}	

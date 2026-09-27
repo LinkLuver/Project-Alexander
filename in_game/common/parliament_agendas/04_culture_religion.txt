@@ -1,0 +1,187 @@
+﻿# Culture and religion estate agendas
+pa_accept_estate_culture = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = dhimmi_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+
+	importance = 2
+
+	potential = {
+		NOT = {
+			"estate(scope:target)" = {
+				dominant_culture ?= {
+					this = root.dominant_culture
+				}
+			}
+		}
+		NOT = {
+			"estate(scope:target)" = {
+				dominant_culture ?= {
+					is_accepted_in = root
+				}
+			}
+		}
+		NOT = {
+			"estate(scope:target)" = {
+				dominant_culture ?= {
+					this = root.culture
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		"estate(scope:target)" = {
+			dominant_culture = {
+				save_scope_as = estate_dominant_culture
+			}
+		}
+		add_accepted_culture = scope:estate_dominant_culture
+		add_estate_satisfaction = { type = scope:target value = 0.1 }
+	}
+
+	can_bribe = {
+		can_bribe_default_trigger = yes
+	}
+	on_bribe = {
+		on_bribe_default_effect = yes
+	}
+
+	chance = 5
+}
+
+
+pa_convert_to_estate_religion = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = dhimmi_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+
+	importance = 3
+
+	potential = {
+		modifier:blocked_from_conversion = no
+		NOT = {
+			"estate(scope:target)" = {
+				dominant_religion ?= {
+					this = root.religion
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		"estate(scope:target)" = {
+			dominant_religion = {
+				save_scope_as = estate_dominant_religion
+			}
+		}
+		change_religion = scope:estate_dominant_religion
+		add_estate_satisfaction = { type = scope:target value = 0.15 }
+	}
+
+	allow = {
+		modifier:blocked_from_conversion = no
+	}
+
+	can_bribe = {
+		can_bribe_default_trigger = yes
+	}
+	on_bribe = {
+		on_bribe_default_effect = yes
+	}
+
+	chance = 1
+}
+
+
+pa_change_court_language_to_estate_language = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = dhimmi_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+
+	importance = 1.5
+
+	potential = {
+		# Don't propose if an overlord recently forced the court language, the subject status forbids change,
+		# the player's own change_court_language is on cooldown, or parliament already changed it recently.
+		modifier:prevented_from_changing_court_language_by_overlord = no
+		NOT = { has_country_modifier = parliament_recently_changed_court_language }
+		NOT = { has_cooldown = force_change_court_language }
+		NOT = { has_cooldown = change_court_language }
+		
+		"estate(scope:target)" = {
+			power > 0.4
+			dialect = {
+				NOT = { this = root.court_dialect }
+			}
+		}
+	}
+
+	on_accept = {
+		"estate(scope:target)" = {
+			dialect = {
+				save_scope_as = court_language_target_dialect
+			}
+		}
+		set_court_language = scope:court_language_target_dialect
+		# Use the action's own cooldown type so the engine auto-gates the Change Court Language button.
+		add_cooldown = {
+			type = change_court_language
+			years = 20
+		}
+		add_country_modifier = {
+			modifier = parliament_recently_changed_court_language
+			years = 20
+			mode = add_and_extend
+		}
+		add_estate_satisfaction = { type = scope:target value = 0.1 }
+	}
+
+	allow = {
+		# Re-check at vote time in case any lockout was applied between proposal and acceptance.
+		modifier:prevented_from_changing_court_language_by_overlord = no
+		NOT = { has_country_modifier = parliament_recently_changed_court_language }
+		NOT = { has_cooldown = force_change_court_language }
+		NOT = { has_cooldown = change_court_language }
+	}
+
+	can_bribe = {
+		can_bribe_default_trigger = yes
+	}
+	on_bribe = {
+		on_bribe_default_effect = yes
+	}
+
+	ai_will_do = {
+		value = -0.5
+		"estate(scope:target)" = {
+			dialect = {
+				add = "court_language_utility(root)"
+			}
+		}
+		root.court_language = {
+			subtract = {
+				value = 1
+				add = root.modifier:language_change_threshold_modifier
+				multiply = "court_language_utility(root)"
+			}
+		}
+	}
+
+	chance = 0.5
+}

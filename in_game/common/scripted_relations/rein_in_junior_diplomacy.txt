@@ -1,0 +1,171 @@
+﻿#P:A TODO Manual cleanup of file required
+rein_in_junior_diplomacy =  { 
+	type = union
+	category = {
+		offer = CATEGORY_UNION_ACTIONS
+		cancellation = CATEGORY_UNION_ACTIONS
+	}
+	relation_type = oneway
+	break_on_war = yes
+	uses_diplo_capacity = giving
+	diplomatic_capacity_cost = rein_in_junior_diplomacy_upkeep_cost
+
+	request_visible = {
+		always = no
+	}
+	break_visible = {
+		always = no
+	}
+
+	institution_spread_to_second = monthly_institution_spread_severe
+	
+	visible = {
+		scope:actor = {
+			union ?= {
+				modifier:union_unlock_rein_in_junior_diplomacy = yes
+				country_has_special_status = {
+					type = special_status:senior_partner
+					country = scope:actor
+				}
+			}
+		}
+	}
+
+	will_expire_trigger = {
+		scope:first = {
+			union ?= {
+				OR = {
+					modifier:union_unlock_rein_in_junior_diplomacy = no
+					NOT = {
+						country_has_special_status = {
+							type = special_status:senior_partner
+							country = scope:first
+						}
+					}
+				}
+			}
+		}
+	}
+
+	wants_to_give_diplo_chance = {
+        actor_max_relations = -20
+        max_relations = -20
+		border_distance = 0.5
+	}
+
+	wants_to_give = {
+		if = {
+			limit = { scope:recipient = { is_ai = no } }
+			#as it is "no fun for you" action from a player pov, the AI should be more reluctant to use it against the player
+			subtract = {
+				desc = "DIPLOREASON_BASE"
+				value = 500
+			}
+		}
+		else = {
+			subtract = {
+				desc = "DIPLOREASON_BASE"
+				value = 25
+			}
+			add = {
+				desc = "DIPLOREASON_AVERAGE_CONQUEST_DESIRE"
+				value = 0
+				save_temporary_value_as = {
+					name = conquest_neighbors_number
+					value = 0
+				}
+				scope:recipient = {
+					every_neighbor_country = {
+						limit = {
+							scope:recipient = {
+								can_declare_war_on = prev
+							}
+						}
+						scope:recipient = {
+							add = "conquer_desire(prev)"
+						}
+						save_temporary_value_as = {
+							name = conquest_neighbors_number
+							value = {
+								value = scope:conquest_neighbors_number
+								add = 1
+							}
+						}
+					}
+				}
+				if = {
+					limit = {
+						exists = scope:conquest_neighbors_number
+						scope:conquest_neighbors_number > 0
+					}
+					divide = scope:conquest_neighbors_number
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					OR = {
+						is_rival_of = scope:recipient
+						is_enemy_of = scope:recipient
+					}
+				}
+			}
+			#actor and recipient already hate each other, so might as well
+			add = {
+				desc = "DIPLOREASON_HOSTILE_RELATIONS"
+				value = 200
+			}
+		}
+        add = {
+            desc = "ACTOR_WOULD_NEED_TO_PAY_FOR_DIPLOMACY"
+            value = scope:actor.diplomatic_capacity_without_maintenance
+            subtract = scope:actor.used_diplomatic_capacity
+            subtract = "scope:actor.diplomatic_capacity_of_new_relation(scope:recipient|scope:scripted_relation_type)"
+            if = {
+                limit = {
+                    NOT = { scope:actor.diplomatic_capacity_without_maintenance <= 0 }
+                }
+                divide = scope:actor.diplomatic_capacity_without_maintenance
+            }
+            max = 0
+            multiply = 100
+        }
+		add = {
+			desc = "RELATIVE_ECONOMICAL_BASE"
+			value = scope:recipient.country_economical_base
+			multiply = 1.25
+			divide = scope:actor.country_economical_base
+			subtract = 1
+			multiply = 100
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					union ?= {
+						#international_organization_has_law = law:union_mutual_offense_law #P:A Removed vanilla reference
+						always = no #P:A Removed vanilla reference
+					}
+				}
+			}
+			add = {
+				desc = "DIPLOREASON_WILL_PREVENT_CALLED_TO_USELESS_WARS"
+				value = 30
+				if = {
+					limit = {
+						#scope:actor.union = { international_organization_has_policy = policy:union_automatic_offense_policy } #P:A Removed vanilla reference
+						always = no #P:A Removed vanilla reference
+					}
+					add = 30
+				}
+				if = {
+					limit = {
+						#scope:actor.union = { international_organization_has_policy = policy:union_assured_offense_policy } #P:A Removed vanilla reference
+						always = no #P:A Removed vanilla reference
+					}
+					add = 70
+				}
+			}
+		}
+	}
+}	

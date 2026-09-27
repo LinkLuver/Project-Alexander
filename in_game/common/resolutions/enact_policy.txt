@@ -1,0 +1,149 @@
+﻿enact_policy =
+{
+	#special hardcoded
+	potential = {
+	}
+
+	allow = {
+	}
+
+    days = 1
+
+	#price when enacted
+	price = {
+		if = {
+			limit = {
+				exists = scope:vote
+			}
+			scope:vote = {
+				value = price
+			}
+		}
+	}
+	
+	requires_vote = {
+		always = no
+	}
+	 
+	select_trigger = {
+		map_mode = international_organization
+		top_widget = law_card_header_at_io_policy_select
+		looking_for_a = international_organization
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+		enabled = {
+			leader_country ?= scope:actor
+		}
+	}
+
+	select_trigger = {
+		map_mode = international_organization
+		top_widget = law_card_header_at_io_policy_select
+		looking_for_a = law
+		target_flag = target
+		name = "enact_policy_select_law"
+		none_available_msg_key = "enact_policy_no_laws"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:recipient = {
+				law_visible_to_international_organization = root
+			}
+		}
+		enabled = {
+			requires_vote = no
+			scope:recipient = {
+				not = {
+					law_is_locked_in_international_organization = root
+				}
+				law_enabled_to_international_organization = root
+			}
+		}
+	}
+	
+    #last target - this is what countries will vote on
+	select_trigger = {
+		map_mode = international_organization
+		top_widget = law_card_header_at_io_policy_select
+		looking_for_a = policy
+		source = target
+		target_flag = vote
+		name = "enact_policy_select_policy"
+		none_available_msg_key = "enact_policy_no_policies"
+		column = {
+			data = policy_enacting
+		}
+		visible = {
+			scope:recipient = {
+				policy_visible_to_international_organization = root
+			}
+		}
+		enabled = {
+			scope:recipient = {
+				policy_enabled_to_international_organization = root
+				#if we're proposing a policy, make sure we can't propose what's already implemented
+				trigger_if = {
+					limit = {
+						exists = scope:proposer
+						scope:actor = scope:proposer
+					}
+					not = { international_organization_has_policy = root }
+					trigger_if = {
+						limit = { exists = price }
+						scope:actor = { can_pay_price = root.price }
+					}
+				}
+			}
+		}
+		selected = {
+			scope:recipient = {
+				international_organization_has_policy = root
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:vote
+			}
+			scope:recipient = {
+				add_policy_to_international_organization = scope:vote
+				hidden_effect = {
+					if = {
+						limit = { scope:vote = { exists = price } }
+						scope:proposer = { pay_price = scope:vote.price }
+					}
+					pay_policy_price_effect = scope:vote
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		#add on voting bias from the international organization
+		add = {
+			desc = "IO_BIAS"
+			value = "ai_issue_voting_bias(scope:actor|scope:recipient|scope:vote)"
+		}
+		
+		#add on voting bias from the policy itself
+		add = {
+			desc = "POLICY_VOTE_BIAS"
+			value = "scope:vote.ai_policy_resolution_vote_bias(scope:actor|scope:recipient)"
+		}
+
+		#how useful will this policy be?
+		add = {
+			desc = "POLICY_MODIFIER_UTILITY"
+			value = "scope:vote.modifier_utility(scope:actor)"
+			multiply = 20
+		}
+	}
+}

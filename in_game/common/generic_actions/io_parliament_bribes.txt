@@ -1,0 +1,268 @@
+﻿union_call_organization_parliament = {
+	type = internationalorganization
+	
+	ai_tick = monthly
+	ai_tick_frequency = 3
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = diplomacy
+
+	
+	show_in_gui_list = no
+	ai_prerequisite = {
+	}
+	potential = {
+	}
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		none_available_msg_key = "call_organization_parliament_no_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			has_parliament = yes
+			modifier:has_international_parliament = yes
+			international_organization_type = international_organization_type:union
+		}
+		enabled = {
+			country_is_senior_partner = { country = scope:actor }
+			is_active_parliament = no
+			custom_tooltip = {
+				text = union_call_organization_parliament_tt
+				modifier:union_integration_level > 0
+			}
+			NOT = { resolution_is_active = resolution:policy_vote }
+			has_not_consistent_integration_level = yes
+			custom_tooltip = {
+				text = union_call_parliament_not_on_failed_cd_tt
+				scope:actor = { NOT = { has_cooldown = union_enforcement_parliament_failed_cd } }
+			}
+			#NOT = {
+			#	any_international_organization_member = {
+			#		years_in_international_organization = {
+			#			international_organization = root
+			#			value < MIN_YEARS_IN_ORGANIZATION_REQUIRED
+			#		}
+			#	}
+			#}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:recipient }
+			hidden_effect = {
+				#Technically not needed, but in case a Senior Partner who does not have the correct integration level manages to call the Parliament anyways they get their level automatically updated
+				scope:actor = {
+					if = {
+						limit = {
+							scope:recipient.modifier:union_integration_level > 0
+							has_not_union_integration_level_as_union = yes
+						}
+						set_individual_integration_level = {
+							international_organization = scope:recipient
+							value = scope:recipient.modifier:union_integration_level
+						}
+					}
+				}
+			}
+			parliament_issue:union_enforce_law_implementation = {
+				save_scope_as = parliament_issue
+			}
+			scope:recipient = {
+				set_parliament_location = scope:actor.capital
+				set_parliament_active = yes
+				set_parliament_issue = parliament_issue:union_enforce_law_implementation
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 20
+		}
+	}
+}
+
+union_bribe = {
+	type = internationalorganizationparliament
+	show_in_gui_list = no
+	
+	ai_tick = daily
+	ai_tick_frequency = 30
+	show_message = yes
+	show_message_to_target = yes
+
+	automation_tick = daily
+	automation_tick_frequency = 1
+	player_automated_category = diplomacy
+
+	
+	ai_prerequisite = {
+		is_member_of_international_organization_of_type = { type = union }
+	}
+	potential = {
+	}
+	allow = {
+	}
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		none_available_msg_key = "parliament_bribe_no_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:union
+			country_is_senior_partner = { country = scope:actor }
+			has_parliament = yes
+			modifier:has_international_parliament = yes
+			modifier:union_integration_level > 0
+		}
+		enabled = {
+			is_active_parliament = yes
+		}
+	}
+	#we'll supply this as one of the parameters so we won't be shown a UI
+	select_trigger = {
+		looking_for_a = country
+		source = recipient
+		target_flag = target
+		name = "choose_country"
+		none_available_msg_key = "parliament_bribe_no_country"
+		column = { data = name }
+		column = { data = population }
+		visible = {
+			not = { root = scope:actor }
+		}
+		enabled = {
+			has_special_status_in_international_organization = {
+				type = special_status:junior_partner
+				international_organization = scope:recipient
+			}
+			NOT = { has_participated_in_parliament = scope:recipient }
+			NOT = { has_voted_for_issue_in_parliament = scope:recipient }
+			scope:recipient = {
+				special_status_power_fraction = {
+					special_status = special_status:junior_partner
+					country = root
+					value > 0
+				}
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = estate
+		source = target
+		target_flag = estate
+		name = "choose_estate"
+		none_available_msg_key = "mission_select_no_estate"
+		show_why_not_enabled = yes
+		column = { data = name }
+		visible = {
+			OR = {
+				estate_type = estate_type:nobles_estate
+				estate_type = estate_type:clergy_estate
+				estate_type = estate_type:burghers_estate
+			}
+		}
+		enabled = {
+			scope:target = {
+				country_has_estate = root.estate_type
+			}
+			scope:actor = {
+				gold >= union_parliament_gold_bribe_from_target
+			}
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = parliament_agenda
+		source = target
+		target_flag = agenda
+		name = "choose_parliament_agenda"
+		none_available_msg_key = "parliament_bribe_no_parliament_agenda"
+		show_why_not_enabled = yes
+		column = { data = parliament_agenda_widget }
+		visible = {
+			is_visible_for = scope:target
+			can_be_bribe = yes
+			agenda_for_estate_type = scope:estate.estate_type
+		}
+		enabled = {
+			scope:actor = {
+				custom_description = {
+					text = can_use_agenda_bribe_tt
+					value = scope:estate.estate_type
+					object = scope:target
+					can_use_agenda_bribe = {
+						type = PREV
+						estate_type = scope:estate.estate_type
+						target = scope:target
+					}
+				}
+			}
+		}
+	}
+	effect = {
+		apply_parliament_bribe = yes
+		scope:actor = {
+			if = {
+				limit = {
+					exists = scope:agenda
+				}
+				bribe_estate = {
+					type = scope:agenda
+					estate_type = scope:estate.estate_type
+					target = scope:target
+				}
+			}
+			else = {
+				custom_tooltip = bribe_estate_tooltip
+			}
+		}
+	}
+	ai_will_do = {
+		add = {
+			if = {
+				limit = {
+					exists = scope:actor 
+					exists = scope:target
+					exists = scope:recipient
+				}
+				if = {
+					limit = {
+						save_temporary_scope_value_as = {
+							name = scaling_bribe_gold
+							value = {
+								value = scope:recipient.modifier:union_integration_level
+								if = {
+									limit = {
+										scope:target = { has_variable = integrated_in_union }
+									}
+									subtract = scope:target.var:integrated_in_union
+								}
+								multiply = scope:actor.monthly_income_trade_and_tax
+							}
+						}
+						scope:actor.gold > { value = scope:scaling_bribe_gold multiply = 1.25 }
+					}
+					value = 25
+				}
+			}
+			else = {
+				value = -1
+			}
+		}
+	}
+}

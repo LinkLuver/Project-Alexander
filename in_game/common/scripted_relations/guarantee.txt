@@ -1,0 +1,175 @@
+﻿guarantee =  { 
+	type = diplomacy
+	relation_type = oneway
+    uses_diplo_capacity = giving
+    block_when_at_war = yes
+    break_on_war = yes
+    break_on_becoming_subject = yes
+    annulled_by_peace_treaty = yes
+    annullment_favours_required = 10
+    called_in_defensively = giving
+    receiving_color = define:NMapColors|DIPLOMACY_GUARANTEE_COLOR
+    category = {
+        offer = CATEGORY_FRIENDLY_ACTIONS
+        request = CATEGORY_FRIENDLY_ACTIONS
+        cancellation = CATEGORY_HOSTILE_ACTIONS
+        break = CATEGORY_HOSTILE_ACTIONS
+    }
+
+    relation_type_for_ai = friendly
+	
+	diplomatic_capacity_cost = guarantee_upkeep_cost
+
+	offer_enabled = {
+        scope:actor = {
+            not = { has_blocked_treaties = scope:recipient }
+            modifier:allowed_guarantee = yes
+            country_rank_level >= scope:recipient.country_rank_level
+            has_limited_diplomacy = no
+            not = { is_rival_of = scope:recipient }
+            not = { is_subject_of = scope:recipient }
+            not = {
+                has_diplomacy_with = {
+                    type = giving_defensive_support
+                    country = scope:recipient
+                }
+            }
+            country_tax_base > scope:recipient.country_tax_base
+            expected_army_size > scope:recipient.expected_army_size
+        }
+        scope:recipient = {
+            opinion = {
+                target = scope:actor
+                value >= 50
+            }
+            not = { has_blocked_treaties = scope:recipient }
+            has_limited_diplomacy = no
+            not = { is_rival_of = scope:actor }
+            is_great_power  = no
+        }
+    }
+
+	request_enabled = {
+        scope:actor = {
+            not = { has_blocked_treaties = scope:recipient }
+            country_rank_level < scope:recipient.country_rank_level
+            has_limited_diplomacy = no
+            not = { is_rival_of = scope:recipient }
+            not = {
+                has_diplomacy_with = {
+                    type = giving_defensive_support
+                    country = scope:recipient
+                }
+            }
+            is_great_power  = no
+        }
+        scope:recipient = {
+            not = { has_blocked_treaties = scope:recipient }
+            modifier:allowed_guarantee = yes
+            has_limited_diplomacy = no
+            not = { is_rival_of = scope:actor }
+        }
+    }
+
+    will_expire_trigger = {
+        OR = {
+            scope:first = {
+                is_rival_of = scope:second
+            }
+            scope:first = {
+                modifier:allowed_guarantee = no
+            }
+            scope:first = {
+                country_rank_level < scope:second.country_rank_level
+            }
+            scope:second = {
+                is_rival_of = scope:first
+            }
+            scope:second = {
+                is_great_power = yes
+            }
+        }
+    }
+
+    cancel_effect = {
+        scope:actor = {
+            add_truce_with = { target = scope:recipient }
+        }
+    }
+
+    break_effect = {
+        scope:actor = {
+            add_truce_with = { target = scope:recipient }
+        }
+    }
+
+    expire_effect = {
+        if = {
+            limit = {
+                scope:first = {
+                    country_rank_level = scope:second.country_rank_level
+                }
+            }
+            scope:first = {
+                #upgrade to an alliance
+                create_relation = {
+                    first = scope:first
+                    second = scope:second
+                    type = relation_type:alliance
+                }
+            }
+        }
+    }
+
+    wants_to_give_diplo_chance = {
+        base = -20
+	    trust_in_actor = 1
+        actor_is_rival = -100
+        actor_overlord_is_rival = -100
+        recipient_is_rival = -100
+        recipient_overlord_is_rival = -100
+        actor_at_war = -100
+        recipient_at_war = -100
+        same_religion = 5
+        different_religion = -35
+        different_government_type = -35
+        same_culture = 5
+        diplomatic_reputation = 3
+        opinion = 0.1
+        conflicting_interests = 1
+        actor_max_relations = -20
+        max_relations = -20
+        relative_strength = 30
+        war_exhaustion = -3
+        low_manpower = -40
+        common_threat = 1.5
+        culture_view = 10
+        religion_view = 10
+		border_distance = -0.5
+    }
+
+    wants_to_give = {
+        scope:actor = {
+            add = {
+                desc = "COALITION_GRADE_ANTAGONISM_TOWARDS_THEM"
+                value = {
+                    every_country_with_coalition_grade_antagonism_against_us = {                    
+                        limit = {
+                            not = { is_subject_or_below_of = prev }
+                        }
+                        add = {
+                            value = -10
+                        }
+                    }
+                }
+            }
+        }
+
+        add = {
+            desc = "COMMON_RIVALS"
+            value = "scope:recipient.num_of_common_rivals(scope:actor)"
+            max = 3
+            multiply = 5
+        }
+    }
+}	

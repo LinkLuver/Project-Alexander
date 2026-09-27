@@ -1,0 +1,174 @@
+﻿#P:A TODO Manual cleanup of file required
+forced_divert_trade =  { 
+	type = diplomacy
+	relation_type = oneway
+	break_on_war = yes
+	merchant_fraction_to_first = 0.5
+	category = {
+		offer = CATEGORY_ECONOMY_ACTIONS
+		cancellation = CATEGORY_ECONOMY_ACTIONS
+		request = CATEGORY_ECONOMY_ACTIONS
+		break = CATEGORY_ECONOMY_ACTIONS
+	}
+
+	visible = {
+		scope:actor = {
+			modifier:allow_diplomacy_force_divert_trade = yes
+		}
+		scope:recipient = {
+			is_subject = no
+			has_markets = no
+			is_great_power = no
+		}
+	}
+	
+	will_expire_trigger = {
+     	scope:first = {
+			modifier:allow_diplomacy_force_divert_trade = no
+		}
+    }
+
+	offer_visible = {
+		scope:recipient = {
+			not = {
+				#can only do this to one country
+				receiving_scripted_relation = {
+					type = relation_type:forced_divert_trade
+					target = scope:actor
+				}
+			}
+		}
+	}	
+
+	request_visible = { always = no }
+	break_visible = { always = no }
+
+	offer_declined_effect = {
+		reject_hegemon_ultimatum_effect = { type = relation_type:forced_divert_trade }
+	}
+	
+	wants_to_receive = {
+		add = hegemon_demand_base_acceptance
+	}
+
+	wants_to_give = {
+		#should generally want to do this
+		add = 10
+		if = {
+			#limit = { scope:actor = { has_casus_belli_of_type_on = { type = casus_belli:cb_hegemon_ultimatum target = scope:recipient } } } #P:A Removed vanilla reference
+			limit = { always = no } #P:A Removed vanilla reference
+			subtract = {
+				desc = "DIPLOREASON_WE_HAVE_CASUS_BELLI"
+				value = 1000
+			}
+		}
+		add = {
+			desc = "DIPLOREASON_THEY_WOULD_ACCEPT"
+			value = "scope:actor.offer_relation_acceptance(scope:scripted_relation_type|scope:recipient)"
+			add = {
+				value = prestige_extreme_penalty
+				multiply = 2
+			}
+		}
+		if = {
+			limit = { scope:actor = { wants_casus_belli_with = scope:recipient } }
+			add = {
+				desc = "DIPLOREASON_WE_WANT_WAR"
+				value = 100
+			}
+		}
+
+		#try not to piss anyone off more
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						or = {
+							is_target_of_international_organization_of_type = coalition
+							has_countries_with_coalition_grade_antagonism = yes
+						}
+					}
+				}
+				value = -1000
+			}
+		}
+
+		#AI shouldn't do it to allies
+		add = {
+			if = {
+				limit = {
+					or = {
+						scope:actor = {
+							can_join_defensive_war_with = scope:recipient
+						}
+						scope:recipient = {
+							can_join_defensive_war_with = scope:actor
+						}
+					}
+				}
+				value = -100
+			}
+		}
+
+		#rivals?
+		add = {
+			desc = "game_concept_rival"
+			if = {
+				limit = {	
+					scope:recipient = { 
+						is_rival_of = scope:actor 
+					}
+				}
+				value = 100
+			}
+		}
+
+		#screw enemies
+		add = {
+			desc = "IS_WAR_ENEMY"
+			if = {
+				limit = {
+					scope:recipient = { 
+						is_at_war_with = scope:actor
+					}
+				}
+				value = 200
+			}
+		}
+
+		#leave allies alone
+		add = {
+			desc = "game_concept_ally"
+			if = {
+				limit = {	
+					scope:recipient = { 
+						is_allied_with = { target = scope:actor }
+					}
+				}
+				value = -100
+			}
+		}
+		#the less we like the recipient the better
+		subtract = {
+			desc = "game_concept_opinion"
+			scope:actor = {
+				value = "opinion(scope:recipient)"
+			}
+		}
+		#if we distruct the recipient, screw 'em'
+		add = {
+			scope:actor = {
+				value = 100
+				subtract = "trust(scope:recipient)"
+				divide = 5
+			}
+		}
+		#if they trust us don't mess with them
+		add = {
+			scope:recipient = {
+				value = "trust(scope:actor)"
+				divide = 5
+			}
+		}
+	}
+}

@@ -1,0 +1,231 @@
+﻿#P:A TODO Manual cleanup of file required
+# scope:actor = country, scope:recipient = religion
+
+call_upon_the_faithful = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor = {
+			modifier:allow_mysticism_vs_jurisprudence = yes
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			#societal_value:mysticism_vs_jurisprudence < -50 #P:A Removed vanilla reference
+			NOT = { has_country_modifier = fervor_of_the_faithful_modifier }
+			always = no #P:A Removed vanilla reference
+		}
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 1
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_country_modifier = {
+				modifier = fervor_of_the_faithful_modifier
+				years = modifier_duration_years_short
+				mode = replace
+			}
+			
+			#change_societal_value = { type = mysticism_vs_jurisprudence value = societal_value_large_move_to_right } #P:A Removed vanilla reference
+		}
+	}
+	
+	ai_will_do = {
+		add = "scope:actor.currency_utility(manpower|scope:actor.yearly_manpower)"
+		multiply = 2
+	}
+}
+
+study_islamic_texts = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor = {
+			modifier:allow_mysticism_vs_jurisprudence = yes
+		}
+	}
+	
+	allow = {
+		scope:actor = {
+			#societal_value:mysticism_vs_jurisprudence > 50 #P:A Removed vanilla reference
+			NOT = { has_country_modifier = studying_jurisprudence_modifier }
+			always = no #P:A Removed vanilla reference
+		}
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 1
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_country_modifier = {
+				modifier = studying_jurisprudence_modifier
+				years = modifier_duration_years_short
+				mode = replace
+			}
+			
+			#change_societal_value = { type = mysticism_vs_jurisprudence value = societal_value_large_move_to_left } #P:A Removed vanilla reference
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.currency_utility(stability|10)"
+	}
+}
+
+
+change_main_school = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_religious_schools = yes
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			any_invited_religious_figure = {
+				count > 0
+			}
+		}
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 1
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	price = price:change_main_school
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = religious_school
+		source = recipient
+		target_flag = target
+		name = "choose_religious_school"
+		none_available_msg_key = "no_valid_religious_school"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:actor = {
+				any_invited_religious_figure ?= {
+					religious_school ?= root
+				}
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:actor = {
+				set_religious_school = scope:target
+				if = {
+					limit = {
+						#has_law = sharia_law #P:A Removed vanilla reference
+						always = no #P:A Removed vanilla reference
+					}
+					if = {
+						#limit = { scope:target = religious_school:hanafi_school } #P:A Removed vanilla reference
+						limit = { always = no } #P:A Removed vanilla reference
+						#add_policy = policy:hanafi_policy #P:A Removed vanilla reference
+					}
+					if = {
+						#limit = { scope:target = religious_school:hanbali_school } #P:A Removed vanilla reference
+						limit = { always = no } #P:A Removed vanilla reference
+						#add_policy = policy:hanbali_policy #P:A Removed vanilla reference
+					}
+					if = {
+						#limit = { scope:target = religious_school:maliki_school } #P:A Removed vanilla reference
+						limit = { always = no } #P:A Removed vanilla reference
+						#add_policy = policy:maliki_policy #P:A Removed vanilla reference
+					}
+					if = {
+						#limit = { scope:target = religious_school:shafii_school } #P:A Removed vanilla reference
+						limit = { always = no } #P:A Removed vanilla reference
+						#add_policy = policy:shafii_policy #P:A Removed vanilla reference
+					}
+					if = {
+						#limit = { scope:target = religious_school:zahiri_school } #P:A Removed vanilla reference
+						limit = { always = no } #P:A Removed vanilla reference
+						#add_policy = policy:zahiri_policy #P:A Removed vanilla reference
+					}
+					if = {
+						#limit = { scope:target = religious_school:ismaili_school } #P:A Removed vanilla reference
+						limit = { always = no } #P:A Removed vanilla reference
+						#add_policy = policy:ismaili_policy #P:A Removed vanilla reference
+					}
+					if = {
+						#limit = { scope:target = religious_school:jafari_school } #P:A Removed vanilla reference
+						limit = { always = no } #P:A Removed vanilla reference
+						#add_policy = policy:jafari_policy #P:A Removed vanilla reference
+					}
+					if = {
+						#limit = { scope:target = religious_school:zaidi_school } #P:A Removed vanilla reference
+						limit = { always = no } #P:A Removed vanilla reference
+						#add_policy = policy:zaidi_policy #P:A Removed vanilla reference
+					}
+					if = {
+						#limit = { scope:target = religious_school:hanbali_school } #P:A Removed vanilla reference
+						limit = { always = no } #P:A Removed vanilla reference
+						#add_policy = policy:hanbali_policy #P:A Removed vanilla reference
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:target.modifier_utility(scope:actor)"
+	}
+}
