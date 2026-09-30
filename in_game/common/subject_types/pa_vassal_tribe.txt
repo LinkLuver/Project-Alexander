@@ -1,0 +1,147 @@
+﻿#P:A Imported from Imperator: Invictus (see readme_pa_imperator.txt for the field mapping)
+#P:A Terra Indomita differs only by: no can_build, and remove_subject_focus_effect in on_enable/on_disable (Indomita-only effect)
+vassal_tribe = { #Tribal Vassal
+	subject_pays = subject_pays_vassal_tribe # Imperator: subject_pays_vassal
+	color = subject_tributary #P:A TODO Placeholder from tributary
+	level = 0 #P:A TODO Placeholder from tributary
+	annullment_favours_required = 5 #P:A TODO Placeholder from tributary
+	counts_as_external = yes #P:A TODO Placeholder from tributary
+
+	# Imperator: joins_overlord_in_war = no, protected_when_attacked = yes
+	join_defensive_wars_always = {
+		scope:actor ?= { is_subject_of = scope:recipient }
+	}
+	overlord_protects_external = yes
+	allow_declaring_wars = { always = yes } # Imperator: allowed_to_declare_war_against_others = yes
+	#can_build = no #P:A TODO No EU5 equivalent
+
+	has_overlords_ruler = no
+	can_be_annexed = no # Imperator: can_be_integrated = no
+	diplomatic_capacity_cost_scale = 0 # Imperator: costs_diplomatic_slot = no
+	subject_can_cancel = yes
+	has_limited_diplomacy = no
+
+	will_join_independence_wars = yes #P:A TODO Placeholder from tributary
+	overlord_can_cancel = yes #P:A TODO Placeholder from tributary
+	maritime_path_tolerance = 0.25 #P:A TODO Placeholder from tributary
+	strength_vs_overlord = -0.25 #P:A TODO Placeholder from tributary
+	can_change_rank = yes #P:A TODO Placeholder from tributary
+	can_change_heir_selection = yes #P:A TODO Placeholder from tributary
+	use_overlord_map_color = no #P:A TODO Placeholder from tributary
+	use_overlord_map_name = no #P:A TODO Placeholder from tributary
+	minimum_opinion_for_offer = 150 #P:A TODO Placeholder from tributary
+	great_power_score_transfer = 0.25 #P:A TODO Placeholder from tributary
+	institution_spread_to_overlord = monthly_institution_spread_weak #P:A TODO Placeholder from tributary
+	institution_spread_to_subject = monthly_institution_spread_weak #P:A TODO Placeholder from tributary
+
+	overlord_modifier = {
+		#global_tribesmen_happyness = happiness_small_svalue #P:A TODO No EU5 equivalent
+	}
+	subject_modifier = {
+		#country_civilization_value = 10 #P:A TODO No EU5 equivalent
+		#global_monthly_civilization = 0.01 #P:A TODO No EU5 equivalent
+	}
+
+	# Imperator allow only gates diplomatic offers (EU5 also checks enabled for game-start subjects).
+	# Imperator allow, turned around: root = overlord, scope:target = subject
+	enabled_through_diplomacy = {
+		scope:target = { pa_is_tribal = yes }
+		is_subject = no
+		pa_is_tribal = no
+		#capital_scope = { civilization_value > scope:target.capital_scope.civilization_value } #P:A TODO No EU5 equivalent
+		NOT = {
+			any_subject = {
+				count >= 10
+				is_subject_type = vassal_tribe
+			}
+		}
+	}
+
+	on_enable = {
+		add_opinion = {
+			modifier = is_client_protectorate_status
+			target = scope:future_overlord
+		}
+		scope:future_overlord = {
+			add_opinion = {
+				modifier = is_overlord_protectorate_status
+				target = root
+			}
+		}
+	}
+	on_disable = {
+		remove_opinion = {
+			modifier = is_client_protectorate_status
+			target = scope:former_overlord
+		}
+		scope:former_overlord = {
+			add_opinion = {
+				modifier = broke_tributary_status
+				target = root
+			}
+			remove_opinion = {
+				modifier = is_overlord_protectorate_status
+				target = root
+			}
+		}
+	}
+
+	#P:A TODO No EU5 equivalent: Imperator diplo_chance
+	# base = { offset = -90 }  in_debt = { scale = 0 }  negative_stability = { scale = 0 }
+	# current_strength = { scale = 0.25 }  potential_strength = { scale = 0.25 }
+	# border_distance = { scale = 2 }  junior_to = { scale = -40 }
+	diplo_chance_accept_subject = { #P:A TODO Placeholder from tributary
+		base = -72
+		current_strength = 0.1
+		border_distance = -0.3
+		negative_opinion = -5
+		positive_opinion = 0.25
+		rank_difference = -5
+		giving_defensive_support = 2
+		receiving_defensive_support = 5
+		royal_ties = 1
+
+		num_of_unlimited_subjects = -5
+		culture_war = 3
+		diplomatic_reputation = 1
+		different_religion = -20
+		same_common_language = 5
+		same_court_language = 10
+		different_culture = -10
+		different_government_type = -20
+		actor_at_war = -20
+		competing_power = -200
+		tax_base = -0.25
+		trust_in_actor = 0.2
+
+		reject_subjugation_reasons = -1
+		accept_subjugation_reasons = 1
+	}
+	diplo_chance_accept_overlord = { #P:A TODO Placeholder from tributary
+		base = 9
+		border_distance = -0.3
+		negative_opinion = -5
+		positive_opinion = 0.25
+		same_common_language = 5
+		same_court_language = 10
+		different_culture = -10
+		different_government_type = -25
+		actor_at_war = -20
+		competing_power = -200
+		trust_in_actor = 0.2
+	}
+	ai_wants_to_be_overlord = { #P:A TODO Placeholder from tributary
+		scope:subject = {
+			add = {
+				desc = "COALITION_GRADE_ANTAGONISM_TOWARDS_THEM_SUBJECT"
+				value = {
+					every_country_with_coalition_grade_antagonism_against_us = {
+						add = {
+							value = -10
+						}
+					}
+				}
+			}
+		}
+	}
+}
