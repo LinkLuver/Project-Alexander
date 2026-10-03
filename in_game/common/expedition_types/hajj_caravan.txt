@@ -1,0 +1,329 @@
+﻿hajj_caravan_expedition = {
+
+	unique = yes
+	returns_home = yes
+	travel_speed = 0.75
+	dynamic_first_waypoint = yes
+	category = religious
+	icon = category_religious
+	triggers_regency = yes
+	fail_if_no_leader = yes
+	origin = capital
+	show_start_message = no
+	show_end_message = no
+
+	variables = {
+		guards = {
+			display = piechart
+			icon = "gfx/interface/icons/expedition_types/guards.dds"
+			start = 50
+			min = 0
+			max = 90
+		}
+		splendor = {
+			display = piechart
+			icon = "gfx/interface/icons/expedition_types/splendor.dds"
+			start = 0
+			min = 0
+			max = 100
+		}
+	}
+
+	potential = {
+		religion.group = religion_group:muslim
+		has_ruler = yes
+	}
+
+	can_start = {
+		at_war = no
+		ruler = {
+			NOT = { has_character_modifier = hajji_pilgrim }
+			owner = root
+		}
+		NOT = { capital = location:mecca }
+		hajj_caravan_capital_has_route_to_mecca = yes
+		NOT = { has_cooldown = hajj_caravan_cooldown }
+	}
+
+	leader = {
+		is_ruler = yes
+		is_expedition_leader = no
+		has_exploration = no
+	}
+
+	ai_leader_source_list = {
+		ruler = {
+			add_to_list = source
+		}
+	}
+
+	on_start = {
+		add_cooldown = {
+			type = hajj_caravan_cooldown
+			years = 5
+		}
+		scope:expedition = {
+			set_variable = { name = hajj_departure_year value = current_year }
+			if = {
+				limit = { exists = expedition_leader }
+				remove_commander = expedition_leader
+			}
+			expedition_leader = {
+				add_character_modifier = { modifier = leading_hajj_caravan }
+			}
+		}
+		if = {
+			limit = {
+				hajj_caravan_routes_via_damascus = yes
+			}
+			scope:expedition = { add_new_waypoint = location:damascus }
+		}
+		else_if = {
+			limit = {
+				hajj_caravan_routes_via_baghdad = yes
+			}
+			scope:expedition = { add_new_waypoint = location:baghdad }
+		}
+		else_if = {
+			limit = {
+				hajj_caravan_routes_via_cairo = yes
+			}
+			scope:expedition = { add_new_waypoint = location:cairo }
+		}
+		else_if = {
+			limit = {
+				hajj_caravan_routes_via_jeddah = yes
+			}
+			scope:expedition = { add_new_waypoint = location:jeddah }
+		}
+		else_if = {
+			limit = {
+				hajj_caravan_routes_via_bab_el_mandeb = yes
+			}
+			scope:expedition = {
+				add_new_waypoint = location:bab_el_mandeb
+				add_new_waypoint = location:jeddah
+			}
+		}
+		scope:expedition = {
+			add_new_waypoint = location:mecca
+		}
+		trigger_event_non_silently = hajj_caravan_events.1
+	}
+
+	on_monthly = {
+		if = {
+			limit = {
+				scope:expedition = {
+					expedition_is_traveling = yes
+					NOT = { expedition_is_paused = yes }
+				}
+			}
+			random_list = {
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= { is_land = yes region = region:arabia_region }
+							NOT = { has_variable = raid_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.9
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= {
+								is_land = yes
+								OR = {
+									vegetation = desert
+									vegetation = sparse
+								}
+							}
+							NOT = { has_variable = wells_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.10
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= { is_land = yes vegetation = desert }
+							NOT = { has_variable = simoom_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.11
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= { is_land = yes }
+							NOT = { has_variable = plague_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.12
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= {
+								is_land = yes
+								has_owner = yes
+								top_owner != root
+							}
+							NOT = { has_variable = toll_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.13
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= { is_land = yes vegetation = desert }
+							NOT = { has_variable = oasis_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.14
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= { is_land = yes }
+							NOT = { has_variable = scholars_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.15
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= { is_land = no }
+							NOT = { has_variable = tempest_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.17
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= { is_land = no }
+							NOT = { has_variable = doldrums_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.18
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= { is_land = no }
+							NOT = { has_variable = seafever_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.19
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= { is_land = no }
+							NOT = { has_variable = corsairs_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.20
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= { is_land = no }
+							NOT = { has_variable = reef_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.21
+				}
+				1 = {
+					trigger = {
+						scope:expedition = {
+							expedition_current_location ?= { is_land = no }
+							NOT = { has_variable = merchant_fired }
+						}
+					}
+					trigger_event_non_silently = hajj_caravan_events.22
+				}
+				13 = {}
+			}
+		}
+	}
+
+	on_arrive_to_new_location = {
+		discover_area = scope:location.area
+	}
+
+	on_arrive_to_waypoint = {
+		if = {
+			limit = { scope:location = location:cairo }
+			trigger_event_non_silently = hajj_caravan_events.4
+		}
+		else_if = {
+			limit = { scope:location = location:baghdad }
+			trigger_event_non_silently = hajj_caravan_events.5
+		}
+		else_if = {
+			limit = { scope:location = location:damascus }
+			trigger_event_non_silently = hajj_caravan_events.6
+		}
+		else_if = {
+			limit = { scope:location = location:jeddah }
+			trigger_event_non_silently = hajj_caravan_events.2
+		}
+		else_if = {
+			limit = {
+				scope:location = location:mecca
+			}
+			if = {
+				limit = {
+					scope:expedition = { current_year > var:hajj_departure_year }
+				}
+				trigger_event_non_silently = hajj_caravan_events.16
+			}
+			else = {
+				trigger_event_non_silently = hajj_caravan_events.3
+			}
+		}
+	}
+
+	on_end = {
+		scope:expedition = {
+			expedition_leader ?= {
+				remove_character_modifier = leading_hajj_caravan
+			}
+		}
+		trigger_event_non_silently = hajj_caravan_events.7
+	}
+
+	on_fail = {
+		scope:expedition = {
+			expedition_leader ?= {
+				remove_character_modifier = leading_hajj_caravan
+			}
+		}
+	}
+
+	ai_chance_to_check = {
+		value = define:NAI|EXPEDITION_DEFAULT_CHANCE_TO_CHECK
+		multiply = 0.25
+		if = {
+			limit = {
+				has_ruler = yes
+				ruler = { has_trait = zealot }
+			}
+			multiply = 4
+		}
+
+		if = {
+			limit = { ruler = { has_character_modifier = hajji_pilgrim } } 
+			multiply = 0.25
+		}
+	}
+
+	utility = {
+		value = 5
+	}
+}

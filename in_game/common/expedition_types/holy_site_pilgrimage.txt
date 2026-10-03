@@ -1,0 +1,150 @@
+﻿holy_site_pilgrimage_expedition = {
+
+	unique = yes
+	travel_speed = 0.75
+	dynamic_first_waypoint = yes
+	category = religious
+	icon = category_religious
+	fail_if_no_leader = yes
+
+	potential = {
+		has_ruler = yes
+		religion = { has_holy_sites = yes }
+		has_variable = pilgrimage_holy_site
+	}
+
+	can_start = {
+		NOT = { has_cooldown = holy_site_pilgrimage_cooldown }
+		ruler ?= { owner = root }
+	}
+
+	leader = {
+		is_ruler = yes
+		is_expedition_leader = no
+		has_exploration = no
+	}
+
+	ai_leader_source_list = {
+		ruler = {
+			add_to_list = source
+		}
+	}
+
+	on_start = {
+		add_cooldown = {
+			type = holy_site_pilgrimage_cooldown
+			years = 5
+		}
+		set_variable = { name = pilgrimage_sites_visited value = 0 }
+		scope:expedition = {
+			if = {
+				limit = { exists = expedition_leader }
+				remove_commander = expedition_leader
+			}
+			add_new_waypoint = root.var:pilgrimage_holy_site.location
+			add_new_waypoint = root.capital
+		}
+	}
+
+	on_arrive_to_new_location = {
+		scope:location = {
+			discover_location = root
+		}
+	}
+
+	on_arrive_to_waypoint = {
+		# Arrived at the holy site (not the return-to-capital leg).
+		if = {
+			limit = {
+				NOT = { scope:location = root.capital }
+				has_variable = pilgrimage_holy_site
+			}
+			change_variable = { name = pilgrimage_sites_visited add = 1 }
+
+			# Religious-currency rewards — each gated by the religion having that currency
+			add_religious_currency_pilgrimage = { currency = religious_influence }
+			add_religious_currency_pilgrimage = { currency = purity }
+			add_religious_currency_pilgrimage = { currency = karma }
+
+			# Yanantin shift (Andean religions) — uses the holy site's god
+			if = {
+				limit = { religion = { has_yanantin = yes } }
+				switch = {
+					trigger = var:pilgrimage_holy_site.god
+					# Male gods
+					god:viracocha = { add_yanantin = -20 }
+					god:inti_god = { add_yanantin = -20 }
+					god:illapa_god = { add_yanantin = -20 }
+					god:supay_god = { add_yanantin = -20 }
+					# Female gods
+					god:mamaquilla = { add_yanantin = 20 }
+					god:pachamama = { add_yanantin = 20 }
+					god:mama_cocha = { add_yanantin = 20 }
+					god:urpihuachac_god = { add_yanantin = 20 }
+				}
+			}
+
+			# Mysticism vs. jurisprudence shift (Muslim school stance)
+			if = {
+				limit = { religion = { modifier:allow_mysticism_vs_jurisprudence = yes } }
+				if = {
+					limit = { societal_value:mysticism_vs_jurisprudence > 0 }
+					change_societal_value = { type = mysticism_vs_jurisprudence value = societal_value_move_to_right }
+				}
+				else = {
+					change_societal_value = { type = mysticism_vs_jurisprudence value = societal_value_move_to_left }
+				}
+			}
+
+			if = {
+				limit = {
+					scope:location = { is_holding_of_any_religious_order = yes }
+				}
+				scope:location = {
+					set_variable = { name = recent_order_pilgrimage value = yes days = 1825 }
+					custom_tooltip = holy_site_pilgrimage_expedition_order_zeal_tt
+				}
+			}
+
+		}
+	}
+
+	on_end = {
+		remove_variable = pilgrimage_holy_site
+		remove_variable = pilgrimage_sites_visited
+		ruler ?= {
+			remove_character_modifier = character_on_pilgrimage
+		}
+	}
+
+	on_fail = {
+		remove_variable = pilgrimage_holy_site
+		remove_variable = pilgrimage_sites_visited
+		scope:expedition = {
+			expedition_leader ?= {
+				remove_character_modifier = character_on_pilgrimage
+			}
+		}
+	}
+
+	ai_chance_to_check = {
+		value = define:NAI|EXPEDITION_DEFAULT_CHANCE_TO_CHECK
+		multiply = 0.2
+		if = {
+			limit = {
+				has_ruler = yes
+				ruler = { 
+					OR = {
+						has_trait = zealot 
+						has_trait = pious
+					}
+				}
+			}
+			multiply = 2
+		}
+	}
+
+	utility = {
+		value = 3
+	}
+}
