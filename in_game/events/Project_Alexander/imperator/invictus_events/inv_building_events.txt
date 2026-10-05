@@ -1,0 +1,493 @@
+﻿#P:A Imported from Invictus: events/invictus_events/inv_building_events.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = inv_building_events
+
+# A minor earthquake damages a fortress in a poor province.
+inv_building_events.1 = {
+	type = country_event
+	title = inv_building_events.1.t
+	desc = inv_building_events.1.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_fort = yes #P:A TODO Approximate: Imperator num_of_fortress_building > 1 (fortress level 2+); EU5 forts have no stacked levels
+			location_tax_base < 3 #P:A TODO Approximate: Imperator province_income < 3 (monthly province income); EU5 location tax base has a different scale
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = military_building_cooldown
+			days = 9125 # very_long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_fort = yes #P:A TODO Approximate: Imperator num_of_fortress_building > 1
+				location_tax_base < 3 #P:A TODO Approximate: Imperator province_income < 3
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.1.a
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 730
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.1.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 3
+			min = -6000
+		}
+	}
+}
+
+# Saboteurs paid by a hostile neighbor damage one of our fortresses.
+inv_building_events.2 = {
+	type = country_event
+	title = inv_building_events.2.t
+	desc = inv_building_events.2.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_fort = yes #P:A TODO Approximate: Imperator num_of_fortress_building > 1 (fortress level 2+); EU5 forts have no stacked levels
+			OR = {
+				average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2; EU5 has no location unrest value, low pop satisfaction used
+				any_neighbor_location = {
+					exists = owner
+					NOT = { owner = root }
+					owner = {
+						opinion = {
+							target = root
+							value < 25
+						}
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = military_building_cooldown
+			days = 9125 # very_long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_fort = yes #P:A TODO Approximate: Imperator num_of_fortress_building > 1
+				OR = {
+					average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2
+					any_neighbor_location = {
+						exists = owner
+						NOT = { owner = root }
+						owner = {
+							opinion = {
+								target = root
+								value < 25
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.2.a
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+	}
+	option = {
+		name = inv_building_events.2.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 3
+			min = -6000
+		}
+		# current_ruler = { add_popularity = 5 }
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+	}
+}
+
+# A local fortifications master in a border province.
+inv_building_events.3 = {
+	type = country_event
+	title = inv_building_events.3.t
+	desc = inv_building_events.3.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_fort = yes #P:A TODO Approximate: Imperator num_of_fortress_building > 1 (fortress level 2+); EU5 forts have no stacked levels
+			# governor_policy = borderlands
+			any_neighbor_location = { #P:A TODO Approximate: Imperator governor_policy = borderlands (EU5 has no governors or governor policies); a location bordering another country is used
+				exists = owner
+				NOT = { owner = root }
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_fort = yes #P:A TODO Approximate: Imperator num_of_fortress_building > 1
+				any_neighbor_location = { #P:A TODO Approximate: Imperator governor_policy = borderlands
+					exists = owner
+					NOT = { owner = root }
+				}
+			}
+			save_scope_as = building_province
+		}
+		# Imperator: the fort guy was the province's holding owner, else its governor (if not the ruler), else a newly created man.
+		#P:A TODO No EU5 equivalent: holding owners and governors; the new character is always created
+		hidden_effect = {
+			create_character = {
+				female = no
+				birth_location = scope:building_province
+				save_scope_as = fort_guy
+			}
+			scope:fort_guy = {
+				pa_imp_good_finesse_trait_effect = yes
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.3.a
+		add_stability = 3
+		# current_ruler = { add_popularity = 5 }
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+	}
+	option = {
+		name = inv_building_events.3.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		capital = {
+			add_location_modifier = {
+				modifier = fort_guy_assisting_local_fort
+				days = 3650
+			}
+		}
+	}
+}
+
+# A pyromaniac governor or holding owner lets a fire damage a fort.
+inv_building_events.4 = {
+	type = country_event
+	title = inv_building_events.4.t
+	desc = inv_building_events.4.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_fort = yes #P:A TODO Approximate: Imperator num_of_fortress_building > 1 (fortress level 2+); EU5 forts have no stacked levels
+			# OR = {
+			# 	AND = { exists = governor_or_ruler governor_or_ruler = { has_trait = pyromaniac } }
+			# 	AND = { exists = holding_owner holding_owner = { has_trait = pyromaniac } }
+			# }
+			always = no #P:A TODO No EU5 equivalent: the province's governor or holding owner has the "pyromaniac" trait (EU5 has no governors, holdings or pyromaniac trait)
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_fort = yes #P:A TODO Approximate: Imperator had no fortress check here
+				# OR = {
+				# 	AND = { exists = governor_or_ruler governor_or_ruler = { has_trait = pyromaniac } }
+				# 	AND = { exists = holding_owner holding_owner = { has_trait = pyromaniac } }
+				# }
+				#P:A TODO No EU5 equivalent: governor or holding owner with the "pyromaniac" trait
+			}
+			save_scope_as = burning_fort_province
+		}
+		# scope:burning_fort_province = {
+		# 	if = { limit = { exists = holding_owner holding_owner = { has_trait = pyromaniac } } holding_owner = { save_scope_as = pyromaniac_administrator } }
+		# 	else_if = { limit = { exists = governor_or_ruler governor_or_ruler = { has_trait = pyromaniac } } holding_owner = { save_scope_as = pyromaniac_administrator } }
+		# }
+		#P:A TODO No EU5 equivalent: saves the pyromaniac holding owner / governor as scope:pyromaniac_administrator (EU5 has neither)
+	}
+
+	option = {
+		name = inv_building_events.4.a
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+	}
+	option = {
+		name = inv_building_events.4.b
+		# scope:pyromaniac_administrator = {
+		# 	add_gold = -100
+		# 	add_loyalty = loyalty_publicly_slandered
+		# }
+		#P:A TODO No EU5 equivalent: the administrator pays 100 of his own gold and loses loyalty (EU5 characters have no personal wealth or loyalty)
+		# current_ruler = { add_popularity = 5 }
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+	}
+}
+
+# Locals thank the ruler for the ramparts built in their province.
+inv_building_events.5 = {
+	type = country_event
+	title = inv_building_events.5.t
+	desc = inv_building_events.5.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:city_walls #P:A TODO Approximate: Imperator fortress_ramparts_building mapped to city_walls
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = { has_building = building_type:city_walls } #P:A TODO Approximate: Imperator fortress_ramparts_building
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.5.a
+		add_stability = 3
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 4
+			max = 5000
+		}
+	}
+	option = {
+		name = inv_building_events.5.b
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = increased_defense_in_this_province
+				days = 3650
+			}
+		}
+	}
+}
+
+# The ramparts of a province collapse, killing some of its people.
+inv_building_events.6 = {
+	type = country_event
+	title = inv_building_events.6.t
+	desc = inv_building_events.6.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:city_walls #P:A TODO Approximate: Imperator fortress_ramparts_building mapped to city_walls
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = { has_building = building_type:city_walls } #P:A TODO Approximate: Imperator fortress_ramparts_building
+			save_scope_as = building_province
+		}
+		scope:building_province = {
+			ordered_pop = {
+				max = 3
+				order_by = pop_satisfaction # Imperator: pop_hapiness
+				add_pop_size = { #P:A TODO Approximate: Imperator kill_pop removed 3 whole pops; EU5 removes up to 1 (thousand) people from each of the 3 most satisfied pops
+					value = pop_size
+					multiply = -1
+					min = -1
+				}
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.6.a
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 4
+			min = -6000
+		}
+	}
+	option = {
+		name = inv_building_events.6.b
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = decreased_defense_in_this_province
+				days = 3650
+			}
+		}
+	}
+}
+
+# Calm seas bring a trade boom to a port province.
+inv_building_events.7 = {
+	type = country_event
+	title = inv_building_events.7.t
+	desc = inv_building_events.7.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:dock #P:A TODO Approximate: Imperator num_of_port_building > 1 (port level 2+); EU5 dock has a single level
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = { has_building = building_type:dock } #P:A TODO Approximate: Imperator num_of_port_building > 1
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.7.a
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 6
+			ceiling = yes
+			max = 1000
+			min = 10
+		}
+	}
+	option = {
+		name = inv_building_events.7.b
+		add_stability = 3
+	}
+}
+
+# The corrupt manager of a port district lets pirates dock.
+inv_building_events.8 = {
+	type = country_event
+	title = inv_building_events.8.t
+	desc = inv_building_events.8.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:dock #P:A TODO Approximate: Imperator num_of_port_building > 1 (port level 2+); EU5 dock has a single level
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = { has_building = building_type:dock } #P:A TODO Approximate: Imperator num_of_port_building > 1
+			save_scope_as = building_province
+		}
+		# Imperator: the port manager was the province's holding owner, else a newly created man.
+		#P:A TODO No EU5 equivalent: holdings and holding owners; the new character is always created
+		hidden_effect = {
+			create_character = {
+				female = no
+				birth_location = scope:building_province
+				save_scope_as = port_manager
+			}
+			scope:port_manager = {
+				pa_imp_good_popularity_trait_effect = yes
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.8.a
+		# current_ruler = {
+		# 	add_popularity = -5
+		# 	add_corruption = 3
+		# }
+		#P:A TODO No EU5 equivalent: -5 popularity and +3 corruption for the ruler (EU5 characters have neither)
+	}
+	option = {
+		name = inv_building_events.8.b
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 3650
+			}
+		}
+		# scope:port_manager = { add_loyalty = loyalty_picked_other_side }
+		#P:A TODO No EU5 equivalent: the port manager loses loyalty (EU5 characters have no loyalty)
+	}
+}

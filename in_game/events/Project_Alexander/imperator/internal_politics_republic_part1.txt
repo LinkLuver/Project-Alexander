@@ -1,0 +1,5668 @@
+﻿#P:A Imported from Invictus: events/internal_politics_republic.txt (part 1: ip_republic.1-65)
+# Imperator character events are converted to country events: root = the character's employer, the character is scope:pa_character.
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = ip_republic
+
+# Wild Accusations: an opposition leader accuses the corrupt ruler of election fraud.
+ip_republic.1 = {
+	type = country_event
+	title = ip_republic.1.t
+	desc = ip_republic.1.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				# corruption >= 5
+				NOT = { has_trait = honest } #P:A TODO Approximate: Imperator corruption >= 5 (EU5 characters have no corruption); "not honest" stands in
+				NOT = {
+					has_variable = under_fraud_scrutiny
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes
+				NOT = { has_trait = honest } #P:A TODO Approximate: Imperator corruption >= 5 (EU5 characters have no corruption); "not honest" stands in
+				NOT = {
+					has_variable = under_fraud_scrutiny
+				}
+			}
+		}
+		# employer = { any_character = { is_party_leader = yes NOT = { is_same_party_as = ROOT } } }
+		any_character = { #P:A TODO Approximate: Imperator "a leader of another party"; EU5 has no parties, an adult character of another estate than the ruler stands in
+			is_adult = yes
+			is_ruler = no
+			NOT = { has_estate = root.ruler.estate_type }
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 3
+			# corruption >= 20
+			ruler = { has_trait = corrupt } #P:A TODO Approximate: Imperator corruption >= 20; the corrupt trait stands in
+		}
+		# modifier = { factor = 3 any_rival = { is_party_leader = yes NOT = { is_same_party_as = ROOT } } }
+		#P:A TODO No EU5 equivalent: x3 if the ruler has a rival who leads another party (EU5 has no character rivals or parties)
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+					NOT = { has_trait = honest }
+					NOT = {
+						has_variable = under_fraud_scrutiny
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		random_character = { #P:A TODO Approximate: Imperator picked a leader of another party, weighted by office importance (title_importance_modifier); EU5 has no parties or offices
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				NOT = { has_estate = scope:pa_character.estate_type }
+			}
+			save_scope_as = ip_republic_1_accuser
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = under_fraud_scrutiny
+				value = 1
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.1.a
+		custom_tooltip = increased_scrutiny.tooltip
+		# scope:pa_character = { add_popularity = -5 } # subtract_popularity_small
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+	}
+
+	option = {
+		name = ip_republic.1.b
+		custom_tooltip = ip_republic.1.b.tooltip
+		# scope:pa_character = { add_popularity = -5 } # subtract_popularity_small
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+		add_gold = {
+			value = monthly_income_total
+			multiply = pa_imp_corruption_svalue_halved
+			max = 5000
+		}
+		hidden_effect = {
+			scope:pa_character = {
+				remove_variable = under_fraud_scrutiny
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.1.c
+		# add_tyranny = 10
+		#P:A TODO No EU5 equivalent: +10 tyranny (EU5 has no tyranny)
+		# scope:ip_republic_1_accuser = { add_loyalty = loyalty_demanded_resignation add_prominence = 20 } # prominence_huge
+		#P:A TODO No EU5 equivalent: the accuser gains the "demanded resignation" loyalty modifier and +20 prominence (EU5 characters have neither)
+		hidden_effect = {
+			scope:pa_character = {
+				remove_variable = under_fraud_scrutiny
+			}
+		}
+	}
+}
+
+# Affairs of State: the senate worries about the ruler's tyranny.
+ip_republic.2 = {
+	type = country_event
+	title = ip_republic.2.t
+	desc = ip_republic.2.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes
+			}
+		}
+		# tyranny >= 20
+		always = no #P:A TODO No EU5 equivalent: the event needs tyranny >= 20 (EU5 has no tyranny)
+	}
+
+	weight_multiplier = {
+		base = 1
+		# modifier = { factor = 2 tyranny >= 40 }
+		#P:A TODO No EU5 equivalent: x2 at tyranny >= 40 (EU5 has no tyranny)
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+				}
+				save_scope_as = pa_character
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.2.a
+		custom_tooltip = increased_scrutiny.tooltip
+		hidden_effect = {
+			scope:pa_character = {
+				set_variable = {
+					name = under_fraud_scrutiny
+					value = 1
+				}
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.2.b
+		custom_tooltip = ambitious_tooltip
+		trigger = {
+			# scope:pa_character = { has_trait = ambitious }
+			always = no #P:A TODO No EU5 equivalent: option only for rulers with the Imperator "ambitious" trait (EU5 has none)
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		# scope:pa_character = { add_corruption = 10 } # corruption_large
+		# add_tyranny = 5
+		#P:A TODO No EU5 equivalent: +10 corruption for the ruler and +5 tyranny (EU5 has neither)
+	}
+
+	option = {
+		name = ip_republic.2.c
+		custom_tooltip = orator_tooltip
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			scope:pa_character = { has_trait = charismatic_orator } #P:A TODO Approximate: Imperator "orator" trait mapped to the EU5 charismatic_orator trait
+		}
+	}
+}
+
+# Minor Inheritance: the ruler inherits farmland, and a jealous friend claims it.
+ip_republic.3 = {
+	type = country_event
+	title = ip_republic.3.t
+	desc = ip_republic.3.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_adult = yes
+				NOT = {
+					has_variable = ip_republic_3_inheritance
+				}
+				# can_get_rivals = yes #P:A TODO No EU5 equivalent: Imperator "can get rivals" check (EU5 has no character rivals)
+				# trigger_if = { limit = { employer = { gender_equality = no } } is_female = no }
+				#P:A TODO No EU5 equivalent: without gender equality the character had to be male (EU5 gender_equality is a modifier, not a trigger)
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes # Imperator monthly_ruler_pulse: the ruler
+				is_adult = yes
+				NOT = {
+					has_variable = ip_republic_3_inheritance
+				}
+			}
+		}
+		# any_friend = { OR = { has_trait = selfish has_trait = ambitious has_trait = jealous } NOR = { has_trait = vengeful has_trait = forgiving } prisoner = no }
+		any_character = { #P:A TODO Approximate: Imperator "a selfish, ambitious or jealous friend who is not vengeful or forgiving"; EU5 has no friendships or these traits, another adult non-ruler character stands in
+			is_adult = yes
+			is_ruler = no
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+					is_adult = yes
+					NOT = {
+						has_variable = ip_republic_3_inheritance
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		random_character = { #P:A TODO Approximate: Imperator picked a selfish/ambitious/jealous friend weighted by prominence; EU5 has no friendships, another adult character stands in
+			limit = {
+				is_adult = yes
+				NOT = { this = scope:pa_character }
+			}
+			save_scope_as = ip_republic_3_jealous_friend
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = ip_republic_3_inheritance
+				value = 1
+			}
+		}
+		random_owned_location = {
+			weight = {
+				base = 1
+				modifier = {
+					factor = 100
+					OR = {
+						raw_material = goods:wheat
+						raw_material = goods:legumes
+					}
+				}
+			}
+			save_scope_as = ip_republic_3_province_target
+		}
+	}
+
+	option = {
+		name = ip_republic.3.a
+		# scope:pa_character = { add_gold = 200 remove_friend = scope:ip_republic_3_jealous_friend add_rival = scope:ip_republic_3_jealous_friend }
+		#P:A TODO No EU5 equivalent: the ruler gains 200 personal wealth and the friend becomes a rival (EU5 characters have no wealth, friends or rivals)
+		ai_chance = {
+			factor = 75
+		}
+	}
+
+	option = {
+		name = ip_republic.3.b
+		# scope:pa_character = { add_gold = 100 }
+		# scope:ip_republic_3_jealous_friend = { add_gold = 100 add_loyalty = loyalty_inheritance_split }
+		#P:A TODO No EU5 equivalent: 100 personal wealth each for the ruler and the friend, and a loyalty modifier for the friend (EU5 characters have no wealth or loyalty)
+		ai_chance = {
+			factor = 25
+		}
+	}
+
+	option = {
+		name = ip_republic.3.c
+		# scope:pa_character = { add_trait = jealous }
+		# scope:ip_republic_3_jealous_friend = { if jealous: add_loyalty = loyalty_inheritance_confiscate, else add_trait = jealous }
+		#P:A TODO No EU5 equivalent: both characters gain the "jealous" trait, or the friend a loyalty modifier (EU5 has neither)
+		scope:ip_republic_3_province_target = {
+			add_location_modifier = {
+				modifier = state_owned_farmlands
+				days = -1
+			}
+		}
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+
+# Hidden: a wealthy office holder is caught embezzling; the ruler decides in ip_republic.5.
+ip_republic.4 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, a cabinet seat stands in
+				# wealth >= 1000
+				OR = { #P:A TODO Approximate: Imperator personal wealth >= 1000 (EU5 characters have no wealth); a corrupt, greedy or embezzler trait stands in
+					has_trait = corrupt
+					has_trait = greedy
+					has_trait = embezzler
+				}
+				is_ruler = no
+				NOT = {
+					has_variable = ip_republic_4_embezzler
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, a cabinet seat stands in
+				OR = { #P:A TODO Approximate: Imperator personal wealth >= 1000 (EU5 characters have no wealth); a corrupt, greedy or embezzler trait stands in
+					has_trait = corrupt
+					has_trait = greedy
+					has_trait = embezzler
+				}
+				is_ruler = no
+				NOT = {
+					has_variable = ip_republic_4_embezzler
+				}
+			}
+		}
+		exists = ruler
+	}
+
+	weight_multiplier = {
+		base = 1
+		# modifier = { factor = 2 has_trait = gluttonous }
+		#P:A TODO No EU5 equivalent: x2 if the character is gluttonous (EU5 has no such trait)
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					in_cabinet = yes
+					OR = {
+						has_trait = corrupt
+						has_trait = greedy
+						has_trait = embezzler
+					}
+					is_ruler = no
+					NOT = {
+						has_variable = ip_republic_4_embezzler
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			save_scope_as = ip_republic_5_antagonist
+			set_variable = {
+				name = ip_republic_4_embezzler
+				days = 3600
+			}
+		}
+		# Imperator: employer = { current_ruler = { trigger_event = { id = ip_republic.5 days = 0 } } }
+		ruler = {
+			save_scope_as = pa_character
+		}
+		trigger_event_non_silently = {
+			id = ip_republic.5
+			days = 0
+		}
+	}
+}
+
+# Embezzler!: the ruler decides how to punish the embezzler found in ip_republic.4.
+ip_republic.5 = {
+	type = country_event
+	title = ip_republic.5.t
+	desc = ip_republic.5.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:ip_republic_5_antagonist
+		scope:ip_republic_5_antagonist = {
+			is_alive = yes
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = {
+				save_scope_as = pa_character
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.5.a
+		# scope:pa_character = { add_corruption = 10 } # corruption_large
+		# scope:ip_republic_5_antagonist = { add_loyalty = loyalty_embezzler_forgiven }
+		#P:A TODO No EU5 equivalent: +10 corruption for the ruler and a loyalty modifier for the embezzler (EU5 characters have neither)
+	}
+
+	option = {
+		name = ip_republic.5.b
+		# scope:ip_republic_5_antagonist = { add_gold = -100 add_loyalty = loyalty_embezzler_fine }
+		# scope:pa_character = { add_popularity = 5 } # popularity_small
+		#P:A TODO No EU5 equivalent: the embezzler pays a 100 gold personal fine and gets a loyalty modifier, +5 ruler popularity (EU5 characters have no wealth, loyalty or popularity)
+	}
+
+	option = {
+		name = ip_republic.5.c
+		# scope:ip_republic_5_antagonist = { remove_all_offices = yes }
+		if = {
+			limit = {
+				scope:ip_republic_5_antagonist = { in_cabinet = yes }
+			}
+			remove_from_cabinet = scope:ip_republic_5_antagonist #P:A TODO Approximate: Imperator removed the embezzler from all offices; EU5 removes the cabinet seat
+		}
+		# scope:ip_republic_5_antagonist = { add_loyalty = loyalty_embezzler_fired }
+		# scope:pa_character = { add_popularity = 25 } # popularity_huge
+		#P:A TODO No EU5 equivalent: loyalty modifier for the embezzler and +25 ruler popularity (EU5 characters have neither)
+	}
+
+	option = {
+		name = ip_republic.5.d
+		custom_tooltip = just_tooltip
+		trigger = {
+			scope:pa_character = { has_trait = just }
+		}
+		# imprison = { target = scope:ip_republic_5_antagonist }
+		# add_tyranny = 2
+		#P:A TODO No EU5 equivalent: imprisons the embezzler and adds +2 tyranny (EU5 has no prisoners or tyranny)
+		if = {
+			limit = {
+				scope:pa_character = { pa_imp_character_democratic_party_trigger = yes }
+			}
+			pa_imp_democratic_approval_effect = {
+				VALUE = 10 # party_approval_medium
+			}
+		}
+		else = {
+			# scope:pa_character = { add_popularity = 25 } # popularity_huge
+			#P:A TODO No EU5 equivalent: +25 ruler popularity (EU5 characters have no popularity)
+		}
+		ai_chance = {
+			factor = 0
+		}
+	}
+
+	option = {
+		name = ip_republic.5.e
+		custom_tooltip = gluttonous_tooltip
+		trigger = {
+			# scope:pa_character = { has_trait = gluttonous NOT = { is_friend = scope:ip_republic_5_antagonist } }
+			always = no #P:A TODO No EU5 equivalent: option only for a gluttonous ruler who is not the embezzler's friend (EU5 has no gluttonous trait or friendships)
+		}
+		# scope:pa_character = { add_corruption = 20 add_gold = 250 add_friend = scope:ip_republic_5_antagonist } # corruption_huge
+		#P:A TODO No EU5 equivalent: +20 corruption, 250 personal wealth and friendship with the embezzler for the ruler
+	}
+
+	option = {
+		name = ip_republic.5.f
+		custom_tooltip = option_because_friends
+		trigger = {
+			# scope:pa_character = { is_friend = scope:ip_republic_5_antagonist }
+			always = no #P:A TODO No EU5 equivalent: option only if the ruler is the embezzler's friend (EU5 has no friendships)
+		}
+		# scope:ip_republic_5_antagonist = { add_loyalty = loyalty_embezzler_congratulated }
+		# scope:pa_character = { add_gold = 100 add_corruption = 5 } # corruption_medium
+		#P:A TODO No EU5 equivalent: loyalty modifier for the embezzler, 100 personal wealth and +5 corruption for the ruler
+	}
+}
+
+# A Question of Sanity: a mocking bill about the ruler's habits is brought before the assembly.
+ip_republic.6 = {
+	type = country_event
+	title = ip_republic.6.t
+	desc = ip_republic.6.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = republic_6_toggle
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = republic_6_toggle
+				}
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		# modifier = { factor = 2 has_trait = lunatic }
+		#P:A TODO No EU5 equivalent: x2 if the ruler is a lunatic (EU5 has no lunatic trait)
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+					NOT = {
+						has_variable = republic_6_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = republic_6_toggle
+				days = 1800
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.6.a
+		# trigger = { NOT = { has_trait = lunatic } } #P:A Removed: EU5 has no lunatic trait, so this is always true
+		# scope:pa_character = { add_popularity = 10 } # popularity_medium
+		#P:A TODO No EU5 equivalent: +10 ruler popularity (EU5 characters have no popularity)
+		ai_chance = { factor = 50 }
+	}
+
+	option = {
+		name = ip_republic.6.b
+		custom_tooltip = ip_republic.6.b.tooltip
+		# trigger = { NOT = { has_trait = lunatic } } #P:A Removed: EU5 has no lunatic trait, so this is always true
+		ai_chance = { factor = 50 }
+		hidden_effect = {
+			random_character = {
+				limit = {
+					# OR = { is_rival = ROOT has_any_office = yes }
+					in_cabinet = yes #P:A TODO Approximate: Imperator "a rival of the ruler or an office holder"; EU5 has no rivals or offices, a cabinet member stands in
+					NOT = {
+						has_variable = ip_republic_6_flag
+					}
+					# NOT = { is_friend = ROOT } #P:A TODO No EU5 equivalent: excluded the ruler's friends (EU5 has no friendships)
+				}
+				set_variable = ip_republic_6_flag
+			}
+			trigger_event_non_silently = {
+				id = ip_republic.7
+				days = { 60 720 }
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.6.c
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		custom_tooltip = lunatic_bad_tooltip
+		trigger = {
+			# scope:pa_character = { has_trait = lunatic }
+			always = no #P:A TODO No EU5 equivalent: option only for a lunatic ruler (EU5 has no lunatic trait)
+		}
+		random_list = {
+			25 = {
+				pa_imp_add_stability_effect = yes
+			}
+			25 = {
+				# scope:pa_character = { add_corruption = 20 }
+				#P:A TODO No EU5 equivalent: +20 ruler corruption (EU5 characters have no corruption)
+			}
+			25 = {
+				# scope:pa_character = { add_gold = -100 }
+				#P:A TODO No EU5 equivalent: -100 ruler personal wealth (EU5 characters have no wealth)
+			}
+			25 = {
+				# trigger = { NOT = { has_trait = original_thinker } }
+				# scope:pa_character = { add_trait = original_thinker }
+				#P:A TODO No EU5 equivalent: the ruler gains the "original thinker" trait (EU5 has no such trait)
+			}
+		}
+		ai_chance = { factor = 1 }
+	}
+}
+
+# Traitor Uncovered!: the author of the mocking bill (ip_republic.6) is found.
+ip_republic.7 = {
+	type = country_event
+	title = ip_republic.7.t
+	desc = ip_republic.7.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:pa_character
+		scope:pa_character = {
+			is_ruler = yes
+			has_variable = republic_6_toggle
+		}
+		any_character = {
+			has_variable = ip_republic_6_flag
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				has_variable = ip_republic_6_flag
+			}
+			save_scope_as = ip_republic_7_antagonist
+			remove_variable = ip_republic_6_flag
+		}
+		random_neighbor_country = {
+			save_scope_as = ip_republic_7_banish
+		}
+	}
+
+	option = {
+		name = ip_republic.7.a
+		# scope:ip_republic_7_antagonist = { add_prominence = -20 } # subtract_prominence_huge
+		#P:A TODO No EU5 equivalent: -20 prominence for the traitor (EU5 characters have no prominence)
+	}
+
+	option = {
+		name = ip_republic.7.b
+		custom_tooltip = forgiving_tooltip
+		trigger = {
+			scope:pa_character = { has_trait = kind_hearted } #P:A TODO Approximate: Imperator "forgiving" trait mapped to kind_hearted
+		}
+		# if = { limit = { is_rival = scope:ip_republic_7_antagonist } remove_rival = scope:ip_republic_7_antagonist }
+		# if = { limit = { can_get_friends = yes } add_friend = scope:ip_republic_7_antagonist } else = { add_popularity = 5 } # popularity_small
+		#P:A TODO No EU5 equivalent: the ruler drops the traitor as a rival and befriends them, or gains +5 popularity (EU5 has no rivals, friends or popularity)
+	}
+
+	option = {
+		name = ip_republic.7.c
+		trigger = {
+			# tyranny >= 10
+			always = no #P:A TODO No EU5 equivalent: option needs tyranny >= 10 (EU5 has no tyranny)
+		}
+		# add_tyranny = 3 # tyranny_medium
+		#P:A TODO No EU5 equivalent: +3 tyranny (EU5 has no tyranny)
+		if = {
+			limit = { exists = scope:ip_republic_7_banish }
+			scope:ip_republic_7_antagonist = {
+				move_country = scope:ip_republic_7_banish #P:A TODO Approximate: Imperator banish; EU5 moves the character to the neighbouring country
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.7.d
+		# scope:ip_republic_7_antagonist = { add_loyalty = loyalty_befriended_traitor }
+		#P:A TODO No EU5 equivalent: loyalty modifier for the traitor (EU5 characters have no loyalty)
+		add_gold = {
+			value = monthly_income_total
+			multiply = -3 # subtract_monthly_income_small
+			max = 5000
+		}
+	}
+}
+
+# A Petitioner Approaches: a frightened character offers their wealth to the state for protection.
+ip_republic.8 = {
+	type = country_event
+	title = ip_republic.8.t
+	desc = ip_republic.8.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		NOT = {
+			has_variable = ip_republic_8_toggle
+		}
+		any_character = {
+			is_ruler = no
+			# is_co_ruler = no #P:A Removed: EU5 has no co-rulers
+			pa_imp_char_valid_for_country_events_trigger = yes
+			age_in_years >= 10
+			# wealth >= 100 #P:A TODO No EU5 equivalent: the petitioner needed 100 personal wealth (EU5 characters have no wealth); dropped
+		}
+		exists = ruler
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				pa_imp_char_valid_for_country_events_trigger = yes
+				age_in_years >= 10
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: weighted by office importance (EU5 has no offices)
+			save_scope_as = ip_republic_8_antagonist
+			set_variable = {
+				name = death_description_random
+				value = {
+					integer_range = { min = 1 max = 10 }
+				}
+			}
+		}
+		# Imperator set ip_republic_8_toggle on the character (inside random_character), yet checked it on the country;
+		# it is set on the country here so the 10-year cooldown works as intended.
+		set_variable = {
+			name = ip_republic_8_toggle
+			days = 3600
+		}
+	}
+
+	option = {
+		name = ip_republic.8.a
+		# add_treasury = { value = scope:ip_republic_8_antagonist.wealth divide = 3 }
+		# scope:ip_republic_8_antagonist = { add_loyalty = loyalty_offered_protection add_gold = { subtract = scope:ip_republic_8_antagonist.wealth divide = 3 } }
+		#P:A TODO No EU5 equivalent: the treasury gains a third of the petitioner's personal wealth, and the petitioner a loyalty modifier (EU5 characters have no wealth or loyalty)
+	}
+
+	option = {
+		name = ip_republic.8.b
+		pa_imp_add_stability_effect_small = yes
+		# scope:ip_republic_8_antagonist = { add_loyalty = loyalty_convinced_petitioner }
+		#P:A TODO No EU5 equivalent: loyalty modifier for the petitioner (EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = ip_republic.8.c
+		custom_tooltip = lunatic_tooltip
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			# ruler = { has_trait = lunatic }
+			always = no #P:A TODO No EU5 equivalent: option only for a lunatic ruler (EU5 has no lunatic trait)
+		}
+		# add_treasury = { value = scope:ip_republic_8_antagonist.wealth }
+		#P:A TODO No EU5 equivalent: the treasury takes all of the petitioner's personal wealth (EU5 characters have no wealth)
+		scope:ip_republic_8_antagonist = {
+			if = {
+				limit = {
+					is_alive = yes
+				}
+				kill_character = { #P:A TODO Approximate: Imperator death_reason death_other_lunacy; EU5 has none, execution used
+					target = scope:ip_republic_8_antagonist
+					killer = scope:pa_ruler
+					reason = execution
+				}
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.8.c
+		custom_tooltip = cruel_tooltip
+		trigger = {
+			ruler = {
+				has_trait = cruel
+				# NOT = { AND = { has_trait = lunatic has_trait = cruel } } #P:A Removed: EU5 has no lunatic trait, so this is always true
+			}
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		# add_treasury = { value = scope:ip_republic_8_antagonist.wealth }
+		#P:A TODO No EU5 equivalent: the treasury takes all of the petitioner's personal wealth (EU5 characters have no wealth)
+		kill_character = { #P:A TODO Approximate: Imperator death_reason death_other_lunacy; EU5 has none, execution used
+			target = scope:ip_republic_8_antagonist
+			killer = scope:pa_ruler
+			reason = execution
+		}
+		# add_tyranny = 5 # tyranny_large
+		#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+	}
+}
+
+# Concerns in the Senate: the ruler has placed too many friends in office.
+ip_republic.9 = {
+	type = country_event
+	title = ip_republic.9.t
+	desc = ip_republic.9.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = ip_republic_9_toggle
+				}
+				has_dynasty = yes
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = ip_republic_9_toggle
+				}
+				has_dynasty = yes
+			}
+		}
+		# any_friend = { count >= 2 has_any_office = yes }
+		any_character = { #P:A TODO Approximate: Imperator "at least two friends of the ruler hold offices"; EU5 has no friendships or offices, two cabinet members of the ruler's dynasty stand in
+			count >= 2
+			is_ruler = no
+			in_cabinet = yes
+			has_dynasty = yes
+			dynasty = root.ruler.dynasty
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+					NOT = {
+						has_variable = ip_republic_9_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = ip_republic_9_toggle
+				value = 1
+				days = 1800
+			}
+		}
+		random_character = { #P:A TODO Approximate: Imperator picked a friend in office weighted by prominence; a cabinet member of the ruler's dynasty stands in
+			limit = {
+				is_ruler = no
+				in_cabinet = yes
+				has_dynasty = yes
+				dynasty = scope:pa_character.dynasty
+			}
+			save_scope_as = ip_republic_9_target
+		}
+	}
+
+	option = {
+		name = ip_republic.9.a
+		# scope:pa_character = { remove_friend = scope:ip_republic_9_target }
+		#P:A TODO No EU5 equivalent: the ruler ends the friendship (EU5 has no friendships)
+		# scope:ip_republic_9_target = { remove_all_offices = yes }
+		if = {
+			limit = {
+				scope:ip_republic_9_target = { in_cabinet = yes }
+			}
+			remove_from_cabinet = scope:ip_republic_9_target #P:A TODO Approximate: Imperator removed the friend from all offices; EU5 removes the cabinet seat
+		}
+		# scope:pa_character = { if = { limit = { corruption >= 5 } add_corruption = -5 } else = { add_popularity = 10 } } # popularity_medium
+		#P:A TODO No EU5 equivalent: -5 ruler corruption, or +10 ruler popularity if not corrupt (EU5 characters have neither)
+	}
+
+	option = {
+		name = ip_republic.9.b
+		# scope:pa_character = { add_corruption = 20 } # corruption_huge
+		#P:A TODO No EU5 equivalent: +20 ruler corruption (EU5 characters have no corruption)
+	}
+
+	option = {
+		name = ip_republic.9.c
+		custom_tooltip = silver_tongued_tooltip
+		trigger = {
+			scope:pa_character = { has_trait = silver_tongue }
+		}
+	}
+}
+
+# Fire!: a friend of the ruler asks for state funds after their estate burns down.
+ip_republic.10 = {
+	type = country_event
+	title = ip_republic.10.t
+	desc = ip_republic.10.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = ip_republic_10_toggle
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = ip_republic_10_toggle
+				}
+			}
+		}
+		# num_of_friends >= 1
+		# any_friend = { NOR = { has_variable = republic_10_house_fire has_variable = republic_11_house_fire } prisoner = no employer = root.employer }
+		any_character = { #P:A TODO Approximate: Imperator "a friend of the ruler in the same country"; EU5 has no friendships, another adult character of the country stands in
+			is_adult = yes
+			is_ruler = no
+			NOR = {
+				has_variable = republic_10_house_fire
+				has_variable = republic_11_house_fire
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+					NOT = {
+						has_variable = ip_republic_10_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = ip_republic_10_toggle
+				value = 1
+				days = 1800
+			}
+		}
+		random_character = { #P:A TODO Approximate: Imperator picked a friend of the ruler weighted by prominence; another adult character of the country stands in
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				NOR = {
+					has_variable = republic_10_house_fire
+					has_variable = republic_11_house_fire
+				}
+			}
+			set_variable = republic_10_house_fire
+			save_scope_as = ip_republic_10_target
+		}
+	}
+
+	option = {
+		name = ip_republic.10.a
+		# scope:pa_character = { add_corruption = 5 } # corruption_medium
+		# scope:ip_republic_10_target = { add_loyalty = loyalty_restored_estates }
+		#P:A TODO No EU5 equivalent: +5 ruler corruption and a loyalty modifier for the friend (EU5 characters have neither)
+		# if = { limit = { exists = scope:ip_republic_10_target.character_party } add_party_approval = { party = scope:ip_republic_10_target.character_party value = party_approval_small } }
+		add_estate_satisfaction = { #P:A TODO Approximate: Imperator +5 approval of the friend's party; EU5 has no parties, +0.05 satisfaction of the friend's estate stands in
+			type = scope:ip_republic_10_target.estate_type
+			value = 0.05
+		}
+		add_gold = {
+			value = monthly_income_total
+			multiply = -3 # subtract_monthly_income_small
+			max = 5000
+		}
+	}
+
+	option = {
+		name = ip_republic.10.b
+		# scope:pa_character = { remove_friend = scope:ip_republic_10_target }
+		#P:A TODO No EU5 equivalent: the ruler ends the friendship (EU5 has no friendships)
+	}
+
+	option = {
+		name = ip_republic.10.c
+		custom_tooltip = tyranny_tooltip
+		trigger = {
+			# can_get_rivals = yes
+			# employer = { tyranny >= 10 }
+			always = no #P:A TODO No EU5 equivalent: option needs tyranny >= 10 (EU5 has no tyranny or rivals)
+		}
+		# scope:pa_character = { remove_friend = scope:ip_republic_10_target add_rival = scope:ip_republic_10_target }
+		# scope:ip_republic_10_target = { add_loyalty = loyalty_redistributed_estates }
+		#P:A TODO No EU5 equivalent: the friend becomes a rival and gets a loyalty modifier (EU5 has no rivals or loyalty)
+		add_gold = {
+			value = monthly_income_total
+			multiply = 12 # add_monthly_income_large
+			max = 5000
+		}
+		# add_tyranny = 3 # tyranny_medium
+		#P:A TODO No EU5 equivalent: +3 tyranny (EU5 has no tyranny)
+	}
+}
+
+# An Unfortunate Conflagration: a rival of the ruler begs for help after their estate burns down.
+ip_republic.11 = {
+	type = country_event
+	title = ip_republic.11.t
+	desc = ip_republic.11.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = republic_11_toggle
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = republic_11_toggle
+				}
+			}
+		}
+		# num_of_rivals >= 1
+		# any_rival = { NOR = { has_variable = republic_11_house_fire has_variable = republic_10_house_fire } employer = root.employer prisoner = no }
+		any_character = { #P:A TODO Approximate: Imperator "a rival of the ruler in the same country"; EU5 has no rivals, an adult character of another estate than the ruler stands in
+			is_adult = yes
+			is_ruler = no
+			NOT = { has_estate = root.ruler.estate_type }
+			NOR = {
+				has_variable = republic_11_house_fire
+				has_variable = republic_10_house_fire
+			}
+		}
+		any_owned_location = {
+			NOT = {
+				has_location_modifier = state_owned_farmlands
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+					NOT = {
+						has_variable = republic_11_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = republic_11_toggle
+				value = 1
+				days = 1800
+			}
+		}
+		random_character = { #P:A TODO Approximate: Imperator picked a rival of the ruler weighted by prominence; an adult character of another estate stands in
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				NOT = { has_estate = scope:pa_character.estate_type }
+				NOR = {
+					has_variable = republic_10_house_fire
+					has_variable = republic_11_house_fire
+				}
+			}
+			save_scope_as = ip_republic_11_target
+			set_variable = republic_11_house_fire
+		}
+		random_owned_location = {
+			limit = {
+				NOT = {
+					has_location_modifier = state_owned_farmlands
+				}
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 10
+					OR = {
+						raw_material = goods:wheat
+						raw_material = goods:legumes
+						raw_material = goods:fruit #P:A TODO Approximate: Imperator dates mapped to fruit
+						raw_material = goods:olives
+					}
+				}
+			}
+			save_scope_as = ip_republic_11_province
+		}
+	}
+
+	option = {
+		name = ip_republic.11.a
+		# scope:pa_character = { remove_rival = scope:ip_republic_11_target add_friend = scope:ip_republic_11_target }
+		# scope:ip_republic_11_target = { add_loyalty = loyalty_restored_estates }
+		#P:A TODO No EU5 equivalent: the rival becomes a friend and gets a loyalty modifier (EU5 has no rivals, friends or loyalty)
+		add_gold = {
+			value = monthly_income_total
+			multiply = -3 # subtract_monthly_income_small
+			max = 5000
+		}
+	}
+
+	option = {
+		name = ip_republic.11.b
+		# scope:ip_republic_11_target = { add_loyalty = loyalty_refused_help add_prominence = -20 } # subtract_prominence_huge
+		#P:A TODO No EU5 equivalent: loyalty modifier and -20 prominence for the rival (EU5 characters have neither)
+	}
+
+	option = {
+		name = ip_republic.11.c
+		trigger = {
+			exists = scope:ip_republic_11_province
+		}
+		# scope:pa_character = { add_popularity = -10 } # subtract_popularity_medium
+		# scope:ip_republic_11_target = { add_loyalty = loyalty_redistributed_estates }
+		#P:A TODO No EU5 equivalent: -10 ruler popularity and a loyalty modifier for the rival (EU5 characters have neither)
+		scope:ip_republic_11_province = {
+			add_location_modifier = {
+				modifier = state_owned_farmlands
+				days = -1
+			}
+		}
+	}
+}
+
+# Confiscated!: a rival of the ruler is fined for smuggling and must sell land.
+ip_republic.12 = {
+	type = country_event
+	title = ip_republic.12.t
+	desc = ip_republic.12.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = republic_12_toggle
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = republic_12_toggle
+				}
+			}
+		}
+		# num_of_rivals >= 1
+		# any_rival = { prisoner = no NOT = { has_variable = ip_republic_12_happened } employer = root.employer }
+		any_character = { #P:A TODO Approximate: Imperator "a rival of the ruler in the same country"; EU5 has no rivals, an adult character of another estate than the ruler stands in
+			is_adult = yes
+			is_ruler = no
+			NOT = { has_estate = root.ruler.estate_type }
+			NOT = {
+				has_variable = ip_republic_12_happened
+			}
+		}
+		any_owned_location = {
+			NOT = {
+				has_location_modifier = state_owned_farmlands
+			}
+		}
+		any_neighbor_country = {
+			NOT = {
+				is_at_war_with = root
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+					NOT = {
+						has_variable = republic_12_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		random_character = { #P:A TODO Approximate: Imperator picked a rival of the ruler; an adult character of another estate stands in
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				NOT = { has_estate = scope:pa_character.estate_type }
+				NOT = {
+					has_variable = ip_republic_12_happened
+				}
+			}
+			set_variable = {
+				name = ip_republic_12_happened
+				value = 1
+			}
+			save_scope_as = ip_republic_12_target
+		}
+		random_neighbor_country = {
+			limit = {
+				NOT = {
+					is_at_war_with = root
+				}
+			}
+			# weight = { base = 1 modifier = { factor = 100 imports_from = root.employer } }
+			#P:A TODO No EU5 equivalent: x100 weight for neighbours that import from us (EU5 has no country-to-country import check)
+			save_scope_as = republic_12_import_target
+		}
+		random_owned_location = {
+			limit = {
+				NOT = {
+					has_location_modifier = state_owned_farmlands
+				}
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 10
+					OR = {
+						raw_material = goods:wheat
+						raw_material = goods:legumes
+						raw_material = goods:fruit #P:A TODO Approximate: Imperator dates mapped to fruit
+						raw_material = goods:olives
+					}
+				}
+			}
+			save_scope_as = ip_republic_12_province
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = republic_12_toggle
+				value = 1
+				days = 1800
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.12.a
+		# trigger = { NOT = { has_trait = gluttonous } } #P:A Removed: EU5 has no gluttonous trait, so this is always true
+		add_gold = {
+			value = monthly_income_total
+			multiply = -6 # subtract_monthly_income_medium
+			max = 5000
+		}
+		scope:ip_republic_12_province = {
+			add_location_modifier = {
+				modifier = state_owned_farmlands
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.12.b
+		# trigger = { NOT = { has_trait = gluttonous } } #P:A Removed: EU5 has no gluttonous trait, so this is always true
+		# scope:pa_character = { remove_rival = scope:ip_republic_12_target }
+		# scope:ip_republic_12_target = { add_loyalty = loyalty_waived_fine }
+		#P:A TODO No EU5 equivalent: the rivalry ends and the rival gets a loyalty modifier (EU5 has no rivals or loyalty)
+		scope:republic_12_import_target = {
+			add_opinion = {
+				modifier = trade_contact_well_treated
+				target = root
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.12.c
+		custom_tooltip = greedy_bad_tooltip
+		trigger = {
+			# scope:pa_character = { has_trait = gluttonous }
+			always = no #P:A TODO No EU5 equivalent: option only for a gluttonous ruler (EU5 has no gluttonous trait)
+		}
+		# scope:pa_character = { add_gold = -200 }
+		#P:A TODO No EU5 equivalent: -200 ruler personal wealth (EU5 characters have no wealth)
+		# if = { limit = { is_minor_character = no } family = { add_prestige = 15 } } # prestige_medium
+		#P:A TODO No EU5 equivalent: +15 prestige for the ruler's family (EU5 dynasties have no prestige)
+	}
+}
+
+# The Vagaries of State: a little-known speaker impresses the assembly.
+ip_republic.13 = {
+	type = country_event
+	title = ip_republic.13.t
+	desc = ip_republic.13.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = ip_republic_13_toggle
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = ip_republic_13_toggle
+				}
+			}
+		}
+		any_character = {
+			# prominence <= 20
+			is_ruler = no
+			in_cabinet = no #P:A TODO Approximate: Imperator prominence <= 20 (a little-known character); EU5 has no prominence, a non-cabinet, non-ruler character stands in
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+					NOT = {
+						has_variable = ip_republic_13_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = ip_republic_13_toggle
+				value = 1
+				days = 1800
+			}
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				in_cabinet = no #P:A TODO Approximate: Imperator prominence <= 20; a non-cabinet, non-ruler character stands in
+				is_adult = yes
+			}
+			# weight = { base = 1 title_importance_modifier = yes modifier = { factor = 0 is_female = yes employer = { gender_equality = no } } }
+			#P:A TODO No EU5 equivalent: weighted by office importance, women excluded without gender equality (EU5 has no offices; gender_equality is a modifier)
+			save_scope_as = ip_republic_13_target
+		}
+	}
+
+	option = {
+		name = ip_republic.13.a
+		scope:ip_republic_13_target = {
+			if = {
+				limit = {
+					NOT = {
+						has_trait = charismatic_orator
+					}
+				}
+				add_trait = trait:charismatic_orator #P:A TODO Approximate: Imperator "orator" trait mapped to the EU5 charismatic_orator trait
+			}
+			# add_prominence = 50
+			#P:A TODO No EU5 equivalent: +50 prominence for the speaker (EU5 characters have no prominence)
+		}
+	}
+
+	option = {
+		name = ip_republic.13.b
+		custom_tooltip = orator_tooltip
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			scope:pa_character = { has_trait = charismatic_orator } #P:A TODO Approximate: Imperator "orator" trait mapped to the EU5 charismatic_orator trait
+		}
+		# if = { limit = { is_minor_character = no } family = { add_prestige = 15 } } # prestige_medium
+		#P:A TODO No EU5 equivalent: +15 prestige for the ruler's family (EU5 dynasties have no prestige)
+	}
+
+	option = {
+		name = ip_republic.13.b
+		custom_tooltip = silver_tongued_tooltip
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			scope:pa_character = {
+				has_trait = silver_tongue
+				NOT = {
+					has_trait = charismatic_orator
+				}
+			}
+		}
+		# if = { limit = { is_minor_character = no } family = { add_prestige = 15 } } # prestige_medium
+		#P:A TODO No EU5 equivalent: +15 prestige for the ruler's family (EU5 dynasties have no prestige)
+	}
+}
+
+# Temptation Beckons: an opposition leader offers the treasury a "donation" for future favour.
+ip_republic.14 = {
+	type = country_event
+	title = ip_republic.14.t
+	desc = ip_republic.14.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: Imperator "can get friends" check (EU5 has no friendships)
+				NOT = {
+					has_variable = ip_republic_14_toggle
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = ip_republic_14_toggle
+				}
+			}
+		}
+		# any_character = { NAND = { is_same_party_as = ROOT is_rival = ROOT } is_ruler = no is_party_leader = yes }
+		any_character = { #P:A TODO Approximate: Imperator "a party leader (not a rival of the ruler from the ruler's own party)"; EU5 has no parties, an adult cabinet member stands in
+			is_ruler = no
+			is_adult = yes
+			in_cabinet = yes
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+					NOT = {
+						has_variable = ip_republic_14_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = ip_republic_14_toggle
+				value = 1
+				days = 1800
+			}
+		}
+		random_character = { #P:A TODO Approximate: Imperator picked a party leader weighted by office importance; an adult cabinet member stands in
+			limit = {
+				is_ruler = no
+				is_adult = yes
+				in_cabinet = yes
+			}
+			save_scope_as = ip_republic_14_target
+		}
+	}
+
+	option = {
+		name = ip_republic.14.a
+		custom_tooltip = tooltip_consequences
+		add_gold = {
+			value = monthly_income_total
+			multiply = 12 # add_monthly_income_large
+			max = 5000
+		}
+		# scope:pa_character = { add_friend = scope:ip_republic_14_target }
+		#P:A TODO No EU5 equivalent: the ruler befriends the briber (EU5 has no friendships)
+		hidden_effect = {
+			scope:pa_character = {
+				pa_imp_taken_bribe_effect = yes
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.14.b
+		# scope:ip_republic_14_target = { add_loyalty = loyalty_faction_suggestion_refused }
+		#P:A TODO No EU5 equivalent: loyalty modifier for the briber (EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = ip_republic.14.c
+		# scope:ip_republic_14_target = { add_loyalty = loyalty_faction_bribery_revealed }
+		# add_tyranny = -3 # subtract_tyranny_medium
+		#P:A TODO No EU5 equivalent: loyalty modifier for the briber and -3 tyranny (EU5 has no loyalty or tyranny)
+	}
+}
+
+# Bribery Questioned!: the senate moves to restrict a ruler who has taken bribes.
+ip_republic.15 = {
+	type = country_event
+	title = ip_republic.15.t
+	desc = ip_republic.15.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				has_variable = taken_bribe
+				NOT = {
+					has_variable = republic_15_toggle
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes
+				has_variable = taken_bribe
+				NOT = {
+					has_variable = republic_15_toggle
+				}
+			}
+		}
+		any_character = {
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, a cabinet seat stands in
+			is_ruler = no
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 2
+			ruler = { has_variable = under_fraud_scrutiny }
+		}
+		modifier = {
+			factor = 1.2
+			ruler = {
+				has_variable = taken_bribe
+				var:taken_bribe >= 2
+			}
+		}
+		modifier = {
+			factor = 1.2
+			ruler = {
+				has_variable = taken_bribe
+				var:taken_bribe >= 3
+			}
+		}
+		modifier = {
+			factor = 1.2
+			ruler = {
+				has_variable = taken_bribe
+				var:taken_bribe >= 4
+			}
+		}
+		modifier = {
+			factor = 1.2
+			ruler = {
+				has_variable = taken_bribe
+				var:taken_bribe >= 5
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+					has_variable = taken_bribe
+					NOT = {
+						has_variable = republic_15_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = republic_15_toggle
+				value = 1
+				days = 1800
+			}
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; a cabinet seat stands in
+				is_ruler = no
+			}
+			# weight = { base = 1 modifier = { factor = 0.1 is_friend = ROOT } modifier = { factor = 10 is_rival = ROOT } title_importance_modifier = yes }
+			#P:A TODO No EU5 equivalent: weighted against the ruler's friends and towards rivals and important offices (EU5 has no friends, rivals or offices)
+			save_scope_as = ip_republic_15_target
+		}
+	}
+
+	option = {
+		name = ip_republic.15.a
+		# add_political_influence = -50 # subtract_influence_huge
+		#P:A TODO No EU5 equivalent: -50 political influence (EU5 has no political influence)
+		hidden_effect = {
+			scope:pa_character = {
+				remove_variable = taken_bribe
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.15.b
+		custom_tooltip = tooltip_consequences
+		# scope:pa_character = { add_corruption = 10 } # corruption_large
+		#P:A TODO No EU5 equivalent: +10 ruler corruption (EU5 characters have no corruption)
+		add_gold = {
+			value = monthly_income_total
+			multiply = -6 # subtract_monthly_income_medium
+			max = 5000
+		}
+		hidden_effect = {
+			scope:pa_character = {
+				pa_imp_taken_bribe_effect = yes
+			}
+			if = {
+				limit = {
+					scope:ip_republic_15_target = {
+						OR = {
+							has_trait = just
+							has_trait = pious # Imperator pious and devout
+							# has_trait = brave #P:A TODO No EU5 equivalent: Imperator "brave" trait
+							has_trait = righteous
+							pa_imp_character_democratic_party_trigger = yes
+						}
+					}
+				}
+				scope:pa_character = {
+					set_variable = {
+						name = republic_16_target
+						value = 1
+					}
+				}
+				trigger_event_non_silently = {
+					id = ip_republic.16
+					days = { 180 540 }
+				}
+			}
+		}
+	}
+}
+
+# Betrayal!: the bribed senator of ip_republic.15 turns on the ruler.
+ip_republic.16 = {
+	type = country_event
+	title = ip_republic.16.t
+	desc = ip_republic.16.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		exists = scope:pa_character
+		scope:pa_character = {
+			is_ruler = yes
+			is_alive = yes
+		}
+		any_character = {
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, a cabinet seat stands in
+			is_ruler = no
+			NOT = {
+				has_variable = republic_16_target
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				any_character = {
+					has_variable = republic_16_target
+				}
+			}
+			random_character = {
+				limit = {
+					has_variable = republic_16_target
+				}
+				save_scope_as = ip_republic_16_target
+				remove_variable = republic_16_target
+			}
+		}
+		else = {
+			random_character = {
+				limit = {
+					in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; a cabinet seat stands in
+					is_ruler = no
+				}
+				# weight = { base = 1 modifier = { factor = 0.1 is_friend = ROOT } modifier = { factor = 10 is_rival = ROOT } }
+				#P:A TODO No EU5 equivalent: weighted against the ruler's friends and towards rivals (EU5 has no friends or rivals)
+				save_scope_as = ip_republic_16_target
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.16.a
+		# imprison = { target = root } # the ruler
+		#P:A TODO No EU5 equivalent: the ruler is imprisoned (EU5 has no prisoners)
+		pa_imp_remove_stability_effect = yes
+	}
+
+	option = {
+		name = ip_republic.16.b
+		# scope:pa_character = { add_gold = -500 add_popularity = -10 } # subtract_popularity_medium
+		#P:A TODO No EU5 equivalent: the ruler pays 500 personal wealth and loses 10 popularity (EU5 characters have neither)
+		add_stability = -30
+	}
+
+	option = {
+		name = ip_republic.16.c
+		custom_tooltip = tooltip_consequences
+		# scope:pa_character = { add_corruption = 20 } # corruption_huge
+		#P:A TODO No EU5 equivalent: +20 ruler corruption (EU5 characters have no corruption)
+		add_gold = {
+			value = monthly_income_total
+			multiply = -24 # subtract_monthly_income_huge
+			max = 5000
+		}
+		# add_tyranny = 3 # tyranny_medium
+		#P:A TODO No EU5 equivalent: +3 tyranny (EU5 has no tyranny)
+		hidden_effect = {
+			scope:pa_character = {
+				pa_imp_taken_bribe_effect_big = yes
+			}
+		}
+	}
+}
+
+# An Intriguing Offer: an ambitious outsider offers a bribe to replace a weak military officer.
+ip_republic.17 = {
+	type = country_event
+	title = ip_republic.17.t
+	desc = ip_republic.17.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = ip_republic_17_toggle
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = ip_republic_17_toggle
+				}
+			}
+		}
+		any_character = {
+			is_adult = yes
+			in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no; EU5 has no offices, not holding a cabinet seat stands in
+			is_ruler = no
+			mil > 40 # Imperator martial > 8
+			#P:A Removed: prisoner = no is always true in EU5
+			# trigger_if = { limit = { employer = { gender_equality = no } } is_female = no }
+			#P:A TODO No EU5 equivalent: without gender equality the character had to be male (EU5 gender_equality is a modifier, not a trigger)
+		}
+		any_character = {
+			# OR = { has_office = office_tribune_of_the_soldiers }
+			in_cabinet = yes #P:A TODO Approximate: Imperator office_tribune_of_the_soldiers; EU5 has no offices, a cabinet member stands in
+			is_ruler = no
+			mil <= 40 # Imperator martial <= 8
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = yes
+					NOT = {
+						has_variable = ip_republic_17_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = ip_republic_17_toggle
+				value = 1
+				days = 1800
+			}
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				in_cabinet = yes #P:A TODO Approximate: Imperator office_tribune_of_the_soldiers; a cabinet member stands in
+				mil <= 40 #P:A TODO Approximate: added so the officer matches the trigger (Imperator took any tribune of the soldiers)
+			}
+			save_scope_as = ip_republic_17_officer
+		}
+		random_character = {
+			limit = {
+				is_adult = yes
+				in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no; not holding a cabinet seat stands in
+				is_ruler = no
+				mil > 40 # Imperator: martial > 8 or a rival of the officer
+				# OR = { martial > 8 is_rival = scope:ip_republic_17_officer } #P:A TODO No EU5 equivalent: rivals of the officer also qualified (EU5 has no character rivals)
+				#P:A Removed: prisoner = no is always true in EU5
+				# trigger_if = { limit = { employer = { gender_equality = no } } is_female = no }
+				#P:A TODO No EU5 equivalent: without gender equality the character had to be male (EU5 gender_equality is a modifier, not a trigger)
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: weighted by office importance (EU5 has no offices)
+			save_scope_as = ip_republic_17_target
+		}
+	}
+
+	option = {
+		name = ip_republic.17.a
+		custom_tooltip = tooltip_consequences
+		# scope:ip_republic_17_officer = { if = { limit = { has_office = office_tribune_of_the_soldiers } remove_office = office_tribune_of_the_soldiers } }
+		# scope:ip_republic_17_target = { if = { limit = { has_any_office = no } give_office = office_tribune_of_the_soldiers } }
+		#P:A TODO No EU5 equivalent: the officer loses the tribune of the soldiers office and the briber receives it (EU5 has no offices; cabinet seats are not assigned by event)
+		# scope:ip_republic_17_officer = { if = { limit = { can_get_rivals = yes } add_rival = scope:ip_republic_17_target } }
+		#P:A TODO No EU5 equivalent: the officer becomes a rival of the briber (EU5 has no character rivals)
+		add_gold = {
+			value = monthly_income_total
+			multiply = 12 # add_monthly_income_large
+			max = 5000
+		}
+		hidden_effect = {
+			scope:pa_character = {
+				pa_imp_taken_bribe_effect = yes
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.17.b
+		# scope:ip_republic_17_target = { add_loyalty = loyalty_publicly_slandered }
+		#P:A TODO No EU5 equivalent: "publicly slandered" loyalty modifier for the briber (EU5 characters have no loyalty)
+		hidden_effect = {
+			scope:pa_character = {
+				if = {
+					limit = {
+						has_variable = taken_bribe
+						var:taken_bribe >= 1
+					}
+					change_variable = {
+						name = taken_bribe
+						add = -1
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.17.c
+		custom_tooltip = just_tooltip
+		trigger = {
+			scope:pa_character = {
+				has_trait = just
+			}
+		}
+		# scope:ip_republic_17_officer = { add_loyalty = loyalty_kept_office }
+		# scope:ip_republic_17_target = { add_loyalty = loyalty_promises_made add_prominence = 10 } # prominence_large
+		#P:A TODO No EU5 equivalent: loyalty modifiers for both characters and +10 prominence for the briber (EU5 characters have no loyalty or prominence)
+	}
+}
+
+# Wavering Conviction: a republican politician with little conviction leaves his party.
+ip_republic.18 = {
+	type = country_event
+	title = ip_republic.18.t
+	desc = ip_republic.18.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		# employer = { OR = { has_party_type = democratic_party has_party_type = populares_party } }
+		country_has_estate = estate_type:burghers_estate #P:A TODO Approximate: Imperator "the republic has a democratic/populares party"; EU5 has no parties, the burghers estate stands in
+		# current_party_conviction <= 10
+		always = no #P:A TODO No EU5 equivalent: the event needs a character whose party conviction is <= 10 (EU5 has no parties or party conviction); the rest of the event is translated with estates standing in for parties
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = no
+				in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no; EU5 has no offices, not holding a cabinet seat stands in
+				#P:A Removed: prisoner = no is always true in EU5
+				NOT = {
+					has_variable = ip_republic_18_toggle
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = no
+				in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no; not holding a cabinet seat stands in
+				is_adult = yes
+				NOT = {
+					has_variable = ip_republic_18_toggle
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = no
+					in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no; not holding a cabinet seat stands in
+					is_adult = yes
+					NOT = {
+						has_variable = ip_republic_18_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = ip_republic_18_toggle
+				value = 1
+				days = 1800
+			}
+		}
+		# employer = { random_party = { save_scope_as = party_scope } }
+		#P:A TODO Approximate: Imperator picked a random party; EU5 has no parties, the option picks a random party-standing estate (burghers, nobles, clergy)
+	}
+
+	option = {
+		name = ip_republic.18.a
+		# add_party_conviction = { party = scope:party_scope value = 60 }
+		#P:A TODO Approximate: Imperator gave the character +60 conviction for a random party (usually a party switch); the character joins a random other estate instead
+		scope:pa_character = {
+			random_list = {
+				1 = {
+					trigger = {
+						NOT = { has_estate = estate_type:burghers_estate }
+						root = { country_has_estate = estate_type:burghers_estate }
+					}
+					change_character_estate = estate_type:burghers_estate
+				}
+				1 = {
+					trigger = {
+						NOT = { has_estate = estate_type:nobles_estate }
+						root = { country_has_estate = estate_type:nobles_estate }
+					}
+					change_character_estate = estate_type:nobles_estate
+				}
+				1 = {
+					trigger = {
+						NOT = { has_estate = estate_type:clergy_estate }
+						root = { country_has_estate = estate_type:clergy_estate }
+					}
+					change_character_estate = estate_type:clergy_estate
+				}
+			}
+		}
+	}
+}
+
+# Peer Pressure: a politician is swayed by a rival faction's oratory.
+ip_republic.19 = {
+	type = country_event
+	title = ip_republic.19.t
+	desc = ip_republic.19.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_alive = yes
+				is_ruler = no
+				#P:A Removed: prisoner = no is always true in EU5
+				# exists = character_party
+				OR = { #P:A TODO Approximate: Imperator "the character is in a party"; EU5 has no parties, membership of a party-standing estate (burghers, nobles, clergy) stands in
+					has_estate = estate_type:burghers_estate
+					has_estate = estate_type:nobles_estate
+					has_estate = estate_type:clergy_estate
+				}
+				NOT = {
+					has_variable = ip_republic_19_toggle
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = no
+				is_adult = yes
+				OR = { #P:A TODO Approximate: Imperator "the character is in a party"; a party-standing estate stands in
+					has_estate = estate_type:burghers_estate
+					has_estate = estate_type:nobles_estate
+					has_estate = estate_type:clergy_estate
+				}
+				NOT = {
+					has_variable = ip_republic_19_toggle
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = no
+					is_adult = yes
+					OR = {
+						has_estate = estate_type:burghers_estate
+						has_estate = estate_type:nobles_estate
+						has_estate = estate_type:clergy_estate
+					}
+					NOT = {
+						has_variable = ip_republic_19_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = ip_republic_19_toggle
+				value = 1
+				days = 1800
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.19.a
+		# add_party_approval = { party = root.character_party value = party_approval_small }
+		add_estate_satisfaction = { #P:A TODO Approximate: Imperator +5 approval of the character's party; EU5 has no parties, satisfaction of the character's estate (5 / 100) stands in
+			type = scope:pa_character.estate_type
+			value = 0.05 # party_approval_small
+		}
+	}
+}
+
+# Military Restructuring: a general with a large, loyal army reshapes his command.
+ip_republic.20 = {
+	type = country_event
+	title = ip_republic.20.t
+	desc = ip_republic.20.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		any_character = {
+			is_alive = yes
+			is_general = yes
+			is_ruler = no
+			# has_legion_trigger = yes legion = { any_legion_unit = { unit_size >= 8 } }
+			unit ?= { #P:A TODO Approximate: Imperator "a legion commander with a legion unit of 8+ cohorts"; EU5 has no legions, the general's own unit of 8+ sub-units stands in
+				num_subunits >= 8
+				# is_mercenary = no
+				NOT = { any_sub_unit = { is_mercenary = yes } } #P:A TODO Approximate: Imperator "the general is not a mercenary"; EU5 is_mercenary is a sub-unit trigger
+			}
+			# num_loyal_cohorts >= army_25_svalue
+			#P:A TODO No EU5 equivalent: at least a quarter of the general's cohorts had to be personally loyal to him (pa_imp_army_25_svalue; EU5 has no loyal cohorts)
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_20_ruler
+		}
+		random_character = {
+			limit = {
+				is_alive = yes
+				is_general = yes
+				is_ruler = no
+				unit ?= {
+					num_subunits >= 8
+					NOT = { any_sub_unit = { is_mercenary = yes } }
+				}
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: weighted by office importance (EU5 has no offices)
+			save_scope_as = republic_20_target
+		}
+	}
+
+	option = {
+		name = ip_republic.20.a
+		scope:republic_20_target = {
+			# add_loyalty = loyalty_trusted_commander_restructure
+			#P:A TODO No EU5 equivalent: "trusted commander" loyalty modifier for the general (EU5 characters have no loyalty)
+			pa_imp_add_commander_ambition_effect = yes
+		}
+	}
+
+	option = {
+		name = ip_republic.20.b
+		scope:republic_20_target = {
+			# add_loyalty = loyalty_restructure_commander_untrusted
+			#P:A TODO No EU5 equivalent: "commander untrusted" loyalty modifier for the general (EU5 characters have no loyalty)
+			pa_imp_subtract_commander_ambition_effect = yes
+		}
+	}
+
+	after = {
+		# scope:republic_20_target.legion = { ordered_legion_unit = { order_by = unit_size add_unit_modifier = { name = command_restructuring duration = 7300 } } }
+		scope:republic_20_target = {
+			unit ?= { #P:A TODO Approximate: Imperator gave the modifier to the largest unit of the general's legion; EU5 has no legions, the general's own unit gets it
+				add_unit_modifier = {
+					modifier = command_restructuring
+					days = 7300
+				}
+			}
+		}
+	}
+}
+
+# Raising a Host: a general enlarges his army with his own money.
+ip_republic.21 = {
+	type = country_event
+	title = ip_republic.21.t
+	desc = ip_republic.21.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		any_character = {
+			is_alive = yes
+			is_general = yes
+			is_ruler = no
+			# has_legion_trigger = yes legion = { any_legion_unit = { unit_size >= 8 } }
+			unit ?= { #P:A TODO Approximate: Imperator "a legion commander with a legion unit of 8+ cohorts"; EU5 has no legions, the general's own unit of 8+ sub-units stands in
+				num_subunits >= 8
+				# is_mercenary = no
+				NOT = { any_sub_unit = { is_mercenary = yes } } #P:A TODO Approximate: Imperator "the general is not a mercenary"; EU5 is_mercenary is a sub-unit trigger
+			}
+			# num_loyal_cohorts >= army_25_svalue
+			#P:A TODO No EU5 equivalent: at least a quarter of the general's cohorts had to be personally loyal to him (pa_imp_army_25_svalue; EU5 has no loyal cohorts)
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_21_ruler
+		}
+		random_character = {
+			limit = {
+				is_alive = yes
+				is_general = yes
+				is_ruler = no
+				unit ?= {
+					num_subunits >= 8
+					NOT = { any_sub_unit = { is_mercenary = yes } }
+				}
+			}
+			# weight = { is_prominent_modifier = yes } #P:A TODO No EU5 equivalent: weighted by prominence (EU5 characters have no prominence)
+			save_scope_as = republic_21_target
+		}
+	}
+
+	option = {
+		name = ip_republic.21.a
+		scope:republic_21_target = {
+			pa_imp_add_commander_ambition_effect = yes
+		}
+		# scope:republic_21_target.legion = { ordered_legion_unit = { order_by = unit_size add_subunit = light_infantry add_subunit = light_infantry add_subunit = light_infantry } }
+		capital = { #P:A TODO Approximate: Imperator added 3 light infantry cohorts to the largest unit of the general's legion; EU5 cannot add sub-units to an existing unit by script, 3 light infantry regiments are raised in the capital instead
+			create_sub_unit_of_category = sub_unit_category:army_light_infantry
+			create_sub_unit_of_category = sub_unit_category:army_light_infantry
+			create_sub_unit_of_category = sub_unit_category:army_light_infantry
+		}
+	}
+
+	option = {
+		name = ip_republic.21.b
+		scope:republic_21_target = {
+			# add_loyalty = loyalty_restructure_commander_untrusted
+			#P:A TODO No EU5 equivalent: "commander untrusted" loyalty modifier for the general (EU5 characters have no loyalty)
+			pa_imp_subtract_commander_ambition_effect = yes # Imperator ran this on the country (a source bug, the variable is a character variable); applied to the general
+		}
+	}
+}
+# Pillaged!: soldiers of a popular general loot a town at peace; the general refuses to punish them.
+ip_republic.22 = {
+	type = country_event
+	title = ip_republic.22.t
+	desc = ip_republic.22.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		at_war = no
+		any_character = {
+			is_alive = yes
+			is_general = yes
+			is_ruler = no
+			unit ?= { #P:A TODO Approximate: Imperator checked every unit the general commanded; an EU5 general leads one unit
+				num_subunits >= 8
+				is_moving = no
+				unit_location ?= {
+					has_owner = yes
+					owner = root
+					NOR = {
+						is_capital = yes
+						has_fort = yes # Imperator num_of_fortress_building >= 1
+						area = root.capital.area
+					}
+				}
+			}
+			# num_loyal_cohorts >= army_25_svalue
+			#P:A TODO No EU5 equivalent: at least a quarter of the general's cohorts had to be personally loyal to him (pa_imp_army_25_svalue; EU5 has no loyal cohorts)
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_22_ruler
+		}
+		random_character = {
+			limit = {
+				is_alive = yes
+				is_general = yes
+				is_ruler = no
+				unit ?= {
+					num_subunits >= 8
+					is_moving = no
+					unit_location ?= {
+						has_owner = yes
+						owner = root
+						NOR = {
+							is_capital = yes
+							has_fort = yes
+							area = root.capital.area
+						}
+					}
+				}
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: weighted by office importance (EU5 has no offices)
+			save_scope_as = republic_22_target
+		}
+		scope:republic_22_target = {
+			# add_popularity = -15 # subtract_popularity_large
+			#P:A TODO No EU5 equivalent: -15 popularity for the general (EU5 characters have no popularity)
+			unit = {
+				unit_location = {
+					save_scope_as = republic_22_province
+					pa_imp_add_city_fire_effect = yes
+				}
+				save_scope_as = republic_22_target_unit
+			}
+		}
+		scope:republic_22_province = {
+			add_location_modifier = {
+				modifier = looted_by_friends
+				days = 730
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.22.a
+		# scope:republic_22_target = { add_loyalty = loyalty_decimated_army }
+		#P:A TODO No EU5 equivalent: "decimated army" loyalty modifier for the general (EU5 characters have no loyalty)
+		add_manpower = { #P:A TODO Approximate: Imperator removed a tenth of the unit's cohort count in manpower; one EU5 regiment is counted as one cohort
+			value = 0
+			scope:republic_22_target_unit ?= {
+				every_sub_unit = {
+					subtract = 1
+				}
+			}
+			divide = 10
+		}
+	}
+
+	option = {
+		name = ip_republic.22.b
+		scope:republic_22_target = {
+			pa_imp_add_commander_ambition_effect = yes
+			# add_loyalty = loyalty_looting_unpunished
+			#P:A TODO No EU5 equivalent: "looting unpunished" loyalty modifier for the general (EU5 characters have no loyalty)
+		}
+		# current_ruler = { add_popularity = -15 add_corruption = 10 } # subtract_popularity_large, corruption_large
+		#P:A TODO No EU5 equivalent: -15 popularity and +10 corruption for the ruler (EU5 characters have neither)
+	}
+}
+
+# Hidden: at peace, the dictator appointed during the war gives up his powers (fires ip_republic.24).
+ip_republic.23 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		has_variable = dictatorship_enabled
+		has_variable = ach_dictator_appointed
+		var:ach_dictator_appointed = ruler
+		at_war = no
+	}
+
+	immediate = {
+		remove_variable = dictatorship_enabled
+		# set_ignore_senate_approval = no
+		#P:A TODO No EU5 equivalent: the senate's approval is required again (EU5 has no senate)
+		ruler = {
+			save_scope_as = dictator_standing_down
+		}
+		trigger_event_non_silently = {
+			id = ip_republic.24
+			days = { 20 60 }
+		}
+	}
+}
+
+# The dictator returns his powers to the senate.
+ip_republic.24 = {
+	type = country_event
+	title = ip_republic.24.t
+	desc = ip_republic.24.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:dictator_standing_down
+		scope:dictator_standing_down = {
+			is_alive = yes
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = ach_dictator_stands_down
+			value = ruler
+		}
+	}
+
+	option = {
+		name = ip_republic.24.a
+		# add_tyranny = -2
+		#P:A TODO No EU5 equivalent: -2 tyranny (EU5 has no tyranny)
+		if = {
+			limit = { has_country_modifier = dictatorial_extension }
+			remove_country_modifier = dictatorial_extension
+		}
+	}
+}
+
+# A Martial Demand: the oligarchic faction issues an ultimatum over the state of the senate.
+ip_republic.25 = {
+	type = country_event
+	title = ip_republic.25.t
+	desc = ip_republic.25.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		NOR = {
+			has_variable = oligarchic_party_pleasure
+			has_variable = oligarchic_party_displeasure
+			ruler ?= {
+				has_variable = dictatorship_enabled
+			}
+			ruler ?= {
+				pa_imp_character_oligarchic_party_trigger = yes
+			}
+		}
+		# Imperator: the event needs an oligarchic party leader (see pa_imp_oligarchic_leader_effect)
+		any_character = { #P:A TODO Approximate: Imperator always had a party leader; EU5 has no parties, an adult nobles-estate character must exist
+			is_adult = yes
+			is_ruler = no
+			has_estate = estate_type:nobles_estate
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_25_ruler
+		}
+		pa_imp_oligarchic_leader_effect = yes
+	}
+
+	option = {
+		name = ip_republic.25.a
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 12
+			floor = yes
+			max = -20
+			min = -4000
+		}
+	}
+
+	option = {
+		name = ip_republic.25.b
+		custom_tooltip = friends_with_target_ip25
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			# current_ruler = { is_friend = scope:oligarchic_leader }
+			always = no #P:A TODO No EU5 equivalent: option only if the ruler is a friend of the party leader (EU5 has no friendships)
+		}
+		# scope:oligarchic_leader = { add_prominence = 10 } # prominence_large
+		#P:A TODO No EU5 equivalent: +10 prominence for the party leader (EU5 characters have no prominence)
+	}
+
+	option = {
+		name = ip_republic.25.c
+		pa_imp_oligarchic_approval_effect = {
+			VALUE = -10 # party_disapproval_medium
+		}
+		set_variable = {
+			name = oligarchic_party_displeasure
+			value = 1
+			days = 730
+		}
+	}
+
+	option = {
+		name = ip_republic.25.d
+		custom_tooltip = conqueror_tooltip
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			ruler ?= {
+				has_trait = conqueror
+			}
+		}
+		pa_imp_oligarchic_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		set_variable = {
+			name = oligarchic_party_pleasure
+			value = 1
+			days = 730
+		}
+	}
+}
+
+# A Mercantile Request: the oligarchic faction asks for troops to protect trade routes.
+ip_republic.26 = {
+	type = country_event
+	title = ip_republic.26.t
+	desc = ip_republic.26.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		NOR = {
+			has_variable = oligarchic_party_displeasure
+			has_variable = oligarchic_party_pleasure
+			ruler ?= {
+				has_variable = dictatorship_enabled
+			}
+			ruler ?= {
+				pa_imp_character_oligarchic_party_trigger = yes
+			}
+		}
+		# Imperator: the event needs an oligarchic party leader (see pa_imp_oligarchic_leader_effect)
+		any_character = { #P:A TODO Approximate: Imperator always had a party leader; EU5 has no parties, an adult nobles-estate character must exist
+			is_adult = yes
+			is_ruler = no
+			has_estate = estate_type:nobles_estate
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_26_ruler
+		}
+		pa_imp_oligarchic_leader_effect = yes
+	}
+
+	option = {
+		name = ip_republic.26.a
+		add_manpower = {
+			value = 0
+			subtract = max_manpower
+			divide = 10
+		}
+		pa_imp_oligarchic_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		set_variable = {
+			name = oligarchic_party_pleasure
+			value = 1
+			days = 730
+		}
+	}
+
+	option = {
+		name = ip_republic.26.c
+		pa_imp_oligarchic_approval_effect = {
+			VALUE = -10 # party_disapproval_medium
+		}
+		set_variable = {
+			name = oligarchic_party_displeasure
+			value = 1
+			days = 730
+		}
+	}
+}
+
+# Civic Concerns: the traditionalist faction offers support in return for tax relief for the wealthy.
+ip_republic.27 = {
+	type = country_event
+	title = ip_republic.27.t
+	desc = ip_republic.27.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		NOR = {
+			has_variable = traditionalist_party_displeasure
+			has_variable = traditionalist_party_pleasure
+			ruler ?= {
+				has_variable = dictatorship_enabled
+			}
+			ruler ?= {
+				pa_imp_character_traditionalist_party_trigger = yes
+			}
+		}
+		# Imperator: the event needs a traditionalist party leader (see pa_imp_traditionalist_leader_effect)
+		any_character = { #P:A TODO Approximate: Imperator always had a party leader; EU5 has no parties, an adult clergy-estate character must exist
+			is_adult = yes
+			is_ruler = no
+			has_estate = estate_type:clergy_estate
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_27_ruler
+		}
+		pa_imp_traditionalist_leader_effect = yes
+	}
+
+	option = {
+		name = ip_republic.27.a
+		add_country_modifier = {
+			modifier = wealth_tax_relief
+			days = 1825
+		}
+		pa_imp_traditionalist_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		set_variable = {
+			name = traditionalist_party_pleasure
+			value = 1
+			days = 730
+		}
+	}
+
+	option = {
+		name = ip_republic.27.b
+		# scope:traditionalist_leader = { add_loyalty = loyalty_faction_suggestion_refused }
+		#P:A TODO No EU5 equivalent: "suggestion refused" loyalty modifier for the party leader (EU5 characters have no loyalty)
+	}
+}
+
+# Reading the Entrails: the traditionalist faction asks for shorter hours for the priesthood.
+ip_republic.28 = {
+	type = country_event
+	title = ip_republic.28.t
+	desc = ip_republic.28.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		NOR = {
+			has_variable = traditionalist_party_displeasure
+			has_variable = traditionalist_party_pleasure
+			ruler ?= {
+				has_variable = dictatorship_enabled
+			}
+			ruler ?= {
+				pa_imp_character_traditionalist_party_trigger = yes
+			}
+		}
+		# Imperator: the event needs a traditionalist party leader (see pa_imp_traditionalist_leader_effect)
+		any_character = { #P:A TODO Approximate: Imperator always had a party leader; EU5 has no parties, an adult clergy-estate character must exist
+			is_adult = yes
+			is_ruler = no
+			has_estate = estate_type:clergy_estate
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_28_ruler
+		}
+		pa_imp_traditionalist_leader_effect = yes
+	}
+
+	option = {
+		name = ip_republic.28.a
+		add_country_modifier = {
+			modifier = reduced_priest_working_hours
+			days = 730
+		}
+		pa_imp_traditionalist_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		set_variable = {
+			name = traditionalist_party_pleasure
+			value = 1
+			days = 730
+		}
+	}
+
+	option = {
+		name = ip_republic.28.c
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+	}
+
+	option = {
+		name = ip_republic.28.b
+		pa_imp_traditionalist_approval_effect = {
+			VALUE = -10 # party_disapproval_medium
+		}
+		set_variable = {
+			name = traditionalist_party_displeasure
+			value = 1
+			days = 730
+		}
+	}
+}
+
+# Popular Vote: the democratic faction offers support if an import route to the capital is closed.
+ip_republic.29 = {
+	type = country_event
+	title = ip_republic.29.t
+	desc = ip_republic.29.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		NOR = {
+			has_variable = democratic_party_pleasure
+			has_variable = democratic_party_displeasure
+			ruler ?= {
+				has_variable = dictatorship_enabled
+			}
+			ruler ?= {
+				pa_imp_character_democratic_party_trigger = yes
+			}
+		}
+		# Imperator: the event needs a democratic party leader (see pa_imp_democratic_leader_effect)
+		any_character = { #P:A TODO Approximate: Imperator always had a party leader; EU5 has no parties, an adult burghers-estate character must exist
+			is_adult = yes
+			is_ruler = no
+			has_estate = estate_type:burghers_estate
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_29_ruler
+		}
+		pa_imp_democratic_leader_effect = yes
+	}
+
+	option = {
+		name = ip_republic.29.a
+		add_country_modifier = {
+			modifier = capital_import_ip_29
+			days = 730
+		}
+		pa_imp_democratic_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		set_variable = {
+			name = democratic_party_pleasure
+			value = 1
+			days = 730
+		}
+	}
+
+	option = {
+		name = ip_republic.29.b
+		# scope:democratic_leader = { add_loyalty = loyalty_refused_populists }
+		#P:A TODO No EU5 equivalent: "refused populists" loyalty modifier for the party leader (EU5 characters have no loyalty)
+		add_country_modifier = {
+			modifier = popular_unrest_ip_29
+			days = 730
+		}
+	}
+
+	option = {
+		name = ip_republic.29.c
+		custom_tooltip = orator_tooltip
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			ruler ?= { has_trait = charismatic_orator } #P:A TODO Approximate: Imperator "orator" trait mapped to the EU5 charismatic_orator trait
+		}
+		pa_imp_democratic_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		set_variable = {
+			name = democratic_party_pleasure
+			value = 1
+			days = 730
+		}
+	}
+}
+
+# Vox Populi: the enraged democratic leader vows to block all legislation.
+ip_republic.30 = {
+	type = country_event
+	title = ip_republic.30.t
+	desc = ip_republic.30.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		NOR = {
+			has_variable = democratic_party_displeasure
+			has_variable = democratic_party_pleasure
+			ruler ?= {
+				has_variable = dictatorship_enabled
+			}
+			ruler ?= {
+				pa_imp_character_democratic_party_trigger = yes
+			}
+		}
+		# Imperator: the event needs a democratic party leader (see pa_imp_democratic_leader_effect)
+		any_character = { #P:A TODO Approximate: Imperator always had a party leader; EU5 has no parties, an adult burghers-estate character must exist
+			is_adult = yes
+			is_ruler = no
+			has_estate = estate_type:burghers_estate
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_30_ruler
+		}
+		pa_imp_democratic_leader_effect = yes
+	}
+
+	option = {
+		name = ip_republic.30.a
+		# scope:democratic_leader = { if = { limit = { health > 20 } add_health = -20 } else = { death = { death_reason = death_apoplectic_rage } } }
+		#P:A TODO No EU5 equivalent: -20 health for the party leader (EU5 characters have no health)
+		scope:democratic_leader = {
+			if = {
+				limit = {
+					age_in_years >= 75 #P:A TODO Approximate: Imperator killed the leader (apoplectic rage) when health was already 20 or less; EU5 has no health, very old leaders (75+) die instead
+				}
+				kill_character = { #P:A TODO Approximate: Imperator death_reason death_apoplectic_rage; EU5 heart_failure used
+					target = scope:democratic_leader
+					reason = heart_failure
+				}
+			}
+		}
+		pa_imp_democratic_approval_effect = {
+			VALUE = -10 # party_disapproval_medium
+		}
+		set_variable = {
+			name = democratic_party_displeasure
+			value = 1
+			days = 730
+		}
+	}
+}
+
+# Returning Power: at peace, the dictator refuses to give up his powers.
+ip_republic.32 = {
+	type = country_event
+	title = ip_republic.32.t
+	desc = ip_republic.32.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		has_variable = dictatorship_enabled
+		has_variable = ach_dictator_appointed
+		var:ach_dictator_appointed = ruler
+		at_war = no
+		NOT = {
+			has_country_modifier = electoral_extension_mod
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 3
+			ruler ?= {
+				pa_imp_character_democratic_party_trigger = yes
+			}
+		}
+		# modifier = { factor = 1.5 current_ruler = { has_trait = ambitious } }
+		#P:A TODO No EU5 equivalent: x1.5 for an ambitious ruler (EU5 has no ambitious trait)
+		modifier = {
+			factor = 1.25
+			ruler ?= {
+				has_trait = deceitful
+			}
+		}
+		# modifier = { factor = 1.5 current_ruler = { popularity > 80 } }
+		#P:A TODO No EU5 equivalent: x1.5 for a ruler with popularity above 80 (EU5 characters have no popularity)
+		modifier = {
+			factor = 1.5
+			num_locations >= 100 #P:A TODO Approximate: Imperator num_of_cities >= 100; EU5 counts owned locations, which are smaller than Imperator cities
+		}
+		# modifier = { factor = 2.5 tyranny > 90 } modifier = { factor = 1.5 tyranny > 80 }
+		#P:A TODO No EU5 equivalent: x2.5 above 90 tyranny and x1.5 above 80 (EU5 has no tyranny)
+	}
+
+	immediate = {
+		hidden_effect = {
+			add_country_modifier = {
+				modifier = temp_dictator_term_length
+				days = 365
+			}
+			ruler = {
+				set_variable = {
+					name = dictator_holding_power
+					value = 1
+					days = 730
+				}
+			}
+		}
+		ruler = {
+			save_scope_as = dictator_holding_power_scope
+		}
+		# if = { limit = { is_iron_man = yes is_ai = no NOT = { has_variable = ach_alea_iacta_est_var } } set_variable = ach_alea_iacta_est_var }
+		#P:A TODO No EU5 equivalent: Imperator achievement flag "Alea Iacta Est" (EU5 mods have no achievements)
+	}
+
+	option = {
+		name = ip_republic.32.a
+		custom_tooltip = return_dictatorship_tooltip
+		hidden_effect = {
+			remove_country_modifier = temp_dictator_term_length
+			ruler = {
+				set_variable = {
+					name = dictator_holding_power
+					value = 1
+					days = 730
+				}
+			}
+			if = {
+				limit = {
+					NOT = { has_variable = dictatorship_enabled }
+				}
+				set_variable = dictatorship_enabled
+			}
+		}
+		add_country_modifier = {
+			modifier = electoral_extension_mod
+			days = 730
+		}
+		pa_imp_remove_stability_effect = yes
+	}
+}
+
+# Death of a Dictator: the ruler who refused to give up his dictatorship dies.
+# Written for EU5 on_character_death (root = country, scope:target = the dead character); a caller may pass scope:pa_character instead.
+ip_republic.33 = {
+	type = country_event
+	title = ip_republic.33.t
+	desc = ip_republic.33.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				has_variable = dictator_holding_power
+			}
+		}
+		trigger_else_if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				is_ruler = yes
+				has_variable = dictator_holding_power
+			}
+		}
+		trigger_else = {
+			always = no
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			scope:target = {
+				save_scope_as = pa_character
+			}
+		}
+		if = {
+			limit = {
+				has_variable = dictatorship_enabled
+			}
+			remove_variable = dictatorship_enabled
+			# set_ignore_senate_approval = no
+			#P:A TODO No EU5 equivalent: the senate's approval is required again (EU5 has no senate)
+		}
+	}
+
+	option = {
+		name = ip_republic.33.a
+		if = {
+			limit = {
+				has_country_modifier = electoral_extension_mod
+			}
+			remove_country_modifier = electoral_extension_mod
+		}
+	}
+}
+
+# Hidden: when a war ends, the dictator either gives up his powers (ip_republic.23) or refuses (ip_republic.32).
+ip_republic.34 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		government_type = government_type:republic
+		has_variable = dictatorship_enabled
+		has_variable = ach_dictator_appointed
+		var:ach_dictator_appointed = ruler
+		NOT = {
+			has_country_modifier = electoral_extension_mod
+		}
+	}
+
+	immediate = {
+		remove_variable = ach_dictator_appointed
+		#P:A TODO Source bug kept: ip_republic.23 and ip_republic.32 both require ach_dictator_appointed, which was just removed, so neither can fire from here (the same happened in Invictus)
+		ruler = {
+			save_scope_as = dictator_holding_power
+		}
+		# trigger_event = { on_action = dictator_power_return }
+		# Imperator on_action dictator_power_return: random_events = { 85 = ip_republic.23 15 = ip_republic.32 }
+		random_list = {
+			85 = {
+				trigger_event_silently = ip_republic.23
+			}
+			15 = {
+				trigger_event_non_silently = ip_republic.32
+			}
+		}
+	}
+}
+
+# Seizure of Power: the dictator demands to be made dictator for life.
+ip_republic.35 = {
+	type = country_event
+	title = ip_republic.35.t
+	desc = ip_republic.35.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		# OR = { has_law = leges_genuciae has_law = lex_antonia has_law = republican_election_1 has_law = republican_election_3 }
+		always = no #P:A TODO No EU5 equivalent: the event needs one of the Imperator republican election laws (leges_genuciae, lex_antonia, republican_election_1/3); EU5 has no such laws
+		government_type = government_type:republic
+		NOT = {
+			has_variable = ip_republic_35_toggle
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_35_ruler
+		}
+		set_variable = {
+			name = ip_republic_35_toggle
+			value = 1
+			days = 3650
+		}
+	}
+
+	option = { # bow to ruler's demands
+		name = ip_republic.35.a
+		# current_ruler = { add_corruption = 10 }
+		#P:A TODO No EU5 equivalent: +10 corruption for the ruler (EU5 characters have no corruption)
+		# if = { limit = { tag = ROM } change_law = princeps_civitatis } else = { change_law = republican_election_4 }
+		#P:A TODO No EU5 equivalent: the republic adopts the dictator-for-life election law (princeps_civitatis for Rome, republican_election_4 otherwise); EU5 has no such laws
+	}
+
+	option = { # say no
+		name = ip_republic.35.b
+		custom_tooltip = every_same_party_character_loyalty_tooltip
+		# hidden_effect = { every_character = { limit = { is_same_party_as = root.current_ruler } add_loyalty = loyalty_dictator_powers_refused } }
+		#P:A TODO No EU5 equivalent: every character of the ruler's party loses 40 loyalty (EU5 has no parties or loyalty)
+		add_stability = -30
+	}
+}
+
+# Hidden: on a change of ruler, clear the dictatorship flags and modifiers.
+# Written for EU5 on_new_ruler (root = country, scope:old_ruler = the previous ruler; Imperator on_ruler_change used scope:former_ruler).
+ip_republic.36 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		if = {
+			limit = {
+				exists = scope:old_ruler
+				scope:old_ruler = {
+					has_variable = dictator_holding_power
+				}
+			}
+			scope:old_ruler = {
+				remove_variable = dictator_holding_power
+			}
+		}
+		if = {
+			limit = {
+				has_country_modifier = electoral_extension_mod
+			}
+			remove_country_modifier = electoral_extension_mod
+		}
+		if = {
+			limit = {
+				has_country_modifier = dictatorial_extension
+			}
+			remove_country_modifier = dictatorial_extension
+		}
+	}
+}
+
+# Toppling a Tyrant: an office holder of another faction plots against the dictator.
+ip_republic.37 = {
+	type = country_event
+	title = ip_republic.37.t
+	desc = ip_republic.37.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = ip_republic_37_toggle
+		}
+		exists = ruler
+		any_character = {
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, a cabinet seat stands in
+			is_ruler = no
+			# NOT = { is_same_party_as = root.current_ruler }
+			NOT = { has_estate = root.ruler.estate_type } #P:A TODO Approximate: Imperator "not in the ruler's party"; EU5 has no parties, another estate than the ruler's stands in
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_37_ruler
+		}
+		set_variable = {
+			name = ip_republic_37_toggle
+			value = 1
+			days = 1825
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; a cabinet seat stands in
+				is_ruler = no
+				NOT = { has_estate = root.ruler.estate_type }
+			}
+			# weight = { modifier = { factor = 10 prominence >= 70 } title_importance_modifier = yes }
+			#P:A TODO No EU5 equivalent: weighted towards prominent characters and important offices (EU5 has no prominence or offices)
+			save_scope_as = rep_37_plotter
+		}
+	}
+
+	option = {
+		name = ip_republic.37.a
+		hidden_effect = {
+			# scope:rep_37_plotter = { remove_all_offices = yes }
+			remove_from_cabinet = scope:rep_37_plotter #P:A TODO Approximate: Imperator removed all offices of the plotter; EU5 has no offices, the plotter leaves the cabinet
+		}
+		# imprison = { target = scope:rep_37_plotter }
+		#P:A TODO No EU5 equivalent: the plotter is imprisoned (EU5 has no prisoners)
+		pa_imp_remove_stability_effect = yes
+	}
+
+	option = {
+		name = ip_republic.37.b
+		custom_tooltip = ip_republic.37.b.tooltip
+		hidden_effect = {
+			# trigger_event = { on_action = plot_outcome_rep_37 days = { 180 360 } }
+			# Imperator on_action plot_outcome_rep_37: random_events = { 5 = ip_republic.38 15 = ip_republic.39 }; its trigger is in both events
+			random_list = {
+				5 = {
+					trigger_event_non_silently = {
+						id = ip_republic.38
+						days = { 180 360 }
+					}
+				}
+				15 = {
+					trigger_event_non_silently = {
+						id = ip_republic.39
+						days = { 180 360 }
+					}
+				}
+			}
+		}
+	}
+}
+
+# Bloodless Coup: the plot of ip_republic.37 succeeds.
+ip_republic.38 = {
+	type = country_event
+	title = ip_republic.38.t
+	desc = ip_republic.38.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		# Imperator on_action plot_outcome_rep_37: current_ruler = { OR = { has_variable = dictator_holding_power employer = { has_law = republican_election_4 } employer = { has_law = princeps_civitatis } } }
+		ruler ?= {
+			has_variable = dictator_holding_power # the law alternatives have no EU5 equivalent (EU5 has no republican election laws)
+		}
+		exists = scope:rep_37_plotter
+		scope:rep_37_plotter = {
+			is_alive = yes
+			employer = root
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = old_ruler
+		}
+	}
+
+	option = {
+		name = ip_republic.38.a
+		set_new_ruler = scope:rep_37_plotter
+		# imprison = { target = scope:old_ruler }
+		#P:A TODO No EU5 equivalent: the old ruler is imprisoned (EU5 has no prisoners)
+		# if = { limit = { tag = ROM has_law = princeps_civitatis } change_law = leges_genuciae } else_if = { limit = { NOT = { tag = ROM } has_law = republican_election_4 } change_law = republican_election_1 }
+		#P:A TODO No EU5 equivalent: the dictator-for-life election law is repealed (EU5 has no republican election laws)
+	}
+
+	option = {
+		name = ip_republic.38.b
+		set_new_ruler = scope:rep_37_plotter
+		scope:old_ruler = {
+			if = {
+				limit = { is_alive = yes }
+				kill_character = {
+					target = scope:old_ruler
+					killer = scope:rep_37_plotter
+					reason = execution
+				}
+			}
+		}
+		# if = { limit = { tag = ROM has_law = princeps_civitatis } change_law = leges_genuciae } else_if = { limit = { NOT = { tag = ROM } has_law = republican_election_4 } change_law = republican_election_1 }
+		#P:A TODO No EU5 equivalent: the dictator-for-life election law is repealed (EU5 has no republican election laws)
+		pa_imp_remove_stability_effect = yes
+	}
+
+	option = {
+		name = ip_republic.38.c
+		custom_tooltip = ip_republic.38.c.tooltip
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			scope:rep_37_plotter = {
+				OR = {
+					has_trait = humble
+					has_trait = pious
+				}
+			}
+		}
+		# imprison = { target = scope:old_ruler }
+		#P:A TODO No EU5 equivalent: the old ruler is imprisoned (EU5 has no prisoners)
+		# if = { limit = { tag = ROM has_law = princeps_civitatis } change_law = leges_genuciae } else_if = { limit = { NOT = { tag = ROM } has_law = republican_election_4 } change_law = republican_election_1 }
+		#P:A TODO No EU5 equivalent: the dictator-for-life election law is repealed (EU5 has no republican election laws)
+		pa_imp_add_stability_effect = yes
+	}
+
+	option = {
+		name = ip_republic.38.d
+		custom_tooltip = ip_republic.38.d.tooltip
+		exclusive = yes
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			scope:rep_37_plotter = {
+				OR = {
+					# has_trait = ambitious #P:A TODO No EU5 equivalent: Imperator "ambitious" trait
+					has_trait = zealot # Imperator zealous
+				}
+			}
+		}
+		set_new_ruler = scope:rep_37_plotter
+		scope:old_ruler = {
+			if = {
+				limit = { is_alive = yes }
+				kill_character = {
+					target = scope:old_ruler
+					reason = execution
+				}
+			}
+		}
+		add_stability = -20
+	}
+}
+
+# Plot Discovered!: the plot of ip_republic.37 fails and the plotter is executed.
+ip_republic.39 = {
+	type = country_event
+	title = ip_republic.39.t
+	desc = ip_republic.39.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		# Imperator on_action plot_outcome_rep_37: current_ruler = { OR = { has_variable = dictator_holding_power employer = { has_law = republican_election_4 } employer = { has_law = princeps_civitatis } } }
+		ruler ?= {
+			has_variable = dictator_holding_power # the law alternatives have no EU5 equivalent (EU5 has no republican election laws)
+		}
+		exists = scope:rep_37_plotter
+		scope:rep_37_plotter = {
+			is_alive = yes
+			employer = root
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = old_ruler
+		}
+	}
+
+	option = {
+		name = ip_republic.39.a
+		kill_character = {
+			target = scope:rep_37_plotter
+			reason = execution
+		}
+		# add_tyranny = 3 # tyranny_medium
+		#P:A TODO No EU5 equivalent: +3 tyranny (EU5 has no tyranny)
+	}
+}
+
+# Spread of Corruption: an honest democratic leader proposes a stricter anti-corruption law.
+ip_republic.40 = {
+	type = country_event
+	title = ip_republic.40.t
+	desc = ip_republic.40.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		# NOR = { has_law = lex_acilia_repetundarum has_law = republic_corruption_2 }
+		always = no #P:A TODO No EU5 equivalent: the event exists to adopt the stricter anti-corruption law (lex_acilia_repetundarum / republic_corruption_2); EU5 has no such laws
+		NOT = {
+			has_variable = corruption_law_event_toggle
+		}
+		any_character = {
+			# is_party_leader = yes
+			is_ruler = no
+			is_adult = yes #P:A TODO Approximate: Imperator required a party leader; EU5 has no parties, any adult burghers-estate character stands in
+			NOT = { has_trait = corrupt } #P:A TODO Approximate: Imperator corruption <= 5 (EU5 characters have no corruption); "not corrupt" stands in
+			pa_imp_character_democratic_party_trigger = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			NOT = { has_character_modifier = foreign_citizen }
+		}
+		any_character = {
+			has_trait = corrupt #P:A TODO Approximate: Imperator corruption >= 10; the corrupt trait stands in
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 2
+			ruler ?= {
+				has_trait = corrupt #P:A TODO Approximate: Imperator ruler corruption >= 20; the corrupt trait stands in
+			}
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_40_ruler
+		}
+		set_variable = {
+			name = corruption_law_event_toggle
+			value = 1
+			days = 1825
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				is_adult = yes
+				NOT = { has_trait = corrupt }
+				pa_imp_character_democratic_party_trigger = yes
+				NOT = { has_character_modifier = foreign_citizen }
+			}
+			save_scope_as = anticorruption_senator
+		}
+	}
+
+	option = { # agree
+		name = ip_republic.40.a
+		# current_ruler = { add_popularity = 5 } # popularity_small
+		# scope:anticorruption_senator = { add_loyalty = loyalty_law_approved }
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler and a loyalty modifier for the senator (EU5 characters have neither)
+		# if = { limit = { is_republic = yes } if = { limit = { tag = ROM } change_law = lex_acilia_repetundarum } else = { change_law = republic_corruption_2 } }
+		#P:A TODO No EU5 equivalent: the republic adopts the stricter anti-corruption law (EU5 has no such laws)
+		# every_party = { limit = { NOR = { is_party_type = democratic_party is_party_type = populares_party } } ROOT = { add_party_approval = { party = PREV value = party_disapproval_small } } }
+		pa_imp_oligarchic_approval_effect = {
+			VALUE = -5 # party_disapproval_small
+		}
+		pa_imp_traditionalist_approval_effect = {
+			VALUE = -5 # party_disapproval_small
+		}
+	}
+
+	option = { # refuse
+		name = ip_republic.40.b
+		# scope:anticorruption_senator = { add_loyalty = loyalty_law_rejected }
+		#P:A TODO No EU5 equivalent: "law rejected" loyalty modifier for the senator (EU5 characters have no loyalty)
+		# add_party_approval = { party = scope:anticorruption_senator.character_party value = party_disapproval_medium }
+		add_estate_satisfaction = { #P:A TODO Approximate: Imperator -10 approval of the senator's party; EU5 has no parties, satisfaction of the senator's estate (10 / 100) stands in
+			type = scope:anticorruption_senator.estate_type
+			value = -0.1 # party_disapproval_medium
+		}
+	}
+}
+
+# Unconventional Politics: a corrupt senator bribes the ruler to repeal the anti-corruption law.
+ip_republic.41 = {
+	type = country_event
+	title = ip_republic.41.t
+	desc = ip_republic.41.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		NOT = {
+			has_variable = corruption_law_event_toggle
+		}
+		# OR = { has_law = lex_acilia_repetundarum has_law = republic_corruption_2 }
+		always = no #P:A TODO No EU5 equivalent: the event needs the stricter anti-corruption law (lex_acilia_repetundarum / republic_corruption_2) and exists to repeal it; EU5 has no such laws
+		any_character = {
+			# is_party_leader = yes
+			is_ruler = no
+			is_adult = yes #P:A TODO Approximate: Imperator required a party leader; EU5 has no parties, any adult character stands in
+			has_trait = corrupt #P:A TODO Approximate: Imperator corruption >= 10 (EU5 characters have no corruption); the corrupt trait stands in
+			#P:A Removed: prisoner = no is always true in EU5
+			NOT = { has_character_modifier = foreign_citizen }
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_41_ruler
+		}
+		set_variable = {
+			name = corruption_law_event_toggle
+			value = 1
+			days = 1825
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				is_adult = yes
+				has_trait = corrupt
+				NOT = { has_character_modifier = foreign_citizen }
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 100
+					pa_imp_character_traditionalist_party_trigger = yes
+				}
+			}
+			save_scope_as = corruption_senator
+		}
+	}
+
+	option = { # agree
+		name = ip_republic.41.a
+		# scope:corruption_senator = { add_gold = { value = root.has_monthly_income multiply = -12 } add_corruption = 5 }
+		# current_ruler = { add_gold = { value = root.has_monthly_income multiply = 12 } add_corruption = 5 } # corruption_medium
+		#P:A TODO No EU5 equivalent: the senator pays the ruler a year of state income from personal wealth and both gain 5 corruption (EU5 characters have no wealth or corruption)
+		# if = { limit = { is_republic = yes } if = { limit = { tag = ROM } change_law = no_laws_on_corruption } else = { change_law = republic_corruption_1 } }
+		#P:A TODO No EU5 equivalent: the anti-corruption law is repealed (EU5 has no such laws)
+		# every_party = { limit = { OR = { is_party_type = democratic_party is_party_type = populares_party } } ROOT = { add_party_approval = { party = PREV value = party_disapproval_small } } }
+		pa_imp_democratic_approval_effect = {
+			VALUE = -5 # party_disapproval_small
+		}
+	}
+
+	option = { # refuse
+		name = ip_republic.41.b
+		# scope:corruption_senator = { add_loyalty = loyalty_law_rejected }
+		#P:A TODO No EU5 equivalent: "law rejected" loyalty modifier for the senator (EU5 characters have no loyalty)
+		# add_party_approval = { party = scope:corruption_senator.character_party value = party_disapproval_medium }
+		add_estate_satisfaction = { #P:A TODO Approximate: Imperator -10 approval of the senator's party; EU5 has no parties, satisfaction of the senator's estate (10 / 100) stands in
+			type = scope:corruption_senator.estate_type
+			value = -0.1 # party_disapproval_medium
+		}
+	}
+
+	option = { # agree bad
+		name = ip_republic.41.c
+		custom_tooltip = corrupt_bad_tooltip
+		trigger = {
+			ruler ?= {
+				has_trait = corrupt
+			}
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		exclusive = yes
+		# scope:corruption_senator = { add_gold = { value = root.has_monthly_income multiply = -24 } add_corruption = 20 }
+		# current_ruler = { add_gold = { value = root.has_monthly_income multiply = 24 } add_corruption = 20 } # corruption_huge
+		#P:A TODO No EU5 equivalent: the senator pays the ruler two years of state income from personal wealth and both gain 20 corruption (EU5 characters have no wealth or corruption)
+		# if = { limit = { is_republic = yes } if = { limit = { tag = ROM } change_law = no_laws_on_corruption } else = { change_law = republic_corruption_1 } }
+		#P:A TODO No EU5 equivalent: the anti-corruption law is repealed (EU5 has no such laws)
+		pa_imp_democratic_approval_effect = {
+			VALUE = -10 # party_disapproval_medium
+		}
+	}
+}
+
+# Hidden: a wealthy character becomes the patron of an indebted one (500 gold changes hands).
+ip_republic.42 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = capital # Imperator employer has_land = yes
+		# wealth < 0
+		always = no #P:A TODO No EU5 equivalent: the event needs an indebted character (personal wealth below 0) and a patron with 1000+ wealth; EU5 characters have no personal wealth
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = no
+				is_general = no
+				is_adult = yes
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = no
+				is_general = no
+				is_adult = yes
+			}
+		}
+		any_character = {
+			# wealth >= 1000
+			is_ruler = no
+			is_adult = yes
+			NOR = {
+				# is_rival = root #P:A TODO No EU5 equivalent: a rival of the indebted character could not be the patron (EU5 has no character rivals)
+				has_trait = greedy # Imperator miserly
+				has_trait = cruel
+			}
+			NOT = {
+				has_variable = is_a_patron
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = no
+					is_general = no
+					is_adult = yes
+				}
+				save_scope_as = pa_character
+			}
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				is_adult = yes
+				NOT = { this = scope:pa_character }
+				NOR = {
+					has_trait = greedy # Imperator miserly
+					has_trait = cruel
+				}
+				NOT = {
+					has_variable = is_a_patron
+				}
+			}
+			weight = {
+				base = 1
+				# modifier = { factor = 5 is_friend = root } #P:A TODO No EU5 equivalent: x5 for a friend of the indebted character (EU5 has no friendships)
+				modifier = {
+					factor = 10
+					has_trait = alms_giver #P:A TODO Approximate: Imperator "generous" trait mapped to the EU5 alms_giver trait
+				}
+				# modifier = { factor = 20 has_trait = benefactor } #P:A TODO No EU5 equivalent: x20 for the Imperator "benefactor" trait
+			}
+			save_scope_as = patron_ip_42
+			set_variable = {
+				name = is_a_patron
+				value = 1
+				days = 720
+			}
+			# add_gold = -500
+			#P:A TODO No EU5 equivalent: the patron pays 500 from personal wealth (EU5 characters have no wealth)
+			add_character_modifier = {
+				modifier = patron_modifier
+				days = 720
+			}
+			# if = { limit = { can_get_friends = yes root = { can_get_friends = yes } NOT = { is_friend = root } } add_friend = root }
+			#P:A TODO No EU5 equivalent: the patron befriends the indebted character (EU5 has no friendships)
+		}
+		# scope:pa_character = { add_gold = 500 }
+		#P:A TODO No EU5 equivalent: the indebted character receives 500 personal wealth (EU5 characters have no wealth)
+	}
+}
+
+# An Influential Family: a great family offers its network in return for a proclamation of gratitude.
+ip_republic.43 = {
+	type = country_event
+	title = ip_republic.43.t
+	desc = ip_republic.43.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		NOT = {
+			has_country_modifier = wealthy_family_lends_senate_support
+		}
+		any_character = {
+			has_dynasty = yes # Imperator exists = family
+			employer = root
+			# family = { prestige > 500 }
+			has_estate = estate_type:nobles_estate #P:A TODO Approximate: Imperator "a family with more than 500 prestige" (a great family); EU5 dynasties have no prestige, a nobles-estate dynasty member stands in
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_43_ruler
+		}
+		random_character = {
+			limit = {
+				has_dynasty = yes
+				employer = root
+				has_estate = estate_type:nobles_estate #P:A TODO Approximate: Imperator family prestige > 500; a nobles-estate dynasty member stands in
+				is_adult = yes
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 100
+					is_ruler = no
+				}
+				modifier = {
+					factor = 100
+					# trigger_if = { limit = { employer.current_ruler = { is_minor_character = no } } from_ruler_family = no } trigger_else = { always = no }
+					exists = root.ruler.dynasty
+					NOT = { dynasty = root.ruler.dynasty } # Imperator from_ruler_family = no
+				}
+				# modifier = { factor = 100 loyalty >= 60 } #P:A TODO No EU5 equivalent: x100 for loyalty 60+ (EU5 characters have no loyalty)
+				modifier = {
+					factor = 40
+					exists = root.ruler
+					has_estate = root.ruler.estate_type #P:A TODO Approximate: Imperator is_same_party_as the ruler; EU5 has no parties, the ruler's estate stands in
+				}
+				modifier = {
+					factor = 50
+					is_adult = yes
+				}
+				modifier = {
+					factor = 100
+					always = yes # Imperator prisoner = no, always true in EU5
+				}
+				# title_importance_modifier = yes #P:A TODO No EU5 equivalent: weighted by office importance (EU5 has no offices)
+			}
+			save_scope_as = patron_family_member
+		}
+	}
+
+	option = {
+		name = ip_republic.43.a
+		custom_tooltip = important_family_consequences
+		add_country_modifier = {
+			modifier = wealthy_family_lends_senate_support
+			days = 1825
+		}
+		every_character = {
+			limit = {
+				dynasty ?= scope:patron_family_member.dynasty # Imperator has_same_family
+				employer = root
+			}
+			set_variable = {
+				name = cannot_imprison_family_favor
+				value = 1
+				days = 1825
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.43.b
+		custom_tooltip = subtract_5_loyalty_family
+		# hidden_effect = { every_character = { limit = { has_same_family = scope:patron_family_member employer = root } add_loyalty = loyalty_faction_compromise_refused } }
+		#P:A TODO No EU5 equivalent: every family member loses 10 loyalty (EU5 characters have no loyalty)
+		# scope:patron_family_member = { if = { limit = { is_minor_character = no } family = { add_prestige = -100 } } }
+		#P:A TODO No EU5 equivalent: -100 family prestige (EU5 dynasties have no prestige)
+	}
+}
+
+# No Confidence: a disloyal party leader offers to fund a general of his own party.
+ip_republic.44 = {
+	type = country_event
+	title = ip_republic.44.t
+	desc = ip_republic.44.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		NOT = {
+			has_variable = republic_44_toggle
+		}
+		any_character = {
+			NOT = {
+				has_character_modifier = foreign_citizen
+			}
+			OR = {
+				is_ruler = no
+				AND = {
+					is_ruler = yes
+					pa_imp_character_democratic_party_trigger = yes
+				}
+			}
+			# is_party_leader = yes
+			is_adult = yes #P:A TODO Approximate: Imperator required a party leader; EU5 has no parties, any adult character of a party-standing estate stands in
+			OR = {
+				has_estate = estate_type:burghers_estate
+				has_estate = estate_type:nobles_estate
+				has_estate = estate_type:clergy_estate
+			}
+			# loyalty <= 60
+			# wealth >= 600
+			#P:A TODO No EU5 equivalent: the party leader had to have loyalty 60 or less and 600+ personal wealth (EU5 characters have neither)
+			save_temporary_scope_as = partyleader_temp
+			root = {
+				any_character = {
+					NOT = {
+						this = scope:partyleader_temp
+					}
+					is_ruler = no
+					is_general = yes
+					has_estate = scope:partyleader_temp.estate_type #P:A TODO Approximate: Imperator is_same_party_as; EU5 has no parties, the same estate stands in
+				}
+			}
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = ip_republic_44_ruler
+		}
+		set_variable = {
+			name = republic_44_toggle
+			value = 1
+			days = 10950
+		}
+		random_character = {
+			limit = {
+				NOT = {
+					has_character_modifier = foreign_citizen
+				}
+				OR = {
+					is_ruler = no
+					AND = {
+						is_ruler = yes
+						pa_imp_character_democratic_party_trigger = yes
+					}
+				}
+				is_adult = yes
+				OR = {
+					has_estate = estate_type:burghers_estate
+					has_estate = estate_type:nobles_estate
+					has_estate = estate_type:clergy_estate
+				}
+				save_temporary_scope_as = partyleader_temp
+				root = {
+					any_character = {
+						NOT = {
+							this = scope:partyleader_temp
+						}
+						is_ruler = no
+						is_general = yes
+						has_estate = scope:partyleader_temp.estate_type
+					}
+				}
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 10
+					pa_imp_character_democratic_party_trigger = yes
+				}
+			}
+			save_scope_as = dissatisfied_party_leader
+		}
+		random_character = {
+			limit = {
+				NOT = {
+					this = scope:dissatisfied_party_leader
+				}
+				is_ruler = no
+				is_general = yes
+				has_estate = scope:dissatisfied_party_leader.estate_type
+			}
+			save_scope_as = party_general
+		}
+	}
+
+	option = {
+		name = ip_republic.44.a
+		# scope:dissatisfied_party_leader = { add_gold = { value = 600 subtract = wealth min = -600 } }
+		# scope:party_general = { add_loyalty = loyalty_decorated_general }
+		#P:A TODO No EU5 equivalent: the party leader spends up to 600 personal wealth and the general gains a loyalty modifier (EU5 characters have no wealth or loyalty)
+		ai_chance = {
+			factor = 60
+		}
+	}
+
+	option = {
+		name = ip_republic.44.b
+		# add_tyranny = 3 # tyranny_medium
+		# current_ruler = { add_popularity = -10 } # subtract_popularity_medium
+		#P:A TODO No EU5 equivalent: +3 tyranny and -10 ruler popularity (EU5 has neither)
+		# add_party_approval = { party = scope:dissatisfied_party_leader.character_party value = party_approval_medium }
+		add_estate_satisfaction = { #P:A TODO Approximate: Imperator +10 approval of the party leader's party; EU5 has no parties, satisfaction of the leader's estate (10 / 100) stands in
+			type = scope:dissatisfied_party_leader.estate_type
+			value = 0.1 # party_approval_medium
+		}
+		ai_chance = {
+			factor = 20
+		}
+	}
+
+	option = {
+		name = ip_republic.44.c
+		# add_tyranny = 5 # tyranny_large
+		# imprison = { target = scope:dissatisfied_party_leader }
+		# scope:party_general = { add_loyalty = loyalty_leader_imprisoned }
+		#P:A TODO No EU5 equivalent: +5 tyranny, the party leader is imprisoned and the general gains a loyalty modifier (EU5 has no tyranny, prisoners or loyalty)
+		ai_chance = {
+			factor = 20
+		}
+	}
+}
+
+# The Tools of the Establishment: a populist consul clashes with his oligarchic co-consul over land for veterans (chain: ip_republic.49-51).
+ip_republic.49 = {
+	type = country_event
+	title = ip_republic.49.t
+	desc = ip_republic.49.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes exists = current_co_ruler
+		# current_co_ruler = { prisoner = no NOR = { character_populares_or_democratic_trigger = yes is_friend = root.current_ruler } }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, a co-ruler who is not a populist and not the ruler's friend); EU5 has no co-rulers
+		ruler ?= {
+			pa_imp_character_populares_or_democratic_trigger = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+		any_owned_location = {
+			population <= 10 #P:A TODO Approximate: Imperator total_population <= 10 pops; EU5 population in thousands, 1 pop = 1
+		}
+		NOT = { has_variable = co_ruler_disagreement_cooldown }
+	}
+
+	immediate = {
+		set_variable = {
+			name = co_ruler_disagreement_cooldown
+			value = 1
+			days = 7300 # 20 years
+		}
+		ruler = { save_scope_as = ip_republic_49_ruler }
+		# current_co_ruler = { save_scope_as = ip_republic_49_co_ruler }
+		#P:A TODO No EU5 equivalent: the co-ruler is saved as scope:ip_republic_49_co_ruler (EU5 has no co-rulers)
+	}
+
+	option = {
+		name = ip_republic.49.a
+		custom_tooltip = ip_republic.49.at1
+		# current_co_ruler = { add_loyalty = loyalty_consul_disagreement }
+		#P:A TODO No EU5 equivalent: "consul disagreement" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		custom_tooltip = ip_republic.49.at2
+		# hidden_effect = { ordered_character = { limit = { NOR = { is_ruler = yes is_co_ruler = yes prisoner = yes is_same_party_as = root.current_ruler } age >= 30 } order_by = prominence max = 3 check_range_bounds = no add_loyalty = loyalty_optimates_upset } }
+		#P:A TODO No EU5 equivalent: the 3 most prominent characters over 30 outside the ruler's party lose 5 loyalty (EU5 characters have no prominence or loyalty)
+		set_variable = ip_rep_49_circumvent
+		trigger_event_non_silently = {
+			id = ip_republic.50
+			days = { 5 10 }
+		}
+		custom_tooltip = ip_co_consul_chain_tooltip
+	}
+
+	option = {
+		name = ip_republic.49.b
+		custom_tooltip = ip_republic.49.bt
+		# current_ruler = { add_popularity = -10 } # subtract_popularity_medium
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		# add_political_influence = 10 # influence_small
+		#P:A TODO No EU5 equivalent: -10 ruler popularity, a loyalty modifier for the co-ruler and +10 political influence (EU5 has none of these)
+		trigger_event_non_silently = {
+			id = ip_republic.50
+			days = { 5 10 }
+		}
+		custom_tooltip = ip_co_consul_chain_tooltip
+	}
+}
+
+# Progress in the Senate: the populist consul either presses on past the co-consul or compromises (chain: ip_republic.49-51).
+ip_republic.50 = {
+	type = country_event
+	title = ip_republic.50.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					NOT = { has_variable = ip_rep_49_circumvent }
+				}
+				desc = ip_republic.50.desc_1
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = ip_republic.50.desc_2
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		# exists = scope:ip_republic_49_co_ruler
+		# scope:ip_republic_49_co_ruler = { is_alive = yes is_co_ruler = yes prisoner = no NOT = { character_populares_or_democratic_trigger = yes } }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, the saved co-ruler still alive, co-ruler and not a populist); EU5 has no co-rulers
+		exists = scope:ip_republic_49_ruler
+		scope:ip_republic_49_ruler = {
+			is_alive = yes
+			is_ruler = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			pa_imp_character_populares_or_democratic_trigger = yes
+		}
+	}
+
+	option = { # Keep going
+		name = ip_republic.50.a
+		trigger = {
+			has_variable = ip_rep_49_circumvent
+		}
+		custom_tooltip = ip_republic.50.at1
+		# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_1 }
+		#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		custom_tooltip = ip_republic.50.at2
+		# hidden_effect = { ordered_character = { limit = { NOR = { is_ruler = yes is_co_ruler = yes prisoner = yes } is_same_party_as = root.current_ruler age >= 20 } order_by = prominence max = 2 check_range_bounds = no add_popularity = popularity_medium } }
+		#P:A TODO No EU5 equivalent: the 2 most prominent characters over 20 of the ruler's party gain 10 popularity (EU5 characters have no parties, prominence or popularity)
+		# hidden_effect = { ordered_character = { limit = { NOR = { is_ruler = yes is_co_ruler = yes prisoner = yes is_same_party_as = root.current_ruler } age >= 30 } order_by = prominence max = 3 check_range_bounds = no add_loyalty = loyalty_optimates_upset } }
+		#P:A TODO No EU5 equivalent: the 3 most prominent characters over 30 outside the ruler's party lose 5 loyalty (EU5 characters have no prominence or loyalty)
+		# add_political_influence = 15 # influence_medium
+		#P:A TODO No EU5 equivalent: +15 political influence (EU5 has no political influence)
+		add_stability = -10
+		trigger_event_non_silently = {
+			id = ip_republic.51
+			days = { 5 10 }
+		}
+	}
+
+	option = { # Stop
+		name = ip_republic.50.b
+		trigger = {
+			has_variable = ip_rep_49_circumvent
+		}
+		# current_ruler = { add_popularity = -5 } # subtract_popularity_small
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_2 }
+		#P:A TODO No EU5 equivalent: -5 ruler popularity and a "consul compromise" loyalty modifier for the co-ruler (EU5 has no popularity, co-rulers or loyalty)
+		custom_tooltip = ip_republic.50.bt
+		# hidden_effect = { ordered_character = { limit = { NOR = { is_ruler = yes is_co_ruler = yes prisoner = yes } is_same_party_as = root.current_ruler age >= 20 } order_by = prominence max = 2 check_range_bounds = no add_loyalty = loyalty_populists_upset } }
+		#P:A TODO No EU5 equivalent: the 2 most prominent characters over 20 of the ruler's party lose 10 loyalty (EU5 characters have no parties, prominence or loyalty)
+		remove_variable = ip_rep_49_circumvent
+		trigger_event_non_silently = {
+			id = ip_republic.50
+			days = { 5 10 }
+		}
+	}
+
+	option = { # Push for more
+		name = ip_republic.50.c
+		trigger = {
+			NOT = { has_variable = ip_rep_49_circumvent }
+		}
+		custom_tooltip = ip_republic.50.ct1
+		# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_2 }
+		#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		custom_tooltip = ip_republic.50.ct2
+		# hidden_effect = { ordered_character = { limit = { NOR = { is_ruler = yes is_co_ruler = yes prisoner = yes is_same_party_as = root.current_ruler } age >= 30 } order_by = prominence max = 3 check_range_bounds = no add_loyalty = loyalty_optimates_upset } }
+		#P:A TODO No EU5 equivalent: the 3 most prominent characters over 30 outside the ruler's party lose 5 loyalty (EU5 characters have no prominence or loyalty)
+		# add_political_influence = -15 # subtract_influence_medium
+		#P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+		set_variable = ip_rep_49_refused_compromise # Imperator days = -1 (permanent)
+		trigger_event_non_silently = {
+			id = ip_republic.51
+			days = { 5 10 }
+		}
+	}
+
+	option = { # Accept compromise
+		name = ip_republic.50.d
+		trigger = {
+			NOT = { has_variable = ip_rep_49_circumvent }
+		}
+		# current_ruler = { add_popularity = -5 } # subtract_popularity_small
+		#P:A TODO No EU5 equivalent: -5 ruler popularity (EU5 characters have no popularity)
+		# add_party_approval = { party = root.current_ruler.character_party value = party_disapproval_medium }
+		if = {
+			limit = { exists = ruler }
+			add_estate_satisfaction = { #P:A TODO Approximate: Imperator -10 approval of the ruler's party; EU5 has no parties, satisfaction of the ruler's estate (10 / 100) stands in
+				type = ruler.estate_type
+				value = -0.1 # party_disapproval_medium
+			}
+		}
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		#P:A TODO No EU5 equivalent: "consul compromise" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		random_owned_location = {
+			limit = {
+				NOT = { region = root.capital.region } # Imperator NOT = { is_in_region = root.capital_scope }
+				population <= 10 #P:A TODO Approximate: Imperator total_population <= 10 pops; EU5 population in thousands, 1 pop = 1
+			}
+			add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (1 freemen pop -> size 1 peasants); culture/religion from the location's dominant culture and religion
+				type = pop_type:peasants
+				size = 1
+				culture = dominant_culture
+				religion = dominant_religion
+			}
+		}
+		random_owned_location = {
+			limit = {
+				NOT = { region = root.capital.region }
+				population <= 10
+			}
+			add_pop = {
+				type = pop_type:peasants
+				size = 1
+				culture = dominant_culture
+				religion = dominant_religion
+			}
+		}
+		# add_political_influence = 15 # influence_medium
+		#P:A TODO No EU5 equivalent: +15 political influence (EU5 has no political influence)
+	}
+}
+
+# The populist consul's veterans' bill passes over the co-consul's head; the co-consul is humiliated (end of chain ip_republic.49-51).
+ip_republic.51 = {
+	type = country_event
+	title = ip_republic.51.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { has_variable = ip_rep_49_refused_compromise }
+				desc = ip_republic.51.desc_1
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = ip_republic.51.desc_2
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		# exists = scope:ip_republic_49_co_ruler
+		# scope:ip_republic_49_co_ruler = { is_alive = yes is_co_ruler = yes prisoner = no NOT = { character_populares_or_democratic_trigger = yes } }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, the saved co-ruler still alive, co-ruler and not a populist); EU5 has no co-rulers
+		exists = scope:ip_republic_49_ruler
+		scope:ip_republic_49_ruler = {
+			is_alive = yes
+			is_ruler = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			pa_imp_character_populares_or_democratic_trigger = yes
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			while = {
+				count = 8
+				random_owned_location = {
+					limit = {
+						population <= 5 #P:A TODO Approximate: Imperator total_population <= 5 pops; EU5 population in thousands, 1 pop = 1
+					}
+					weight = {
+						base = 1
+						modifier = {
+							NOT = { region = root.capital.region } # Imperator NOT = { is_in_region = root.capital_scope }
+							factor = 10
+						}
+					}
+					add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (1 freemen pop -> size 1 peasants); culture/religion from the location's dominant culture and religion
+						type = pop_type:peasants
+						size = 1
+						culture = dominant_culture
+						religion = dominant_religion
+					}
+				}
+			}
+		}
+	}
+
+	option = { # Double down
+		name = ip_republic.51.a
+		# current_ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 ruler popularity (EU5 characters have no popularity)
+		# current_co_ruler = { add_rival = root.current_ruler add_loyalty = loyalty_publicly_humiliated }
+		#P:A TODO No EU5 equivalent: the co-ruler becomes the ruler's rival and gains a "publicly humiliated" loyalty modifier (EU5 has no co-rulers, character rivals or loyalty)
+		# hidden_effect = { ordered_character = { limit = { NOR = { is_ruler = yes is_co_ruler = yes prisoner = yes is_same_party_as = root.current_ruler } age >= 30 } order_by = prominence max = 3 check_range_bounds = no add_loyalty = loyalty_optimates_upset } }
+		#P:A TODO No EU5 equivalent: the 3 most prominent characters over 30 outside the ruler's party lose 5 loyalty (EU5 characters have no prominence or loyalty)
+		custom_tooltip = ip_republic.49.at2
+		custom_tooltip = ip_republic.51.hh
+		if = {
+			limit = { has_variable = ip_rep_49_refused_compromise }
+			remove_variable = ip_rep_49_refused_compromise
+		}
+		remove_variable = ip_rep_49_circumvent
+	}
+
+	option = { # Apology
+		name = ip_republic.51.b
+		# current_ruler = { add_popularity = popularity_small }
+		# current_co_ruler = { add_loyalty = loyalty_humiliation_apology }
+		# add_political_influence = influence_medium
+		#P:A TODO No EU5 equivalent: +5 ruler popularity, a "humiliation apology" loyalty modifier for the co-ruler and +15 political influence (EU5 has no popularity, co-rulers, loyalty or political influence)
+		custom_tooltip = ip_republic.51.hh
+		if = {
+			limit = { has_variable = ip_rep_49_refused_compromise }
+			remove_variable = ip_rep_49_refused_compromise
+		}
+		remove_variable = ip_rep_49_circumvent
+	}
+}
+
+# An Uphill Battle: an expansionist consul's military reforms are opposed by the co-consul (chain: ip_republic.52-54).
+ip_republic.52 = {
+	type = country_event
+	title = ip_republic.52.t
+	desc = ip_republic.52.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		ruler ?= {
+			pa_imp_character_populares_or_oligarchic_trigger = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+		# exists = current_co_ruler
+		# current_co_ruler = { prisoner = no NOR = { character_populares_or_oligarchic_trigger = yes is_friend = root.current_ruler } }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, a co-ruler who is not of the ruler's leaning and not the ruler's friend); EU5 has no co-rulers
+		NOT = { has_variable = co_ruler_disagreement_cooldown }
+	}
+
+	immediate = {
+		set_variable = {
+			name = co_ruler_disagreement_cooldown
+			value = 1
+			days = 7300 # 20 years
+		}
+		ruler = { save_scope_as = ip_republic_52_ruler }
+		# current_co_ruler = { save_scope_as = ip_republic_52_co_ruler }
+		#P:A TODO No EU5 equivalent: the co-ruler is saved as scope:ip_republic_52_co_ruler (EU5 has no co-rulers)
+	}
+
+	option = {
+		name = ip_republic.52.a
+		custom_tooltip = ip_republic.52.at
+		# current_co_ruler = { add_loyalty = loyalty_consul_disagreement }
+		#P:A TODO No EU5 equivalent: "consul disagreement" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		trigger_event_non_silently = {
+			id = ip_republic.53
+			days = { 5 10 }
+		}
+		custom_tooltip = ip_co_consul_chain_tooltip
+	}
+
+	option = {
+		name = ip_republic.52.b
+		custom_tooltip = ip_republic.52.bt
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		# add_political_influence = 15 # influence_medium
+		#P:A TODO No EU5 equivalent: a "consul compromise" loyalty modifier for the co-ruler and +15 political influence (EU5 has no co-rulers, loyalty or political influence)
+		set_variable = ip_rep_52_project # Imperator days = -1 (permanent)
+		trigger_event_non_silently = {
+			id = ip_republic.53
+			days = { 5 10 }
+		}
+		custom_tooltip = ip_co_consul_chain_tooltip
+	}
+
+	option = {
+		name = ip_republic.52.c
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			ruler ?= {
+				# wealth > 100 #P:A TODO No EU5 equivalent: the ruler needed more than 100 personal wealth (EU5 characters have no wealth); dropped
+				OR = {
+					# corruption > 0 #P:A TODO No EU5 equivalent: any ruler corruption (EU5 characters have no corruption)
+					has_trait = schemer # Imperator crafty
+					has_trait = corrupt
+				}
+			}
+			# current_co_ruler = { NOR = { is_rival = root.current_ruler has_trait = pious } }
+			#P:A TODO No EU5 equivalent: the co-ruler must not be the ruler's rival or pious (EU5 has no co-rulers or character rivals)
+		}
+		custom_tooltip = ip_republic.52.ct
+		# hidden_effect = { current_co_ruler = { add_loyalty = loyalty_consul_bribe add_gold = { value = root.current_ruler.wealth multiply = 0.25 } } }
+		# current_ruler = { add_corruption = corruption_medium add_gold = { value = root.current_ruler.wealth multiply = -0.25 } }
+		# current_co_ruler = { add_corruption = corruption_medium }
+		#P:A TODO No EU5 equivalent: the ruler pays a quarter of their personal wealth to the co-ruler, both gain 5 corruption and the co-ruler a "consul bribe" loyalty modifier (EU5 has no co-rulers, character wealth, corruption or loyalty)
+		trigger_event_non_silently = {
+			id = ip_republic.54
+			days = { 5 10 }
+		}
+		set_variable = ip_rep_52_bribe # Imperator days = -1 (permanent)
+		custom_tooltip = ip_co_consul_chain_tooltip
+		custom_tooltip = line_space_tooltip
+		# if = { limit = { current_ruler = { corruption > 0 } NOT = { current_ruler = { has_trait = corrupt } } } custom_tooltip = corruption_tooltip }
+		#P:A TODO No EU5 equivalent: the "available because of your ruler's corruption" tooltip (EU5 characters have no corruption)
+		if = {
+			limit = {
+				ruler ?= { has_trait = schemer }
+			}
+			custom_tooltip = crafty_tooltip
+		}
+		if = {
+			limit = {
+				ruler ?= { has_trait = corrupt }
+			}
+			custom_tooltip = corrupt_tooltip
+		}
+	}
+}
+
+# Progress in the Senate: the military reform bill is pushed through or amended with the co-consul's pet project (chain: ip_republic.52-54).
+ip_republic.53 = {
+	type = country_event
+	title = ip_republic.53.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					NOT = { has_variable = ip_rep_52_project }
+				}
+				desc = ip_republic.53.desc_1
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = ip_republic.53.desc_2
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		# exists = scope:ip_republic_52_co_ruler
+		# scope:ip_republic_52_co_ruler = { is_alive = yes is_co_ruler = yes prisoner = no NOT = { character_populares_or_oligarchic_trigger = yes } }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, the saved co-ruler still alive, co-ruler and not of the ruler's leaning); EU5 has no co-rulers
+		exists = scope:ip_republic_52_ruler
+		scope:ip_republic_52_ruler = {
+			is_alive = yes
+			is_ruler = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			pa_imp_character_populares_or_oligarchic_trigger = yes
+		}
+	}
+
+	option = { # Keep going
+		name = ip_republic.53.a
+		trigger = {
+			NOT = { has_variable = ip_rep_52_project }
+		}
+		# current_ruler = { add_corruption = corruption_medium }
+		# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_1 }
+		#P:A TODO No EU5 equivalent: +5 ruler corruption and a "consul aggravation" loyalty modifier for the co-ruler (EU5 has no character corruption, co-rulers or loyalty)
+		add_stability = -10
+		trigger_event_non_silently = {
+			id = ip_republic.54
+			days = { 5 10 }
+		}
+	}
+
+	option = { # Stop
+		name = ip_republic.53.b
+		trigger = {
+			NOT = { has_variable = ip_rep_52_project }
+		}
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_2 }
+		#P:A TODO No EU5 equivalent: "consul compromise" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -1
+			min = -6000
+		}
+		trigger_event_non_silently = {
+			id = ip_republic.54
+			days = { 5 10 }
+		}
+	}
+
+	option = { # Push for more
+		name = ip_republic.53.c
+		trigger = {
+			has_variable = ip_rep_52_project
+		}
+		custom_tooltip = ip_republic.53.ct
+		# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_1 }
+		# add_political_influence = -15 # subtract_influence_medium
+		#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler and -15 political influence (EU5 has no co-rulers, loyalty or political influence)
+		trigger_event_non_silently = {
+			id = ip_republic.53
+			days = { 5 10 }
+		}
+		remove_variable = ip_rep_52_project
+	}
+
+	option = { # Accept compromise
+		name = ip_republic.53.d
+		trigger = {
+			has_variable = ip_rep_52_project
+		}
+		# current_ruler = { add_popularity = -5 } # subtract_popularity_small
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		#P:A TODO No EU5 equivalent: -5 ruler popularity and a "consul compromise" loyalty modifier for the co-ruler (EU5 has no popularity, co-rulers or loyalty)
+		# add_party_approval = { party = root.current_ruler.character_party value = party_disapproval_medium }
+		if = {
+			limit = { exists = ruler }
+			add_estate_satisfaction = { #P:A TODO Approximate: Imperator -10 approval of the ruler's party; EU5 has no parties, satisfaction of the ruler's estate (10 / 100) stands in
+				type = ruler.estate_type
+				value = -0.1 # party_disapproval_medium
+			}
+		}
+		# add_party_approval = { party = root.current_co_ruler.character_party value = party_approval_small }
+		#P:A TODO No EU5 equivalent: +5 approval of the co-ruler's party (EU5 has no co-rulers or parties)
+		# hidden_effect = { ordered_character = { limit = { NOR = { is_ruler = yes is_co_ruler = yes prisoner = yes } OR = { is_general = yes is_admiral = yes is_same_party_as = root.current_ruler } age >= 20 } order_by = prominence max = 3 check_range_bounds = no add_loyalty = loyalty_military_upset } }
+		#P:A TODO No EU5 equivalent: the 3 most prominent generals, admirals or members of the ruler's party over 20 lose 10 loyalty (EU5 characters have no prominence or loyalty)
+		custom_tooltip = ip_republic.53.dt
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -1.5
+			min = -6000
+		}
+		add_country_modifier = {
+			modifier = ip_rep_52_mil_small_cm
+			days = 3650 # 10 years
+		}
+		if = {
+			limit = {
+				exists = scope:ip_republic_52_co_ruler # Imperator current_co_ruler
+				scope:ip_republic_52_co_ruler = { pa_imp_character_optimates_or_democratic_trigger = yes }
+			}
+			add_country_modifier = {
+				modifier = ip_rep_52_civ_cm
+				days = 3650 # 10 years
+			}
+		}
+		else_if = {
+			limit = {
+				exists = scope:ip_republic_52_co_ruler
+				scope:ip_republic_52_co_ruler = { pa_imp_character_boni_or_traditionalist_trigger = yes }
+			}
+			add_country_modifier = {
+				modifier = ip_rep_52_rel_cm
+				days = 3650 # 10 years
+			}
+		}
+		remove_variable = ip_rep_52_project
+	}
+}
+
+# The military reform bill passes, bribed or not (end of chain ip_republic.52-54).
+ip_republic.54 = {
+	type = country_event
+	title = ip_republic.54.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					NOT = { has_variable = ip_rep_52_bribe }
+				}
+				desc = ip_republic.54.desc_1
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = ip_republic.54.desc_2
+			}
+		}
+	}
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		# exists = scope:ip_republic_52_co_ruler
+		# scope:ip_republic_52_co_ruler = { is_alive = yes is_co_ruler = yes prisoner = no NOT = { character_populares_or_oligarchic_trigger = yes } }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, the saved co-ruler still alive, co-ruler and not of the ruler's leaning); EU5 has no co-rulers
+		exists = scope:ip_republic_52_ruler
+		scope:ip_republic_52_ruler = {
+			is_alive = yes
+			is_ruler = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			pa_imp_character_populares_or_oligarchic_trigger = yes
+		}
+	}
+
+	option = {
+		name = ip_republic.54.a
+		# current_ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 ruler popularity (EU5 characters have no popularity)
+		if = {
+			limit = {
+				NOT = { has_variable = ip_rep_52_bribe }
+			}
+			# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_2 }
+			#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		}
+		else = {
+			remove_variable = ip_rep_52_bribe
+		}
+		# hidden_effect = { ordered_character = { limit = { NOR = { is_ruler = yes is_co_ruler = yes prisoner = yes } OR = { is_general = yes is_admiral = yes is_same_party_as = root.current_ruler } age >= 20 } order_by = prominence max = 3 check_range_bounds = no add_loyalty = loyalty_military_pleased } }
+		#P:A TODO No EU5 equivalent: the 3 most prominent generals, admirals or members of the ruler's party over 20 gain 10 loyalty (EU5 characters have no prominence or loyalty)
+		custom_tooltip = ip_republic.54.at
+		add_country_modifier = {
+			modifier = ip_rep_52_mil_large_cm
+			days = 3650 # 10 years
+		}
+	}
+}
+
+# Building Bridges: the co-consul organizes opposition to the consul's aqueduct bill for a provincial city (chain: ip_republic.55-57).
+ip_republic.55 = {
+	type = country_event
+	title = ip_republic.55.t
+	desc = ip_republic.55.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		ruler ?= {
+			pa_imp_character_optimates_or_democratic_trigger = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+		# exists = current_co_ruler
+		# current_co_ruler = { prisoner = no NOR = { character_optimates_or_democratic_trigger = yes is_friend = root.current_ruler } }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, a co-ruler who is not of the ruler's leaning and not the ruler's friend); EU5 has no co-rulers
+		any_owned_location = {
+			NOT = { location_rank = location_rank:rural_settlement } # has_city_status = yes
+			is_capital = no
+		}
+		NOT = { has_variable = co_ruler_disagreement_cooldown }
+	}
+
+	immediate = {
+		set_variable = {
+			name = co_ruler_disagreement_cooldown
+			value = 1
+			days = 7300 # 20 years
+		}
+		ruler = { save_scope_as = ip_republic_55_ruler }
+		# current_co_ruler = { save_scope_as = ip_republic_55_co_ruler }
+		#P:A TODO No EU5 equivalent: the co-ruler is saved as scope:ip_republic_55_co_ruler (EU5 has no co-rulers)
+		random_owned_location = {
+			limit = {
+				NOT = { location_rank = location_rank:rural_settlement } # has_city_status = yes
+				is_capital = no
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 5
+					population >= 10 #P:A TODO Approximate: Imperator total_population >= 10 pops; EU5 population in thousands, 1 pop = 1
+				}
+				# modifier = { factor = 10 free_building_slots >= 1 }
+				#P:A TODO No EU5 equivalent: x10 weight for a city with a free building slot (EU5 has no building slots)
+			}
+			save_scope_as = ip_rep_55_city
+		}
+	}
+
+	option = {
+		name = ip_republic.55.a
+		# current_co_ruler = { add_loyalty = loyalty_consul_disagreement }
+		#P:A TODO No EU5 equivalent: "consul disagreement" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		trigger_event_non_silently = {
+			id = ip_republic.56
+			days = { 5 10 }
+		}
+		custom_tooltip = ip_co_consul_chain_tooltip
+	}
+
+	option = {
+		name = ip_republic.55.b
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		# add_political_influence = 10 # influence_small
+		#P:A TODO No EU5 equivalent: a "consul compromise" loyalty modifier for the co-ruler and +10 political influence (EU5 has no co-rulers, loyalty or political influence)
+		trigger_event_non_silently = {
+			id = ip_republic.56
+			days = { 5 10 }
+		}
+		set_variable = ip_rep_55_compromise # Imperator days = -1 (permanent)
+		custom_tooltip = ip_co_consul_chain_tooltip
+	}
+
+	option = {
+		name = ip_republic.55.c
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			ruler ?= {
+				# wealth > 100 #P:A TODO No EU5 equivalent: the ruler needed more than 100 personal wealth (EU5 characters have no wealth); dropped
+				OR = {
+					# corruption > 0 #P:A TODO No EU5 equivalent: any ruler corruption (EU5 characters have no corruption)
+					has_trait = schemer # Imperator crafty
+					has_trait = corrupt
+				}
+			}
+			# current_co_ruler = { NOR = { is_rival = root.current_ruler has_trait = pious } }
+			#P:A TODO No EU5 equivalent: the co-ruler must not be the ruler's rival or pious (EU5 has no co-rulers or character rivals)
+		}
+		custom_tooltip = ip_republic.55.ct
+		# hidden_effect = { current_co_ruler = { add_loyalty = loyalty_consul_bribe add_gold = { value = root.current_ruler.wealth multiply = 0.25 } } }
+		# current_ruler = { add_corruption = corruption_medium add_gold = { value = root.current_ruler.wealth multiply = -0.25 } }
+		# current_co_ruler = { add_corruption = corruption_medium }
+		#P:A TODO No EU5 equivalent: the ruler pays a quarter of their personal wealth to the co-ruler, both gain 5 corruption and the co-ruler a "consul bribe" loyalty modifier (EU5 has no co-rulers, character wealth, corruption or loyalty)
+		trigger_event_non_silently = {
+			id = ip_republic.57
+			days = { 5 10 }
+		}
+		set_variable = ip_rep_55_bribe # Imperator days = -1 (permanent)
+		custom_tooltip = ip_co_consul_chain_tooltip
+		custom_tooltip = line_space_tooltip
+		# if = { limit = { current_ruler = { corruption > 0 } NOT = { current_ruler = { has_trait = corrupt } } } custom_tooltip = corruption_tooltip }
+		#P:A TODO No EU5 equivalent: the "available because of your ruler's corruption" tooltip (EU5 characters have no corruption)
+		if = {
+			limit = {
+				ruler ?= { has_trait = schemer }
+			}
+			custom_tooltip = crafty_tooltip
+		}
+		if = {
+			limit = {
+				ruler ?= { has_trait = corrupt }
+			}
+			custom_tooltip = corrupt_tooltip
+		}
+	}
+}
+
+# Progress in the Senate: the aqueduct bill is forced through or amended with the co-consul's demands (chain: ip_republic.55-57).
+ip_republic.56 = {
+	type = country_event
+	title = ip_republic.56.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					NOT = { has_variable = ip_rep_55_compromise }
+				}
+				desc = ip_republic.56.desc_1
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = ip_republic.56.desc_2
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		# exists = scope:ip_republic_55_co_ruler
+		# scope:ip_republic_55_co_ruler = { is_alive = yes is_co_ruler = yes prisoner = no NOT = { character_optimates_or_democratic_trigger = yes } }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, the saved co-ruler still alive, co-ruler and not of the ruler's leaning); EU5 has no co-rulers
+		exists = scope:ip_republic_55_ruler
+		scope:ip_republic_55_ruler = {
+			is_alive = yes
+			is_ruler = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			pa_imp_character_optimates_or_democratic_trigger = yes
+		}
+	}
+
+	option = { # Keep going
+		name = ip_republic.56.a
+		trigger = {
+			NOT = { has_variable = ip_rep_55_compromise }
+		}
+		# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_1 }
+		#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		set_variable = ip_rep_55_rival
+		# add_political_influence = -15 # subtract_influence_medium
+		#P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+		add_stability = -10
+		trigger_event_non_silently = {
+			id = ip_republic.57
+			days = { 5 10 }
+		}
+	}
+
+	option = { # Stop
+		name = ip_republic.56.b
+		trigger = {
+			NOT = { has_variable = ip_rep_55_compromise }
+		}
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_2 }
+		#P:A TODO No EU5 equivalent: "consul compromise" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -1.2
+			min = -6000
+		}
+		trigger_event_non_silently = {
+			id = ip_republic.57
+			days = { 5 10 }
+		}
+	}
+
+	option = { # Refuse
+		name = ip_republic.56.c
+		trigger = {
+			has_variable = ip_rep_55_compromise
+		}
+		custom_tooltip = ip_republic.56.ct
+		# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_1 }
+		# add_political_influence = -15 # subtract_influence_medium
+		#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler and -15 political influence (EU5 has no co-rulers, loyalty or political influence)
+		trigger_event_non_silently = {
+			id = ip_republic.56
+			days = { 5 10 }
+		}
+		remove_variable = ip_rep_55_compromise
+	}
+
+	option = { # Accept compromise
+		name = ip_republic.56.d
+		trigger = {
+			has_variable = ip_rep_55_compromise
+		}
+		# current_ruler = { add_popularity = -5 } # subtract_popularity_small
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		#P:A TODO No EU5 equivalent: -5 ruler popularity and a "consul compromise" loyalty modifier for the co-ruler (EU5 has no popularity, co-rulers or loyalty)
+		# add_party_approval = { party = root.current_ruler.character_party value = party_disapproval_medium }
+		if = {
+			limit = { exists = ruler }
+			add_estate_satisfaction = { #P:A TODO Approximate: Imperator -10 approval of the ruler's party; EU5 has no parties, satisfaction of the ruler's estate (10 / 100) stands in
+				type = ruler.estate_type
+				value = -0.1 # party_disapproval_medium
+			}
+		}
+		scope:ip_rep_55_city.province = {
+			add_province_modifier = {
+				modifier = ip_rep_55_city_small_sm
+				days = 3650 # 10 years
+			}
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -1.2
+			min = -6000
+		}
+		if = {
+			limit = {
+				exists = scope:ip_republic_55_co_ruler # Imperator current_co_ruler
+				scope:ip_republic_55_co_ruler = { pa_imp_character_optimates_or_oligarchic_trigger = yes }
+			}
+			add_manpower = -4
+		}
+		else_if = {
+			limit = {
+				exists = scope:ip_republic_55_co_ruler
+				scope:ip_republic_55_co_ruler = { pa_imp_character_traditionalist_party_trigger = yes }
+			}
+			pa_imp_remove_stability_effect_small = yes
+		}
+		remove_variable = ip_rep_55_compromise
+	}
+}
+
+# The aqueduct bill passes and the city gets its baths (end of chain ip_republic.55-57).
+ip_republic.57 = {
+	type = country_event
+	title = ip_republic.57.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					NOT = { has_variable = ip_rep_55_bribe }
+				}
+				desc = ip_republic.57.desc_1
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = ip_republic.57.desc_2
+			}
+		}
+	}
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		# exists = scope:ip_republic_55_co_ruler
+		# scope:ip_republic_55_co_ruler = { is_alive = yes is_co_ruler = yes prisoner = no NOT = { character_optimates_or_democratic_trigger = yes } }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, the saved co-ruler still alive, co-ruler and not of the ruler's leaning); EU5 has no co-rulers
+		exists = scope:ip_republic_55_ruler
+		scope:ip_republic_55_ruler = {
+			is_alive = yes
+			is_ruler = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			pa_imp_character_optimates_or_democratic_trigger = yes
+		}
+	}
+
+	option = {
+		name = ip_republic.57.a
+		# current_ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 ruler popularity (EU5 characters have no popularity)
+		# add_party_approval = { party = root.current_ruler.character_party value = party_approval_medium }
+		if = {
+			limit = { exists = ruler }
+			add_estate_satisfaction = { #P:A TODO Approximate: Imperator +10 approval of the ruler's party; EU5 has no parties, satisfaction of the ruler's estate (10 / 100) stands in
+				type = ruler.estate_type
+				value = 0.1 # party_approval_medium
+			}
+		}
+		if = {
+			limit = { has_variable = ip_rep_55_rival }
+			# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_2 }
+			#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		}
+		if = {
+			limit = { has_variable = ip_rep_55_bribe }
+			remove_variable = ip_rep_55_bribe
+		}
+		scope:ip_rep_55_city = {
+			if = {
+				limit = { can_build_building = building_type:aqueduct_system } # Imperator aqueduct_building
+				change_building_level_in_location = {
+					building = building_type:aqueduct_system
+					value = 1
+				}
+			}
+		}
+		scope:ip_rep_55_city.province = {
+			add_province_modifier = {
+				modifier = ip_rep_55_city_large_sm
+				days = 3650 # 10 years
+			}
+		}
+	}
+}
+
+# A Fair Trade: the co-consul opposes the consul's trade reforms (chain: ip_republic.58-60).
+ip_republic.58 = {
+	type = country_event
+	title = ip_republic.58.t
+	desc = ip_republic.58.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		ruler ?= {
+			pa_imp_character_optimates_or_democratic_trigger = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+		# exists = current_co_ruler
+		# current_co_ruler = { prisoner = no NOR = { character_optimates_or_democratic_trigger = yes is_friend = root.current_ruler } }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, a co-ruler who is not of the ruler's leaning and not the ruler's friend); EU5 has no co-rulers
+		NOT = { has_variable = co_ruler_disagreement_cooldown }
+	}
+
+	immediate = {
+		set_variable = {
+			name = co_ruler_disagreement_cooldown
+			value = 1
+			days = 7300 # 20 years
+		}
+		ruler = { save_scope_as = ip_republic_58_ruler }
+		# current_co_ruler = { save_scope_as = ip_republic_58_co_ruler }
+		#P:A TODO No EU5 equivalent: the co-ruler is saved as scope:ip_republic_58_co_ruler (EU5 has no co-rulers)
+	}
+
+	option = {
+		name = ip_republic.58.a
+		custom_tooltip = ip_republic.58.at
+		# current_co_ruler = { add_loyalty = loyalty_consul_disagreement }
+		#P:A TODO No EU5 equivalent: "consul disagreement" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		trigger_event_non_silently = {
+			id = ip_republic.59
+			days = { 5 10 }
+		}
+		custom_tooltip = ip_co_consul_chain_tooltip
+	}
+
+	option = {
+		name = ip_republic.58.b
+		custom_tooltip = ip_republic.58.bt
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		# add_political_influence = 10 # influence_small
+		#P:A TODO No EU5 equivalent: a "consul compromise" loyalty modifier for the co-ruler and +10 political influence (EU5 has no co-rulers, loyalty or political influence)
+		trigger_event_non_silently = {
+			id = ip_republic.59
+			days = { 5 10 }
+		}
+		set_variable = ip_rep_58_compromise # Imperator days = -1 (permanent)
+		custom_tooltip = ip_co_consul_chain_tooltip
+	}
+
+	option = {
+		name = ip_republic.58.c
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			ruler ?= {
+				# wealth > 100 #P:A TODO No EU5 equivalent: the ruler needed more than 100 personal wealth (EU5 characters have no wealth); dropped
+				OR = {
+					# corruption > 0 #P:A TODO No EU5 equivalent: any ruler corruption (EU5 characters have no corruption)
+					has_trait = schemer # Imperator crafty
+					has_trait = corrupt
+				}
+			}
+			# current_co_ruler = { NOR = { is_rival = root.current_ruler } OR = { corruption <= 1 has_trait = pious } }
+			#P:A TODO No EU5 equivalent: the co-ruler must not be the ruler's rival and must have at most 1 corruption or be pious (EU5 has no co-rulers, character rivals or corruption)
+		}
+		custom_tooltip = ip_republic.58.ct
+		# hidden_effect = { current_co_ruler = { add_loyalty = loyalty_consul_bribe add_gold = { value = root.current_ruler.wealth multiply = 0.25 } } }
+		# current_ruler = { add_corruption = corruption_medium add_gold = { value = root.current_ruler.wealth multiply = -0.25 } }
+		# current_co_ruler = { add_corruption = corruption_medium }
+		#P:A TODO No EU5 equivalent: the ruler pays a quarter of their personal wealth to the co-ruler, both gain 5 corruption and the co-ruler a "consul bribe" loyalty modifier (EU5 has no co-rulers, character wealth, corruption or loyalty)
+		trigger_event_non_silently = {
+			id = ip_republic.60
+			days = { 5 10 }
+		}
+		set_variable = ip_rep_58_bribe # Imperator days = -1 (permanent)
+		custom_tooltip = ip_co_consul_chain_tooltip
+		custom_tooltip = line_space_tooltip
+		# if = { limit = { current_ruler = { corruption > 0 } NOT = { current_ruler = { has_trait = corrupt } } } custom_tooltip = corruption_tooltip }
+		#P:A TODO No EU5 equivalent: the "available because of your ruler's corruption" tooltip (EU5 characters have no corruption)
+		if = {
+			limit = {
+				ruler ?= { has_trait = schemer }
+			}
+			custom_tooltip = crafty_tooltip
+		}
+		if = {
+			limit = {
+				ruler ?= { has_trait = corrupt }
+			}
+			custom_tooltip = corrupt_tooltip
+		}
+	}
+}
+
+# Progress in the Senate: the trade reforms are bought with manpower or amended with the co-consul's demands (chain: ip_republic.58-60).
+ip_republic.59 = {
+	type = country_event
+	title = ip_republic.59.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					NOT = { has_variable = ip_rep_58_compromise }
+				}
+				desc = ip_republic.59.desc_1
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = ip_republic.59.desc_2
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		# exists = scope:ip_republic_58_co_ruler
+		# scope:ip_republic_58_co_ruler = { is_alive = yes is_co_ruler = yes NOT = { character_optimates_or_democratic_trigger = yes } prisoner = no }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, the saved co-ruler still alive, co-ruler and not of the ruler's leaning); EU5 has no co-rulers
+		exists = scope:ip_republic_58_ruler
+		scope:ip_republic_58_ruler = {
+			is_alive = yes
+			is_ruler = yes
+			pa_imp_character_optimates_or_democratic_trigger = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+	}
+
+	option = { # Keep going
+		name = ip_republic.59.a
+		trigger = {
+			NOT = { has_variable = ip_rep_58_compromise }
+		}
+		# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_1 }
+		#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		set_variable = ip_rep_58_rival
+		add_manpower = -5
+		add_stability = -10
+		trigger_event_non_silently = {
+			id = ip_republic.60
+			days = { 5 10 }
+		}
+	}
+
+	option = { # Stop
+		name = ip_republic.59.b
+		trigger = {
+			NOT = { has_variable = ip_rep_58_compromise }
+		}
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		#P:A TODO No EU5 equivalent: "consul compromise" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -1.2
+			min = -6000
+		}
+		trigger_event_non_silently = {
+			id = ip_republic.60
+			days = { 5 10 }
+		}
+	}
+
+	option = { # Refuse
+		name = ip_republic.59.c
+		trigger = {
+			has_variable = ip_rep_58_compromise
+		}
+		custom_tooltip = ip_republic.59.ct
+		# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_1 }
+		# add_political_influence = -10 # subtract_influence_small
+		#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler and -10 political influence (EU5 has no co-rulers, loyalty or political influence)
+		trigger_event_non_silently = {
+			id = ip_republic.59
+			days = { 5 10 }
+		}
+		remove_variable = ip_rep_58_compromise
+	}
+
+	option = { # Accept compromise
+		name = ip_republic.59.d
+		trigger = {
+			has_variable = ip_rep_58_compromise
+		}
+		# current_ruler = { add_popularity = -5 } # subtract_popularity_small
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		#P:A TODO No EU5 equivalent: -5 ruler popularity and a "consul compromise" loyalty modifier for the co-ruler (EU5 has no popularity, co-rulers or loyalty)
+		# add_party_approval = { party = root.current_ruler.character_party value = party_disapproval_medium }
+		if = {
+			limit = { exists = ruler }
+			add_estate_satisfaction = { #P:A TODO Approximate: Imperator -10 approval of the ruler's party; EU5 has no parties, satisfaction of the ruler's estate (10 / 100) stands in
+				type = ruler.estate_type
+				value = -0.1 # party_disapproval_medium
+			}
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -2.4
+			min = -6000
+		}
+		add_country_modifier = {
+			modifier = ip_rep_58_mer_small_cm
+			days = 5475 # 15 years
+		}
+		if = {
+			limit = {
+				exists = scope:ip_republic_58_co_ruler # Imperator current_co_ruler
+				scope:ip_republic_58_co_ruler = { pa_imp_character_optimates_or_oligarchic_trigger = yes }
+			}
+			add_country_modifier = {
+				modifier = ip_rep_58_mil_cm
+				days = 1825 # 5 years
+			}
+		}
+		else_if = {
+			limit = {
+				exists = scope:ip_republic_58_co_ruler
+				scope:ip_republic_58_co_ruler = { pa_imp_character_boni_or_traditionalist_trigger = yes }
+			}
+			add_country_modifier = {
+				modifier = ip_rep_52_rel_cm
+				days = 1825 # 5 years
+			}
+		}
+		else_if = {
+			limit = {
+				exists = scope:ip_republic_58_co_ruler
+				scope:ip_republic_58_co_ruler = { pa_imp_character_populares_or_democratic_trigger = yes }
+			}
+			add_country_modifier = {
+				modifier = ip_rep_52_pop_cm
+				days = 1825 # 5 years
+			}
+		}
+		remove_variable = ip_rep_58_compromise
+	}
+}
+
+# The trade reforms pass (end of chain ip_republic.58-60).
+ip_republic.60 = {
+	type = country_event
+	title = ip_republic.60.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					NOT = { has_variable = ip_rep_58_bribe }
+				}
+				desc = ip_republic.60.desc_1
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = ip_republic.60.desc_2
+			}
+		}
+	}
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		# exists = scope:ip_republic_58_co_ruler
+		# scope:ip_republic_58_co_ruler = { is_alive = yes is_co_ruler = yes NOT = { character_optimates_or_democratic_trigger = yes } prisoner = no }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, the saved co-ruler still alive, co-ruler and not of the ruler's leaning); EU5 has no co-rulers
+		exists = scope:ip_republic_58_ruler
+		scope:ip_republic_58_ruler = {
+			is_alive = yes
+			is_ruler = yes
+			pa_imp_character_optimates_or_democratic_trigger = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+	}
+
+	option = {
+		name = ip_republic.60.a
+		# current_ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 ruler popularity (EU5 characters have no popularity)
+		# add_party_approval = { party = root.current_ruler.character_party value = party_approval_medium }
+		if = {
+			limit = { exists = ruler }
+			add_estate_satisfaction = { #P:A TODO Approximate: Imperator +10 approval of the ruler's party; EU5 has no parties, satisfaction of the ruler's estate (10 / 100) stands in
+				type = ruler.estate_type
+				value = 0.1 # party_approval_medium
+			}
+		}
+		if = {
+			limit = { has_variable = ip_rep_58_rival }
+			# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_2 }
+			#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		}
+		if = {
+			limit = { has_variable = ip_rep_58_bribe }
+			remove_variable = ip_rep_58_bribe
+		}
+		add_country_modifier = {
+			modifier = ip_rep_58_mer_large_cm
+			days = 3650 # 10 years
+		}
+	}
+}
+
+# The Grace of the Gods: the co-consul opposes the pious consul's temple bill (chain: ip_republic.61-63).
+ip_republic.61 = {
+	type = country_event
+	title = ip_republic.61.t
+	desc = ip_republic.61.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		ruler ?= {
+			#P:A Removed: prisoner = no is always true in EU5
+			pa_imp_character_boni_or_traditionalist_trigger = yes
+		}
+		# exists = current_co_ruler
+		# current_co_ruler = { prisoner = no NOR = { character_boni_or_traditionalist_trigger = yes is_friend = root.current_ruler } }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, a co-ruler who is not of the ruler's leaning and not the ruler's friend); EU5 has no co-rulers
+		NOT = { has_variable = co_ruler_disagreement_cooldown }
+	}
+
+	immediate = {
+		set_variable = {
+			name = co_ruler_disagreement_cooldown
+			value = 1
+			days = 7300 # 20 years
+		}
+		ruler = { save_scope_as = ip_republic_61_ruler }
+		# current_co_ruler = { save_scope_as = ip_republic_61_co_ruler }
+		#P:A TODO No EU5 equivalent: the co-ruler is saved as scope:ip_republic_61_co_ruler (EU5 has no co-rulers)
+	}
+
+	option = {
+		name = ip_republic.61.a
+		custom_tooltip = ip_republic.61.at
+		# current_co_ruler = { add_loyalty = loyalty_consul_disagreement }
+		#P:A TODO No EU5 equivalent: "consul disagreement" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		trigger_event_non_silently = {
+			id = ip_republic.62
+			days = { 5 10 }
+		}
+		custom_tooltip = ip_co_consul_chain_tooltip
+	}
+
+	option = {
+		name = ip_republic.61.b
+		custom_tooltip = ip_republic.61.bt
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		# add_political_influence = 10 # influence_small
+		#P:A TODO No EU5 equivalent: a "consul compromise" loyalty modifier for the co-ruler and +10 political influence (EU5 has no co-rulers, loyalty or political influence)
+		trigger_event_non_silently = {
+			id = ip_republic.62
+			days = { 5 10 }
+		}
+		set_variable = ip_rep_61_compromise # Imperator days = -1 (permanent)
+		custom_tooltip = ip_co_consul_chain_tooltip
+	}
+
+	option = {
+		name = ip_republic.61.c
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			ruler ?= {
+				# wealth > 100 #P:A TODO No EU5 equivalent: the ruler needed more than 100 personal wealth (EU5 characters have no wealth); dropped
+				OR = {
+					# corruption > 0 #P:A TODO No EU5 equivalent: any ruler corruption (EU5 characters have no corruption)
+					has_trait = schemer # Imperator crafty
+					has_trait = corrupt
+				}
+			}
+			# current_co_ruler = { NOR = { is_rival = root.current_ruler } OR = { corruption <= 1 has_trait = pious } }
+			#P:A TODO No EU5 equivalent: the co-ruler must not be the ruler's rival and must have at most 1 corruption or be pious (EU5 has no co-rulers, character rivals or corruption)
+		}
+		custom_tooltip = ip_republic.61.ct
+		# hidden_effect = { current_co_ruler = { add_loyalty = loyalty_consul_bribe add_gold = { value = root.current_ruler.wealth multiply = 0.25 } } }
+		# current_ruler = { add_corruption = corruption_medium add_gold = { value = root.current_ruler.wealth multiply = -0.25 } }
+		# current_co_ruler = { add_corruption = corruption_medium }
+		#P:A TODO No EU5 equivalent: the ruler pays a quarter of their personal wealth to the co-ruler, both gain 5 corruption and the co-ruler a "consul bribe" loyalty modifier (EU5 has no co-rulers, character wealth, corruption or loyalty)
+		trigger_event_non_silently = {
+			id = ip_republic.62
+			days = { 5 10 }
+		}
+		set_variable = ip_rep_61_bribe # Imperator days = -1 (permanent)
+		custom_tooltip = ip_co_consul_chain_tooltip
+		custom_tooltip = line_space_tooltip
+		# if = { limit = { current_ruler = { corruption > 0 } NOT = { current_ruler = { has_trait = corrupt } } } custom_tooltip = corruption_tooltip }
+		#P:A TODO No EU5 equivalent: the "available because of your ruler's corruption" tooltip (EU5 characters have no corruption)
+		if = {
+			limit = {
+				ruler ?= { has_trait = schemer }
+			}
+			custom_tooltip = crafty_tooltip
+		}
+		if = {
+			limit = {
+				ruler ?= { has_trait = corrupt }
+			}
+			custom_tooltip = corrupt_tooltip
+		}
+	}
+}
+
+# Progress in the Senate: the temple bill is forced through by augury or amended with the co-consul's demands (chain: ip_republic.61-63).
+ip_republic.62 = {
+	type = country_event
+	title = ip_republic.62.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					NOT = {
+						has_variable = ip_rep_61_compromise
+					}
+				}
+				desc = ip_republic.62.desc_1
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = ip_republic.62.desc_2
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		# exists = scope:ip_republic_61_co_ruler
+		# scope:ip_republic_61_co_ruler = { is_alive = yes is_co_ruler = yes NOT = { character_boni_or_traditionalist_trigger = yes } prisoner = no }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, the saved co-ruler still alive, co-ruler and not of the ruler's leaning); EU5 has no co-rulers
+		exists = scope:ip_republic_61_ruler
+		scope:ip_republic_61_ruler = {
+			is_alive = yes
+			is_ruler = yes
+			pa_imp_character_boni_or_traditionalist_trigger = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+	}
+
+	option = { # Keep going
+		name = ip_republic.62.a
+		trigger = {
+			NOT = { has_variable = ip_rep_61_compromise }
+		}
+		# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_1 }
+		#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		set_variable = ip_rep_61_rival
+		# add_tyranny = 5 # tyranny_large
+		#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		add_stability = -10
+		trigger_event_non_silently = {
+			id = ip_republic.63
+			days = { 5 10 }
+		}
+	}
+
+	option = { # Stop
+		name = ip_republic.62.b
+		trigger = {
+			NOT = { has_variable = ip_rep_61_compromise }
+		}
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		#P:A TODO No EU5 equivalent: "consul compromise" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -1.2
+			min = -6000
+		}
+		trigger_event_non_silently = {
+			id = ip_republic.63
+			days = { 5 10 }
+		}
+	}
+
+	option = { # Refuse
+		name = ip_republic.62.c
+		trigger = {
+			has_variable = ip_rep_61_compromise
+		}
+		custom_tooltip = ip_republic.62.ct
+		# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_1 }
+		# add_political_influence = -10 # subtract_influence_small
+		#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler and -10 political influence (EU5 has no co-rulers, loyalty or political influence)
+		trigger_event_non_silently = {
+			id = ip_republic.62
+			days = { 5 10 }
+		}
+		remove_variable = ip_rep_61_compromise
+	}
+
+	option = { # Accept compromise
+		name = ip_republic.62.d
+		trigger = {
+			has_variable = ip_rep_61_compromise
+		}
+		# current_ruler = { add_popularity = -5 } # subtract_popularity_small
+		# current_co_ruler = { add_loyalty = loyalty_consul_compromise_1 }
+		#P:A TODO No EU5 equivalent: -5 ruler popularity and a "consul compromise" loyalty modifier for the co-ruler (EU5 has no popularity, co-rulers or loyalty)
+		# add_party_approval = { party = root.current_ruler.character_party value = party_disapproval_medium }
+		if = {
+			limit = { exists = ruler }
+			add_estate_satisfaction = { #P:A TODO Approximate: Imperator -10 approval of the ruler's party; EU5 has no parties, satisfaction of the ruler's estate (10 / 100) stands in
+				type = ruler.estate_type
+				value = -0.1 # party_disapproval_medium
+			}
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -2.4
+			min = -6000
+		}
+		add_country_modifier = {
+			modifier = ip_rep_61_rel_small_cm
+			days = 3650 # 10 years
+		}
+		remove_variable = ip_rep_61_compromise
+	}
+}
+
+# The temple bill passes and a shrine is dedicated (end of chain ip_republic.61-63).
+ip_republic.63 = {
+	type = country_event
+	title = ip_republic.63.t
+	desc = ip_republic.63.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:republic
+		# has_co_ruler_government = yes
+		# exists = scope:ip_republic_61_co_ruler
+		# scope:ip_republic_61_co_ruler = { is_alive = yes is_co_ruler = yes NOT = { character_boni_or_traditionalist_trigger = yes } prisoner = no }
+		always = no #P:A TODO No EU5 equivalent: the chain is about the ruler's co-consul (co-ruler government, the saved co-ruler still alive, co-ruler and not of the ruler's leaning); EU5 has no co-rulers
+		exists = scope:ip_republic_61_ruler
+		scope:ip_republic_61_ruler = {
+			is_alive = yes
+			is_ruler = yes
+			pa_imp_character_boni_or_traditionalist_trigger = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+	}
+
+	option = {
+		name = ip_republic.63.a
+		# current_ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 ruler popularity (EU5 characters have no popularity)
+		# add_party_approval = { party = root.current_ruler.character_party value = party_approval_medium }
+		if = {
+			limit = { exists = ruler }
+			add_estate_satisfaction = { #P:A TODO Approximate: Imperator +10 approval of the ruler's party; EU5 has no parties, satisfaction of the ruler's estate (10 / 100) stands in
+				type = ruler.estate_type
+				value = 0.1 # party_approval_medium
+			}
+		}
+		if = {
+			limit = { has_variable = ip_rep_61_rival }
+			# current_co_ruler = { add_loyalty = loyalty_consul_aggravation_2 }
+			#P:A TODO No EU5 equivalent: "consul aggravation" loyalty modifier for the co-ruler (EU5 has no co-rulers or loyalty)
+		}
+		if = {
+			limit = { has_variable = ip_rep_61_bribe }
+			remove_variable = ip_rep_61_bribe
+		}
+		add_country_modifier = {
+			modifier = ip_rep_61_rel_large_cm
+			days = 5475 # 15 years
+		}
+	}
+}
+
+# Senatorial Resistance: a newly elected, unpopular ruler faces the contempt of the senate.
+ip_republic.64 = {
+	type = country_event
+	title = ip_republic.64.t
+	desc = ip_republic.64.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		ruler ?= {
+			# popularity < 45
+			dip < 45 #P:A TODO Approximate: Imperator ruler popularity < 45 (EU5 characters have no popularity); diplomatic skill below 45 stands in
+		}
+	}
+
+	immediate = {
+		ruler = { save_scope_as = ip_republic_64_ruler } # Imperator left_portrait = current_ruler
+	}
+
+	option = {
+		name = ip_republic.64.a
+		if = {
+			limit = {
+				ruler ?= {
+					NOT = {
+						pa_imp_character_oligarchic_party_trigger = yes
+					}
+				}
+			}
+			pa_imp_oligarchic_approval_effect = {
+				VALUE = -10 # party_disapproval_medium
+			}
+			set_variable = {
+				name = oligarchic_party_displeasure
+				value = 1
+				days = 730
+			}
+		}
+		if = {
+			limit = {
+				ruler ?= {
+					NOT = {
+						pa_imp_character_democratic_party_trigger = yes
+					}
+				}
+			}
+			pa_imp_democratic_approval_effect = {
+				VALUE = -10 # party_disapproval_medium
+			}
+			set_variable = {
+				name = democratic_party_displeasure
+				value = 1
+				days = 730
+			}
+		}
+		if = {
+			limit = {
+				ruler ?= {
+					NOT = {
+						pa_imp_character_traditionalist_party_trigger = yes
+					}
+				}
+			}
+			pa_imp_traditionalist_approval_effect = {
+				VALUE = -10 # party_disapproval_medium
+			}
+			set_variable = {
+				name = traditionalist_party_displeasure
+				value = 1
+				days = 730
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.64.b
+		add_stability = -15
+		# add_tyranny = 5
+		#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+	}
+
+	option = {
+		name = ip_republic.64.b # sic: Imperator reuses the 64.b text for this option
+		trigger = {
+			ruler ?= {
+				OR = {
+					has_trait = schemer # Imperator crafty
+					# has_trait = intimidating #P:A TODO No EU5 equivalent: Imperator "intimidating" trait
+				}
+			}
+			always = no #P:A TODO No EU5 equivalent: the option's only effect is +10 political influence (EU5 has none); as an exclusive option it would hide the other choices, so it is disabled
+		}
+		custom_tooltip = crafty_tooltip
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		exclusive = yes
+		# add_political_influence = 10
+		#P:A TODO No EU5 equivalent: +10 political influence (EU5 has no political influence)
+	}
+}
+
+# Unpopular Consul: a dull, unpopular ruler is elected by a slim majority.
+ip_republic.65 = {
+	type = country_event
+	title = ip_republic.65.t
+	desc = ip_republic.65.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		ruler ?= {
+			# popularity < 45
+			dip < 45 #P:A TODO Approximate: Imperator ruler popularity < 45 (EU5 characters have no popularity); diplomatic skill below 45 stands in
+		}
+	}
+
+	immediate = {
+		ruler = { save_scope_as = ip_republic_65_ruler } # Imperator left_portrait = current_ruler
+	}
+
+	option = {
+		name = ip_republic.65.a
+		add_country_modifier = {
+			modifier = lack_of_popular_support
+			days = 730
+		}
+	}
+
+	option = {
+		name = ip_republic.65.b
+		add_gold = {
+			value = root.monthly_income_total # Imperator has_monthly_income
+			multiply = -6 # subtract_monthly_income_medium
+			max = 5000
+		}
+		# current_ruler = { add_popularity = popularity_small }
+		#P:A TODO No EU5 equivalent: +5 ruler popularity (EU5 characters have no popularity)
+	}
+
+	option = {
+		name = ip_republic.65.c
+		if = {
+			limit = {
+				ruler ?= {
+					num_of_traits_of_category = { type = ruler value <= 4 } #P:A TODO Approximate: Imperator number_of_personality_traits <= max_number_of_traits_svalue (4); EU5 counts ruler traits
+					NOT = {
+						has_trait = cruel
+					}
+				}
+			}
+			ruler = {
+				if = {
+					limit = {
+						has_trait = kind_hearted # Imperator merciful
+					}
+					remove_trait = trait:kind_hearted
+				}
+				add_trait = trait:cruel
+			}
+		}
+		# add_tyranny = 10
+		# add_political_influence = 20
+		#P:A TODO No EU5 equivalent: +10 tyranny and +20 political influence (EU5 has neither)
+	}
+}

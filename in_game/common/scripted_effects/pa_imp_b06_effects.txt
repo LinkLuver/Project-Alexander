@@ -1,0 +1,73 @@
+﻿# Imperator scripted effects for batch b06 of the Invictus/Indomita event import (2026-09-30).
+
+#P:A Imported from Invictus: good_finesse_trait_effect (common/scripted_effects/00_character_traits_effects.txt). Character scope.
+# Imperator: picks one random finesse-flavoured trait the character lacks (8 personality, 3 military), else +1 finesse.
+pa_imp_good_finesse_trait_effect = {
+	random_list = {
+		# 100 = { trigger = { NOR = { number_of_personality_traits > max_number_of_traits_svalue has_trait = ambitious } } add_trait = ambitious }
+		# 100 = { trigger = { NOR = { number_of_personality_traits > max_number_of_traits_svalue has_trait = energetic } } add_trait = energetic }
+		# 100 = { trigger = { NOR = { number_of_personality_traits > max_number_of_traits_svalue has_trait = intelligent } } add_trait = intelligent }
+		# 100 = { trigger = { NOR = { number_of_personality_traits > max_number_of_traits_svalue has_trait = shrewd } } add_trait = shrewd }
+		# 100 = { trigger = { NOR = { number_of_personality_traits > max_number_of_traits_svalue has_trait = vengeful } } add_trait = vengeful }
+		# 100 = { trigger = { NOR = { number_of_personality_traits > max_number_of_traits_svalue has_trait = wise } } add_trait = wise }
+		# 100 = { trigger = { NOR = { number_of_military_traits > max_number_of_military_traits_svalue has_trait = princeps } } add_trait = princeps }
+		# 50 = { trigger = { NOR = { number_of_military_traits > max_number_of_military_traits_svalue has_trait = eccentric } } add_trait = eccentric }
+		# 100 = { trigger = { NOR = { number_of_military_traits > max_number_of_military_traits_svalue has_trait = resourceful } } add_trait = resourceful }
+		#P:A TODO No EU5 equivalent: Imperator traits ambitious, energetic, intelligent, shrewd, vengeful, wise, princeps, eccentric, resourceful do not exist in EU5; only deceitful and just remain, so the odds changed
+		100 = {
+			trigger = {
+				NOR = {
+					num_of_traits_of_category = { type = ruler value > 4 } #P:A TODO Approximate: Imperator number_of_personality_traits > max_number_of_traits_svalue (4); EU5 counts ruler traits
+					has_trait = deceitful
+				}
+			}
+			add_trait = trait:deceitful
+		}
+		100 = {
+			trigger = {
+				NOR = {
+					num_of_traits_of_category = { type = ruler value > 4 } #P:A TODO Approximate: Imperator number_of_personality_traits > max_number_of_traits_svalue (4); EU5 counts ruler traits
+					has_trait = just
+				}
+			}
+			add_trait = trait:just
+		}
+		1 = { # Fallback
+			trigger = {
+				num_of_traits_of_category = { type = ruler value > 4 } #P:A TODO Approximate: Imperator number_of_personality_traits > max_number_of_traits_svalue (4)
+				num_of_traits_of_category = { type = general value > 1 } #P:A TODO Approximate: Imperator number_of_military_traits > max_number_of_military_traits_svalue (1)
+			}
+			add_adm = 5 # Imperator add_finesse = 1
+		}
+	}
+}
+
+#P:A Imported from Invictus: good_popularity_trait_effect (common/scripted_effects/00_character_traits_effects.txt). Character scope.
+# Imperator: picks one random popular trait the character lacks, else +popularity.
+# (Invictus checks number_of_personality_traits < max here, i.e. only characters with 4+ personality traits get a trait; kept as written.)
+pa_imp_good_popularity_trait_effect = {
+	random_list = {
+		# 100 = { trigger = { NOR = { number_of_personality_traits < max_number_of_traits_svalue has_trait = benefactor } } add_trait = benefactor }
+		# 100 = { trigger = { NOR = { number_of_personality_traits < max_number_of_traits_svalue has_trait = generous } } add_trait = generous }
+		# 100 = { trigger = { NOR = { number_of_personality_traits < max_number_of_traits_svalue has_trait = modest } } add_trait = modest }
+		# 100 = { trigger = { NOR = { number_of_personality_traits < max_number_of_traits_svalue has_trait = easygoing } } add_trait = easygoing }
+		# 100 = { trigger = { NOR = { number_of_personality_traits < max_number_of_traits_svalue has_trait = patient } } add_trait = patient }
+		#P:A TODO No EU5 equivalent: Imperator traits benefactor, modest, easygoing, patient do not exist in EU5; generous would map to alms_giver, but that is an EU5 religious-figure trait
+		100 = {
+			trigger = {
+				NOR = {
+					num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4); EU5 counts ruler traits
+					has_trait = drunkard
+				}
+			}
+			add_trait = trait:drunkard #P:A TODO Approximate: Imperator trait carouser mapped to drunkard
+		}
+		1 = {
+			trigger = {
+				num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4)
+			}
+			# add_popularity = popularity_small
+			#P:A TODO No EU5 equivalent: +5 popularity (EU5 characters have no popularity)
+		}
+	}
+}

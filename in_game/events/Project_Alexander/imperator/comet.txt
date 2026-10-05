@@ -1,0 +1,169 @@
+﻿#P:A Imported from Invictus: events/comet.txt
+namespace = comet
+
+# A comet is seen over the capital and falls in a neighbour's territory; the priest demands we take the spot.
+comet.1 = {
+	type = country_event
+	title = comet.1.t
+	desc = comet.1.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital
+		any_neighbor_country = {
+			exists = capital
+		}
+		NOT = {
+			has_variable = comet_sighted
+		}
+		# any_character = { OR = { has_office = office_high_priest_monarchy has_office = office_augur has_office = office_pontifex has_office = office_high_priest } }
+		any_character = { #P:A TODO Approximate: Imperator required a high priest/augur/pontifex office holder; EU5 has no offices, a clergy-estate character stands in
+			has_estate = estate_type:clergy_estate
+		}
+	}
+
+	fire_only_once = yes
+
+	immediate = {
+		random_neighbor_country = {
+			limit = {
+				exists = capital
+			}
+			random_owned_location = {
+				save_scope_as = target
+			}
+		}
+		set_variable = {
+			name = comet_sighted
+			value = scope:target
+		}
+		random_character = { #P:A TODO Approximate: priest office holder -> clergy-estate character (see trigger)
+			limit = {
+				has_estate = estate_type:clergy_estate
+			}
+			save_scope_as = priest
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		every_neighbor_country = {
+			limit = {
+				exists = capital
+				any_neighbor_country = {
+					exists = capital
+				}
+				NOT = {
+					has_variable = comet_sighted
+				}
+				any_character = { #P:A TODO Approximate: priest office holder -> clergy-estate character (see trigger)
+					has_estate = estate_type:clergy_estate
+				}
+			}
+			trigger_event_non_silently = {
+				id = comet.1
+				days = 2
+			}
+		}
+	}
+
+	option = {
+		name = comet.1.a
+		add_stability = 10
+		custom_tooltip = comet_sighted_1_tt
+	}
+}
+
+# Hidden: when the comet location changes hands, tell the new owner (fired from on_location_changed_owner).
+comet.2 = {
+	type = location_event
+	hidden = yes
+
+	trigger = {
+		exists = owner
+		owner = {
+			has_variable = comet_sighted
+			var:comet_sighted = {
+				this = root
+			}
+		}
+	}
+
+	immediate = {
+		save_scope_as = target
+		owner = {
+			trigger_event_non_silently = {
+				id = comet.3
+			}
+		}
+	}
+}
+
+# The fallen rock is found and becomes a shrine.
+comet.3 = {
+	type = country_event
+	title = comet.3.t
+	desc = comet.3.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	option = {
+		name = comet.3.a
+		add_country_modifier = {
+			modifier = comet_sighted_modifier
+			days = -1
+		}
+	}
+}
+
+# At war, the advisors want the idol moved to the capital.
+comet.4 = {
+	type = country_event
+	title = comet.4.t
+	desc = comet.4.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		has_country_modifier = comet_sighted_modifier
+		has_variable = comet_sighted
+		var:comet_sighted = {
+			has_owner = yes
+			owner = root
+			is_capital = no
+		}
+		at_war = yes
+		manpower >= 10
+		NOT = {
+			has_variable = comet_moved_toggle
+		}
+	}
+
+	immediate = {
+		var:comet_sighted = {
+			save_scope_as = target
+		}
+		set_variable = comet_moved_toggle
+	}
+
+	option = {
+		name = comet.4.a
+		add_manpower = -10
+		add_war_exhaustion = 4
+		add_stability = 20
+	}
+
+	option = {
+		name = comet.4.b
+		remove_country_modifier = comet_sighted_modifier
+	}
+}

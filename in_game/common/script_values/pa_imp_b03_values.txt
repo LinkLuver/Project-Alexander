@@ -1,0 +1,142 @@
+﻿# Imperator script values for batch b03 of the Invictus/Indomita event import (2026-09-30).
+
+#P:A Imported from Imperator: get_oligarch_plot_success_chance (common/script_values/00_event_values.txt)
+# Country scope (the plot's country): chance (0-100) that the ruler foils the oligarch plot. Reads the temporary scopes
+# saved by the event triggers (ip_rep_66_protagonist_temp, pa_imp_olig_plot_temp_scope_trigger).
+pa_imp_get_oligarch_plot_success_chance = {
+	value = 60
+	# if = {
+	# 	limit = { exists = scope:ip_rep_66_protagonist_temp }
+	# 	subtract = {
+	# 		value = scope:ip_rep_66_protagonist_temp.power_base
+	# 		divide = 3
+	# 		max = 20
+	# 	}
+	# }
+	# if = {
+	# 	limit = { exists = scope:ip_rep_66_protagonist_temp }
+	# 	subtract = {
+	# 		value = scope:ip_rep_66_protagonist_temp.wealth
+	# 		divide = 20
+	# 		max = 10
+	# 	}
+	# }
+	#P:A TODO No EU5 equivalent: -(plotter power base / 3, max 20) and -(plotter wealth / 20, max 10) (EU5 characters have no power base or wealth)
+	if = {
+		limit = { has_variable = ip_rep_66_plot_support }
+		subtract = var:ip_rep_66_plot_support
+	}
+	if = {
+		limit = { has_variable = ip_rep_66_counter_support }
+		add = var:ip_rep_66_counter_support
+	}
+	if = {
+		limit = { has_variable = ip_rep_66_foreign_support_flag }
+		subtract = 10
+	}
+	if = {
+		limit = { has_variable = ip_rep_66_evidence_uncovered_flag }
+		add = 20
+	}
+	# if = {
+	# 	limit = {
+	# 		exists = scope:ip_rep_66_protagonist_temp
+	# 		root.current_ruler.popularity < scope:ip_rep_66_protagonist_temp.popularity
+	# 	}
+	# 	subtract = 10
+	# }
+	# else_if = {
+	# 	limit = {
+	# 		exists = scope:ip_rep_66_protagonist_temp
+	# 		root.current_ruler.popularity > scope:ip_rep_66_protagonist_temp.popularity
+	# 	}
+	# 	add = 10
+	# }
+	#P:A TODO No EU5 equivalent: -10 / +10 when the plotter is more / less popular than the ruler (EU5 characters have no popularity)
+	if = {
+		limit = { pa_imp_get_oligarch_plotter_strength > pa_imp_get_oligarch_counter_strength }
+		subtract = 10
+	}
+	else_if = {
+		limit = { pa_imp_get_oligarch_plotter_strength < pa_imp_get_oligarch_counter_strength }
+		add = 10
+	}
+	if = {
+		limit = {
+			any_character = {
+				count = 1
+				has_variable = ip_rep_66_counter_flag
+			}
+		}
+		add = 5
+	}
+	if = {
+		limit = {
+			any_character = {
+				count = 2
+				has_variable = ip_rep_66_counter_flag
+			}
+		}
+		add = 10
+	}
+	if = {
+		limit = {
+			any_character = {
+				count = 1
+				has_variable = ip_rep_66_supporter_flag
+			}
+		}
+		subtract = 5
+	}
+	if = {
+		limit = {
+			any_character = {
+				count = 2
+				has_variable = ip_rep_66_supporter_flag
+			}
+		}
+		subtract = 10
+	}
+	min = 0
+	max = 100
+}
+
+#P:A Imported from Imperator: get_oligarch_plotter_strength (common/script_values/00_event_values.txt)
+# Country scope: power base + wealth of the plotter and up to two supporters.
+pa_imp_get_oligarch_plotter_strength = {
+	value = 0 #P:A TODO No EU5 equivalent: summed power base + wealth of the plotter (scope:ip_rep_66_protagonist_temp) and supporters (scope:ip_rep_66_supporter_1_temp / _2_temp, if alive, free and in the same country); EU5 characters have neither
+}
+
+#P:A Imported from Imperator: get_oligarch_counter_strength (common/script_values/00_event_values.txt)
+# Country scope: power base + wealth of the ruler and up to two counter-plotters.
+pa_imp_get_oligarch_counter_strength = {
+	value = 0 #P:A TODO No EU5 equivalent: summed power base + wealth of the ruler and counter-plotters (scope:ip_rep_66_counter_1_temp / _2_temp, if alive, free and in the same country); EU5 characters have neither
+}
+
+#P:A Imported from Imperator: get_ostracise_popularity_1 (common/script_values/00_event_values.txt)
+# Country scope (used by ip_republic.83): half the ruler's popularity.
+pa_imp_get_ostracise_popularity_1 = {
+	value = root.ruler.dip #P:A TODO Approximate: Imperator root.current_ruler.popularity -> the ruler's diplomatic skill (EU5 characters have no popularity)
+	divide = 2
+}
+
+#P:A Imported from Imperator: get_ostracise_popularity_2 (common/script_values/00_event_values.txt)
+# Country scope (used by ip_republic.83): half the plotter's popularity.
+pa_imp_get_ostracise_popularity_2 = {
+	value = scope:ip_rep_66_protagonist.dip #P:A TODO Approximate: Imperator scope:ip_rep_66_protagonist.popularity -> the plotter's diplomatic skill (EU5 characters have no popularity)
+	divide = 2
+}
+
+#P:A Imported from Imperator: powerful_character_relative_power_base (Invictus common/script_values/ai_characters_values.txt)
+# Character scope: the relative power base from which a character counts as powerful.
+pa_imp_powerful_character_relative_power_base = {
+	value = 3.00
+	# max = {
+	# 	employer = {
+	# 		value = modifier:civil_war_threshold
+	# 		multiply = 100
+	# 		divide = 3
+	# 	}
+	# }
+	#P:A TODO No EU5 equivalent: capped at a third of the employer's civil war threshold (EU5 has no civil war threshold modifier; the value only feeds the power base check, which EU5 lacks too)
+}

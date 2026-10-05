@@ -1,0 +1,83 @@
+﻿# Imperator scripted triggers for batch b03 of the Invictus/Indomita event import (2026-09-30).
+
+#P:A Imported from Imperator: country_has_democratic_party_trigger (common/scripted_triggers/00_republic_triggers.txt)
+# Country scope: the country has the populares or democratic party.
+pa_imp_country_has_democratic_party_trigger = {
+	# OR = {
+	# 	has_party_type = populares_party
+	# 	has_party_type = democratic_party
+	# }
+	always = no #P:A TODO No EU5 equivalent: checks for the Imperator populares/democratic party (EU5 has no political parties)
+}
+
+#P:A Imported from Imperator: olig_plot_temp_scope_trigger (common/scripted_triggers/00_country_events.txt)
+# Country scope. Always true in practice; it saves the plot's supporter/counter characters as temporary scopes for loc.
+pa_imp_olig_plot_temp_scope_trigger = {
+	OR = {
+		NOT = {
+			any_character = { has_variable = ip_rep_66_supporter_flag }
+		}
+		any_character = {
+			has_variable = ip_rep_66_supporter_flag
+			save_temporary_scope_as = ip_rep_66_supporter_1_temp
+		}
+		AND = {
+			any_character = {
+				has_variable = ip_rep_66_supporter_flag
+				save_temporary_scope_as = ip_rep_66_supporter_1_temp
+			}
+			any_character = {
+				has_variable = ip_rep_66_supporter_flag
+				NOT = { this = scope:ip_rep_66_supporter_1_temp }
+				save_temporary_scope_as = ip_rep_66_supporter_2_temp
+			}
+		}
+	}
+	OR = {
+		NOT = {
+			any_character = { has_variable = ip_rep_66_counter_flag }
+		}
+		any_character = {
+			has_variable = ip_rep_66_counter_flag
+			save_temporary_scope_as = ip_rep_66_counter_1_temp
+		}
+		AND = {
+			any_character = {
+				has_variable = ip_rep_66_counter_flag
+				save_temporary_scope_as = ip_rep_66_counter_1_temp
+			}
+			any_character = {
+				has_variable = ip_rep_66_counter_flag
+				NOT = { this = scope:ip_rep_66_supporter_2_temp } # (sic: Imperator compares with the supporter scope here)
+				save_temporary_scope_as = ip_rep_66_counter_2_temp
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: ruler_befriending_disloyal_powerful_character (Invictus common/scripted_triggers/ai_characters_triggers.txt)
+# Character scope (the befriending character): it is its employer's ruler and scope:friend_target is a disloyal, powerful character of the same country.
+pa_imp_ruler_befriending_disloyal_powerful_character = {
+	exists = employer
+	is_ruler = yes # Imperator: employer = { current_ruler = prev }
+	save_temporary_scope_as = pa_befriender
+	scope:friend_target = {
+		employer = scope:pa_befriender.employer # Imperator: employer = root.employer
+		pa_imp_character_is_disloyal = yes
+		pa_imp_character_is_powerful = yes
+	}
+}
+
+#P:A Imported from Imperator: character_is_disloyal (Invictus common/scripted_triggers/ai_characters_triggers.txt)
+# Character scope.
+pa_imp_character_is_disloyal = {
+	# loyalty <= 33 # Disloyal threshold
+	always = no #P:A TODO No EU5 equivalent: loyalty at or below 33 (EU5 characters have no loyalty)
+}
+
+#P:A Imported from Imperator: character_is_powerful (Invictus common/scripted_triggers/ai_characters_triggers.txt)
+# Character scope.
+pa_imp_character_is_powerful = {
+	# relative_power_base >= pa_imp_powerful_character_relative_power_base
+	always = no #P:A TODO No EU5 equivalent: relative power base at or above pa_imp_powerful_character_relative_power_base (EU5 characters have no power base)
+}

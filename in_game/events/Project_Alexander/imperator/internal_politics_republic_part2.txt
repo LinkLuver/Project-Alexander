@@ -1,0 +1,4355 @@
+﻿#P:A Imported from Invictus: events/internal_politics_republic.txt (part 2: ip_republic.66 - ip_republic.101; part 1 is internal_politics_republic_part1.txt)
+# The Invictus "Oligarch Plot" chain (ip_republic.66 - .86): a powerful character plots to seize power in a republic.
+# In Imperator it ran through the custom on_actions ip_rep_66_development_on_action (random: .68 .69 .72 .73 .74 .75 .78 .80,
+# fallback ip_rep_66_close_on_action) and ip_rep_66_close_on_action (.76 .79 .84), with the plot state kept in country variables.
+# Imperator character events are country events here; the character is scope:pa_character.
+#P:A TODO The chain is built on Imperator parties, popularity, loyalty, political influence, tyranny, offices and the senate, none of which EU5 has; see the TODOs per line.
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = ip_republic
+
+# Oligarch Plot - Start
+# In Imperator the plot state lives in country variables (ip_rep_66_*) and the plotter carries ip_rep_66_protagonist_flag.
+ip_republic.66 = {
+	type = country_event
+	title = ip_republic.66.t
+	desc = ip_republic.66.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		is_subject = no
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		country_has_estate = estate_type:nobles_estate #P:A TODO Approximate: Imperator "has the oligarchic party" -> has the nobles estate (EU5 has no political parties)
+		ruler = {
+			NOT = { has_estate = estate_type:nobles_estate } #P:A TODO Approximate: ruler not in the oligarchic party -> ruler not of the nobles estate
+		}
+		any_character = {
+			is_alive = yes
+			is_ruler = no
+			is_adult = yes #P:A TODO Approximate: new line, stands in for wealth >= 200 (EU5 characters have no wealth), which excluded children in practice
+			# wealth >= 200 #P:A TODO No EU5 equivalent: character wealth of 200+ (EU5 characters have no personal wealth)
+			# loyalty < 75 #P:A TODO No EU5 equivalent: loyalty below 75 (EU5 characters have no loyalty)
+			OR = {
+				has_trait = righteous
+				has_trait = schemer # Imperator crafty
+				has_trait = prominent
+				has_trait = well_connected
+				#P:A TODO No EU5 equivalent: the Imperator traits ambitious, jealous, selfish, assertive, confident, arbitrary and victorious, power base and character rivals
+				# has_trait = ambitious
+				# has_trait = jealous
+				# has_trait = selfish
+				# has_trait = assertive
+				# has_trait = confident
+				# has_trait = arbitrary
+				# has_trait = victorious
+				# power_base >= 10
+				# is_rival = root.current_ruler
+			}
+			# NOT = { is_friend = root.current_ruler } #P:A TODO No EU5 equivalent: not a friend of the ruler (EU5 characters have no friends)
+			trigger_if = {
+				limit = {
+					employer = { allows_female_rulers = no } #P:A TODO Approximate: Imperator gender_equality -> allows_female_rulers
+				}
+				is_female = no
+			}
+			# power_base > 0 #P:A TODO No EU5 equivalent: character power base
+			# exists = character_party #P:A TODO No EU5 equivalent: party membership (EU5 has no political parties)
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		NOT = { has_variable = ip_rep_66_cooldown }
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 3
+			stability < 40
+		}
+		# modifier = {
+		# 	factor = 3
+		# 	exists = scope:ip_rep_66_protagonist_temp
+		# 	current_ruler = { any_rival = { THIS = scope:ip_rep_66_protagonist_temp } }
+		# }
+		#P:A TODO No EU5 equivalent: x3 when the plotter is a rival of the ruler (EU5 characters have no rivals)
+	}
+
+	immediate = {
+		set_variable = {
+			name = ip_rep_66_68
+			value = 0
+		}
+		set_variable = {
+			name = ip_rep_66_69
+			value = 0
+		}
+		set_variable = {
+			name = ip_rep_66_72
+			value = 0
+		}
+		set_variable = {
+			name = ip_rep_66_80
+			value = 0
+		}
+		set_variable = {
+			name = ip_rep_66_cooldown
+			days = 12775 # 35 years
+		}
+		set_variable = {
+			name = ip_rep_66_counter_support
+			value = 0
+		}
+		set_variable = {
+			name = ip_rep_66_plot_support
+			value = 0
+		}
+		random_character = {
+			limit = {
+				is_alive = yes
+				is_ruler = no
+				is_adult = yes #P:A TODO Approximate: new line, stands in for wealth >= 200 (see trigger)
+				# wealth >= 200
+				# loyalty < 75
+				OR = {
+					has_trait = righteous
+					has_trait = schemer # Imperator crafty
+					has_trait = prominent
+					has_trait = well_connected
+					# has_trait = ambitious
+					# has_trait = jealous
+					# has_trait = selfish
+					# has_trait = assertive
+					# has_trait = confident
+					# has_trait = arbitrary
+					# has_trait = victorious
+					# power_base >= 10
+					# is_rival = root.current_ruler
+				}
+				# NOT = { is_friend = root.current_ruler }
+				trigger_if = {
+					limit = {
+						employer = { allows_female_rulers = no }
+					}
+					is_female = no
+				}
+				# power_base > 0
+				# exists = character_party
+				#P:A TODO No EU5 equivalent: the same untranslatable conditions as in the trigger (wealth, loyalty, traits, power base, rivals, friends, party)
+			}
+			weight = {
+				base = 1
+				# modifier = { factor = 10 is_leader_of_party_type = oligarchic_party } #P:A TODO No EU5 equivalent: x10 for the oligarchic party leader (EU5 has no parties)
+				modifier = {
+					factor = 5
+					has_estate = estate_type:nobles_estate #P:A TODO Approximate: Imperator oligarchic party member -> nobles estate character
+				}
+			}
+			save_scope_as = ip_rep_66_protagonist
+			set_variable = ip_rep_66_protagonist_flag
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			scope:ip_rep_66_protagonist = {
+				# (Imperator had an empty "if = { limit = { is_party_leader = no employer = { NOT = { country_has_democratic_party_trigger = yes } } } }" here, so the effect below always ran)
+				pa_imp_character_oligarchic_party_conviction_effect = {
+					VALUE = 50
+				}
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.66.a
+		# current_ruler = { add_popularity = subtract_popularity_huge } #P:A TODO No EU5 equivalent: -25 ruler popularity (EU5 characters have no popularity)
+		# imprison = { target = scope:ip_rep_66_protagonist } #P:A TODO No EU5 equivalent: imprisons the plotter (EU5 has no prisoners)
+		# add_tyranny = tyranny_huge #P:A TODO No EU5 equivalent: +8 tyranny
+		add_stability = -10
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+	}
+
+	option = {
+		name = ip_republic.66.b
+		trigger = {
+			ruler = {
+				OR = {
+					has_trait = naive #P:A TODO Approximate: Imperator guileless -> naive
+					#P:A TODO No EU5 equivalent: the Imperator ruler traits rash, reckless and impatient
+					# has_trait = rash
+					# has_trait = reckless
+					# has_trait = impatient
+				}
+			}
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		exclusive = yes
+		trigger_event_non_silently = {
+			id = ip_republic.67
+			days = { 2 5 }
+		}
+		custom_tooltip = ip_republic.66.bt
+		# if = { limit = { current_ruler = { has_trait = rash } } custom_tooltip = "rash_bad_tooltip" }
+		# else_if = { limit = { current_ruler = { has_trait = reckless } } custom_tooltip = "reckless_bad_tooltip" }
+		if = {
+			limit = {
+				ruler = { has_trait = naive }
+			}
+			custom_tooltip = guileless_bad_tooltip
+		}
+	}
+
+	option = {
+		name = ip_republic.66.c
+		trigger = {
+			ruler = {
+				OR = {
+					has_trait = careful #P:A TODO Approximate: Imperator cautious -> careful
+					has_trait = schemer # Imperator crafty
+					#P:A TODO No EU5 equivalent: the Imperator ruler traits wise, shrewd, intelligent and suspicious
+					# has_trait = wise
+					# has_trait = shrewd
+					# has_trait = intelligent
+					# has_trait = suspicious
+				}
+			}
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		# if = { limit = { current_ruler = { has_trait = wise } } custom_tooltip = "wise_tooltip" }
+		# else_if = { limit = { current_ruler = { has_trait = shrewd } } custom_tooltip = "shrewd_tooltip" }
+		if = {
+			limit = {
+				ruler = { has_trait = careful }
+			}
+			custom_tooltip = cautious_tooltip
+		}
+		# else_if = { limit = { current_ruler = { has_trait = intelligent } } custom_tooltip = "intelligent_tooltip" }
+		else_if = {
+			limit = {
+				ruler = { has_trait = schemer }
+			}
+			custom_tooltip = crafty_tooltip
+		}
+		# else_if = { limit = { current_ruler = { has_trait = suspicious } } custom_tooltip = "suspicious_tooltip_option" }
+		custom_tooltip = ip_republic.66.ct
+		set_variable = ip_rep_66_tailed_flag
+		set_variable = {
+			name = ip_rep_66_tail_cooldown
+			days = 60
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+	}
+
+	option = {
+		name = ip_republic.66.d
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = ip_republic.66.dt
+	}
+}
+
+# Oligarch Plot - Reckless Confrontation
+ip_republic.67 = {
+	type = country_event
+	title = ip_republic.67.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Success
+				trigger = {
+					has_variable = ip_rep_66_nipped_flag
+				}
+				desc = ip_republic.67.desc_1
+			}
+			triggered_desc = { # Failure
+				trigger = {
+					NOT = { has_variable = ip_rep_66_nipped_flag }
+				}
+				desc = ip_republic.67.desc_2
+			}
+			triggered_desc = { # Evidence good (unreachable in Imperator too: the two above cover every case)
+				trigger = {
+					has_variable = ip_rep_66_nipped_flag
+					has_variable = ip_rep_66_evidence_uncovered_flag
+				}
+				desc = ip_republic.67.desc_3
+			}
+			triggered_desc = { # Evidence bad (unreachable in Imperator too)
+				trigger = {
+					NOT = { has_variable = ip_rep_66_nipped_flag }
+					has_variable = ip_rep_66_evidence_uncovered_flag
+				}
+				desc = ip_republic.67.desc_4
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			random_list = {
+				50 = {
+					#P:A TODO No EU5 equivalent: x10 each if the plotter is dumb, incapable, weak_willed or submissive, or has power base < 10 (no such EU5 traits / power base)
+					# modifier = { factor = 10 scope:ip_rep_66_protagonist = { has_trait = dumb } }
+					# modifier = { factor = 10 scope:ip_rep_66_protagonist = { has_trait = incapable } }
+					modifier = {
+						factor = 10
+						scope:ip_rep_66_protagonist = { has_trait = naive } #P:A TODO Approximate: Imperator guileless -> naive
+					}
+					# modifier = { factor = 10 scope:ip_rep_66_protagonist = { has_trait = weak_willed } }
+					# modifier = { factor = 10 scope:ip_rep_66_protagonist = { has_trait = submissive } }
+					# modifier = { factor = 10 scope:ip_rep_66_protagonist.power_base < 10 }
+					modifier = {
+						factor = 20
+						root = { has_variable = ip_rep_66_evidence_uncovered_flag }
+					}
+					set_variable = ip_rep_66_nipped_flag
+				}
+				50 = {
+					modifier = {
+						factor = 10
+						scope:ip_rep_66_protagonist = { has_trait = schemer } # Imperator crafty
+					}
+					#P:A TODO No EU5 equivalent: x10 each if the plotter is intelligent, wise or shrewd (no such EU5 traits)
+					# modifier = { factor = 10 scope:ip_rep_66_protagonist = { has_trait = intelligent } }
+					# modifier = { factor = 10 scope:ip_rep_66_protagonist = { has_trait = wise } }
+					# modifier = { factor = 10 scope:ip_rep_66_protagonist = { has_trait = shrewd } }
+					modifier = {
+						factor = 10
+						scope:ip_rep_66_protagonist = { has_trait = kind_hearted } # Imperator kindly
+					}
+					#P:A TODO No EU5 equivalent: x5 steps for the foreign backer's power base (> 10, > 20) and wealth (> 100 ... > 1200) (EU5 characters have neither)
+					# modifier = { factor = 5 exists = scope:ip_rep_66_foreign_backer scope:ip_rep_66_foreign_backer.power_base > 10 }
+					# modifier = { factor = 5 exists = scope:ip_rep_66_foreign_backer scope:ip_rep_66_foreign_backer.power_base > 20 }
+					# modifier = { factor = 5 exists = scope:ip_rep_66_foreign_backer scope:ip_rep_66_foreign_backer.wealth > 100 }
+					# modifier = { factor = 5 exists = scope:ip_rep_66_foreign_backer scope:ip_rep_66_foreign_backer.wealth > 200 }
+					# modifier = { factor = 5 exists = scope:ip_rep_66_foreign_backer scope:ip_rep_66_foreign_backer.wealth > 400 }
+					# modifier = { factor = 5 exists = scope:ip_rep_66_foreign_backer scope:ip_rep_66_foreign_backer.wealth > 800 }
+					# modifier = { factor = 5 exists = scope:ip_rep_66_foreign_backer scope:ip_rep_66_foreign_backer.wealth > 1200 }
+				}
+			}
+		}
+	}
+
+	option = {
+		name = ip_republic.67.a
+		trigger = {
+			has_variable = ip_rep_66_nipped_flag
+			NOT = { has_variable = ip_rep_66_evidence_uncovered_flag }
+		}
+		# current_ruler = { add_popularity = popularity_small } #P:A TODO No EU5 equivalent: +5 ruler popularity
+		# scope:ip_rep_66_protagonist = {
+		# 	add_popularity = subtract_popularity_medium
+		# 	add_loyalty = loyalty_bitter_plotter
+		# }
+		#P:A TODO No EU5 equivalent: -10 popularity and the "bitter plotter" loyalty modifier for the plotter (EU5 characters have no popularity or loyalty)
+		custom_tooltip = ip_republic.67.at
+	}
+
+	option = {
+		name = ip_republic.67.b
+		trigger = {
+			NOR = {
+				has_variable = ip_rep_66_nipped_flag
+				has_variable = ip_rep_66_evidence_uncovered_flag
+			}
+		}
+		# current_ruler = { add_popularity = subtract_popularity_medium } #P:A TODO No EU5 equivalent: -10 ruler popularity
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = ip_republic.67.bt
+	}
+
+	option = {
+		name = ip_republic.67.c
+		trigger = {
+			has_variable = ip_rep_66_nipped_flag
+			has_variable = ip_rep_66_evidence_uncovered_flag
+		}
+		# current_ruler = { add_popularity = subtract_popularity_small } #P:A TODO No EU5 equivalent: -5 ruler popularity
+		# imprison = { target = scope:ip_rep_66_protagonist } #P:A TODO No EU5 equivalent: imprisons the plotter (EU5 has no prisoners)
+		# add_tyranny = tyranny_small #P:A TODO No EU5 equivalent: +1 tyranny
+	}
+
+	option = {
+		name = ip_republic.67.d
+		trigger = {
+			NOT = { has_variable = ip_rep_66_nipped_flag }
+			has_variable = ip_rep_66_evidence_uncovered_flag
+		}
+		# current_ruler = { add_popularity = subtract_popularity_large } #P:A TODO No EU5 equivalent: -15 ruler popularity
+		# add_tyranny = tyranny_large #P:A TODO No EU5 equivalent: +5 tyranny
+	}
+}
+
+# Oligarch Plot - Supporter Gathered
+ip_republic.68 = {
+	type = country_event
+	title = ip_republic.68.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					var:ip_rep_66_68 = 1
+				}
+				desc = ip_republic.68.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					var:ip_rep_66_68 = 2
+				}
+				desc = ip_republic.68.desc_2
+			}
+		}
+	}
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+		any_character = {
+			is_alive = yes
+			is_ruler = no
+			#P:A Removed: prisoner = no is always true in EU5
+			# wealth >= 10 #P:A TODO No EU5 equivalent: character wealth of 10+ (EU5 characters have no personal wealth)
+			# loyalty < 80 #P:A TODO No EU5 equivalent: loyalty below 80 (EU5 characters have no loyalty)
+			OR = {
+				has_trait = righteous
+				has_trait = corrupt
+				has_trait = arrogant
+				has_trait = schemer # Imperator crafty
+				NOR = {
+					has_trait = honest
+					has_trait = humble
+					has_trait = lazy
+					# has_trait = content
+					# has_trait = trustworthy
+				}
+				#P:A TODO No EU5 equivalent: the Imperator traits ambitious, selfish, weak_willed, arbitrary, submissive, foolish, proud, jealous, two_faced, content and trustworthy, and character friends/rivals
+				# has_trait = ambitious
+				# has_trait = selfish
+				# has_trait = weak_willed
+				# has_trait = arbitrary
+				# has_trait = submissive
+				# has_trait = foolish
+				# has_trait = proud
+				# has_trait = jealous
+				# has_trait = two_faced
+				# is_friend = scope:ip_rep_66_protagonist_temp
+				# is_rival = root.current_ruler
+			}
+			NOR = {
+				has_character_modifier = foreign_citizen
+				this = scope:ip_rep_66_protagonist_temp
+				# is_friend = root.current_ruler #P:A TODO No EU5 equivalent: not a friend of the ruler (EU5 characters have no friends)
+				has_variable = ip_rep_66_supporter_flag
+			}
+			trigger_if = {
+				limit = {
+					employer = { allows_female_rulers = no } #P:A TODO Approximate: Imperator gender_equality -> allows_female_rulers
+				}
+				is_female = no
+			}
+		}
+		var:ip_rep_66_68 < 2
+		NOT = { has_variable = ip_rep_66_support_cooldown }
+		pa_imp_get_oligarch_plot_success_chance >= 15
+		pa_imp_get_oligarch_plot_success_chance < 75
+	}
+
+	weight_multiplier = {
+		base = 2
+		modifier = {
+			factor = -1 # (sic, as in Imperator)
+			any_character = {
+				count = 1
+				is_alive = yes
+				employer = root
+				has_variable = ip_rep_66_supporter_flag
+			}
+		}
+		modifier = {
+			factor = -1 # (sic, as in Imperator)
+			any_character = {
+				count >= 2
+				is_alive = yes
+				employer = root
+				has_variable = ip_rep_66_supporter_flag
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = ip_rep_66_support_cooldown
+			days = 60 # 2 months
+		}
+		change_variable = {
+			name = ip_rep_66_68
+			add = 1
+		}
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		random_character = {
+			limit = {
+				is_alive = yes
+				is_ruler = no
+				# wealth >= 10
+				# loyalty < 80
+				OR = {
+					has_trait = righteous
+					has_trait = corrupt
+					has_trait = arrogant
+					has_trait = schemer # Imperator crafty
+					NOR = {
+						has_trait = honest
+						has_trait = humble
+						has_trait = lazy
+						# has_trait = content
+						# has_trait = trustworthy
+						# is_leader_of_party_type = democratic_party
+						# is_leader_of_party_type = traditionalist_party
+					}
+					# has_trait = ambitious
+					# has_trait = selfish
+					# has_trait = weak_willed
+					# has_trait = arbitrary
+					# has_trait = submissive
+					# has_trait = foolish
+					# has_trait = proud
+					# has_trait = jealous
+					# has_trait = two_faced
+					# is_friend = scope:ip_rep_66_protagonist
+					# is_rival = root.current_ruler
+				}
+				NOR = {
+					this = scope:ip_rep_66_protagonist
+					# is_friend = root.current_ruler
+					has_variable = ip_rep_66_supporter_flag
+					has_variable = ip_rep_66_supporter_cooldown
+				}
+				trigger_if = {
+					limit = {
+						employer = { allows_female_rulers = no }
+					}
+					is_female = no
+				}
+				#P:A TODO No EU5 equivalent: the same untranslatable conditions as in the trigger (wealth, loyalty, traits, friends/rivals), plus "not a democratic/traditionalist party leader"
+			}
+			weight = {
+				base = 1
+				# title_importance_modifier = yes #P:A TODO No EU5 equivalent: Imperator weighting by office/title importance
+				modifier = {
+					factor = 10
+					has_estate = estate_type:nobles_estate #P:A TODO Approximate: Imperator oligarchic party member -> nobles estate character
+				}
+			}
+			save_scope_as = ip_rep_66_supporter
+			set_variable = ip_rep_66_supporter_flag
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			# if = {
+			# 	limit = {
+			# 		NOT = { scope:ip_rep_66_protagonist = { is_friend = scope:ip_rep_66_supporter } }
+			# 		scope:ip_rep_66_protagonist = { can_get_friends = yes }
+			# 		scope:ip_rep_66_supporter = { can_get_friends = yes }
+			# 	}
+			# 	scope:ip_rep_66_protagonist = { add_friend = scope:ip_rep_66_supporter }
+			# }
+			#P:A TODO No EU5 equivalent: the plotter and the supporter become friends (EU5 characters have no friends)
+			scope:ip_rep_66_supporter = {
+				# (Imperator had an empty "if = { limit = { is_party_leader = no ... } }" here, so the effect below always ran)
+				pa_imp_character_oligarchic_party_conviction_effect = {
+					VALUE = 50
+				}
+			}
+		}
+	}
+
+	option = { # Seek support
+		name = ip_republic.68.a
+		# current_ruler = { add_popularity = popularity_small } #P:A TODO No EU5 equivalent: +5 ruler popularity
+		add_gold = {
+			value = monthly_income_total
+			multiply = -1.4
+			min = -6000
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_balance
+	}
+
+	option = { # Smear
+		name = ip_republic.68.b
+		trigger = {
+			ruler = {
+				OR = {
+					has_trait = schemer # Imperator crafty
+					has_trait = deceitful
+					has_trait = righteous
+					#P:A TODO No EU5 equivalent: the Imperator ruler traits arbitrary, shrewd, intelligent and vengeful
+					# has_trait = arbitrary
+					# has_trait = shrewd
+					# has_trait = intelligent
+					# has_trait = vengeful
+				}
+			}
+			NOT = { has_variable = ip_rep_66_smear_cooldown }
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		# scope:ip_rep_66_protagonist = {
+		# 	add_popularity = subtract_popularity_small
+		# 	add_loyalty = loyalty_smeared_plotter
+		# }
+		#P:A TODO No EU5 equivalent: -5 popularity and the "smeared plotter" loyalty modifier for the plotter (EU5 characters have no popularity or loyalty)
+		add_gold = {
+			value = monthly_income_total
+			multiply = -0.9
+			min = -6000
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		set_variable = {
+			name = ip_rep_66_smear_cooldown
+			days = 60 # 2 months
+		}
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 2
+		}
+		custom_tooltip = oligarch_plot_success_chance_balance
+		if = {
+			limit = {
+				ruler = { has_trait = schemer }
+			}
+			custom_tooltip = crafty_tooltip
+		}
+		else_if = {
+			limit = {
+				ruler = { has_trait = deceitful }
+			}
+			custom_tooltip = deceitful_tooltip
+		}
+		else_if = {
+			limit = {
+				ruler = { has_trait = righteous }
+			}
+			custom_tooltip = righteous_tooltip
+		}
+		# else_if = { limit = { current_ruler = { has_trait = arbitrary } } custom_tooltip = "arbitrary_tooltip" }
+		# else_if = { limit = { current_ruler = { has_trait = shrewd } } custom_tooltip = "shrewd_tooltip" }
+		# else_if = { limit = { current_ruler = { has_trait = intelligent } } custom_tooltip = "intelligent_tooltip" }
+		# else_if = { limit = { current_ruler = { has_trait = vengeful } } custom_tooltip = "vengeful_tooltip" }
+	}
+
+	option = { # Threaten job
+		name = ip_republic.68.c
+		trigger = {
+			scope:ip_rep_66_supporter = {
+				OR = {
+					is_general = yes
+					is_admiral = yes
+					in_cabinet = yes #P:A TODO Approximate: Imperator "holds any office" -> EU5 cabinet member
+					# is_governor = yes #P:A TODO No EU5 equivalent: governors
+					# has_tech_office = yes #P:A TODO No EU5 equivalent: Imperator tech offices
+				}
+			}
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		custom_tooltip = ip_republic.68.ct2
+		# current_ruler = { add_popularity = subtract_popularity_small } #P:A TODO No EU5 equivalent: -5 ruler popularity
+		scope:ip_rep_66_supporter = {
+			# add_loyalty = loyalty_office_threatened #P:A TODO No EU5 equivalent: "office threatened" loyalty modifier (EU5 characters have no loyalty)
+			remove_variable = ip_rep_66_supporter_flag
+			set_variable = {
+				name = ip_rep_66_supporter_cooldown
+				days = 60 # 2 months
+			}
+		}
+		# add_tyranny = tyranny_small #P:A TODO No EU5 equivalent: +1 tyranny
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = ip_republic.68.ct1
+	}
+
+	option = { # Nothing
+		name = ip_republic.68.d
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 5
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_subtract_large
+	}
+}
+
+# Oligarch Plot - Foreign Backers 1 (hidden: sends the plotter looking for a foreign backer, ip_republic.70)
+ip_republic.69 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+		any_country = {
+			NOT = { this = root } #P:A added: make sure the plot country is not its own foreign backer
+			within_diplomatic_range = root
+			country_rank_level >= root.country_rank_level
+			OR = {
+				opinion = { target = root value <= 25 }
+				# this.current_ruler = { is_rival = root.current_ruler } #P:A TODO No EU5 equivalent: the rulers are rivals (EU5 characters have no rivals)
+			}
+			NOR = {
+				has_variable = ip_rep_66_foreign_support_scope_cooldown
+				is_allied_with = { target = root }
+				is_at_war_with = root
+				# this.current_ruler = { is_friend = root.current_ruler } #P:A TODO No EU5 equivalent: the rulers are friends (EU5 characters have no friends)
+			}
+		}
+		NOR = {
+			has_variable = ip_rep_66_foreign_support_flag
+			has_variable = ip_rep_66_foreign_support_cooldown
+		}
+		var:ip_rep_66_69 < 2
+		pa_imp_get_oligarch_plot_success_chance >= 15
+		pa_imp_get_oligarch_plot_success_chance < 75
+	}
+
+	weight_multiplier = {
+		base = 2
+		modifier = {
+			factor = -1 # (sic, as in Imperator)
+			var:ip_rep_66_69 >= 1
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		set_variable = {
+			name = ip_rep_66_foreign_support_cooldown
+			days = 60 # 2 months
+		}
+		# Imperator: scope:ip_rep_66_protagonist = { trigger_event = { id = ip_republic.70 } } (character event, now a country event)
+		scope:ip_rep_66_protagonist = {
+			save_scope_as = pa_character
+			employer = {
+				trigger_event_silently = {
+					id = ip_republic.70
+				}
+			}
+		}
+	}
+}
+
+# Oligarch Plot - Foreign Backer Plotter Event (hidden; Imperator character event of the plotter, now a country event: scope:pa_character = the plotter)
+ip_republic.70 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:pa_character
+	}
+
+	immediate = {
+		random_country = {
+			limit = {
+				NOT = { this = root } #P:A added: make sure the plot country is not its own foreign backer
+				within_diplomatic_range = root
+				country_rank_level >= root.country_rank_level
+				opinion = { target = root value <= 25 }
+				NOT = { has_variable = ip_rep_66_foreign_support_scope_cooldown }
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 5
+					is_neighbor_of = root # Imperator: owns a province bordering one of root's
+				}
+				modifier = {
+					factor = 5
+					country_rank_level > root.country_rank_level
+				}
+				modifier = {
+					factor = 5
+					has_truce_with = root
+				}
+				modifier = {
+					factor = 5
+					is_at_war_with = root
+				}
+			}
+			save_scope_as = ip_rep_66_foreign_support_candidate
+		}
+		scope:ip_rep_66_foreign_support_candidate ?= {
+			trigger_event_non_silently = {
+				id = ip_republic.71
+			}
+		}
+	}
+}
+
+# Oligarch Plot - Foreign Backer Foreign Event (fired for the foreign country; scope:ip_rep_66_protagonist = the plotter abroad)
+ip_republic.71 = {
+	type = country_event
+	title = ip_republic.71.t
+	desc = ip_republic.71.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		exists = scope:ip_rep_66_protagonist
+		scope:ip_rep_66_protagonist = {
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = ip_rep_66_foreign_support_scope_cooldown
+			days = 1825 # 5 years
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # Assist
+		name = ip_republic.71.a
+		save_scope_as = ip_rep_66_foreign_backer
+		scope:ip_rep_66_protagonist.employer = {
+			set_variable = {
+				name = ip_rep_66_foreign_support_flag
+				value = root
+			}
+			trigger_event_non_silently = {
+				id = ip_republic.77
+				days = { 20 40 }
+			}
+		}
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = -1
+			min = -6000
+		}
+		custom_tooltip = ip_republic.71.at
+		ai_chance = {
+			factor = 65
+			modifier = {
+				factor = 15
+				opinion = { target = scope:ip_rep_66_protagonist.employer value <= 0 }
+			}
+			modifier = {
+				factor = 15
+				opinion = { target = scope:ip_rep_66_protagonist.employer value <= -25 }
+			}
+			modifier = {
+				factor = 15
+				opinion = { target = scope:ip_rep_66_protagonist.employer value <= -50 }
+			}
+		}
+	}
+
+	option = { # Refuse
+		name = ip_republic.71.b
+		scope:ip_rep_66_protagonist.employer = {
+			trigger_event_non_silently = {
+				on_action = ip_rep_66_development_on_action
+				days = { 20 40 }
+			}
+		}
+		ai_chance = {
+			factor = 35
+		}
+	}
+}
+
+# Oligarch Plot - City Support
+ip_republic.72 = {
+	type = country_event
+	title = ip_republic.72.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					var:ip_rep_66_72 = 1
+				}
+				desc = ip_republic.72.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					var:ip_rep_66_72 = 2
+				}
+				desc = ip_republic.72.desc_2
+			}
+		}
+	}
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+		any_owned_location = {
+			NOR = {
+				has_variable = ip_rep_66_city_cooldown
+				has_variable = ip_rep_66_city_support
+				area = root.capital.area
+			}
+			is_province_capital = yes # Imperator is_state_capital
+		}
+		NOT = { has_variable = ip_rep_66_city_cooldown }
+		var:ip_rep_66_72 < 2
+		pa_imp_get_oligarch_plot_success_chance >= 15
+		pa_imp_get_oligarch_plot_success_chance < 75
+	}
+
+	weight_multiplier = {
+		base = 2
+		modifier = {
+			factor = -1 # (sic, as in Imperator)
+			var:ip_rep_66_72 >= 1
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = ip_rep_66_city_cooldown
+			days = 60 # 2 months
+		}
+		change_variable = {
+			name = ip_rep_66_72
+			add = 1
+		}
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		# Imperator: ordered_owned_province ordered by lowest state loyalty
+		random_owned_location = { #P:A TODO Approximate: Imperator picked the least loyal state capital (EU5 has no state loyalty); a random one is picked
+			limit = {
+				NOR = {
+					has_variable = ip_rep_66_city_scope_cooldown
+					has_variable = ip_rep_66_city_support
+					area = root.capital.area
+				}
+				is_province_capital = yes # Imperator is_state_capital
+			}
+			save_scope_as = ip_rep_66_supporting_city
+		}
+		scope:ip_rep_66_supporting_city ?= {
+			set_variable = {
+				name = ip_rep_66_city_scope_cooldown
+				days = 365 # 1 year
+			}
+			set_variable = {
+				name = ip_rep_66_city_support
+			}
+		}
+		if = {
+			limit = {
+				# scope:ip_rep_66_supporting_city.free_building_slots >= 1 #P:A TODO No EU5 equivalent: a free building slot (EU5 has no building slots)
+				scope:ip_rep_66_supporting_city = {
+					AND = {
+						NOT = { has_building = building_type:forums }
+						can_build_building = building_type:forums
+					}
+					AND = {
+						can_build_building = building_type:library
+						NOT = { has_building = building_type:library }
+					}
+					# AND = {
+					# 	can_build_building = town_hall_building
+					# 	NOT = { has_building = town_hall_building }
+					# }
+					#P:A TODO No EU5 equivalent: Imperator town_hall_building (no matching EU5 building)
+					AND = {
+						can_build_building = building_type:library
+						NOT = { has_building = building_type:library }
+					}
+					AND = {
+						can_build_building = building_type:aqueduct_system
+						NOT = { has_building = building_type:aqueduct_system }
+					}
+				}
+			}
+			set_variable = {
+				name = ip_rep_66_building_var
+				value = {
+					integer_range = {
+						min = 1
+						max = 5
+					}
+				}
+			}
+		}
+	}
+
+	option = { # Try and mitigate the damage through governor
+		name = ip_republic.72.a
+		trigger = {
+			# exists = scope:ip_rep_66_supporting_city.governor
+			# scope:ip_rep_66_supporting_city.governor.loyalty > 60
+			# NOT = { scope:ip_rep_66_supporting_city.governor = { has_variable = ip_rep_66_supporter_flag } }
+			always = no #P:A TODO No EU5 equivalent: needs a loyal governor of the city's state (EU5 has no governors or loyalty)
+		}
+		# if = {
+		# 	limit = { scope:ip_rep_66_supporting_city.governor.popularity >= 1 }
+		# 	scope:ip_rep_66_supporting_city.governor = { add_popularity = subtract_popularity_medium }
+		# }
+		# if = {
+		# 	limit = { scope:ip_rep_66_supporting_city.governor.loyalty > 80 }
+		# 	scope:ip_rep_66_supporting_city.governor = { add_loyalty = loyalty_governor_responsibility_1 }
+		# }
+		# else = {
+		# 	scope:ip_rep_66_supporting_city.governor = { add_loyalty = loyalty_governor_responsibility_2 }
+		# }
+		#P:A TODO No EU5 equivalent: -10 popularity and a "governor responsibility" loyalty modifier for the governor
+		scope:ip_rep_66_supporting_city = {
+			add_location_modifier = {
+				modifier = ip_rep_66_crackdown_pmod
+				days = 730 # 2 years
+			}
+		}
+		# if = {
+		# 	limit = { scope:ip_rep_66_supporting_city = { state_loyalty > 1 } }
+		# 	scope:ip_rep_66_supporting_city = { add_state_loyalty = -10.0 }
+		# }
+		#P:A TODO No EU5 equivalent: -10 state loyalty (EU5 has no state loyalty)
+		change_variable = {
+			name = ip_rep_66_counter_support
+			add = 2
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_future_small
+	}
+
+	option = { # Win them over
+		name = ip_republic.72.b
+		# if = {
+		# 	limit = {
+		# 		exists = scope:ip_rep_66_supporting_city.governor
+		# 		NOT = { scope:ip_rep_66_supporting_city.governor.loyalty > 90 }
+		# 	}
+		# 	scope:ip_rep_66_supporting_city.governor = { add_loyalty = loyalty_governor_project_bestowed_2 }
+		# }
+		#P:A TODO No EU5 equivalent: "project bestowed" loyalty modifier for the governor (EU5 has no governors or loyalty)
+		if = {
+			limit = {
+				has_variable = ip_rep_66_building_var
+			}
+			if = {
+				limit = {
+					var:ip_rep_66_building_var = 1
+				}
+				scope:ip_rep_66_supporting_city = {
+					change_building_level_in_location = {
+						building = building_type:forums
+						value = 1
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					var:ip_rep_66_building_var = 2
+				}
+				scope:ip_rep_66_supporting_city = {
+					change_building_level_in_location = {
+						building = building_type:library
+						value = 1
+					}
+				}
+			}
+			# else_if = {
+			# 	limit = { var:ip_rep_66_building_var = 3 }
+			# 	scope:ip_rep_66_supporting_city = { add_building_level = town_hall_building }
+			# }
+			#P:A TODO No EU5 equivalent: roll 3 built a town hall (no matching EU5 building), so it now builds nothing
+			else_if = {
+				limit = {
+					var:ip_rep_66_building_var = 4
+				}
+				scope:ip_rep_66_supporting_city = {
+					change_building_level_in_location = {
+						building = building_type:library
+						value = 1
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					var:ip_rep_66_building_var = 5
+				}
+				scope:ip_rep_66_supporting_city = {
+					change_building_level_in_location = {
+						building = building_type:aqueduct_system
+						value = 1
+					}
+				}
+			}
+			add_gold = {
+				value = {
+					integer_range = {
+						min = 30
+						max = 50
+					}
+				}
+				multiply = -1
+			}
+			remove_variable = ip_rep_66_building_var
+		}
+		else = {
+			scope:ip_rep_66_supporting_city = {
+				add_location_modifier = {
+					modifier = ip_rep_66_local_exemptions
+					days = 730 # 2 years
+				}
+			}
+		}
+		# if = {
+		# 	limit = { scope:ip_rep_66_supporting_city = { state_loyalty < 100 } }
+		# 	scope:ip_rep_66_supporting_city = { add_state_loyalty = 5.0 }
+		# }
+		#P:A TODO No EU5 equivalent: +5 state loyalty (EU5 has no state loyalty)
+		change_variable = {
+			name = ip_rep_66_counter_support
+			add = 2
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_future_small
+	}
+
+	option = { # Gather the names of those most responsible
+		name = ip_republic.72.c
+		trigger = {
+			ruler = {
+				OR = {
+					has_trait = careful #P:A TODO Approximate: Imperator cautious -> careful
+					has_trait = schemer # Imperator crafty
+					#P:A TODO No EU5 equivalent: the Imperator ruler traits wise, shrewd, intelligent and suspicious
+					# has_trait = wise
+					# has_trait = shrewd
+					# has_trait = intelligent
+					# has_trait = suspicious
+				}
+			}
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		# if = { limit = { current_ruler = { has_trait = wise } } custom_tooltip = "wise_tooltip" }
+		# else_if = { limit = { current_ruler = { has_trait = shrewd } } custom_tooltip = "shrewd_tooltip" }
+		if = {
+			limit = {
+				ruler = { has_trait = careful }
+			}
+			custom_tooltip = cautious_tooltip
+		}
+		# else_if = { limit = { current_ruler = { has_trait = intelligent } } custom_tooltip = "intelligent_tooltip" }
+		else_if = {
+			limit = {
+				ruler = { has_trait = schemer }
+			}
+			custom_tooltip = crafty_tooltip
+		}
+		# else_if = { limit = { current_ruler = { has_trait = suspicious } } custom_tooltip = "suspicious_tooltip_option" }
+		change_variable = {
+			name = ip_rep_66_counter_support
+			add = 2
+		}
+		# if = {
+		# 	limit = { scope:ip_rep_66_supporting_city = { state_loyalty > 1 } }
+		# 	scope:ip_rep_66_supporting_city = { add_state_loyalty = -5.0 }
+		# }
+		#P:A TODO No EU5 equivalent: -5 state loyalty (EU5 has no state loyalty)
+		# add_tyranny = tyranny_small #P:A TODO No EU5 equivalent: +1 tyranny
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_future_small
+	}
+
+	option = { # Threaten the city's rights
+		name = ip_republic.72.d
+		# trigger = { NOT = { exists = scope:ip_rep_66_supporting_city.governor } }
+		#P:A Removed: "the city's state has no governor" is always true in EU5 (no governors)
+		# current_ruler = { add_popularity = subtract_popularity_medium } #P:A TODO No EU5 equivalent: -10 ruler popularity
+		# if = {
+		# 	limit = { scope:ip_rep_66_supporting_city = { state_loyalty > 1 } }
+		# 	scope:ip_rep_66_supporting_city = { add_state_loyalty = -10.0 }
+		# }
+		#P:A TODO No EU5 equivalent: -10 state loyalty (EU5 has no state loyalty)
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_balance
+	}
+
+	option = { # Do nothing
+		name = ip_republic.72.e
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 5
+		}
+		# if = {
+		# 	limit = { scope:ip_rep_66_supporting_city = { state_loyalty > 1 } }
+		# 	scope:ip_rep_66_supporting_city = { add_state_loyalty = -20.0 }
+		# }
+		#P:A TODO No EU5 equivalent: -20 state loyalty (EU5 has no state loyalty)
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_subtract_large
+	}
+}
+
+# Oligarch Plot - Popular Support
+ip_republic.73 = {
+	type = country_event
+	title = ip_republic.73.t
+	desc = ip_republic.73.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+		NOT = { has_variable = ip_rep_66_pop_cooldown }
+		pa_imp_get_oligarch_plot_success_chance >= 15
+		pa_imp_get_oligarch_plot_success_chance < 75
+	}
+
+	immediate = {
+		set_variable = {
+			name = ip_rep_66_pop_cooldown
+			days = 365 # 1 year
+		}
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # Games
+		name = ip_republic.73.a
+		# current_ruler = { add_popularity = popularity_medium } #P:A TODO No EU5 equivalent: +10 ruler popularity
+		add_gold = {
+			value = monthly_income_total
+			multiply = -3.4
+			min = -6000
+		}
+		pa_imp_democratic_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_balance
+	}
+
+	option = { # Defer to ruler's achievements
+		name = ip_republic.73.b
+		trigger = {
+			ruler = {
+				OR = {
+					has_trait = conqueror
+					has_trait = scholar
+					has_trait = obsessive_perfectionist
+					#P:A TODO No EU5 equivalent: the Imperator ruler traits victorious, founder, benefactor and resourceful, more than 5 loyal cohorts, wealth above 1000
+					# has_trait = victorious
+					# has_trait = founder
+					# has_trait = benefactor
+					# has_trait = resourceful
+					# num_loyal_cohorts > 5
+					# wealth > 1000
+				}
+			}
+		}
+		# if = { limit = { current_ruler = { has_trait = victorious } } custom_tooltip = "victorious_tooltip" }
+		# else_if = { limit = { current_ruler = { has_trait = founder } } custom_tooltip = "founder_tooltip" }
+		if = {
+			limit = {
+				ruler = { has_trait = conqueror }
+			}
+			custom_tooltip = conqueror_tooltip
+		}
+		# else_if = { limit = { current_ruler = { has_trait = benefactor } } custom_tooltip = "benefactor_tooltip" }
+		else_if = {
+			limit = {
+				ruler = { has_trait = scholar }
+			}
+			custom_tooltip = scholar_tooltip
+		}
+		# else_if = { limit = { current_ruler = { num_loyal_cohorts > 5 } } custom_tooltip = "ip_rep_73_cohorts_tt" }
+		# else_if = { limit = { current_ruler = { wealth > 1000 } } custom_tooltip = "ip_rep_73_wealth_tt" }
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+	}
+
+	option = { # Hold forth on the value of the status quo
+		name = ip_republic.73.c
+		trigger = {
+			ruler = {
+				OR = {
+					has_trait = silver_tongue # Imperator silver_tongued
+					has_trait = charismatic_orator #P:A TODO Approximate: Imperator orator -> charismatic_orator (an EU5 cabinet trait)
+					dip >= 30 # Imperator charisma >= 6
+				}
+			}
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		custom_tooltip = ip_republic.73.ct
+		if = {
+			limit = {
+				ruler = {
+					OR = {
+						has_trait = silver_tongue
+						has_trait = charismatic_orator
+						dip >= 45 # Imperator charisma >= 9
+					}
+				}
+			}
+			# scope:ip_rep_66_protagonist = { add_popularity = subtract_popularity_large } #P:A TODO No EU5 equivalent: -15 popularity for the plotter
+			change_variable = {
+				name = ip_rep_66_counter_support
+				add = 5
+			}
+			custom_tooltip = oligarch_plot_success_chance_future_large
+		}
+		else_if = {
+			limit = {
+				ruler = {
+					dip >= 30
+					dip < 45
+				}
+			}
+			# scope:ip_rep_66_protagonist = { add_popularity = subtract_popularity_medium } #P:A TODO No EU5 equivalent: -10 popularity for the plotter
+			custom_tooltip = oligarch_plot_success_chance_balance
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+	}
+
+	option = { # Enlist the support of local assemblies
+		name = ip_republic.73.d
+		# current_ruler = { add_popularity = subtract_popularity_small } #P:A TODO No EU5 equivalent: -5 ruler popularity
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 2
+		}
+		custom_tooltip = oligarch_plot_success_chance_subtract_small
+	}
+
+	option = { # Nonsense
+		name = ip_republic.73.e
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 5
+		}
+		custom_tooltip = oligarch_plot_success_chance_subtract_large
+	}
+}
+
+# Oligarch Plot - Tail Uncovers Evidence
+ip_republic.74 = {
+	type = country_event
+	title = ip_republic.74.t
+	desc = ip_republic.74.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+		has_variable = ip_rep_66_tailed_flag
+		NOR = {
+			has_variable = ip_rep_66_tail_cooldown
+			has_variable = ip_rep_66_evidence_uncovered_flag
+		}
+		pa_imp_get_oligarch_plot_success_chance >= 15
+		pa_imp_get_oligarch_plot_success_chance < 75
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = ip_rep_66_evidence_uncovered_flag
+		remove_variable = ip_rep_66_tailed_flag
+	}
+
+	option = { # We will save this for later
+		name = ip_republic.74.a
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_future_large
+	}
+
+	option = { # Confront immediately
+		name = ip_republic.74.b
+		trigger_event_non_silently = {
+			id = ip_republic.67
+			days = { 20 40 }
+		}
+		custom_tooltip = ip_republic.66.bt
+	}
+}
+
+# Oligarch Plot - Tail Discovered
+ip_republic.75 = {
+	type = country_event
+	title = ip_republic.75.t
+	desc = ip_republic.75.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+		has_variable = ip_rep_66_tailed_flag
+		NOR = {
+			has_variable = ip_rep_66_evidence_uncovered_flag
+			has_variable = ip_rep_66_tail_cooldown
+		}
+		pa_imp_get_oligarch_plot_success_chance >= 15
+		pa_imp_get_oligarch_plot_success_chance < 75
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 2
+			# Imperator read scope:ip_rep_66_protagonist here, which is only saved later in immediate; the trigger's temporary scope is used instead
+			exists = scope:ip_rep_66_protagonist_temp
+			scope:ip_rep_66_protagonist_temp = {
+				OR = {
+					has_trait = careful #P:A TODO Approximate: Imperator cautious -> careful
+					has_trait = schemer # Imperator crafty
+					#P:A TODO No EU5 equivalent: the Imperator traits wise, shrewd, intelligent and suspicious
+					# has_trait = wise
+					# has_trait = shrewd
+					# has_trait = intelligent
+					# has_trait = suspicious
+				}
+			}
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		remove_variable = ip_rep_66_tailed_flag
+	}
+
+	option = { # Curses
+		name = ip_republic.75.a
+		# current_ruler = { add_popularity = subtract_popularity_large } #P:A TODO No EU5 equivalent: -15 ruler popularity
+		# add_tyranny = tyranny_large #P:A TODO No EU5 equivalent: +5 tyranny
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 5
+		}
+		custom_tooltip = oligarch_plot_success_chance_subtract_large
+	}
+}
+
+# Oligarch Plot - Close (no overall winner)
+ip_republic.76 = {
+	type = country_event
+	title = ip_republic.76.t
+	desc = ip_republic.76.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+		pa_imp_get_oligarch_plot_success_chance >= 15
+		pa_imp_get_oligarch_plot_success_chance < 75
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = {
+			limit = {
+				any_character = {
+					has_variable = ip_rep_66_counter_flag
+				}
+			}
+			random_character = {
+				limit = { has_variable = ip_rep_66_counter_flag }
+				save_scope_as = ip_rep_66_counter_1
+			}
+		}
+		if = {
+			limit = {
+				any_character = {
+					has_variable = ip_rep_66_counter_flag
+					NOT = { this = scope:ip_rep_66_counter_1 }
+				}
+			}
+			random_character = {
+				limit = {
+					has_variable = ip_rep_66_counter_flag
+					NOT = { this = scope:ip_rep_66_counter_1 }
+				}
+				save_scope_as = ip_rep_66_counter_2
+			}
+		}
+		if = {
+			limit = {
+				any_character = {
+					has_variable = ip_rep_66_supporter_flag
+				}
+			}
+			random_character = {
+				limit = { has_variable = ip_rep_66_supporter_flag }
+				save_scope_as = ip_rep_66_supporter_1
+			}
+		}
+		if = {
+			limit = {
+				any_character = {
+					has_variable = ip_rep_66_supporter_flag
+					NOT = { this = scope:ip_rep_66_supporter_1 }
+				}
+			}
+			random_character = {
+				limit = {
+					has_variable = ip_rep_66_supporter_flag
+					NOT = { this = scope:ip_rep_66_supporter_1 }
+				}
+				save_scope_as = ip_rep_66_supporter_2
+			}
+		}
+		if = {
+			limit = {
+				has_variable = ip_rep_66_foreign_support_flag
+				root.var:ip_rep_66_foreign_support_flag = { exists = capital }
+			}
+			root.var:ip_rep_66_foreign_support_flag = { save_scope_as = ip_rep_66_foreign_backer }
+		}
+	}
+
+	option = { # Chance it
+		name = ip_republic.76.a
+		trigger_event_non_silently = {
+			id = ip_republic.82
+			days = 5
+		}
+		custom_tooltip = ip_republic.76.at
+	}
+
+	option = { # Back down
+		name = ip_republic.76.b
+		set_new_ruler = scope:ip_rep_66_protagonist
+		hidden_effect = {
+			add_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator change_government = oligarchic_republic -> EU5 noble_elite reform
+		}
+		custom_tooltip = ip_republic.76.bt
+		add_stability = -25
+		if = {
+			limit = { exists = scope:ip_rep_66_foreign_backer }
+			scope:ip_rep_66_foreign_backer = {
+				trigger_event_non_silently = {
+					id = ip_republic.85
+				}
+			}
+		}
+		# Imperator wrapped this in an "if any_country = { same conditions }" guard; the limit does the same
+		every_country = {
+			limit = {
+				OR = {
+					is_neighbor_of = root # Imperator: owns a province bordering one of root's
+					AND = {
+						exists = capital
+						capital.region = root.capital.region
+					}
+				}
+				NOR = {
+					this = root
+					AND = {
+						exists = scope:ip_rep_66_foreign_backer
+						this = scope:ip_rep_66_foreign_backer
+					}
+				}
+			}
+			trigger_event_non_silently = {
+				id = ip_republic.86
+			}
+		}
+	}
+
+	option = { # Try ostracise
+		name = ip_republic.76.c
+		trigger_event_non_silently = {
+			id = ip_republic.83
+			days = 5
+		}
+		custom_tooltip = ip_republic.76.ct
+	}
+}
+
+# Oligarch Plot - Foreign Backers Ping (fired by ip_republic.71; scope:ip_rep_66_protagonist and scope:ip_rep_66_foreign_backer carry over)
+ip_republic.77 = {
+	type = country_event
+	title = ip_republic.77.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					var:ip_rep_66_69 = 1
+				}
+				desc = ip_republic.77.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					var:ip_rep_66_69 = 2
+				}
+				desc = ip_republic.77.desc_2
+			}
+		}
+	}
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital
+		exists = scope:ip_rep_66_protagonist
+		scope:ip_rep_66_protagonist = {
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+		has_variable = ip_rep_66_foreign_support_flag
+		root.var:ip_rep_66_foreign_support_flag = { exists = capital }
+	}
+
+	immediate = {
+		change_variable = {
+			name = ip_rep_66_69
+			add = 1
+		}
+		root.var:ip_rep_66_foreign_support_flag = { save_scope_as = ip_rep_66_foreign_backer }
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:ip_rep_66_foreign_backer.ruler ?= {
+			save_scope_as = ip_rep_66_foreign_backer_ruler
+		}
+		if = {
+			limit = {
+				any_country = {
+					within_diplomatic_range = root
+					within_diplomatic_range = scope:ip_rep_66_foreign_backer
+					country_rank_level >= scope:ip_rep_66_foreign_backer.country_rank_level
+					OR = {
+						opinion = { target = scope:ip_rep_66_foreign_backer value < 50 }
+						# this.current_ruler = { is_rival = scope:ip_rep_66_foreign_backer.current_ruler } #P:A TODO No EU5 equivalent: the rulers are rivals (EU5 characters have no rivals)
+					}
+					NOR = {
+						is_allied_with = { target = scope:ip_rep_66_foreign_backer }
+						# this.current_ruler = { is_friend = scope:ip_rep_66_foreign_backer.current_ruler } #P:A TODO No EU5 equivalent: the rulers are friends (EU5 characters have no friends)
+						this = root
+						opinion = { target = root value < 50 }
+					}
+				}
+			}
+			random_country = {
+				limit = {
+					within_diplomatic_range = root
+					within_diplomatic_range = scope:ip_rep_66_foreign_backer
+					country_rank_level >= scope:ip_rep_66_foreign_backer.country_rank_level
+					OR = {
+						opinion = { target = scope:ip_rep_66_foreign_backer value < 50 }
+						# this.current_ruler = { is_rival = scope:ip_rep_66_foreign_backer.current_ruler }
+					}
+					NOR = {
+						is_allied_with = { target = scope:ip_rep_66_foreign_backer }
+						# this.current_ruler = { is_friend = scope:ip_rep_66_foreign_backer.current_ruler }
+						this = root
+					}
+				}
+				save_scope_as = ip_rep_66_counter_foreign
+				set_variable = {
+					name = ip_rep_66_foreign_support_scope_cooldown
+					days = 1825 # 5 years
+				}
+			}
+		}
+	}
+
+	option = { # Insult
+		name = ip_republic.77.a
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		# scope:ip_rep_66_foreign_backer.current_ruler = { add_popularity = subtract_popularity_small } #P:A TODO No EU5 equivalent: -5 popularity for the foreign ruler
+		reverse_add_opinion = {
+			target = scope:ip_rep_66_foreign_backer
+			modifier = ip_rep_66_insulted_ruler
+		}
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 5
+		}
+		# if = {
+		# 	limit = { any_owned_province = { any_neighbor_province = { owner = scope:ip_rep_66_foreign_backer } } }
+		# 	random_owned_province = {
+		# 		limit = { any_neighbor_province = { owner = scope:ip_rep_66_foreign_backer } }
+		# 		add_claim = scope:ip_rep_66_foreign_backer
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: the foreign backer gains a claim on one of our border locations (EU5 has no location claims)
+		custom_tooltip = oligarch_plot_success_chance_subtract_small
+	}
+
+	option = { # Patrols
+		name = ip_republic.77.b
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence
+		add_country_modifier = {
+			modifier = ip_rep_66_patrols_cmod
+			days = 730
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		change_variable = {
+			name = ip_rep_66_plot_support
+			subtract = 2
+		}
+		custom_tooltip = oligarch_plot_success_chance_future_small
+	}
+
+	option = { # Enemy of my enemy
+		name = ip_republic.77.c
+		trigger = {
+			exists = scope:ip_rep_66_counter_foreign
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		add_gold = {
+			value = monthly_income_total
+			multiply = -4
+			min = -6000
+		}
+		reverse_add_opinion = {
+			target = scope:ip_rep_66_counter_foreign
+			modifier = ip_rep_66_counter_support
+		}
+		remove_variable = ip_rep_66_foreign_support_flag
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_balance
+		custom_tooltip = ip_republic.77.ct
+	}
+
+	option = { # Pah
+		name = ip_republic.77.d
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 5
+		}
+		custom_tooltip = oligarch_plot_success_chance_subtract_large
+	}
+}
+
+# Oligarch Plot - Military Support
+ip_republic.78 = {
+	type = country_event
+	title = ip_republic.78.t
+	desc = ip_republic.78.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+		exists = ruler
+		OR = {
+			AND = {
+				ruler = { mil <= 30 } # Imperator martial <= 6
+				scope:ip_rep_66_protagonist_temp = { mil > root.ruler.mil }
+			}
+			AND = {
+				scope:ip_rep_66_protagonist_temp = {
+					OR = {
+						has_trait = conqueror
+						# has_trait = victorious
+						# has_trait = brave
+					}
+				}
+				ruler = {
+					NOR = {
+						has_trait = conqueror
+						# has_trait = victorious
+						# has_trait = brave
+					}
+				}
+				#P:A TODO No EU5 equivalent: the Imperator traits victorious and brave
+			}
+			ruler = { has_trait = craven } # Imperator coward
+		}
+		NOT = { has_variable = ip_rep_66_mil_cooldown }
+		any_army = { exists = this }
+		pa_imp_get_oligarch_plot_success_chance >= 15
+		pa_imp_get_oligarch_plot_success_chance < 75
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = ip_rep_66_mil_cooldown
+			days = 365 # 1 year
+		}
+	}
+
+	option = { # Secure loyalty
+		name = ip_republic.78.a
+		trigger = {
+			ruler = {
+				OR = {
+					has_trait = conqueror
+					mil >= 30 # Imperator martial >= 6
+					# has_trait = victorious #P:A TODO No EU5 equivalent: the Imperator trait victorious
+				}
+			}
+		}
+		# current_ruler = { add_popularity = subtract_popularity_medium } #P:A TODO No EU5 equivalent: -10 ruler popularity
+		if = {
+			limit = {
+				ruler = {
+					OR = {
+						has_trait = conqueror
+						mil >= 45 # Imperator martial >= 9
+						# has_trait = victorious
+					}
+				}
+			}
+			change_variable = {
+				name = ip_rep_66_counter_support
+				add = 5
+			}
+			custom_tooltip = oligarch_plot_success_chance_future_small
+		}
+		else_if = {
+			limit = {
+				ruler = {
+					mil >= 30
+					mil < 45
+				}
+			}
+			change_variable = {
+				name = ip_rep_66_counter_support
+				add = 2
+			}
+			custom_tooltip = oligarch_plot_success_chance_future_large
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = ip_republic.78.at
+	}
+
+	option = { # Everyone knows we have the army's support
+		name = ip_republic.78.b
+		trigger = {
+			# current_ruler.num_loyal_cohorts > scope:ip_rep_66_protagonist.num_loyal_cohorts
+			always = no #P:A TODO No EU5 equivalent: the ruler has more loyal cohorts than the plotter (EU5 has no loyal cohorts)
+		}
+		change_variable = {
+			name = ip_rep_66_counter_support
+			add = 2
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = ip_republic.78.bt
+		custom_tooltip = oligarch_plot_success_chance_future_small
+	}
+
+	option = { # Settle veterans
+		name = ip_republic.78.c
+		trigger = {
+			# military_experience >= 10
+			# OR = {
+			# 	current_ruler.num_loyal_cohorts < scope:ip_rep_66_protagonist.num_loyal_cohorts
+			# 	current_ruler.num_loyal_cohorts < 1
+			# }
+			always = no #P:A TODO No EU5 equivalent: needs 10 military experience and fewer loyal cohorts than the plotter (EU5 has neither)
+		}
+		# add_military_experience = -10.0 #P:A TODO No EU5 equivalent: -10 military experience
+		if = {
+			limit = {
+				any_owned_location = { has_location_modifier = state_owned_farmlands }
+			}
+			random_owned_location = {
+				limit = {
+					has_location_modifier = state_owned_farmlands
+				}
+				remove_location_modifier = state_owned_farmlands
+			}
+		}
+		else = {
+			add_country_modifier = {
+				modifier = ip_rep_66_veteran_grants_cmod
+				days = 1825 # 5 years
+			}
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_balance
+	}
+
+	option = { # Raise more troops
+		name = ip_republic.78.d
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = -3.5
+			min = -6000
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_balance
+	}
+
+	option = { # Do nothing
+		name = ip_republic.78.e
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 5
+		}
+		custom_tooltip = oligarch_plot_success_chance_subtract_large
+	}
+}
+
+# Oligarch Plot - Close (plot dissipates)
+ip_republic.79 = {
+	type = country_event
+	title = ip_republic.79.t
+	desc = ip_republic.79.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		OR = {
+			NOT = {
+				any_character = {
+					has_variable = ip_rep_66_protagonist_flag
+					employer = root
+					is_alive = yes
+					#P:A Removed: prisoner = no is always true in EU5
+					save_temporary_scope_as = ip_rep_66_protagonist_temp
+				}
+			}
+			pa_imp_get_oligarch_plot_success_chance >= 75
+		}
+		trigger_if = {
+			limit = {
+				any_character = {
+					has_variable = ip_rep_66_protagonist_flag
+					is_alive = no
+					# prisoner = yes (always false in EU5, which has no prisoners)
+				}
+			}
+			any_character = {
+				has_variable = ip_rep_66_protagonist_flag
+				is_alive = no
+				save_temporary_scope_as = ip_rep_66_protagonist_temp
+			}
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = {
+			limit = {
+				any_character = {
+					has_variable = ip_rep_66_protagonist_flag
+					employer = root
+					is_alive = no
+					# prisoner = yes (always false in EU5)
+				}
+			}
+			random_character = {
+				limit = {
+					has_variable = ip_rep_66_protagonist_flag
+					employer = root
+					is_alive = no
+				}
+				save_scope_as = ip_rep_66_protagonist
+			}
+		}
+		else = { #P:A TODO Approximate: Imperator only saved a dead or imprisoned plotter here (options c/d targeted an imprisoned one); EU5 has no prisoners, so the living plotter is saved instead
+			random_character = {
+				limit = {
+					has_variable = ip_rep_66_protagonist_flag
+					employer = root
+					is_alive = yes
+				}
+				save_scope_as = ip_rep_66_protagonist
+			}
+		}
+		if = {
+			limit = {
+				has_variable = ip_rep_66_foreign_support_flag
+				root.var:ip_rep_66_foreign_support_flag = { exists = capital }
+			}
+			root.var:ip_rep_66_foreign_support_flag = {
+				save_scope_as = ip_rep_66_foreign_backer
+				trigger_event_non_silently = {
+					id = ip_republic.85
+				}
+			}
+		}
+		pa_imp_ip_rep_66_variable_effect = yes
+	}
+
+	option = { # Phew
+		name = ip_republic.79.a
+		# current_ruler = { add_popularity = popularity_medium } #P:A TODO No EU5 equivalent: +10 ruler popularity
+	}
+
+	option = { # Jibes
+		name = ip_republic.79.b
+		trigger = {
+			exists = scope:ip_rep_66_protagonist
+			scope:ip_rep_66_protagonist = { is_alive = yes }
+			# current_ruler = { can_get_rivals = yes }
+			# scope:ip_rep_66_protagonist = { can_get_rivals = yes }
+			always = no #P:A TODO No EU5 equivalent: the option makes the plotter a rival of the ruler (EU5 characters have no rivals)
+		}
+		# current_ruler = { add_popularity = subtract_popularity_small } #P:A TODO No EU5 equivalent: -5 ruler popularity
+		# scope:ip_rep_66_protagonist = { add_rival = root.current_ruler }
+	}
+
+	option = { # Assassinate
+		name = ip_republic.79.c
+		trigger = {
+			exists = scope:ip_rep_66_protagonist
+			scope:ip_rep_66_protagonist = { is_alive = yes }
+		}
+		# current_ruler = { add_popularity = subtract_popularity_large } #P:A TODO No EU5 equivalent: -15 ruler popularity
+		kill_character = {
+			target = scope:ip_rep_66_protagonist
+			killer = root.ruler
+			reason = execution # Imperator death_execution
+		}
+		# add_tyranny = tyranny_large #P:A TODO No EU5 equivalent: +5 tyranny
+	}
+
+	option = { # Ostracise
+		name = ip_republic.79.d
+		trigger = {
+			exists = scope:ip_rep_66_protagonist
+			scope:ip_rep_66_protagonist = { is_alive = yes }
+			OR = {
+				exists = scope:ip_rep_66_foreign_backer
+				any_country = { within_diplomatic_range = root }
+			}
+		}
+		# current_ruler = { add_popularity = popularity_small } #P:A TODO No EU5 equivalent: +5 ruler popularity
+		if = {
+			limit = {
+				NOT = { exists = scope:ip_rep_66_foreign_backer }
+			}
+			random_country = {
+				limit = {
+					within_diplomatic_range = root
+					NOT = { is_allied_with = { target = root } }
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 5
+						is_neighbor_of = root # Imperator: owns a province bordering one of root's
+					}
+					modifier = {
+						factor = 5
+						is_at_war_with = root
+					}
+				}
+				save_scope_as = ip_rep_66_foreign_backer
+			}
+		}
+		scope:ip_rep_66_protagonist = {
+			move_country = scope:ip_rep_66_foreign_backer #P:A TODO Approximate: Imperator banish -> move_country (no banishment status in EU5)
+		}
+		# add_tyranny = tyranny_small #P:A TODO No EU5 equivalent: +1 tyranny
+	}
+
+	after = {
+		if = {
+			limit = {
+				any_character = { has_variable = ip_rep_66_protagonist_flag }
+			}
+			random_character = {
+				limit = { has_variable = ip_rep_66_protagonist_flag }
+				remove_variable = ip_rep_66_protagonist_flag
+			}
+		}
+	}
+}
+
+# Oligarch Plot - Counter Support Gathered
+ip_republic.80 = {
+	type = country_event
+	title = ip_republic.80.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					var:ip_rep_66_80 = 1
+				}
+				desc = ip_republic.80.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					var:ip_rep_66_80 = 2
+				}
+				desc = ip_republic.80.desc_2
+			}
+		}
+	}
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		# exists = scope:ip_rep_66_protagonist (dropped: the plotter check below covers it, and this event is fired through an on_action, which saved scopes may not cross)
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+		any_character = {
+			is_alive = yes
+			is_ruler = no
+			#P:A Removed: prisoner = no is always true in EU5
+			# power_base > 5 #P:A TODO No EU5 equivalent: character power base above 5
+			NOR = {
+				has_character_modifier = foreign_citizen
+				has_variable = ip_rep_66_protagonist_flag
+				has_variable = ip_rep_66_counter_flag
+				has_variable = ip_rep_66_counter_char_cooldown
+				has_variable = ip_rep_66_supporter_flag
+				# is_rival = root.current_ruler #P:A TODO No EU5 equivalent: not a rival of the ruler (EU5 characters have no rivals)
+			}
+			OR = {
+				OR = {
+					in_cabinet = yes #P:A TODO Approximate: Imperator "holds any office" -> EU5 cabinet member
+					is_general = yes
+					is_admiral = yes
+					# wealth > 50 #P:A TODO No EU5 equivalent: character wealth above 50
+					# has_tech_office = yes #P:A TODO No EU5 equivalent: Imperator tech offices
+				}
+				# AND = {
+				# 	is_friend = root.current_ruler
+				# 	wealth > 50
+				# }
+				#P:A TODO No EU5 equivalent: or a friend of the ruler with wealth above 50 (EU5 characters have no friends or wealth)
+			}
+			trigger_if = {
+				limit = {
+					employer = { allows_female_rulers = no } #P:A TODO Approximate: Imperator gender_equality -> allows_female_rulers
+				}
+				is_female = no
+			}
+		}
+		any_character = { has_variable = ip_rep_66_supporter_flag }
+		NOT = { has_variable = ip_rep_66_counter_cooldown }
+		var:ip_rep_66_80 < 2
+	}
+
+	immediate = {
+		set_variable = {
+			name = ip_rep_66_counter_cooldown
+			days = 60 # 2 months
+		}
+		change_variable = {
+			name = ip_rep_66_80
+			add = 1
+		}
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				is_alive = yes
+				is_ruler = no
+				# power_base > 5
+				NOR = {
+					has_character_modifier = foreign_citizen
+					has_variable = ip_rep_66_protagonist_flag
+					has_variable = ip_rep_66_counter_flag
+					has_variable = ip_rep_66_counter_char_cooldown
+					has_variable = ip_rep_66_supporter_flag
+					# is_rival = root.current_ruler
+				}
+				OR = {
+					in_cabinet = yes #P:A TODO Approximate: Imperator "holds any office" -> EU5 cabinet member
+					is_general = yes
+					is_admiral = yes
+					# wealth > 50
+					# has_tech_office = yes
+					# AND = { is_friend = root.current_ruler wealth > 50 }
+				}
+				trigger_if = {
+					limit = {
+						employer = { allows_female_rulers = no }
+					}
+					is_female = no
+				}
+				#P:A TODO No EU5 equivalent: the same untranslatable conditions as in the trigger (power base, rivals, wealth, tech offices, friends)
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighting by office/title importance
+			save_scope_as = ip_rep_66_counter
+		}
+	}
+
+	option = { # Bribe
+		name = ip_republic.80.a
+		trigger = {
+			# NOT = { scope:ip_rep_66_counter = { is_friend = root.current_ruler } } (always true in EU5, which has no character friends)
+			scope:ip_rep_66_counter = {
+				has_trait = corrupt #P:A TODO Approximate: Imperator corruption > 10 -> the corrupt trait (EU5 characters have no corruption value)
+			}
+		}
+		# current_ruler = { add_popularity = subtract_popularity_medium } #P:A TODO No EU5 equivalent: -10 ruler popularity
+		# current_ruler = { add_corruption = corruption_medium } #P:A TODO No EU5 equivalent: +5 ruler corruption
+		scope:ip_rep_66_counter = {
+			# add_gold = { value = root.has_monthly_income multiply = 2.4 } #P:A TODO No EU5 equivalent: the counter-plotter pockets 2.4x our monthly income (EU5 characters have no wealth)
+			# add_loyalty = loyalty_support_accepted_1 #P:A TODO No EU5 equivalent: "support accepted" loyalty modifier
+			set_variable = ip_rep_66_counter_flag
+		}
+		add_gold = {
+			value = monthly_income_total
+			multiply = -2.4
+			min = -6000
+		}
+		if = {
+			limit = {
+				scope:ip_rep_66_counter = {
+					OR = {
+						is_general = yes
+						is_admiral = yes
+						# power_base > 10
+						# wealth > 500
+						# is_governor = yes
+						#P:A TODO No EU5 equivalent: or power base above 10, wealth above 500, or a governor
+					}
+				}
+			}
+			change_variable = {
+				name = ip_rep_66_counter_support
+				add = 5
+			}
+			custom_tooltip = oligarch_plot_success_chance_future_large
+		}
+		else = {
+			change_variable = {
+				name = ip_rep_66_counter_support
+				add = 2
+			}
+			custom_tooltip = oligarch_plot_success_chance_future_small
+		}
+		# (sic) Imperator's bribe option does not fire ip_rep_66_development_on_action, so the plot stops here
+	}
+
+	option = { # Pledge
+		name = ip_republic.80.b
+		trigger = {
+			# NOT = { scope:ip_rep_66_counter = { is_friend = root.current_ruler } } (always true in EU5)
+			scope:ip_rep_66_counter = {
+				NOT = { has_trait = corrupt } #P:A TODO Approximate: Imperator corruption < 5 -> not corrupt
+			}
+		}
+		# current_ruler = { add_popularity = subtract_popularity_medium } #P:A TODO No EU5 equivalent: -10 ruler popularity
+		scope:ip_rep_66_counter = {
+			set_variable = ip_rep_66_counter_flag
+			# if = { limit = { loyalty < 95 } add_loyalty = loyalty_support_accepted_2 } #P:A TODO No EU5 equivalent: "support accepted" loyalty modifier
+		}
+		custom_tooltip = ip_republic.80.bt1
+		if = {
+			limit = {
+				scope:ip_rep_66_counter = {
+					OR = {
+						is_general = yes
+						is_admiral = yes
+						# power_base > 10
+						# wealth > 500
+						# is_governor = yes
+						#P:A TODO No EU5 equivalent: or power base above 10, wealth above 500, or a governor
+					}
+				}
+			}
+			change_variable = {
+				name = ip_rep_66_counter_support
+				add = 5
+			}
+			custom_tooltip = oligarch_plot_success_chance_future_large
+		}
+		else = {
+			change_variable = {
+				name = ip_rep_66_counter_support
+				add = 2
+			}
+			custom_tooltip = oligarch_plot_success_chance_future_small
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = ip_republic.80.bt2
+	}
+
+	option = { # Friend
+		name = ip_republic.80.c
+		trigger = {
+			# scope:ip_rep_66_counter = { is_friend = root.current_ruler }
+			always = no #P:A TODO No EU5 equivalent: the counter-plotter is a friend of the ruler (EU5 characters have no friends)
+		}
+		# current_ruler = { add_popularity = subtract_popularity_medium } #P:A TODO No EU5 equivalent: -10 ruler popularity
+		scope:ip_rep_66_counter = { set_variable = ip_rep_66_counter_flag }
+		if = {
+			limit = {
+				scope:ip_rep_66_counter = {
+					OR = {
+						is_general = yes
+						is_admiral = yes
+						# power_base > 10
+						# wealth > 500
+						# is_governor = yes
+					}
+				}
+			}
+			change_variable = {
+				name = ip_rep_66_counter_support
+				add = 5
+			}
+			custom_tooltip = oligarch_plot_success_chance_future_large
+		}
+		else = {
+			change_variable = {
+				name = ip_rep_66_counter_support
+				add = 2
+			}
+			custom_tooltip = oligarch_plot_success_chance_future_small
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+	}
+
+	option = { # No use
+		name = ip_republic.80.d
+		# trigger = {
+		# 	OR = {
+		# 		NOT = { scope:ip_rep_66_counter = { is_friend = root.current_ruler } }
+		# 		scope:ip_rep_66_counter.loyalty < 80
+		# 	}
+		# }
+		# (always true in EU5: characters have no friends, so the first line always holds)
+		# current_ruler = { add_popularity = popularity_medium } #P:A TODO No EU5 equivalent: +10 ruler popularity
+		scope:ip_rep_66_counter = {
+			# add_loyalty = loyalty_support_refused #P:A TODO No EU5 equivalent: "support refused" loyalty modifier
+			set_variable = {
+				name = ip_rep_66_counter_char_cooldown
+				days = 365 # 1 year
+			}
+		}
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 2
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		custom_tooltip = oligarch_plot_success_chance_subtract_small
+	}
+}
+
+# Oligarch Plot - Support Auction
+# Imperator never fired this event (not in ip_rep_66_development_on_action or any other caller).
+ip_republic.81 = {
+	type = country_event
+	title = ip_republic.81.t
+	desc = ip_republic.81.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+		any_character = {
+			is_alive = yes
+			is_ruler = no
+			#P:A Removed: prisoner = no is always true in EU5
+			# power_base > 10 #P:A TODO No EU5 equivalent: character power base above 10
+			OR = {
+				is_general = yes
+				is_admiral = yes
+				# is_governor = yes #P:A TODO No EU5 equivalent: governors
+			}
+			# loyalty < 80 #P:A TODO No EU5 equivalent: loyalty below 80 (EU5 characters have no loyalty)
+			trigger_if = {
+				limit = {
+					employer = { allows_female_rulers = no } #P:A TODO Approximate: Imperator gender_equality -> allows_female_rulers
+				}
+				is_female = no
+			}
+			NOR = {
+				has_character_modifier = foreign_citizen
+				has_variable = ip_rep_66_protagonist_flag
+				has_variable = ip_rep_66_counter_flag
+				has_variable = ip_rep_66_supporter_flag
+				# is_friend = root.current_ruler #P:A TODO No EU5 equivalent: character friends/rivals
+				# is_rival = root.current_ruler
+			}
+		}
+		NOT = { has_variable = ip_rep_66_auction_cooldown }
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				is_alive = yes
+				is_ruler = no
+				# power_base > 10
+				OR = {
+					is_general = yes
+					is_admiral = yes
+					# is_governor = yes
+				}
+				# loyalty < 80
+				trigger_if = {
+					limit = {
+						employer = { allows_female_rulers = no }
+					}
+					is_female = no
+				}
+				NOR = {
+					has_character_modifier = foreign_citizen
+					has_variable = ip_rep_66_counter_flag
+					has_variable = ip_rep_66_supporter_flag
+					# is_friend = root.current_ruler
+					# is_rival = root.current_ruler
+				}
+				#P:A TODO No EU5 equivalent: the same untranslatable conditions as in the trigger (power base, governors, loyalty, friends/rivals)
+			}
+			save_scope_as = ip_rep_66_auction
+		}
+		set_variable = {
+			name = ip_rep_66_auction_cooldown
+			days = 365 # 1 year
+		}
+	}
+
+	option = { # Buy loyalty
+		name = ip_republic.81.a
+		# current_ruler = { add_corruption = corruption_large } #P:A TODO No EU5 equivalent: +10 ruler corruption
+		scope:ip_rep_66_auction = {
+			# add_loyalty = loyalty_bought_support
+			# add_corruption = corruption_large
+			# add_gold = { value = root.has_monthly_income multiply = 3 }
+			#P:A TODO No EU5 equivalent: "bought support" loyalty, +10 corruption and 3x our monthly income as personal wealth for the character
+			set_variable = ip_rep_66_counter_flag
+		}
+		add_gold = {
+			value = monthly_income_total
+			multiply = -3
+			min = -6000
+		}
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		change_variable = {
+			name = ip_rep_66_counter_support
+			add = 5
+		}
+		custom_tooltip = oligarch_plot_success_chance_future_large
+	}
+
+	option = { # Relieve them
+		name = ip_republic.81.b
+		trigger = {
+			scope:ip_rep_66_auction = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office / has_tech_office -> EU5 cabinet member
+			}
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		# current_ruler = { add_popularity = popularity_medium } #P:A TODO No EU5 equivalent: +10 ruler popularity
+		remove_from_cabinet = scope:ip_rep_66_auction #P:A TODO Approximate: Imperator remove_all_offices -> removed from the cabinet
+		# scope:ip_rep_66_auction = { add_loyalty = loyalty_removed_office } #P:A TODO No EU5 equivalent: "removed from office" loyalty modifier
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 2
+		}
+		custom_tooltip = ip_republic.81.bt
+		custom_tooltip = oligarch_plot_success_chance_subtract_small
+	}
+
+	option = { # Nothing
+		name = ip_republic.81.c
+		trigger_event_non_silently = {
+			on_action = ip_rep_66_development_on_action
+			days = { 20 40 }
+		}
+		change_variable = {
+			name = ip_rep_66_plot_support
+			add = 5
+		}
+		custom_tooltip = oligarch_plot_success_chance_subtract_large
+	}
+}
+
+# Oligarch Plot - Confront Outcome (fired by ip_republic.76 option a; scope:ip_rep_66_protagonist and scope:ip_rep_66_foreign_backer carry over)
+# Imperator rolled a local variable 1-100 against get_oligarch_plot_success_chance; here a random roll saves scope:ip_rep_66_plot_foiled.
+ip_republic.82 = {
+	type = country_event
+	title = ip_republic.82.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Plot foiled, plotters caught
+				trigger = {
+					exists = scope:ip_rep_66_plot_foiled
+					NAND = {
+						scope:ip_rep_66_protagonist = { has_variable = ip_rep_66_fled }
+						OR = {
+							AND = {
+								has_variable = ip_rep_66_foreign_support_flag
+								root.var:ip_rep_66_foreign_support_flag = { exists = capital }
+							}
+							any_country = { within_diplomatic_range = root }
+						}
+					}
+				}
+				desc = ip_republic.82.desc_1
+			}
+			triggered_desc = { # Plotters fled abroad
+				trigger = {
+					scope:ip_rep_66_protagonist = { has_variable = ip_rep_66_fled }
+					OR = {
+						AND = {
+							has_variable = ip_rep_66_foreign_support_flag
+							root.var:ip_rep_66_foreign_support_flag = { exists = capital }
+						}
+						any_country = { within_diplomatic_range = root }
+					}
+				}
+				desc = ip_republic.82.desc_2
+			}
+			triggered_desc = { # Plot succeeds: civil war
+				trigger = {
+					always = yes
+				}
+				desc = ip_republic.82.desc_3
+			}
+		}
+	}
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random = { # Imperator: integer_range 1-100 <= get_oligarch_plot_success_chance -> plot_outcome 0 (foiled), else 1 (civil war)
+			chance = pa_imp_get_oligarch_plot_success_chance
+			save_scope_value_as = {
+				name = ip_rep_66_plot_foiled
+				value = yes
+			}
+		}
+		if = {
+			limit = {
+				has_variable = ip_rep_66_foreign_support_flag
+				root.var:ip_rep_66_foreign_support_flag = { exists = capital }
+			}
+			root.var:ip_rep_66_foreign_support_flag = { save_scope_as = ip_rep_66_foreign_backer }
+		}
+		if = {
+			limit = {
+				NOT = { exists = scope:ip_rep_66_foreign_backer }
+				any_country = { within_diplomatic_range = root }
+			}
+			random_country = {
+				limit = { within_diplomatic_range = root }
+				save_scope_as = ip_rep_66_foreign_backer
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:ip_rep_66_plot_foiled
+			}
+			random_list = {
+				30 = { # The plotters flee abroad
+					trigger = {
+						exists = scope:ip_rep_66_protagonist
+					}
+					#P:A TODO No EU5 equivalent: x5 steps for the plotter's power base (> 10, > 20) and wealth (> 100, > 200, > 400, > 800, > 1200) (EU5 characters have neither)
+					# modifier = { factor = 5 scope:ip_rep_66_protagonist.power_base > 10 }
+					# modifier = { factor = 5 scope:ip_rep_66_protagonist.power_base > 20 }
+					# modifier = { factor = 5 scope:ip_rep_66_protagonist.wealth > 100 }
+					# modifier = { factor = 5 scope:ip_rep_66_protagonist.wealth > 200 }
+					# modifier = { factor = 5 scope:ip_rep_66_protagonist.wealth > 400 }
+					# modifier = { factor = 5 scope:ip_rep_66_protagonist.wealth > 800 }
+					# modifier = { factor = 5 scope:ip_rep_66_protagonist.wealth > 1200 }
+					scope:ip_rep_66_protagonist = { set_variable = ip_rep_66_fled }
+				}
+				70 = {
+				}
+			}
+		}
+		if = {
+			limit = {
+				NOT = { exists = scope:ip_rep_66_plot_foiled }
+				any_character = {
+					NOT = { has_variable = ip_rep_66_supporter_flag }
+					OR = {
+						# loyalty >= 60 #P:A TODO No EU5 equivalent: loyalty 60+ (EU5 characters have no loyalty); only counter-plotters qualify now
+						has_variable = ip_rep_66_counter_flag
+					}
+					mil > root.ruler.mil
+					mil >= 40 # Imperator martial >= 8
+					trigger_if = {
+						limit = {
+							employer = { allows_female_rulers = no } #P:A TODO Approximate: Imperator gender_equality -> allows_female_rulers
+						}
+						is_female = no
+					}
+				}
+			}
+			ordered_character = {
+				limit = {
+					NOT = { has_variable = ip_rep_66_supporter_flag }
+					OR = {
+						# loyalty >= 60
+						has_variable = ip_rep_66_counter_flag
+					}
+					mil > root.ruler.mil
+					mil >= 40
+					trigger_if = {
+						limit = {
+							employer = { allows_female_rulers = no }
+						}
+						is_female = no
+					}
+				}
+				order_by = mil
+				save_scope_as = ip_rep_66_civil_war_general
+			}
+		}
+	}
+
+	option = { # Execute
+		name = ip_republic.82.a
+		trigger = {
+			exists = scope:ip_rep_66_plot_foiled
+			NAND = {
+				scope:ip_rep_66_protagonist = { has_variable = ip_rep_66_fled }
+				OR = {
+					exists = scope:ip_rep_66_foreign_backer
+					any_country = { within_diplomatic_range = root }
+				}
+			}
+		}
+		kill_character = {
+			target = scope:ip_rep_66_protagonist
+			killer = root.ruler
+			reason = execution # Imperator death_execution
+		}
+		if = {
+			limit = {
+				any_character = {
+					has_variable = ip_rep_66_supporter_flag
+				}
+			}
+			every_character = {
+				limit = {
+					has_variable = ip_rep_66_supporter_flag
+				}
+				kill_character = {
+					target = this
+					killer = root.ruler
+					reason = execution
+				}
+			}
+		}
+		# add_tyranny = tyranny_large #P:A TODO No EU5 equivalent: +5 tyranny
+		pa_imp_ip_rep_66_variable_effect = yes
+	}
+
+	option = { # Banish
+		name = ip_republic.82.b
+		trigger = {
+			exists = scope:ip_rep_66_plot_foiled
+			NAND = {
+				scope:ip_rep_66_protagonist = { has_variable = ip_rep_66_fled }
+				OR = {
+					exists = scope:ip_rep_66_foreign_backer
+					any_country = { within_diplomatic_range = root }
+				}
+			}
+			exists = scope:ip_rep_66_foreign_backer
+		}
+		scope:ip_rep_66_protagonist = {
+			move_country = scope:ip_rep_66_foreign_backer #P:A TODO Approximate: Imperator banish -> move_country (no banishment status in EU5)
+		}
+		if = {
+			limit = {
+				any_character = { has_variable = ip_rep_66_supporter_flag }
+			}
+			every_character = {
+				limit = { has_variable = ip_rep_66_supporter_flag }
+				move_country = scope:ip_rep_66_foreign_backer # Imperator banish
+			}
+		}
+		# add_tyranny = tyranny_small #P:A TODO No EU5 equivalent: +1 tyranny
+		pa_imp_ip_rep_66_variable_effect = yes
+	}
+
+	option = { # Imprison
+		name = ip_republic.82.c
+		trigger = {
+			exists = scope:ip_rep_66_plot_foiled
+			NAND = {
+				scope:ip_rep_66_protagonist = { has_variable = ip_rep_66_fled }
+				OR = {
+					exists = scope:ip_rep_66_foreign_backer
+					any_country = { within_diplomatic_range = root }
+				}
+			}
+		}
+		# imprison = { target = scope:ip_rep_66_protagonist }
+		# if = {
+		# 	limit = {
+		# 		exists = scope:ip_rep_66_supporter_1
+		# 		scope:ip_rep_66_supporter_1 = { is_alive = yes prisoner = no employer = root }
+		# 	}
+		# 	imprison = { target = scope:ip_rep_66_supporter_1 }
+		# }
+		# if = {
+		# 	limit = {
+		# 		exists = scope:ip_rep_66_supporter_2
+		# 		scope:ip_rep_66_supporter_2 = { is_alive = yes prisoner = no employer = root }
+		# 	}
+		# 	imprison = { target = scope:ip_rep_66_supporter_2 }
+		# }
+		#P:A TODO No EU5 equivalent: imprisons the plotter and up to two supporters (EU5 has no prisoners); the option now only ends the plot
+		pa_imp_ip_rep_66_variable_effect = yes
+	}
+
+	option = { # Pardon
+		name = ip_republic.82.d
+		trigger = {
+			exists = scope:ip_rep_66_plot_foiled
+			NAND = {
+				scope:ip_rep_66_protagonist = { has_variable = ip_rep_66_fled }
+				OR = {
+					exists = scope:ip_rep_66_foreign_backer
+					any_country = { within_diplomatic_range = root }
+				}
+			}
+			ruler = {
+				OR = {
+					has_trait = kind_hearted # Imperator merciful
+					# has_trait = forgiving #P:A TODO No EU5 equivalent: Imperator trait forgiving
+				}
+			}
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		# current_ruler = { add_popularity = popularity_huge } #P:A TODO No EU5 equivalent: +25 ruler popularity
+		# scope:ip_rep_66_protagonist = { add_loyalty = loyalty_plot_laughed_off }
+		# every_character = { limit = { has_variable = ip_rep_66_supporter_flag } add_loyalty = loyalty_plot_laughed_off }
+		#P:A TODO No EU5 equivalent: the "plot laughed off" loyalty modifier for the plotter and supporters (EU5 characters have no loyalty)
+		if = {
+			limit = {
+				ruler = { has_trait = kind_hearted }
+			}
+			custom_tooltip = merciful_tooltip
+		}
+		# else_if = { limit = { current_ruler = { has_trait = forgiving } } custom_tooltip = forgiving_tooltip } #P:A TODO No EU5 equivalent: Imperator trait forgiving
+		pa_imp_ip_rep_66_variable_effect = yes
+	}
+
+	option = { # Fled
+		name = ip_republic.82.e
+		trigger = {
+			exists = scope:ip_rep_66_plot_foiled
+			scope:ip_rep_66_protagonist = { has_variable = ip_rep_66_fled }
+			exists = scope:ip_rep_66_foreign_backer
+		}
+		scope:ip_rep_66_protagonist = {
+			move_country = scope:ip_rep_66_foreign_backer #P:A TODO Approximate: Imperator banish -> move_country (no banishment status in EU5)
+		}
+		if = {
+			limit = {
+				any_character = { has_variable = ip_rep_66_supporter_flag }
+			}
+			every_character = {
+				limit = { has_variable = ip_rep_66_supporter_flag }
+				move_country = scope:ip_rep_66_foreign_backer # Imperator banish
+			}
+		}
+		scope:ip_rep_66_foreign_backer = {
+			trigger_event_non_silently = {
+				id = ip_republic.85
+			}
+		}
+		custom_tooltip = ip_republic.82.et
+		pa_imp_ip_rep_66_variable_effect = yes
+	}
+
+	option = { # Civil war
+		name = ip_republic.82.f
+		trigger = {
+			NOT = { exists = scope:ip_rep_66_plot_foiled }
+		}
+		ruler ?= {
+			save_scope_as = ip_rep_66_civil_war_general
+		}
+		set_variable = ip_rep_66_civil_war_defender
+		#P:A TODO Approximate: Imperator start_civil_war = <plotter> split the country with the plotter leading the breakaway half. Here a nobles-estate rebel is created, the plotter and supporters join it, the nobles pops outside the capital back it, and it starts a civil war
+		create_rebel = {
+			category = estate
+			estate = nobles_estate
+			name = ip_rep_66_oligarch_revolt
+			save_scope_as = ip_rep_66_rebels
+		}
+		scope:ip_rep_66_protagonist = {
+			change_character_allegiance = scope:ip_rep_66_rebels
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					any_character = {
+						has_variable = ip_rep_66_supporter_flag
+					}
+				}
+				every_character = {
+					limit = {
+						has_variable = ip_rep_66_supporter_flag
+					}
+					change_character_allegiance = scope:ip_rep_66_rebels # Imperator: move_country to the plotter's new country
+					# set_as_minor_character = this #P:A TODO No EU5 equivalent: Imperator minor characters
+				}
+			}
+			every_owned_location = {
+				limit = {
+					NOT = { this = root.capital }
+				}
+				every_pop = {
+					limit = {
+						owner = root
+						pop_type = pop_type:nobles
+					}
+					change_pop_allegiance = scope:ip_rep_66_rebels
+				}
+			}
+		}
+		scope:ip_rep_66_rebels = {
+			start_civil_war = {
+				set_variable = ip_rep_66_civil_war_attacker # Imperator: set on the plotter's employer after the split
+			}
+		}
+		if = {
+			limit = {
+				has_variable = ip_rep_66_foreign_support_flag
+				exists = scope:ip_rep_66_foreign_backer
+			}
+			scope:ip_rep_66_foreign_backer = {
+				trigger_event_non_silently = {
+					id = ip_republic.85
+				}
+			}
+		}
+		# Imperator wrapped this in an "if any_country = { same conditions }" guard; the limit does the same
+		every_country = {
+			limit = {
+				OR = {
+					is_neighbor_of = root # Imperator: owns a province bordering one of root's
+					AND = {
+						exists = capital
+						capital.region = root.capital.region # Imperator: the civil war general's employer, i.e. root
+					}
+				}
+				NOR = {
+					this = root
+					AND = {
+						exists = scope:ip_rep_66_foreign_backer
+						this = scope:ip_rep_66_foreign_backer
+					}
+				}
+			}
+			trigger_event_non_silently = {
+				id = ip_republic.86
+			}
+		}
+		pa_imp_ip_rep_66_variable_effect = yes
+	}
+
+	option = { # Civil war, replace the leader
+		name = ip_republic.82.g
+		trigger = {
+			NOT = { exists = scope:ip_rep_66_plot_foiled }
+			exists = scope:ip_rep_66_civil_war_general
+		}
+		set_variable = ip_rep_66_civil_war_defender
+		set_new_ruler = scope:ip_rep_66_civil_war_general
+		add_stability = -5
+		#P:A TODO Approximate: Imperator start_civil_war = <plotter> split the country with the plotter leading the breakaway half. Here a nobles-estate rebel is created, the plotter and supporters join it, the nobles pops outside the capital back it, and it starts a civil war
+		create_rebel = {
+			category = estate
+			estate = nobles_estate
+			name = ip_rep_66_oligarch_revolt
+			save_scope_as = ip_rep_66_rebels
+		}
+		scope:ip_rep_66_protagonist = {
+			change_character_allegiance = scope:ip_rep_66_rebels
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					any_character = {
+						has_variable = ip_rep_66_supporter_flag
+					}
+				}
+				every_character = {
+					limit = {
+						has_variable = ip_rep_66_supporter_flag
+					}
+					change_character_allegiance = scope:ip_rep_66_rebels # Imperator: move_country to the plotter's new country
+					# set_as_minor_character = this #P:A TODO No EU5 equivalent: Imperator minor characters
+				}
+			}
+			every_owned_location = {
+				limit = {
+					NOT = { this = root.capital }
+				}
+				every_pop = {
+					limit = {
+						owner = root
+						pop_type = pop_type:nobles
+					}
+					change_pop_allegiance = scope:ip_rep_66_rebels
+				}
+			}
+		}
+		scope:ip_rep_66_rebels = {
+			start_civil_war = {
+				set_variable = ip_rep_66_civil_war_attacker # Imperator: set on the plotter's employer after the split
+			}
+		}
+		if = {
+			limit = {
+				has_variable = ip_rep_66_foreign_support_flag
+				exists = scope:ip_rep_66_foreign_backer
+			}
+			scope:ip_rep_66_foreign_backer = {
+				trigger_event_non_silently = {
+					id = ip_republic.85
+				}
+			}
+		}
+		# Imperator wrapped this in an "if any_country = { same conditions }" guard; the limit does the same
+		every_country = {
+			limit = {
+				OR = {
+					is_neighbor_of = root # Imperator: owns a province bordering one of root's
+					AND = {
+						exists = capital
+						capital.region = root.capital.region # Imperator: the civil war general's employer, i.e. root
+					}
+				}
+				NOR = {
+					this = root
+					AND = {
+						exists = scope:ip_rep_66_foreign_backer
+						this = scope:ip_rep_66_foreign_backer
+					}
+				}
+			}
+			trigger_event_non_silently = {
+				id = ip_republic.86
+			}
+		}
+		pa_imp_ip_rep_66_variable_effect = yes
+	}
+}
+
+# Oligarch Plot - Ostracise Attempt (fired by ip_republic.76 option c; scope:ip_rep_66_protagonist and scope:ip_rep_66_foreign_backer carry over)
+# Imperator kept the ballot result in local variable ostracise_outcome (1 = the plotter is ostracised, 2 = a scapegoat is, 3 = the plotter wins);
+# here it is scope:ip_rep_66_ostracise_outcome = flag:ruler_wins / flag:scapegoat / flag:plotter_wins.
+#P:A TODO Approximate: the ballot compared the ruler's and the plotter's Imperator popularity; EU5 characters have no popularity, so their diplomatic skill (dip) stands in throughout this event
+ip_republic.83 = {
+	type = country_event
+	title = ip_republic.83.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:ip_rep_66_ostracise_outcome = flag:ruler_wins
+				}
+				desc = ip_republic.83.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					scope:ip_rep_66_ostracise_outcome = flag:scapegoat
+				}
+				desc = ip_republic.83.desc_2
+			}
+			triggered_desc = { # (sic: Imperator shows desc_2, which names the scapegoat, for this outcome too, where no scapegoat is saved)
+				trigger = {
+					scope:ip_rep_66_ostracise_outcome = flag:plotter_wins
+				}
+				desc = ip_republic.83.desc_2
+			}
+		}
+	}
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				has_variable = ip_rep_66_foreign_support_flag
+				root.var:ip_rep_66_foreign_support_flag = { exists = capital }
+			}
+			root.var:ip_rep_66_foreign_support_flag = { save_scope_as = ip_rep_66_foreign_backer }
+		}
+		else_if = {
+			limit = {
+				NOT = { exists = scope:ip_rep_66_foreign_backer }
+				any_country = { within_diplomatic_range = root }
+			}
+			random_country = {
+				limit = { within_diplomatic_range = root }
+				save_scope_as = ip_rep_66_foreign_backer
+			}
+		}
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = {
+			limit = {
+				root.ruler.dip > pa_imp_get_ostracise_popularity_2 # Imperator: ruler popularity > half the plotter's
+			}
+			save_scope_value_as = {
+				name = ip_rep_66_ostracise_outcome
+				value = flag:ruler_wins
+			}
+		}
+		else_if = {
+			limit = {
+				scope:ip_rep_66_protagonist.dip > pa_imp_get_ostracise_popularity_1 # Imperator: plotter popularity > half the ruler's
+			}
+			save_scope_value_as = {
+				name = ip_rep_66_ostracise_outcome
+				value = flag:plotter_wins
+			}
+		}
+		else = {
+			if = {
+				limit = {
+					any_character = {
+						is_alive = yes
+						trigger_if = {
+							limit = {
+								employer = { allows_female_rulers = no } #P:A TODO Approximate: Imperator gender_equality -> allows_female_rulers
+							}
+							is_female = no
+						}
+						NOR = {
+							this = root.ruler
+							this = scope:ip_rep_66_protagonist
+							has_variable = ip_rep_66_supporter_flag
+							has_variable = ip_rep_66_counter_flag
+						}
+					}
+				}
+				random = { # Imperator: a 1-100 roll at or below both the ruler's and the plotter's popularity
+					chance = {
+						value = root.ruler.dip
+						max = scope:ip_rep_66_protagonist.dip
+					}
+					ordered_character = {
+						limit = {
+							is_alive = yes
+							trigger_if = {
+								limit = {
+									employer = { allows_female_rulers = no }
+								}
+								is_female = no
+							}
+							NOR = {
+								this = root.ruler
+								this = scope:ip_rep_66_protagonist
+								has_variable = ip_rep_66_supporter_flag
+								has_variable = ip_rep_66_counter_flag
+							}
+						}
+						order_by = { # the least popular (here: least diplomatic) character
+							value = 0
+							subtract = dip
+						}
+						save_scope_as = ip_rep_66_scapegoat
+					}
+					save_scope_value_as = {
+						name = ip_rep_66_ostracise_outcome
+						value = flag:scapegoat
+					}
+				}
+			}
+			if = {
+				limit = {
+					NOT = { exists = scope:ip_rep_66_ostracise_outcome }
+				}
+				random_list = {
+					5 = {
+						save_scope_value_as = {
+							name = ip_rep_66_ostracise_outcome
+							value = flag:ruler_wins
+						}
+					}
+					5 = {
+						save_scope_value_as = {
+							name = ip_rep_66_ostracise_outcome
+							value = flag:plotter_wins
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = { # The plotter takes power
+		name = ip_republic.83.a
+		trigger = {
+			NOT = { scope:ip_rep_66_ostracise_outcome = flag:ruler_wins }
+		}
+		ruler ?= {
+			save_scope_as = ip_rep_66_overthrown_ruler
+		}
+		set_new_ruler = scope:ip_rep_66_protagonist
+		if = {
+			limit = {
+				exists = scope:ip_rep_66_overthrown_ruler
+			}
+			if = {
+				limit = {
+					any_country = {
+						OR = {
+							is_neighbor_of = root # Imperator: owns a province bordering one of root's
+							within_diplomatic_range = root
+						}
+					}
+				}
+				random_country = {
+					limit = {
+						OR = {
+							is_neighbor_of = root
+							within_diplomatic_range = root
+						}
+					}
+					save_scope_as = ip_rep_84_banish
+				}
+				scope:ip_rep_66_overthrown_ruler = {
+					move_country = scope:ip_rep_84_banish #P:A TODO Approximate: Imperator banish -> move_country (no banishment status in EU5)
+				}
+			}
+			else = {
+				hidden_effect = {
+					kill_character = {
+						target = scope:ip_rep_66_overthrown_ruler
+						killer = scope:ip_rep_66_protagonist
+						reason = vanished # Imperator death_obscurity
+					}
+				}
+			}
+		}
+		hidden_effect = {
+			add_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator change_government = oligarchic_republic -> EU5 noble_elite reform
+		}
+		custom_tooltip = ip_republic.76.bt
+		add_stability = -25
+		pa_imp_ip_rep_66_variable_effect = yes
+	}
+
+	option = { # Civil war
+		name = ip_republic.83.b
+		trigger = {
+			NOT = { scope:ip_rep_66_ostracise_outcome = flag:ruler_wins }
+		}
+		ruler ?= {
+			save_scope_as = ip_rep_66_civil_war_general
+		}
+		set_variable = ip_rep_66_civil_war_defender
+		#P:A TODO Approximate: Imperator start_civil_war = <plotter> split the country with the plotter leading the breakaway half. Here a nobles-estate rebel is created, the plotter joins it, the nobles pops outside the capital back it, and it starts a civil war
+		create_rebel = {
+			category = estate
+			estate = nobles_estate
+			name = ip_rep_66_oligarch_revolt
+			save_scope_as = ip_rep_66_rebels
+		}
+		scope:ip_rep_66_protagonist = {
+			change_character_allegiance = scope:ip_rep_66_rebels
+		}
+		hidden_effect = {
+			every_owned_location = {
+				limit = {
+					NOT = { this = root.capital }
+				}
+				every_pop = {
+					limit = {
+						owner = root
+						pop_type = pop_type:nobles
+					}
+					change_pop_allegiance = scope:ip_rep_66_rebels
+				}
+			}
+		}
+		scope:ip_rep_66_rebels = {
+			start_civil_war = {
+				set_variable = ip_rep_66_civil_war_attacker # Imperator: set on the plotter's employer after the split
+			}
+		}
+		pa_imp_ip_rep_66_variable_effect = yes
+	}
+
+	option = { # The republic is safe
+		name = ip_republic.83.c
+		trigger = {
+			# current_ruler = { NOT = { has_trait = lunatic } } #P:A Removed: EU5 has no lunatic trait, so this is always true
+			scope:ip_rep_66_ostracise_outcome = flag:ruler_wins
+		}
+		if = {
+			limit = { exists = scope:ip_rep_66_foreign_backer }
+			scope:ip_rep_66_protagonist = {
+				move_country = scope:ip_rep_66_foreign_backer #P:A TODO Approximate: Imperator banish -> move_country (no banishment status in EU5)
+			}
+		}
+		else = {
+			kill_character = {
+				target = scope:ip_rep_66_protagonist
+				reason = vanished # Imperator death_obscurity
+			}
+		}
+		custom_tooltip = ip_republic.83.ct
+		pa_imp_ip_rep_66_variable_effect = yes
+		add_stability = 5
+	}
+
+	option = { # Lunatic ruler
+		name = ip_republic.83.d
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		trigger = {
+			# current_ruler = { has_trait = lunatic }
+			always = no #P:A TODO No EU5 equivalent: option only for a lunatic ruler (EU5 has no lunatic trait)
+			scope:ip_rep_66_ostracise_outcome = flag:ruler_wins
+		}
+		custom_tooltip = lunatic_tooltip
+		# current_ruler = { add_popularity = subtract_popularity_small } #P:A TODO No EU5 equivalent: -5 ruler popularity
+		if = {
+			limit = {
+				NOT = { exists = scope:ip_rep_66_foreign_backer }
+				any_country = { within_diplomatic_range = root }
+			}
+			random_country = {
+				limit = { within_diplomatic_range = root }
+				save_scope_as = ip_rep_66_foreign_backer
+			}
+		}
+		scope:ip_rep_66_protagonist = {
+			move_country = scope:ip_rep_66_foreign_backer #P:A TODO Approximate: Imperator banish -> move_country (no banishment status in EU5)
+		}
+		custom_tooltip = ip_republic.83.ct
+		pa_imp_ip_rep_66_variable_effect = yes
+		add_stability = 5
+	}
+}
+
+# Oligarch Plot - Close (oligarchs seize power)
+ip_republic.84 = {
+	type = country_event
+	title = ip_republic.84.t
+	desc = ip_republic.84.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:republic
+		NOR = {
+			# has_co_ruler_government = yes #P:A TODO No EU5 equivalent: Imperator co-ruler governments (EU5 has no co-rulers)
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator oligarchic_republic -> EU5 noble_elite reform
+		}
+		any_character = {
+			has_variable = ip_rep_66_protagonist_flag
+			employer = root
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			save_temporary_scope_as = ip_rep_66_protagonist_temp
+		}
+		pa_imp_olig_plot_temp_scope_trigger = yes
+		pa_imp_get_oligarch_plot_success_chance < 15
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = ip_rep_66_overthrown_ruler
+		}
+		random_character = {
+			limit = {
+				has_variable = ip_rep_66_protagonist_flag
+				employer = root
+				is_alive = yes
+			}
+			save_scope_as = ip_rep_66_protagonist
+		}
+		if = {
+			limit = {
+				any_character = {
+					has_variable = ip_rep_66_counter_flag
+				}
+			}
+			random_character = {
+				limit = { has_variable = ip_rep_66_counter_flag }
+				save_scope_as = ip_rep_66_counter_1
+			}
+		}
+		if = {
+			limit = {
+				any_character = {
+					has_variable = ip_rep_66_counter_flag
+					NOT = { this = scope:ip_rep_66_counter_1 }
+				}
+			}
+			random_character = {
+				limit = {
+					has_variable = ip_rep_66_counter_flag
+					NOT = { this = scope:ip_rep_66_counter_1 }
+				}
+				save_scope_as = ip_rep_66_counter_2
+			}
+		}
+		if = {
+			limit = {
+				any_character = {
+					has_variable = ip_rep_66_supporter_flag
+				}
+			}
+			random_character = {
+				limit = { has_variable = ip_rep_66_supporter_flag }
+				save_scope_as = ip_rep_66_supporter_1
+			}
+		}
+		if = {
+			limit = {
+				any_character = {
+					has_variable = ip_rep_66_supporter_flag
+					NOT = { this = scope:ip_rep_66_supporter_1 }
+				}
+			}
+			random_character = {
+				limit = {
+					has_variable = ip_rep_66_supporter_flag
+					NOT = { this = scope:ip_rep_66_supporter_1 }
+				}
+				save_scope_as = ip_rep_66_supporter_2
+			}
+		}
+		set_new_ruler = scope:ip_rep_66_protagonist
+		add_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator change_government = oligarchic_republic -> EU5 noble_elite reform
+		add_stability = -25
+		if = {
+			limit = {
+				exists = scope:ip_rep_66_overthrown_ruler
+				scope:ip_rep_66_overthrown_ruler = {
+					OR = {
+						has_trait = careful #P:A TODO Approximate: Imperator cautious -> careful
+						has_trait = schemer # Imperator crafty
+						#P:A TODO No EU5 equivalent: the Imperator traits wise, shrewd, intelligent and suspicious
+						# has_trait = wise
+						# has_trait = shrewd
+						# has_trait = intelligent
+						# has_trait = suspicious
+					}
+				}
+				any_country = {
+					OR = {
+						is_neighbor_of = root # Imperator: owns a province bordering one of root's
+						within_diplomatic_range = root
+					}
+				}
+			}
+			random = {
+				chance = 50
+				scope:ip_rep_66_overthrown_ruler = {
+					set_variable = ip_rep_84_escape_flag
+				}
+			}
+			random_country = {
+				limit = {
+					OR = {
+						is_neighbor_of = root
+						within_diplomatic_range = root
+					}
+				}
+				save_scope_as = ip_rep_84_banish
+			}
+		}
+		else_if = {
+			limit = {
+				exists = scope:ip_rep_66_overthrown_ruler
+				scope:ip_rep_66_overthrown_ruler = {
+					OR = {
+						has_trait = careful #P:A TODO Approximate: Imperator cautious -> careful
+						has_trait = schemer # Imperator crafty
+						# has_trait = wise
+						# has_trait = shrewd
+						# has_trait = intelligent
+						# has_trait = suspicious
+					}
+				}
+			}
+			random = {
+				chance = 50
+				scope:ip_rep_66_overthrown_ruler = {
+					set_variable = ip_rep_84_escape_flag # (sic: Imperator sets the escape flag and then kills the ruler here)
+				}
+				hidden_effect = {
+					kill_character = {
+						target = scope:ip_rep_66_overthrown_ruler
+						killer = scope:ip_rep_66_protagonist
+						reason = vanished # Imperator death_obscurity
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				has_variable = ip_rep_66_foreign_support_flag
+				exists = scope:ip_rep_66_foreign_backer
+			}
+			scope:ip_rep_66_foreign_backer = {
+				trigger_event_non_silently = {
+					id = ip_republic.85
+				}
+			}
+		}
+		# Imperator wrapped this in an "if any_country = { same conditions }" guard; the limit does the same
+		every_country = {
+			limit = {
+				OR = {
+					is_neighbor_of = root # Imperator: owns a province bordering one of root's
+					AND = {
+						exists = capital
+						capital.region = root.capital.region # Imperator: the plotter's employer, i.e. root
+					}
+				}
+				NOR = {
+					this = root
+					AND = {
+						exists = scope:ip_rep_66_foreign_backer
+						this = scope:ip_rep_66_foreign_backer
+					}
+				}
+			}
+			trigger_event_non_silently = {
+				id = ip_republic.86
+			}
+		}
+		pa_imp_ip_rep_66_variable_effect = yes
+	}
+
+	option = { # Merciful overthrow
+		name = ip_republic.84.a
+		trigger = {
+			scope:ip_rep_66_overthrown_ruler = {
+				NOR = {
+					has_variable = ip_rep_84_escape_flag
+					has_trait = careful # Imperator cautious
+					has_trait = schemer # Imperator crafty
+					# has_trait = wise
+					# has_trait = shrewd
+					# has_trait = intelligent
+					# has_trait = suspicious
+				}
+			}
+			scope:ip_rep_66_protagonist = {
+				OR = {
+					has_trait = kind_hearted # Imperator merciful and kindly
+					#P:A TODO No EU5 equivalent: the Imperator traits forgiving and easygoing
+					# has_trait = forgiving
+					# has_trait = easygoing
+				}
+			}
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		# scope:ip_rep_66_overthrown_ruler = { add_loyalty = loyalty_merciful_oligarch } #P:A TODO No EU5 equivalent: "merciful oligarch" loyalty for the overthrown ruler (EU5 characters have no loyalty)
+		custom_tooltip = ip_republic.84.at
+	}
+
+	option = { # Overthrow
+		name = ip_republic.84.b
+		trigger = {
+			scope:ip_rep_66_overthrown_ruler = {
+				NOT = { has_variable = ip_rep_84_escape_flag }
+			}
+		}
+		# imprison = { target = scope:ip_rep_66_overthrown_ruler }
+		# if = { limit = { exists = scope:ip_rep_66_counter_1 scope:ip_rep_66_counter_1 = { is_alive = yes prisoner = no employer = root } } imprison = { target = scope:ip_rep_66_counter_1 } }
+		# if = { limit = { exists = scope:ip_rep_66_counter_2 scope:ip_rep_66_counter_2 = { is_alive = yes prisoner = no employer = root } } imprison = { target = scope:ip_rep_66_counter_2 } }
+		#P:A TODO No EU5 equivalent: imprisons the overthrown ruler and up to two counter-plotters (EU5 has no prisoners)
+		# add_tyranny = tyranny_large #P:A TODO No EU5 equivalent: +5 tyranny
+	}
+
+	option = { # Harsh overthrow
+		name = ip_republic.84.c
+		trigger = {
+			scope:ip_rep_66_overthrown_ruler = {
+				NOT = { has_variable = ip_rep_84_escape_flag }
+			}
+			scope:ip_rep_66_protagonist = {
+				OR = {
+					has_trait = cruel
+					#P:A TODO No EU5 equivalent: the Imperator traits harsh, arbitrary and vengeful
+					# has_trait = harsh
+					# has_trait = arbitrary
+					# has_trait = vengeful
+				}
+			}
+		}
+		# highlight = yes (Imperator option highlight; EU5 has none)
+		kill_character = {
+			target = scope:ip_rep_66_overthrown_ruler
+			killer = scope:ip_rep_66_protagonist
+			reason = execution # Imperator death_execution
+		}
+		if = {
+			limit = {
+				exists = scope:ip_rep_66_counter_1
+				scope:ip_rep_66_counter_1 = {
+					is_alive = yes
+					#P:A Removed: prisoner = no is always true in EU5
+					employer = root
+				}
+			}
+			kill_character = {
+				target = scope:ip_rep_66_counter_1
+				killer = scope:ip_rep_66_protagonist
+				reason = execution
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:ip_rep_66_counter_2
+				scope:ip_rep_66_counter_2 = {
+					is_alive = yes
+					employer = root
+				}
+			}
+			kill_character = {
+				target = scope:ip_rep_66_counter_2
+				killer = scope:ip_rep_66_protagonist
+				reason = execution
+			}
+		}
+		# add_tyranny = tyranny_huge #P:A TODO No EU5 equivalent: +8 tyranny
+		custom_tooltip = ip_republic.84.ct
+	}
+
+	option = { # Escape
+		name = ip_republic.84.d
+		trigger = {
+			scope:ip_rep_66_overthrown_ruler = { has_variable = ip_rep_84_escape_flag }
+			exists = scope:ip_rep_84_banish
+		}
+		scope:ip_rep_66_overthrown_ruler = {
+			move_country = scope:ip_rep_84_banish #P:A TODO Approximate: Imperator banish -> move_country (no banishment status in EU5)
+		}
+		if = {
+			limit = {
+				exists = scope:ip_rep_66_counter_1
+				scope:ip_rep_66_counter_1 = {
+					is_alive = yes
+					employer = root
+				}
+			}
+			scope:ip_rep_66_counter_1 = {
+				move_country = scope:ip_rep_84_banish # Imperator banish
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:ip_rep_66_counter_2
+				scope:ip_rep_66_counter_2 = {
+					is_alive = yes
+					employer = root
+				}
+			}
+			scope:ip_rep_66_counter_2 = {
+				move_country = scope:ip_rep_84_banish # Imperator banish
+			}
+		}
+		scope:ip_rep_66_overthrown_ruler = {
+			remove_variable = ip_rep_84_escape_flag
+		}
+	}
+
+	after = {
+		if = {
+			limit = {
+				any_character = { has_variable = ip_rep_66_protagonist_flag }
+			}
+			random_character = {
+				limit = { has_variable = ip_rep_66_protagonist_flag }
+				remove_variable = ip_rep_66_protagonist_flag # (Imperator misspelled this as remove_Variable)
+			}
+		}
+	}
+}
+
+# Oligarch Plot - Foreign backer update (fired for the foreign backer by ip_republic.76, .79, .82 and .84; scope:ip_rep_66_protagonist carries over)
+# Imperator tested "the plotter's employer has the plotter as current ruler"; here: the plotter is a ruler.
+ip_republic.85 = {
+	type = country_event
+	title = ip_republic.85.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Successful coup
+				trigger = {
+					scope:ip_rep_66_protagonist = { is_ruler = yes }
+				}
+				desc = ip_republic.85.desc_1
+			}
+			triggered_desc = { # Unsuccessful coup
+				trigger = {
+					NOT = {
+						scope:ip_rep_66_protagonist = { is_ruler = yes }
+					}
+				}
+				desc = ip_republic.85.desc_2
+			}
+			triggered_desc = { # Fled (unreachable in Imperator too: the one above covers it)
+				trigger = {
+					NOT = {
+						scope:ip_rep_66_protagonist = { is_ruler = yes }
+					}
+					scope:ip_rep_66_protagonist = { has_variable = ip_rep_66_fled }
+				}
+				desc = ip_republic.85.desc_3
+			}
+			triggered_desc = { # Civil war (unreachable in Imperator too)
+				trigger = {
+					scope:ip_rep_66_protagonist.employer ?= {
+						OR = {
+							has_variable = ip_rep_66_civil_war_defender
+							has_variable = ip_rep_66_civil_war_attacker
+						}
+					}
+				}
+				desc = ip_republic.85.desc_4
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		exists = scope:ip_rep_66_protagonist
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = {
+			limit = {
+				scope:ip_rep_66_protagonist = { is_ruler = yes }
+				exists = scope:ip_rep_66_protagonist.employer
+				scope:ip_rep_66_protagonist.employer = {
+					NOR = {
+						has_variable = ip_rep_66_civil_war_defender
+						has_variable = ip_rep_66_civil_war_attacker
+					}
+				}
+			}
+			reverse_add_opinion = {
+				target = scope:ip_rep_66_protagonist.employer
+				modifier = ip_rep_66_successful_support
+			}
+			add_opinion = {
+				target = scope:ip_rep_66_protagonist.employer
+				modifier = ip_rep_66_successful_support
+			}
+			add_truce_with = { # Imperator: add_truce both ways, 5475 days
+				target = scope:ip_rep_66_protagonist.employer
+				days = 5475
+				mutual = yes
+			}
+		}
+	}
+
+	option = { # Excellent
+		name = ip_republic.85.a
+		trigger = {
+			scope:ip_rep_66_protagonist = { is_ruler = yes }
+		}
+	}
+
+	option = { # Darn
+		name = ip_republic.85.b
+		trigger = {
+			NOT = {
+				scope:ip_rep_66_protagonist = { is_ruler = yes }
+			}
+		}
+	}
+
+	option = { # Nice
+		name = ip_republic.85.c
+		trigger = {
+			OR = { # (sic: Imperator checks the backer itself here, which never has these variables)
+				has_variable = ip_rep_66_civil_war_defender
+				has_variable = ip_rep_66_civil_war_attacker
+			}
+		}
+	}
+}
+
+# Oligarch Plot - Local update (fired for neighbours and countries in the same region by ip_republic.76, .82 and .84)
+ip_republic.86 = {
+	type = country_event
+	title = ip_republic.86.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:ip_rep_66_protagonist.employer ?= {
+						NOR = {
+							has_variable = ip_rep_66_civil_war_defender
+							has_variable = ip_rep_66_civil_war_attacker
+						}
+					}
+				}
+				desc = ip_republic.86.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					scope:ip_rep_66_protagonist.employer ?= {
+						OR = {
+							has_variable = ip_rep_66_civil_war_defender
+							has_variable = ip_rep_66_civil_war_attacker
+						}
+					}
+				}
+				desc = ip_republic.86.desc_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		exists = scope:ip_rep_66_civil_war_general
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = ip_republic.86.a
+		trigger = {
+			has_reform = government_reform:noble_elite #P:A TODO Approximate: Imperator government = oligarchic_republic -> EU5 noble_elite reform
+			scope:ip_rep_66_civil_war_general.employer ?= { in_civil_war = no }
+		}
+	}
+
+	option = {
+		name = ip_republic.86.c
+		trigger = {
+			NOT = { has_reform = government_reform:noble_elite } # Imperator: not an oligarchic_republic
+			scope:ip_rep_66_civil_war_general.employer ?= { in_civil_war = no }
+		}
+	}
+
+	option = {
+		name = ip_republic.86.b
+		trigger = {
+			scope:ip_rep_66_civil_war_general.employer ?= { in_civil_war = yes }
+		}
+	}
+}
+
+# Oligarch Plot - Victory event for the defender in the civil war (written for on_civil_war_won: root and scope:winner = winner, scope:loser = loser)
+# Imperator's scope:target (the ruler of the losing side) is saved here as scope:target from scope:loser.
+ip_republic.87 = {
+	type = country_event
+	title = civil_war.5.t
+	desc = civil_war.5.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		has_variable = ip_rep_66_civil_war_defender
+		trigger_if = { # new: make sure root is the winner when the on_action supplies one
+			limit = { exists = scope:winner }
+			this = scope:winner
+		}
+		scope:loser ?= {
+			has_ruler = yes
+		}
+	}
+
+	immediate = {
+		remove_variable = ip_rep_66_civil_war_defender
+		ruler ?= {
+			save_scope_as = ip_rep_66_overthrown_ruler
+		}
+		scope:loser.ruler = {
+			save_scope_as = target
+			save_scope_as = ip_rep_66_protagonist
+		}
+	}
+
+	option = { # Death to tyrants
+		name = ip_republic.87.a
+		if = {
+			limit = {
+				scope:target = { is_alive = yes }
+			}
+			kill_character = {
+				target = scope:target
+				reason = execution # Imperator death_crucified
+			}
+		}
+	}
+
+	option = { # Spare the wretch
+		name = ip_republic.87.b
+		trigger = {
+			scope:target = { is_alive = yes }
+		}
+		# current_ruler = { add_popularity = popularity_small } #P:A TODO No EU5 equivalent: +5 ruler popularity
+		if = {
+			limit = {
+				scope:target = { is_alive = yes }
+			}
+			hidden_effect = {
+				scope:target = {
+					move_country = root
+					if = {
+						limit = { has_character_modifier = foreign_citizen }
+						remove_character_modifier = foreign_citizen
+					}
+					# set_as_minor_character = this #P:A TODO No EU5 equivalent: Imperator minor characters
+				}
+			}
+			# imprison = { target = scope:target } #P:A TODO No EU5 equivalent: imprisons the rebel leader (EU5 has no prisoners)
+		}
+	}
+}
+
+# Oligarch Plot - Victory event for the attacker in the civil war (written for on_civil_war_lost: root and scope:winner = winner, i.e. the plotter's rebels; scope:loser = the original country)
+# Imperator's scope:target (the ruler of the losing side) is saved here as scope:target from scope:loser.
+# (The manifest lists ip_republic.88 as a caller of ip_republic.87; it only reuses the loc key ip_republic.87.b.)
+#P:A TODO Test in game: this assumes the rebel country that won the civil war still carries the variable ip_rep_66_civil_war_attacker when on_civil_war_lost fires
+ip_republic.88 = {
+	type = country_event
+	title = civil_war.6.t
+	desc = civil_war.6.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		has_variable = ip_rep_66_civil_war_attacker
+		trigger_if = { # new: make sure root is the winner when the on_action supplies one
+			limit = { exists = scope:winner }
+			this = scope:winner
+		}
+		scope:loser ?= {
+			has_ruler = yes
+		}
+	}
+
+	immediate = {
+		remove_variable = ip_rep_66_civil_war_attacker
+		scope:loser.ruler = {
+			save_scope_as = target
+			save_scope_as = ip_rep_66_overthrown_ruler
+		}
+		ruler ?= {
+			save_scope_as = ip_rep_66_protagonist
+		}
+		hidden_effect = {
+			scope:target = {
+				move_country = root
+				if = {
+					limit = { has_character_modifier = foreign_citizen }
+					remove_character_modifier = foreign_citizen
+				}
+				# set_as_minor_character = this #P:A TODO No EU5 equivalent: Imperator minor characters
+			}
+		}
+	}
+
+	option = { # A new beginning
+		name = ip_republic.88.a
+		scope:target = {
+			if = {
+				limit = {
+					is_alive = yes
+				}
+				kill_character = {
+					target = this
+					reason = execution # Imperator death_crucified
+				}
+			}
+		}
+		# add_tyranny = tyranny_small #P:A TODO No EU5 equivalent: +1 tyranny
+	}
+
+	option = { # Spare the wretch
+		name = ip_republic.87.b
+		trigger = {
+			scope:target = { is_alive = yes }
+		}
+		# current_ruler = { add_popularity = popularity_medium } #P:A TODO No EU5 equivalent: +10 ruler popularity
+		# if = { limit = { scope:target = { is_alive = yes } } imprison = { target = scope:target } } #P:A TODO No EU5 equivalent: imprisons the overthrown ruler (EU5 has no prisoners)
+	}
+}
+
+# ip_republic.100 and ip_republic.101 are not imported: Invictus disabled both (trigger always = no), and they only made AI republics
+# enact the Imperator recruitment laws (punic/marian reforms, republican_recruitment_2/4) gated by Imperator inventions - plumbing for
+# Imperator laws that EU5 does not have.

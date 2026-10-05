@@ -1,0 +1,3850 @@
+﻿#P:A Imported from Invictus: events/internal_politics_monarchy.txt (part 1: ip_monarchy.1-36, batch b04)
+#P:A TODO Imperator plots, rival brothers and pretender chains were fired by Invictus on_actions (plot_events_*, plot_outcome_mon_*, brothers_events, pretenders_battling, character_story_events). EU5 has none of these; the orchestrator must wire them.
+namespace = ip_monarchy
+
+# Two claimants to the throne feud; the ruler may let them fight, scold them, or side with the chosen heir.
+ip_monarchy.1 = {
+	type = country_event
+	title = ip_monarchy.1.t
+	desc = ip_monarchy.1.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = ruler
+		government_type = government_type:monarchy
+		exists = capital
+		any_character = {
+			is_alive = yes
+			is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor (in the line of succession); EU5 is_eligible_heir
+			is_adult = yes
+			# can_get_rivals = yes #P:A TODO No EU5 equivalent: character rival slots (EU5 characters have no rivals)
+			save_temporary_scope_as = primary_heir_scope
+		}
+		any_character = {
+			is_alive = yes
+			is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor; EU5 is_eligible_heir
+			pa_imp_char_valid_for_country_events_trigger = yes
+			is_adult = yes
+			# can_get_rivals = yes
+			NOT = { this = scope:primary_heir_scope }
+			# NOR = { is_rival = scope:primary_heir_scope is_friend = scope:primary_heir_scope }
+			#P:A TODO No EU5 equivalent: the two claimants must not already be rivals or friends (EU5 characters have no rivals/friends)
+		}
+		always = no #P:A TODO No EU5 equivalent: every option makes the claimants rivals and/or changes their loyalty; EU5 characters have neither rivals nor loyalty
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				is_alive = yes
+				is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor; EU5 is_eligible_heir
+				is_adult = yes
+				# can_get_rivals = yes
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighting by office/title importance
+			save_scope_as = successor_target_1
+		}
+		random_character = {
+			limit = {
+				is_alive = yes
+				is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor; EU5 is_eligible_heir
+				is_adult = yes
+				pa_imp_char_valid_for_country_events_trigger = yes
+				# can_get_rivals = yes
+				NOT = { this = scope:successor_target_1 }
+				# NOR = { is_rival = scope:successor_target_1 is_friend = scope:successor_target_1 }
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 100
+					NOT = { dynasty = scope:successor_target_1.dynasty }
+				}
+				# title_importance_modifier = yes
+			}
+			save_scope_as = successor_target_2
+		}
+	}
+
+	option = {
+		name = ip_monarchy.1.a
+		# scope:successor_target_1 = { add_rival = scope:successor_target_2 }
+		#P:A TODO No EU5 equivalent: the two claimants become rivals (EU5 characters have no rivals)
+	}
+
+	option = {
+		name = ip_monarchy.1.b
+		# scope:successor_target_1 = { add_loyalty = loyalty_scolded_rivals }
+		# scope:successor_target_2 = { add_loyalty = loyalty_scolded_rivals }
+		#P:A TODO No EU5 equivalent: both claimants get the loyalty_scolded_rivals loyalty modifier (EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = ip_monarchy.1.c
+		trigger = {
+			scope:successor_target_1 = {
+				is_heir = yes
+			}
+		}
+		# scope:successor_target_1 = { add_rival = scope:successor_target_2 add_loyalty = loyalty_supported_heir }
+		# scope:successor_target_2 = { add_loyalty = loyalty_unsupported_heir }
+		#P:A TODO No EU5 equivalent: the claimants become rivals; the heir gains loyalty (loyalty_supported_heir), the other loses it (loyalty_unsupported_heir)
+	}
+
+	option = {
+		name = ip_monarchy.1.d
+		trigger = {
+			scope:successor_target_2 = {
+				is_heir = yes
+			}
+		}
+		# scope:successor_target_1 = { add_loyalty = loyalty_unsupported_heir }
+		# scope:successor_target_2 = { add_rival = scope:successor_target_1 add_loyalty = loyalty_supported_heir }
+		#P:A TODO No EU5 equivalent: the claimants become rivals; the heir gains loyalty (loyalty_supported_heir), the other loses it (loyalty_unsupported_heir)
+	}
+}
+
+ip_monarchy.2 = { #Pretender plot 1 chain
+	type = country_event
+	title = ip_monarchy.2.t
+	desc = ip_monarchy.2.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = ruler
+		government_type = government_type:monarchy
+		exists = capital
+		any_character = {
+			is_eligible_heir = root #P:A TODO Approximate: Imperator is_pretender (a claimant to the throne); EU5 is_eligible_heir who is not the ruler
+			is_ruler = no
+			is_adult = yes
+			# loyalty <= 70 #P:A TODO No EU5 equivalent: only claimants with loyalty 70 or less plot (EU5 characters have no loyalty)
+		}
+		NOR = {
+			has_variable = ongoing_plot
+			has_variable = ip_mon_2_cooldown
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = ip_mon_2_cooldown
+			days = 7300 # 20 years
+		}
+		set_variable = ongoing_plot
+		random_character = {
+			limit = {
+				is_eligible_heir = root #P:A TODO Approximate: Imperator is_pretender; EU5 is_eligible_heir who is not the ruler
+				is_ruler = no
+				is_adult = yes
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 10
+					is_adult = yes
+				}
+				# title_importance_modifier = yes #P:A TODO No EU5 equivalent: Imperator weighting by office/title importance
+			}
+			save_scope_as = plotting_pretender
+		}
+	}
+
+	option = {
+		name = ip_monarchy.2.a
+		custom_tooltip = plot_event_chain_tooltip
+		# scope:plotting_pretender = { add_loyalty = loyalty_trusted_servant }
+		#P:A TODO No EU5 equivalent: the pretender gains loyalty (loyalty_trusted_servant); EU5 characters have no loyalty
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = plot_events_early #P:A TODO Imperator custom on_action (random ip_monarchy.3/.6, fallback plot_events_intermediary); the orchestrator must define it in EU5
+				days = { 30 60 }
+			}
+		}
+	}
+
+	option = {
+		name = ip_monarchy.2.b
+		custom_tooltip = plot_event_chain_tooltip
+		set_variable = {
+			name = surveillance
+			value = 1
+		}
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 3
+			min = -6000
+		}
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = plot_events_early
+				days = { 30 60 }
+			}
+		}
+		custom_tooltip = surveillance_tooltip
+	}
+}
+
+ip_monarchy.3 = { #Early 1
+	type = country_event
+	title = ip_monarchy.3.t
+	desc = ip_monarchy.3.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = ruler
+		exists = capital
+		exists = scope:plotting_pretender
+		scope:plotting_pretender = {
+			pa_imp_is_valid_plotter = yes
+			is_ruler = no
+		}
+		any_character = {
+			is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor; EU5 is_eligible_heir
+			is_adult = yes
+			NOT = {
+				this = scope:plotting_pretender
+			}
+			save_temporary_scope_as = plotting_pretender_2_temp
+		}
+		any_character = {
+			is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor; EU5 is_eligible_heir
+			is_adult = yes
+			NOR = {
+				this = scope:plotting_pretender
+				this = scope:plotting_pretender_2_temp
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = plot_type
+			value = flag:successor_murder
+		}
+		random_character = {
+			limit = {
+				is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor; EU5 is_eligible_heir
+				is_adult = yes
+				NOT = {
+					this = scope:plotting_pretender
+				}
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 10
+					is_adult = yes
+				}
+				# modifier = { factor = 0.1 is_rival = scope:plotting_pretender } #P:A TODO No EU5 equivalent: less likely if a rival of the plotter (EU5 characters have no rivals)
+				# title_importance_modifier = yes #P:A TODO No EU5 equivalent: Imperator weighting by office/title importance
+			}
+			save_scope_as = plotting_pretender_2
+		}
+		random_character = {
+			limit = {
+				is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor; EU5 is_eligible_heir
+				is_adult = yes
+				NOR = {
+					this = scope:plotting_pretender
+					this = scope:plotting_pretender_2
+				}
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 10
+					is_adult = yes
+				}
+				# modifier = { factor = 10 OR = { is_rival = scope:plotting_pretender is_rival = scope:plotting_pretender_2 } } #P:A TODO No EU5 equivalent: rivals of the plotters are likelier targets
+				# title_importance_modifier = yes
+			}
+			save_scope_as = plot_target
+		}
+	}
+
+	option = {
+		name = ip_monarchy.3.a
+		custom_tooltip = no_action_taken_tooltip
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = plot_events_intermediary #P:A TODO Imperator custom on_action (random ip_monarchy.7/.8/.9/.10, fallback plot_events_final); the orchestrator must define it in EU5
+				days = { 30 60 }
+			}
+		}
+	}
+
+	option = {
+		name = ip_monarchy.3.b
+		trigger = {
+			ruler = {
+				has_trait = schemer
+			}
+		}
+		custom_tooltip = crafty_tooltip
+		# scope:plotting_pretender = { add_prominence = prominence_huge }
+		# scope:plotting_pretender_2 = { add_prominence = prominence_huge }
+		#P:A TODO No EU5 equivalent: both conspirators gain +20 prominence (EU5 characters have no prominence)
+		pa_imp_end_plot_event_chain_effect = yes
+	}
+
+	option = {
+		name = ip_monarchy.3.c
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 3
+			min = -6000
+		}
+		# scope:plotting_pretender_2 = { add_gold = { value = root.has_monthly_income multiply = 3 } }
+		#P:A TODO No EU5 equivalent: the bribe (3x monthly income) goes to the second conspirator's personal wealth (EU5 characters have no wealth)
+		custom_tooltip = pretender_2_leaves_plot
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = plot_events_intermediary
+				days = { 30 60 }
+			}
+		}
+		clear_saved_scope = plotting_pretender_2
+	}
+
+	option = {
+		name = ip_monarchy.3.d
+		trigger = {
+			has_variable = surveillance
+			var:surveillance >= 1
+			NOT = {
+				has_variable = surveillance_discovered
+			}
+		}
+		if = {
+			limit = {
+				scope:plot_target = {
+					is_alive = yes
+				}
+			}
+			# scope:plot_target = { add_loyalty = loyalty_forewarned_plot }
+			#P:A TODO No EU5 equivalent: the warned target gains loyalty (loyalty_forewarned_plot); EU5 characters have no loyalty
+			set_variable = {
+				name = successor_warned
+				value = 1
+			}
+			custom_tooltip = successor_warned_tooltip
+			hidden_effect = {
+				trigger_event_silently = {
+					on_action = plot_events_intermediary
+					days = { 30 60 }
+				}
+			}
+		}
+	}
+}
+
+ip_monarchy.5 = { #Fallback
+	type = country_event
+	title = ip_monarchy.5.t
+	desc = ip_monarchy.5.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = ruler
+		exists = capital
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = ip_monarchy.5.a
+		pa_imp_end_plot_event_chain_effect = yes
+	}
+}
+
+ip_monarchy.6 = { #Early 3
+	type = country_event
+	title = ip_monarchy.6.t
+	desc = ip_monarchy.6.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = ruler
+		exists = scope:plotting_pretender
+		scope:plotting_pretender = {
+			pa_imp_is_valid_plotter = yes
+			is_ruler = no
+			OR = {
+				adm > 30
+				# has_trait = suspicious #P:A TODO No EU5 equivalent: the Imperator "suspicious" trait
+			}
+		}
+		exists = capital
+		has_variable = surveillance
+		NOT = {
+			has_variable = surveillance_discovered
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		set_variable = surveillance_discovered
+	}
+
+	option = {
+		name = ip_monarchy.6.a
+		# ruler = { add_popularity = subtract_popularity_medium }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+		# scope:plotting_pretender = { add_loyalty = loyalty_surveillance_discovered }
+		#P:A TODO No EU5 equivalent: the plotter loses loyalty (loyalty_surveillance_discovered); EU5 characters have no loyalty
+		trigger_event_silently = {
+			on_action = plot_events_early
+			days = { 30 60 }
+		}
+	}
+}
+
+ip_monarchy.7 = { #Intermediary 1
+	type = country_event
+	title = ip_monarchy.7.t
+	desc = ip_monarchy.7.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = ruler
+		exists = scope:plotting_pretender_2
+		exists = scope:plot_target
+		exists = scope:plotting_pretender
+		scope:plotting_pretender_2 = {
+			pa_imp_is_valid_plotter = yes
+		}
+		scope:plotting_pretender = {
+			pa_imp_is_valid_plotter = yes
+		}
+		scope:plot_target = {
+			is_alive = yes
+			employer = root
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+		exists = capital
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = ip_monarchy.7.a
+		trigger = {
+			has_variable = successor_warned
+		}
+		# scope:plotting_pretender_2 = { add_popularity = subtract_popularity_medium }
+		# scope:plotting_pretender = { add_popularity = subtract_popularity_medium }
+		#P:A TODO No EU5 equivalent: both conspirators lose 10 popularity (EU5 characters have no popularity)
+		# if = {
+		# 	limit = { scope:plot_target = { can_get_rivals = yes NOT = { is_rival = scope:plotting_pretender_2 } } scope:plotting_pretender_2 = { can_get_rivals = yes } }
+		# 	scope:plot_target = { add_rival = scope:plotting_pretender_2 }
+		# }
+		#P:A TODO No EU5 equivalent: the target becomes a rival of the second conspirator (EU5 characters have no rivals)
+	}
+
+	option = {
+		name = ip_monarchy.7.b
+		trigger = {
+			exists = ruler
+			NOT = {
+				has_variable = successor_warned
+			}
+		}
+		# scope:plot_target = { add_gold = { value = 0 subtract = scope:plot_target.wealth divide = 2 } add_prominence = subtract_prominence_large }
+		# scope:plotting_pretender_2 = { add_gold = { value = 0 add = scope:plot_target.wealth divide = 2 } }
+		#P:A TODO No EU5 equivalent: half the target's personal wealth is stolen by the second conspirator, and the target loses 10 prominence (EU5 characters have no wealth or prominence)
+		# if = {
+		# 	limit = { scope:plot_target = { can_get_rivals = yes NOT = { is_rival = scope:plotting_pretender_2 } } scope:plotting_pretender_2 = { can_get_rivals = yes } }
+		# 	scope:plot_target = { add_rival = scope:plotting_pretender_2 }
+		# }
+		#P:A TODO No EU5 equivalent: the target becomes a rival of the second conspirator (EU5 characters have no rivals)
+	}
+}
+
+ip_monarchy.8 = { #Intermediary 2 - fight breaks out
+	type = country_event
+	title = ip_monarchy.8.t
+	desc = ip_monarchy.8.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = ruler
+		exists = scope:plot_target
+		exists = scope:plotting_pretender
+		scope:plotting_pretender = {
+			pa_imp_is_valid_plotter = yes
+		}
+		has_variable = plot_type
+		var:plot_type = flag:successor_murder
+		exists = capital
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = ip_monarchy.8.a
+		trigger = {
+			scope:plot_target.mil >= scope:plotting_pretender.mil
+		}
+		exclusive = yes
+		scope:plotting_pretender = {
+			if = {
+				limit = {
+					NOT = {
+						has_trait = scarred
+					}
+				}
+				add_trait = trait:scarred #P:A TODO Approximate: Imperator added the temporary "wounded" trait; EU5 has no wounded trait, scarred used
+			}
+			else_if = {
+				limit = {
+					NOT = {
+						has_trait = maimed
+					}
+				}
+				add_trait = trait:maimed
+			}
+			# else = { add_health = -25 } #P:A TODO No EU5 equivalent: -25 health if already wounded and maimed (EU5 characters have no health value)
+		}
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = plot_events_final #P:A TODO Imperator custom on_action (ip_monarchy.12, fallback plot_events_fallback); the orchestrator must define it in EU5
+				days = { 30 60 }
+			}
+		}
+	}
+
+	option = {
+		name = ip_monarchy.8.b
+		scope:plot_target = {
+			if = {
+				limit = {
+					NOT = {
+						has_trait = scarred
+					}
+				}
+				add_trait = trait:scarred #P:A TODO Approximate: Imperator added the temporary "wounded" trait; EU5 has no wounded trait, scarred used
+			}
+			else_if = {
+				limit = {
+					NOT = {
+						has_trait = maimed
+					}
+				}
+				add_trait = trait:maimed
+			}
+			# else = { add_health = -25 } #P:A TODO No EU5 equivalent: -25 health (EU5 characters have no health value)
+		}
+		# (Imperator fired the on_action from the target character; EU5 on_actions need the country)
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = plot_events_final
+				days = { 30 60 }
+			}
+		}
+	}
+}
+
+ip_monarchy.9 = { #Intermediary 3 - Appeals to the king for recognition
+	type = country_event
+	title = ip_monarchy.9.t
+	desc = ip_monarchy.9.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = ruler
+		exists = scope:plot_target
+		exists = scope:plotting_pretender
+		scope:plotting_pretender = {
+			pa_imp_is_valid_plotter = yes
+		}
+		exists = capital
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = ip_monarchy.9.a
+		if = {
+			limit = {
+				any_owned_location = {
+					NOT = {
+						has_location_modifier = plot_palace_gift
+					}
+				}
+			}
+			add_gold = {
+				value = 0
+				subtract = root.monthly_income_total
+				multiply = 3
+				min = -6000
+			}
+			random_owned_location = {
+				add_location_modifier = {
+					modifier = plot_palace_gift
+					days = -1
+				}
+			}
+			# scope:plotting_pretender = { add_loyalty = loyalty_plot_appeal_granted }
+			# scope:plot_target = { add_loyalty = loyalty_plot_appeal_jealousy }
+			#P:A TODO No EU5 equivalent: the plotter gains loyalty (loyalty_plot_appeal_granted), the target loses it (loyalty_plot_appeal_jealousy); EU5 characters have no loyalty
+		}
+		pa_imp_end_plot_event_chain_effect = yes
+	}
+
+	option = {
+		name = ip_monarchy.9.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 3
+			min = -6000
+		}
+		# scope:plotting_pretender = { add_loyalty = loyalty_plot_appeal_token }
+		#P:A TODO No EU5 equivalent: the plotter gains loyalty (loyalty_plot_appeal_token); EU5 characters have no loyalty
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = plot_events_final
+				days = { 30 60 }
+			}
+		}
+	}
+
+	option = {
+		name = ip_monarchy.9.c
+		exclusive = yes
+		trigger = {
+			ruler = {
+				# has_trait = arbitrary
+				always = no #P:A TODO No EU5 equivalent: option only for rulers with the Imperator "arbitrary" trait
+			}
+		}
+		custom_tooltip = arbitrary_bad_tooltip
+		if = {
+			limit = {
+				any_owned_location = {
+					NOT = {
+						has_location_modifier = plot_palace_gift
+					}
+				}
+			}
+			add_gold = {
+				value = 0
+				subtract = root.monthly_income_total
+				multiply = 3
+				min = -6000
+			}
+			random_owned_location = {
+				add_location_modifier = {
+					modifier = plot_palace_gift
+					days = -1
+				}
+			}
+			# scope:plotting_pretender = { add_loyalty = loyalty_plot_appeal_granted }
+			# scope:plot_target = { add_loyalty = loyalty_plot_appeal_jealousy }
+			#P:A TODO No EU5 equivalent: loyalty changes for plotter and target (EU5 characters have no loyalty)
+		}
+		pa_imp_end_plot_event_chain_effect = yes
+	}
+
+	option = {
+		name = ip_monarchy.9.d
+		# scope:plotting_pretender = { add_loyalty = loyalty_plot_appeal_insulted }
+		#P:A TODO No EU5 equivalent: the plotter loses loyalty (loyalty_plot_appeal_insulted); EU5 characters have no loyalty
+		set_variable = plot_insult
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = plot_events_final
+				days = { 30 60 }
+			}
+		}
+	}
+}
+
+ip_monarchy.10 = { #Intermediary 4 - Plotters disagree
+	type = country_event
+	title = ip_monarchy.10.t
+	desc = ip_monarchy.10.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = ruler
+		exists = scope:plotting_pretender
+		exists = scope:plotting_pretender_2
+		scope:plotting_pretender = {
+			pa_imp_is_valid_plotter = yes
+		}
+		scope:plotting_pretender_2 = {
+			pa_imp_is_valid_plotter = yes
+		}
+		exists = capital
+	}
+
+	# weight_multiplier = { base = 1 modifier = { factor = 2 scope:plotting_pretender_2 = { is_rival = scope:plotting_pretender } } }
+	#P:A TODO No EU5 equivalent: twice as likely if the two plotters are rivals (EU5 characters have no rivals)
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = ip_monarchy.10.a
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence
+		# scope:plotting_pretender = { add_loyalty = loyalty_infighting_stopped }
+		# scope:plotting_pretender_2 = { add_loyalty = loyalty_infighting_stopped }
+		#P:A TODO No EU5 equivalent: both plotters gain loyalty (loyalty_infighting_stopped); EU5 characters have no loyalty
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = plot_events_final
+				days = { 30 60 }
+			}
+		}
+	}
+
+	option = {
+		name = ip_monarchy.10.b
+		custom_tooltip = ip_monarchy_10_b_tooltip
+		trigger_event_silently = {
+			on_action = pretenders_battling #P:A TODO Imperator custom on_action (ip_monarchy.11, fallback plot_events_fallback); the orchestrator must define it in EU5
+			days = { 30 600 }
+		}
+	}
+
+	option = {
+		name = ip_monarchy.10.c
+		trigger = {
+			ruler = {
+				# has_trait = orator
+				always = no #P:A TODO No EU5 equivalent: option only for rulers with the Imperator "orator" trait
+			}
+		}
+		custom_tooltip = orator_tooltip
+		# scope:plotting_pretender = { add_loyalty = loyalty_infighting_stopped }
+		# scope:plotting_pretender_2 = { add_loyalty = loyalty_infighting_stopped }
+		#P:A TODO No EU5 equivalent: both plotters gain loyalty (loyalty_infighting_stopped); EU5 characters have no loyalty
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = plot_events_final
+				days = { 30 60 }
+			}
+		}
+	}
+}
+
+ip_monarchy.11 = { #Intermediary 4 - Plotters disagree
+	type = country_event
+	title = ip_monarchy.11.t
+	desc = ip_monarchy.11.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = ruler
+		exists = scope:plotting_pretender
+		exists = scope:plotting_pretender_2
+		scope:plotting_pretender = {
+			pa_imp_is_valid_plotter = yes
+		}
+		scope:plotting_pretender_2 = {
+			pa_imp_is_valid_plotter = yes
+		}
+		exists = capital
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				scope:plotting_pretender.mil > scope:plotting_pretender_2.mil
+			}
+			scope:plotting_pretender = {
+				save_scope_as = ip_11_victor
+			}
+			scope:plotting_pretender_2 = {
+				save_scope_as = ip_11_loser
+			}
+			clear_saved_scope = plotting_pretender_2
+		}
+		else_if = {
+			limit = {
+				scope:plotting_pretender.mil < scope:plotting_pretender_2.mil
+			}
+			scope:plotting_pretender_2 = {
+				save_scope_as = ip_11_victor
+			}
+			scope:plotting_pretender = {
+				save_scope_as = ip_11_loser
+			}
+			clear_saved_scope = plotting_pretender
+		}
+		else_if = {
+			limit = {
+				scope:plotting_pretender.adm > scope:plotting_pretender_2.adm
+			}
+			scope:plotting_pretender = {
+				save_scope_as = ip_11_victor
+			}
+			scope:plotting_pretender_2 = {
+				save_scope_as = ip_11_loser
+			}
+			clear_saved_scope = plotting_pretender_2
+		}
+		else = {
+			scope:plotting_pretender_2 = {
+				save_scope_as = ip_11_victor
+			}
+			scope:plotting_pretender = {
+				save_scope_as = ip_11_loser
+			}
+			clear_saved_scope = plotting_pretender
+		}
+		hidden_effect = {
+			random_list = {
+				20 = {
+					trigger = {
+						15 < { # Imperator: martial difference > 3 (EU5 skills x5)
+							value = 0
+							add = scope:ip_11_victor.mil
+							subtract = scope:ip_11_loser.mil
+						}
+					}
+					set_variable = {
+						name = temp_variable_ip_11
+						value = 1
+						days = 100
+					}
+				}
+				20 = {
+					trigger = {
+						scope:ip_11_loser = {
+							NOT = {
+								has_trait = scarred #P:A TODO Approximate: Imperator "wounded" trait; EU5 has no wounded trait, scarred used
+							}
+						}
+					}
+					set_variable = {
+						name = temp_variable_ip_11
+						value = 2
+						days = 100
+					}
+				}
+				20 = {
+					trigger = {
+						scope:ip_11_loser = {
+							NOT = {
+								has_trait = maimed
+							}
+						}
+					}
+					set_variable = {
+						name = temp_variable_ip_11
+						value = 3
+						days = 100
+					}
+				}
+				20 = {
+					# trigger = { scope:ip_11_loser = { NOT = { has_trait = blind } } } #P:A TODO No EU5 equivalent: EU5 has no "blind" trait, so this entry is always possible
+					set_variable = {
+						name = temp_variable_ip_11
+						value = 4
+						days = 100
+					}
+				}
+				20 = {
+					# trigger = { scope:ip_11_loser = { NOT = { has_trait = brain_damaged } } } #P:A TODO No EU5 equivalent: EU5 has no "brain_damaged" trait
+					set_variable = {
+						name = temp_variable_ip_11
+						value = 5
+						days = 100
+					}
+				}
+				20 = {
+					trigger = {
+						always = yes
+					}
+					set_variable = {
+						name = temp_variable_ip_11
+						value = 6
+						days = 100
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = ip_monarchy.11.a
+		if = {
+			limit = {
+				var:temp_variable_ip_11 = 1
+			}
+			kill_character = { #P:A TODO Approximate: Imperator death_successor_murder; EU5 death reason combat
+				target = scope:ip_11_loser
+				reason = combat
+			}
+		}
+		else_if = {
+			limit = {
+				var:temp_variable_ip_11 = 2
+			}
+			scope:ip_11_loser = {
+				add_trait = trait:scarred #P:A TODO Approximate: Imperator "wounded" trait; EU5 has no wounded trait, scarred used
+			}
+		}
+		else_if = {
+			limit = {
+				var:temp_variable_ip_11 = 3
+			}
+			scope:ip_11_loser = {
+				add_trait = trait:maimed
+			}
+		}
+		else_if = {
+			limit = {
+				var:temp_variable_ip_11 = 4
+			}
+			scope:ip_11_loser = {
+				if = {
+					limit = { has_trait = one_eyed }
+					# remove_trait = one_eyed add_trait = blind #P:A TODO No EU5 equivalent: a one-eyed loser is blinded (EU5 has no "blind" trait)
+				}
+				else = {
+					add_trait = trait:one_eyed
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				var:temp_variable_ip_11 = 5
+			}
+			# scope:ip_11_loser = { add_trait = brain_damaged } #P:A TODO No EU5 equivalent: the loser becomes brain damaged (EU5 has no such trait)
+		}
+		else_if = {
+			limit = {
+				var:temp_variable_ip_11 = 6
+			}
+			scope:ip_11_loser = {
+				if = {
+					limit = { has_trait = one_eyed }
+					# remove_trait = one_eyed add_trait = blind #P:A TODO No EU5 equivalent: blinded (EU5 has no "blind" trait)
+				}
+				# else_if = { limit = { has_trait = blind } add_health = -25 } else = { add_trait = blind }
+				#P:A TODO No EU5 equivalent: otherwise the loser is blinded, or loses 25 health if already blind (EU5 has no "blind" trait or health value)
+			}
+		}
+		# scope:ip_11_victor = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 popularity for the victor (EU5 characters have no popularity)
+		pa_imp_end_plot_event_chain_effect = yes
+	}
+}
+
+ip_monarchy.12 = { #Final 1 - Poison!
+	type = country_event
+	title = ip_monarchy.12.t
+	desc = ip_monarchy.12.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = ruler
+		exists = scope:plotting_pretender
+		exists = scope:plot_target
+		scope:plot_target = {
+			is_alive = yes
+			employer = root
+		}
+		scope:plotting_pretender = {
+			pa_imp_is_valid_plotter = yes
+		}
+		has_variable = plot_type
+		var:plot_type = flag:successor_murder
+		exists = capital
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		# if = {
+		# 	limit = { any_character = { has_office = office_physician } }
+		# 	random_character = { limit = { has_office = office_physician } save_scope_as = physician_in_waiting }
+		# }
+		#P:A TODO No EU5 equivalent: the court physician (Imperator office_physician) is saved as scope:physician_in_waiting; EU5 has no physician office, so option a never shows
+	}
+
+	option = {
+		name = ip_monarchy.12.a
+		trigger = {
+			exists = scope:physician_in_waiting
+		}
+		# scope:plot_target = { if = { limit = { NOT = { has_trait = brain_damaged } } add_trait = brain_damaged } else = { add_health = -10 } }
+		#P:A TODO No EU5 equivalent: the target survives but becomes brain damaged, or loses 10 health (EU5 has neither)
+		pa_imp_end_plot_event_chain_effect = yes
+	}
+
+	option = {
+		name = ip_monarchy.12.b
+		pa_imp_add_stability_effect_small = yes
+		random_list = {
+			50 = {
+				kill_character = {
+					target = scope:plot_target
+					reason = poisoned
+				}
+			}
+			50 = {}
+		}
+		pa_imp_end_plot_event_chain_effect = yes
+	}
+
+	option = {
+		name = ip_monarchy.12.c
+		# ruler = { add_popularity = subtract_popularity_small }
+		# scope:plotting_pretender = { add_popularity = popularity_medium add_loyalty = loyalty_poisoner_vindicated }
+		# if = { limit = { exists = scope:plotting_pretender_2 } scope:plotting_pretender_2 = { add_popularity = popularity_medium add_loyalty = loyalty_poisoned_abandoned } }
+		#P:A TODO No EU5 equivalent: ruler -5 popularity, the plotters +10 popularity and loyalty changes (EU5 characters have no popularity or loyalty)
+		kill_character = {
+			target = scope:plot_target
+			reason = poisoned
+		}
+		pa_imp_end_plot_event_chain_effect = yes
+	}
+}
+
+# Rumours of the ruler's incompetence spread at court.
+ip_monarchy.13 = {
+	type = country_event
+	title = ip_monarchy.13.t
+	desc = ip_monarchy.13.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = { # Is monarchy
+		government_type = government_type:monarchy
+		exists = capital
+		exists = ruler
+		NOT = { has_variable = mon_13_toggle }
+		any_character = { # Pick slanderer, low loyalty rival or officer who is not rulers friend
+			is_alive = yes
+			# loyalty <= 60 #P:A TODO No EU5 equivalent: the slanderer has loyalty 60 or less (EU5 characters have no loyalty)
+			OR = {
+				# is_rival = root.ruler #P:A TODO No EU5 equivalent: a rival of the ruler (EU5 characters have no rivals)
+				OR = {
+					in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+					is_general = yes
+					is_admiral = yes
+				}
+			}
+			# NOT = { is_friend = root.ruler } #P:A TODO No EU5 equivalent: not a friend of the ruler (EU5 characters have no friends)
+		}
+	}
+
+	weight_multiplier = { # Current ruler actually lazy
+		base = 1
+		modifier = {
+			factor = 10
+			ruler = {
+				pa_imp_char_is_bad_leader_trigger = yes
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = { # Toggle
+			name = mon_13_toggle
+			days = 5475 # 15 years
+		}
+		ruler = {
+			save_scope_as = mon_13_ruler
+		}
+	}
+
+	option = { # Laugh it off
+		name = ip_monarchy.13.a
+		trigger = {
+			ruler = { # Not lazy
+				OR = {
+					NOR = {
+						pa_imp_char_is_bad_leader_trigger = yes
+						# has_trait = vengeful #P:A TODO No EU5 equivalent: Imperator trait "vengeful"
+					}
+					# has_trait = forgiving #P:A TODO No EU5 equivalent: Imperator trait "forgiving"
+				}
+			}
+		}
+		# ruler = { add_popularity = subtract_popularity_large }
+		#P:A TODO No EU5 equivalent: -15 popularity for the ruler (EU5 characters have no popularity)
+		# if = {
+		# 	limit = { NOT = { ruler = { has_trait = forgiving } } ruler = { number_of_personality_traits < max_number_of_traits_svalue } }
+		# 	random_list = { 50 = { ruler = { add_trait = forgiving } } 50 = { } }
+		# }
+		# if = { limit = { ruler = { has_trait = forgiving } } custom_tooltip = forgiving_bad_tooltip }
+		#P:A TODO No EU5 equivalent: 50% chance the ruler gains the "forgiving" trait (fewer than 4 personality traits); EU5 has no forgiving trait
+		ai_chance = {
+			base = 50
+		}
+	}
+
+	option = { # Find the slanderer
+		name = ip_monarchy.13.b
+		trigger = {
+			ruler = { # Not lazy
+				OR = {
+					NOR = {
+						pa_imp_char_is_bad_leader_trigger = yes
+						# has_trait = forgiving #P:A TODO No EU5 equivalent: Imperator trait "forgiving"
+					}
+					# has_trait = vengeful #P:A TODO No EU5 equivalent: Imperator trait "vengeful"
+				}
+			}
+		}
+		# ruler = { add_popularity = popularity_large }
+		#P:A TODO No EU5 equivalent: +15 popularity for the ruler (EU5 characters have no popularity)
+		# if = {
+		# 	limit = { NOT = { ruler = { has_trait = vengeful } } ruler = { number_of_personality_traits < max_number_of_traits_svalue } }
+		# 	random_list = { 50 = { ruler = { add_trait = vengeful } } 50 = { } }
+		# }
+		# if = { limit = { ruler = { has_trait = vengeful } } custom_tooltip = vengeful_bad_tooltip }
+		#P:A TODO No EU5 equivalent: 50% chance the ruler gains the "vengeful" trait (fewer than 4 personality traits); EU5 has no vengeful trait
+		hidden_effect = {
+			random_character = { # Pick slanderer and save scope
+				limit = {
+					# loyalty <= 60 #P:A TODO No EU5 equivalent: loyalty 60 or less
+					OR = {
+						# is_rival = root.ruler
+						OR = {
+							in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+							is_general = yes
+							is_admiral = yes
+						}
+					}
+					# NOT = { is_friend = root.ruler }
+				}
+				# weight = { modifier = { factor = 10 prominence >= 70 } title_importance_modifier = yes } #P:A TODO No EU5 equivalent: weighting by prominence and office importance
+				save_scope_as = ip_monarchy_14_antagonist
+			}
+		}
+		root = {
+			trigger_event_non_silently = { # Next event
+				id = ip_monarchy.14
+				days = { 30 90 } # 1 - 3 months
+			}
+		}
+		custom_tooltip = ip_monarchy.13.bt
+		ai_chance = {
+			base = 50
+		}
+	}
+
+	option = { # Lazy - chance of existential crisis
+		name = ip_monarchy.13.c
+		exclusive = yes
+		trigger = { # Ruler lazy
+			ruler = {
+				OR = {
+					pa_imp_char_is_decent_trigger = yes
+					pa_imp_char_is_clever_trigger = yes
+				}
+				OR = {
+					pa_imp_char_is_bad_leader_trigger = yes
+				}
+			}
+		}
+		random_list = { # Ruler looks silly or bucks his ideas up
+			50 = {
+				# ruler = { add_popularity = subtract_popularity_large }
+				#P:A TODO No EU5 equivalent: -15 popularity for the ruler (EU5 characters have no popularity)
+			}
+			50 = {
+				hidden_effect = {
+					ruler = {
+						set_variable = {
+							name = ip_mon_13_trait_counter
+							value = 1
+						}
+						pa_imp_ip_mon_13_negative_trait_effect = yes
+					}
+				}
+				custom_tooltip = ip_monarchy.13.ct
+			}
+		}
+		ai_chance = {
+			base = 1
+		}
+	}
+
+	option = { # Lazy - do nothing
+		name = ip_monarchy.13.d
+		exclusive = yes
+		trigger = { # Ruler lazy
+			ruler = {
+				pa_imp_char_is_bad_leader_trigger = yes
+				NOR = {
+					pa_imp_char_is_decent_trigger = yes
+					pa_imp_char_is_clever_trigger = yes
+				}
+			}
+		}
+		# ruler = { add_popularity = subtract_popularity_large }
+		#P:A TODO No EU5 equivalent: -15 popularity for the ruler (EU5 characters have no popularity)
+		ai_chance = {
+			base = 1
+		}
+	}
+}
+
+# The slanderer from ip_monarchy.13 is found.
+ip_monarchy.14 = {
+	type = country_event
+	title = ip_monarchy.14.t
+	desc = ip_monarchy.14.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = { # Picked find slanderer in previous event
+		exists = scope:ip_monarchy_14_antagonist
+		scope:ip_monarchy_14_antagonist = {
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			employer = root
+		}
+		exists = scope:mon_13_ruler
+		scope:mon_13_ruler = {
+			is_alive = yes
+			employer = root
+			is_ruler = yes
+		}
+		exists = capital
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # Leave it at revealing slanderer's identity
+		name = ip_monarchy.14.a
+		# scope:ip_monarchy_14_antagonist = { add_prominence = subtract_prominence_huge add_popularity = subtract_popularity_huge add_loyalty = loyalty_ruined_reputation }
+		#P:A TODO No EU5 equivalent: the slanderer loses 20 prominence, 25 popularity and loyalty (loyalty_ruined_reputation); EU5 characters have none of these
+	}
+
+	option = { # Forgive slanderer
+		name = ip_monarchy.14.b
+		custom_tooltip = forgiving_tooltip
+		trigger = { # If not rivals
+			ruler = {
+				# has_trait = forgiving
+				# NOT = { is_rival = scope:ip_monarchy_14_antagonist }
+				always = no #P:A TODO No EU5 equivalent: option only for rulers with the Imperator "forgiving" trait (who are not rivals of the slanderer)
+			}
+		}
+		# if = {
+		# 	limit = { current_ruler = { can_get_friends = yes } scope:ip_monarchy_14_antagonist = { can_get_friends = yes } }
+		# 	current_ruler = { add_friend = scope:ip_monarchy_14_antagonist }
+		# }
+		# else = { current_ruler = { add_popularity = popularity_small } }
+		#P:A TODO No EU5 equivalent: the ruler befriends the slanderer, or else gains 5 popularity (EU5 characters have no friends or popularity)
+	}
+
+	option = { # Execute slanderer
+		name = ip_monarchy.14.c
+		trigger = { # Already a bit of tyrant?
+			# OR = { tyranny >= 10 current_ruler = { has_trait = vengeful } }
+			always = no #P:A TODO No EU5 equivalent: option only with 10+ tyranny or a "vengeful" ruler (EU5 has neither)
+		}
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+		hidden_effect = { # Slanderer is executed
+			kill_character = {
+				target = scope:ip_monarchy_14_antagonist
+				killer = root.ruler
+				reason = execution
+			}
+		}
+		custom_tooltip = ip_monarchy.14.ct
+		ai_chance = {
+			base = 50
+		}
+	}
+
+	option = { # Bribe slanderer
+		name = ip_monarchy.14.d
+		# ruler = { add_corruption = corruption_medium }
+		# scope:ip_monarchy_14_antagonist = { add_loyalty = loyalty_schemer_corrupted add_corruption = corruption_large }
+		#P:A TODO No EU5 equivalent: +5 corruption for the ruler, +10 corruption and loyalty for the slanderer (EU5 characters have no corruption or loyalty)
+		add_gold = { # Imperator adds (not subtracts) half the monthly income here
+			value = root.monthly_income_total
+			multiply = 0.5
+			max = 5000
+		}
+		ai_chance = {
+			base = 50
+		}
+	}
+}
+
+# An ambitious successor offers to replace a weak or ailing ruler.
+ip_monarchy.15 = {
+	type = country_event
+	title = ip_monarchy.15.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Faltering ruler
+				trigger = {
+					ruler = {
+						pa_imp_char_is_ill_trigger = yes
+					}
+				}
+				desc = ip_monarchy.15.desc_1
+			}
+			triggered_desc = { # Healthy ruler
+				trigger = {
+					always = yes
+				}
+				desc = ip_monarchy.15.desc_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = { # Monarchy has bad/ill ruler, low legitimacy, and a wily disloyal successor
+		government_type = government_type:monarchy
+		exists = capital
+		NOT = {
+			has_variable = mon_15_toggle
+		}
+		exists = ruler
+		ruler = {
+			OR = {
+				pa_imp_char_is_bad_leader_trigger = yes
+				pa_imp_char_is_ill_trigger = yes
+			}
+		}
+		legitimacy <= 80
+		any_character = { #P:A TODO Approximate: Imperator any_successor (the line of succession); EU5 characters eligible as heir, excluding the ruler
+			is_eligible_heir = root
+			is_ruler = no
+			age_in_years >= 16
+			# loyalty <= 60 #P:A TODO No EU5 equivalent: the successor has loyalty 60 or less (EU5 characters have no loyalty)
+			#P:A Removed: prisoner = no is always true in EU5
+			pa_imp_char_is_clever_trigger = yes
+			NOT = { pa_imp_has_any_illness_trigger = yes }
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = mon_15_toggle
+			days = 3650 # 10 years
+		}
+		ruler = { # Save old ruler scope
+			save_scope_as = old_ruler_mon_15
+		}
+		random_character = { # Save relevant successor
+			#P:A TODO Approximate: Imperator ordered_successor by prominence (the most prominent one); EU5 has no prominence, a random eligible one is picked
+			limit = {
+				is_eligible_heir = root
+				is_ruler = no
+				#age >= 20
+				# loyalty <= 60
+				pa_imp_char_is_clever_trigger = yes
+				NOT = { pa_imp_has_any_illness_trigger = yes }
+			}
+			save_scope_as = mon_15_plotter
+		}
+		if = { # If chosen successor is not primary heir save primary heir scope for abdication
+			limit = {
+				scope:mon_15_plotter = {
+					is_heir = no
+				}
+				exists = heir
+			}
+			heir = {
+				save_scope_as = mon_15_preferred_heir
+			}
+		}
+	}
+
+	option = { # Imprison plotter
+		name = ip_monarchy.15.a
+		# hidden_effect = { scope:mon_15_plotter = { remove_all_offices = yes } }
+		# imprison = { target = scope:mon_15_plotter }
+		#P:A TODO No EU5 equivalent: the plotter loses all offices and is imprisoned (EU5 has no prisoners)
+		pa_imp_remove_stability_effect = yes # Stability hit
+	}
+
+	option = { # Allow plotter to... plot
+		name = ip_monarchy.15.b
+		custom_tooltip = ip_monarchy.15.bt
+		hidden_effect = { # Onaction Outcome decider
+			root = {
+				trigger_event_silently = {
+					on_action = plot_outcome_mon_15 #P:A TODO Imperator custom on_action (random: 5 = ip_monarchy.16, 15 = ip_monarchy.17); the orchestrator must define it in EU5
+					days = { 30 90 } # 1 - 3 months
+				}
+			}
+		}
+		add_legitimacy = -5 # subtract_legitimacy_medium; Gov allowing plots
+	}
+
+	option = { # Abdicate to primary heir
+		name = ip_monarchy.15.c
+		custom_tooltip = ip_monarchy.15.ct
+		trigger = { # Current ruler nice guy or fatal illness
+			ruler = {
+				OR = {
+					pa_imp_char_is_decent_trigger = yes
+					pa_imp_char_is_good_leader_trigger = yes
+				}
+				OR = {
+					pa_imp_has_any_fatal_ailment = yes
+					pa_imp_has_any_plague_trigger = yes
+				}
+			}
+		}
+		if = { # If primary heir become ruler
+			limit = {
+				scope:mon_15_plotter = {
+					is_heir = yes
+				}
+			}
+			set_new_ruler = scope:mon_15_plotter
+		}
+		else_if = { # Else primary heir become ruler
+			limit = {
+				exists = scope:mon_15_preferred_heir
+			}
+			set_new_ruler = scope:mon_15_preferred_heir
+		}
+		add_legitimacy = -5 # subtract_legitimacy_medium; King swapping
+	}
+}
+
+# Plot outcome of ip_monarchy.15: the successor seizes the throne.
+ip_monarchy.16 = {
+	type = country_event
+	title = ip_monarchy.16.t
+	desc = ip_monarchy.16.desc
+	illustration_tags = {
+		10 = interior
+		10 = armed
+	}
+
+	trigger = { # Relevant characters still exist
+		exists = scope:mon_15_plotter
+		exists = ruler.heir #P:A TODO Approximate: Imperator current_ruler.preferred_heir; EU5 heir
+		scope:mon_15_plotter = {
+			is_alive = yes
+			employer = root
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+		exists = scope:old_ruler_mon_15
+		scope:old_ruler_mon_15 = {
+			is_alive = yes
+			is_ruler = yes
+			employer = root
+		}
+		exists = capital
+	}
+
+	immediate = {
+		if = { # If chosen successor is not primary heir save primary heir scope for abdication
+			limit = {
+				scope:mon_15_plotter = {
+					is_heir = no
+				}
+				exists = heir
+			}
+			heir = {
+				save_scope_as = mon_15_preferred_heir
+			}
+		}
+	}
+
+	option = { # To the dungeons
+		name = ip_monarchy.16.a
+		set_new_ruler = scope:mon_15_plotter # Crown plotter
+		# imprison = { target = scope:old_ruler_mon_15 } #P:A TODO No EU5 equivalent: the old ruler is imprisoned (EU5 has no prisoners)
+		add_legitimacy = -30 # subtract_legitimacy_huge; Legitimacy damaged
+		# add_tyranny = tyranny_small #P:A TODO No EU5 equivalent: +1 tyranny
+	}
+
+	option = { # CLean break with the past
+		name = ip_monarchy.16.b
+		set_new_ruler = scope:mon_15_plotter # Crown plotter
+		kill_character = { # Old ruler executed
+			target = scope:old_ruler_mon_15
+			reason = execution
+			killer = scope:mon_15_plotter
+		}
+		pa_imp_remove_stability_effect = yes # Stab hit
+		add_legitimacy = -20 # subtract_legitimacy_large; Legitimacy damaged
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+	}
+
+	option = { # Plotter is a good man...
+		name = ip_monarchy.16.c
+		custom_tooltip = ip_monarchy.16.ct
+		trigger = { # Plotter not primary heir and a good guy greg
+			scope:mon_15_plotter = {
+				is_heir = no
+				OR = {
+					pa_imp_char_is_decent_trigger = yes
+					pa_imp_char_is_good_leader_trigger = yes
+				}
+			}
+			exists = scope:mon_15_preferred_heir # Primary heir exists
+			scope:mon_15_preferred_heir = {
+				employer = root
+			}
+		}
+		set_new_ruler = scope:mon_15_preferred_heir # Crown primary heir
+		pa_imp_remove_stability_effect = yes # stab hit
+		add_legitimacy = -5 # subtract_legitimacy_medium; Legitimacy damaged less
+	}
+
+	option = { # Here ends the old dynasty
+		name = ip_monarchy.16.d
+		custom_tooltip = ip_monarchy.16.dt
+		exclusive = yes
+		trigger = { # Plotter cruel and not ruling family
+			scope:mon_15_plotter = {
+				trigger_if = {
+					limit = {
+						root.ruler = {
+							has_dynasty = yes #P:A TODO Approximate: Imperator is_minor_character = no (the ruler has a family)
+						}
+					}
+					NOT = { #P:A TODO Approximate: Imperator from_ruler_family = no; EU5 checks the ruler's dynasty
+						AND = {
+							has_dynasty = yes
+							dynasty = root.ruler.dynasty
+						}
+					}
+				}
+				has_trait = cruel
+			}
+		}
+		every_character = { # Kill all members of ruling family
+			limit = {
+				#P:A TODO Approximate: Imperator from_ruler_family = yes (only checked if the ruler had a family; otherwise it killed every character of the court); EU5 kills the ruler's dynasty only
+				has_dynasty = yes
+				root.ruler = { has_dynasty = yes }
+				dynasty = root.ruler.dynasty
+				is_alive = yes
+				employer = root
+			}
+			kill_character = {
+				target = this
+				reason = execution
+				killer = scope:mon_15_plotter
+			}
+		}
+		set_new_ruler = scope:mon_15_plotter # Crown plotter
+		pa_imp_remove_stability_effect = yes # Stab hit
+		add_legitimacy = -30 # subtract_legitimacy_huge; Legitimacy hit
+		# add_tyranny = tyranny_huge #P:A TODO No EU5 equivalent: +8 tyranny
+	}
+
+	option = { # The plotter fell for it
+		name = ip_monarchy.16.e
+		kill_character = { # Kill plotter
+			target = scope:mon_15_plotter
+			reason = execution
+			killer = root.ruler
+		}
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+	}
+}
+
+ip_monarchy.17 = { # Plot Discovered
+	type = country_event
+	title = ip_monarchy.17.t
+	desc = ip_monarchy.17.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = { # Relevant scopes still exist
+		exists = scope:mon_15_plotter
+		scope:mon_15_plotter = {
+			is_alive = yes
+			employer = root
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+		exists = scope:old_ruler_mon_15
+		scope:old_ruler_mon_15 = {
+			is_alive = yes
+			is_ruler = yes
+			employer = root
+		}
+		exists = capital
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # Ever thus to plotters
+		name = ip_monarchy.17.a
+		kill_character = { # Plotter executed
+			target = scope:mon_15_plotter
+			reason = execution
+			killer = root.ruler
+		}
+	}
+
+	option = { # Fools deserve mercy
+		name = ip_monarchy.17.b
+		trigger = { # Ruler not twisted
+			ruler = {
+				OR = {
+					pa_imp_char_is_decent_trigger = yes
+					pa_imp_char_is_good_leader_trigger = yes
+				}
+			}
+		}
+		# imprison = { target = scope:mon_15_plotter } #P:A TODO No EU5 equivalent: the plotter is imprisoned (EU5 has no prisoners)
+		# add_tyranny = subtract_tyranny_large #P:A TODO No EU5 equivalent: -5 tyranny
+	}
+
+	option = { # Ha let the scamp go
+		name = ip_monarchy.17.c
+		# ruler = { add_popularity = subtract_popularity_small }
+		# scope:mon_15_plotter = { add_loyalty = loyalty_plot_laughed_off }
+		#P:A TODO No EU5 equivalent: ruler -5 popularity, the plotter gains loyalty (loyalty_plot_laughed_off); EU5 characters have neither
+		add_legitimacy = -2 # subtract_legitimacy_small; Legitimacy you let a plotter go?
+	}
+}
+
+# A patriot plots against a tyrannical ruler.
+ip_monarchy.18 = {
+	type = country_event
+	title = ip_monarchy.18.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Plotter is successor
+				trigger = {
+					scope:mon_18_plotter = {
+						is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor; EU5 is_eligible_heir
+					}
+				}
+				desc = ip_monarchy.18.desc_1
+			}
+			triggered_desc = { # Plotter not successor
+				trigger = {
+					always = yes
+				}
+				desc = ip_monarchy.18.desc_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = { # Monarchy has tyranny and low legitimacy, low loyalty successor or officer with good traits exists, at least 3 characters with low loyalty
+		NOT = {
+			has_variable = mon_18_toggle
+		}
+		# tyranny >= 15
+		always = no #P:A TODO No EU5 equivalent: the event is about a tyrannical ruler (tyranny >= 15); EU5 has no tyranny
+		government_type = government_type:monarchy
+		exists = capital
+		exists = ruler
+		legitimacy <= 80
+		any_character = {
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			is_adult = yes
+			OR = {
+				is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor; EU5 is_eligible_heir
+				OR = {
+					in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+					is_general = yes
+					is_admiral = yes
+				}
+			}
+			# loyalty <= 60 #P:A TODO No EU5 equivalent: loyalty 60 or less (EU5 characters have no loyalty)
+			OR = {
+				pa_imp_char_is_decent_trigger = yes
+				pa_imp_char_is_good_leader_trigger = yes
+				pa_imp_char_is_clever_trigger = yes
+			}
+			NOT = { pa_imp_has_any_illness_trigger = yes }
+		}
+	}
+
+	immediate = {
+		set_variable = { # Toggle
+			name = mon_18_toggle
+			days = 3650 # 10 years
+		}
+		ruler = { # save ruler scope
+			save_scope_as = old_ruler_mon_18
+		}
+		random_character = { # Save plotter
+			limit = {
+				is_alive = yes
+				is_adult = yes
+				OR = {
+					is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor; EU5 is_eligible_heir
+					OR = {
+						in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+						is_general = yes
+						is_admiral = yes
+					}
+				}
+				# loyalty <= 60
+				OR = {
+					pa_imp_char_is_decent_trigger = yes
+					pa_imp_char_is_good_leader_trigger = yes
+					pa_imp_char_is_clever_trigger = yes
+				}
+				NOT = { pa_imp_has_any_illness_trigger = yes }
+			}
+			weight = {
+				base = 1
+				# modifier = { factor = 10 prominence >= 70 } title_importance_modifier = yes #P:A TODO No EU5 equivalent: weighting by prominence and office importance
+				modifier = {
+					factor = 100
+					NOT = { is_heir = yes }
+				}
+			}
+			save_scope_as = mon_18_plotter
+		}
+	}
+
+	option = { # Treason won't be contemplated
+		name = ip_monarchy.18.a
+		# hidden_effect = { scope:mon_18_plotter = { remove_all_offices = yes } }
+		# imprison = { target = scope:mon_18_plotter }
+		#P:A TODO No EU5 equivalent: the plotter loses all offices and is imprisoned (EU5 has no prisoners)
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+		pa_imp_remove_stability_effect = yes # Stab hit
+	}
+
+	option = { # Desperate times...
+		name = ip_monarchy.18.b
+		custom_tooltip = ip_monarchy.18.bt
+		hidden_effect = { # Plot goes forward onaction
+			trigger_event_silently = {
+				on_action = plot_outcome_mon_18 #P:A TODO Imperator custom on_action (random: 5 = ip_monarchy.19, 15 = ip_monarchy.20); the orchestrator must define it in EU5
+				days = { 20 40 } # ~1 month
+			}
+		}
+	}
+}
+
+ip_monarchy.19 = { # Plot Succeeds...
+	type = country_event
+	title = ip_monarchy.19.t
+	desc = ip_monarchy.19.desc
+	illustration_tags = {
+		10 = interior
+		10 = armed
+	}
+
+	trigger = { # Relevant scopes still exist
+		exists = capital
+		exists = scope:old_ruler_mon_18
+		exists = scope:mon_18_plotter
+		scope:old_ruler_mon_18 = {
+			is_alive = yes
+			employer = root
+			is_ruler = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+		scope:mon_18_plotter = {
+			is_alive = yes
+			employer = root
+			is_ruler = no
+		}
+		any_character = {
+			count >= 2
+			is_ruler = no
+			is_alive = yes
+			is_adult = yes
+			# loyalty <= 60 #P:A TODO No EU5 equivalent: loyalty 60 or less (EU5 characters have no loyalty)
+			NOR = {
+				is_heir = yes
+				is_spouse_of = root.ruler
+				pa_imp_has_any_illness_trigger = yes
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				any_character = {
+					is_ruler = no
+					is_alive = yes
+					is_adult = yes
+					# loyalty <= 60
+					NOR = {
+						is_heir = yes
+						is_spouse_of = root.ruler
+						this = scope:old_ruler_mon_18
+						this = scope:mon_18_plotter
+						pa_imp_has_any_illness_trigger = yes
+					}
+				}
+			}
+			random_character = { # Save second plotter
+				limit = {
+					is_ruler = no
+					is_alive = yes
+					is_adult = yes
+					# loyalty <= 60
+					NOR = {
+						is_heir = yes
+						is_spouse_of = root.ruler
+						this = scope:old_ruler_mon_18
+						this = scope:mon_18_plotter
+						pa_imp_has_any_illness_trigger = yes
+					}
+				}
+				weight = {
+					base = 1
+					# modifier = { factor = 10 prominence >= 70 } #P:A TODO No EU5 equivalent: weighting by prominence and office importance
+					modifier = {
+						factor = 10
+						in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+					}
+					# title_importance_modifier = yes
+				}
+				save_scope_as = mon_18_plotter_2
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:mon_18_plotter_2
+				any_character = {
+					is_ruler = no
+					is_alive = yes
+					is_adult = yes
+					# loyalty <= 60
+					NOR = {
+						is_heir = yes
+						is_spouse_of = root.ruler
+						this = scope:old_ruler_mon_18
+						this = scope:mon_18_plotter
+						this = scope:mon_18_plotter_2
+						pa_imp_has_any_illness_trigger = yes
+					}
+				}
+			}
+			random_character = { # Save third plotter
+				limit = {
+					is_ruler = no
+					is_alive = yes
+					is_adult = yes
+					# loyalty <= 60
+					NOR = {
+						is_heir = yes
+						is_spouse_of = root.ruler
+						this = scope:old_ruler_mon_18
+						this = scope:mon_18_plotter
+						this = scope:mon_18_plotter_2
+						pa_imp_has_any_illness_trigger = yes
+					}
+				}
+				weight = {
+					base = 1
+					# modifier = { factor = 10 prominence >= 70 }
+					modifier = {
+						factor = 10
+						in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+					}
+					# title_importance_modifier = yes
+				}
+				save_scope_as = mon_18_plotter_3
+			}
+		}
+		if = { # Save primary heir if plotter is not it
+			limit = {
+				scope:mon_18_plotter = {
+					is_heir = no
+				}
+				exists = heir
+			}
+			heir = {
+				save_scope_as = mon_18_preferred_heir
+			}
+		}
+	}
+
+	option = { # To the dungeons
+		name = ip_monarchy.19.a
+		set_new_ruler = scope:mon_18_plotter # Plotter crowned
+		# imprison = { target = scope:old_ruler_mon_18 } #P:A TODO No EU5 equivalent: the old ruler is imprisoned (EU5 has no prisoners)
+		# add_tyranny = subtract_tyranny_medium #P:A TODO No EU5 equivalent: -3 tyranny
+		add_legitimacy = -20 # subtract_legitimacy_large; Swapping kings like socks
+	}
+
+	option = { # Clean break with past
+		name = ip_monarchy.19.b
+		trigger = {
+			scope:mon_18_plotter = {
+				NOT = { #P:A TODO Approximate: Imperator has_same_family = ruler; EU5 same dynasty
+					AND = {
+						has_dynasty = yes
+						dynasty = root.ruler.dynasty
+					}
+				}
+			}
+		}
+		hidden_effect = {
+			every_character = { # Kill ruler's whole family
+				limit = {
+					#P:A TODO Approximate: Imperator from_ruler_family = yes (only checked if the ruler had a family; otherwise it killed every character of the court); EU5 kills the ruler's dynasty only
+					has_dynasty = yes
+					root.ruler = { has_dynasty = yes }
+					dynasty = root.ruler.dynasty
+					is_alive = yes
+					employer = root
+					NOT = { this = scope:old_ruler_mon_18 }
+				}
+				kill_character = {
+					target = this
+					reason = execution
+					killer = scope:mon_18_plotter
+				}
+			}
+		}
+		set_new_ruler = scope:mon_18_plotter # Plotter crowned
+		kill_character = { # Old ruler executed
+			target = scope:old_ruler_mon_18
+			reason = execution
+			killer = scope:mon_18_plotter
+		}
+		custom_tooltip = ip_monarchy.19.bt
+		pa_imp_remove_stability_effect = yes # Stability hit
+		# add_tyranny = tyranny_large #P:A TODO No EU5 equivalent: +5 tyranny
+		add_legitimacy = -30 # subtract_legitimacy_huge; Legitimacy stole throne and even worse
+	}
+
+	option = { # Make primary heir ruler
+		name = ip_monarchy.19.c
+		custom_tooltip = ip_monarchy.19.ct
+		trigger = { # Plotter is not primary heir and primary heir exists
+			scope:mon_18_plotter = {
+				is_heir = no
+				OR = {
+					pa_imp_char_is_decent_trigger = yes
+					pa_imp_char_is_good_leader_trigger = yes
+				}
+			}
+			exists = scope:mon_18_preferred_heir
+		}
+		set_new_ruler = scope:mon_18_preferred_heir # Crown primary heir
+		pa_imp_add_stability_effect = yes # stability offset
+		add_legitimacy = 10 # legitimacy_large; Legitimate heir of tyrant
+	}
+
+	option = { # He's got a knife!
+		name = ip_monarchy.19.d
+		custom_tooltip = ip_monarchy.19.dt
+		trigger = { # Male ruler is lunatic or reckless and has some martial
+			ruler = {
+				is_female = no
+				# OR = { has_trait = lunatic has_trait = reckless }
+				always = no #P:A TODO No EU5 equivalent: option only for rulers with the Imperator "lunatic" or "reckless" trait
+				mil >= 25
+			}
+		}
+		exclusive = yes
+		pa_imp_mon_18_mad_melee_effect = yes
+		# add_tyranny = subtract_tyranny_large #P:A TODO No EU5 equivalent: -5 tyranny
+		add_legitimacy = 5 # legitimacy_medium; Legitimacy tyrant really was a piece of work
+	}
+
+	option = { # Betray traitors
+		name = ip_monarchy.19.e
+		kill_character = { # Plotter 1 dies
+			target = scope:mon_18_plotter
+			reason = execution
+			killer = root.ruler
+		}
+		if = {
+			limit = { exists = scope:mon_18_plotter_2 }
+			kill_character = { # Plotter 2 dies
+				target = scope:mon_18_plotter_2
+				reason = execution
+				killer = root.ruler
+			}
+		}
+		if = {
+			limit = { exists = scope:mon_18_plotter_3 }
+			kill_character = { # Plotter 3 dies
+				target = scope:mon_18_plotter_3
+				reason = execution
+				killer = root.ruler
+			}
+		}
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+	}
+}
+
+ip_monarchy.20 = { # Plot Discovered
+	type = country_event
+	title = ip_monarchy.20.t
+	desc = ip_monarchy.20.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = { # Relevant scopes still exist
+		exists = capital
+		exists = scope:old_ruler_mon_18
+		exists = scope:mon_18_plotter
+		scope:old_ruler_mon_18 = {
+			is_alive = yes
+			employer = root
+			is_ruler = yes
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+		scope:mon_18_plotter = {
+			is_alive = yes
+			is_ruler = no
+			employer = root
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				any_character = {
+					is_ruler = no
+					is_alive = yes
+					is_adult = yes
+					# loyalty <= 60 #P:A TODO No EU5 equivalent: loyalty 60 or less (EU5 characters have no loyalty)
+					NOR = {
+						is_heir = yes
+						is_spouse_of = root.ruler
+						this = scope:old_ruler_mon_18
+						this = scope:mon_18_plotter
+						pa_imp_has_any_illness_trigger = yes
+					}
+				}
+			}
+			random_character = { # Save second plotter
+				limit = {
+					is_ruler = no
+					is_alive = yes
+					is_adult = yes
+					# loyalty <= 60
+					NOR = {
+						is_heir = yes
+						is_spouse_of = root.ruler
+						this = scope:old_ruler_mon_18
+						this = scope:mon_18_plotter
+						pa_imp_has_any_illness_trigger = yes
+					}
+				}
+				weight = {
+					base = 1
+					# modifier = { factor = 10 prominence >= 70 } title_importance_modifier = yes #P:A TODO No EU5 equivalent: weighting by prominence and office importance
+					modifier = {
+						factor = 10
+						in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+					}
+				}
+				save_scope_as = mon_18_plotter_2
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:mon_18_plotter_2
+				any_character = {
+					is_ruler = no
+					is_alive = yes
+					is_adult = yes
+					# loyalty <= 60
+					NOR = {
+						is_heir = yes
+						is_spouse_of = root.ruler
+						this = scope:old_ruler_mon_18
+						this = scope:mon_18_plotter
+						this = scope:mon_18_plotter_2
+						pa_imp_has_any_illness_trigger = yes
+					}
+				}
+			}
+			random_character = { # Save third plotter
+				limit = {
+					is_ruler = no
+					is_alive = yes
+					is_adult = yes
+					# loyalty <= 60
+					NOR = {
+						is_heir = yes
+						is_spouse_of = root.ruler
+						this = scope:old_ruler_mon_18
+						this = scope:mon_18_plotter
+						this = scope:mon_18_plotter_2
+						pa_imp_has_any_illness_trigger = yes
+					}
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 10
+						in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+					}
+				}
+				save_scope_as = mon_18_plotter_3
+			}
+		}
+	}
+
+	option = { # Treason = death
+		name = ip_monarchy.20.a
+		kill_character = { # Plotter 1 dies
+			target = scope:mon_18_plotter
+			reason = execution
+			killer = root.ruler
+		}
+		if = {
+			limit = { exists = scope:mon_18_plotter_2 }
+			kill_character = { # Plotter 2 dies
+				target = scope:mon_18_plotter_2
+				reason = execution
+				killer = root.ruler
+			}
+		}
+		if = {
+			limit = { exists = scope:mon_18_plotter_3 }
+			kill_character = { # Plotter 3 dies
+				target = scope:mon_18_plotter_3
+				reason = execution
+				killer = root.ruler
+			}
+		}
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+	}
+
+	option = { # Mercy
+		name = ip_monarchy.20.b
+		trigger = {
+			ruler = { # Ruler not that bad
+				OR = {
+					pa_imp_char_is_decent_trigger = yes
+					pa_imp_char_is_good_leader_trigger = yes
+				}
+			}
+		}
+		custom_tooltip = just_tooltip
+		# ruler = { add_popularity = popularity_small } #P:A TODO No EU5 equivalent: +5 popularity for the ruler
+		# imprison = { target = scope:mon_18_plotter } (and plotters 2 and 3 if they exist)
+		#P:A TODO No EU5 equivalent: the plotters are imprisoned (EU5 has no prisoners)
+		# add_tyranny = subtract_tyranny_large #P:A TODO No EU5 equivalent: -5 tyranny
+	}
+}
+
+# Hidden: a wealthy office holder of a monarchy starts embezzling (Imperator character event; the character is scope:pa_character).
+ip_monarchy.21 = {
+	type = country_event
+	hidden = yes
+
+	trigger = { # Wealthy subject of monarchy holds office
+		government_type = government_type:monarchy
+		exists = capital
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+				# wealth >= peculating_cash_svalue #P:A TODO No EU5 equivalent: the character's personal wealth is at least 6 months of state income (EU5 characters have no wealth)
+				is_ruler = no
+				NOT = {
+					has_variable = ip_monarchy_21_embezzler_toggle
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+				# wealth >= peculating_cash_svalue
+				is_ruler = no
+				NOT = {
+					has_variable = ip_monarchy_21_embezzler_toggle
+				}
+			}
+		}
+	}
+
+	weight_multiplier = { # Has corrupt traits
+		base = 1
+		modifier = {
+			factor = 2
+			exists = scope:pa_character
+			scope:pa_character = {
+				OR = {
+					has_trait = greedy # Imperator miserly
+					has_trait = schemer # Imperator crafty
+					# has_trait = selfish #P:A TODO No EU5 equivalent: Imperator trait "selfish"
+					has_trait = deceitful
+					has_trait = corrupt
+				}
+			}
+		}
+		# modifier = { factor = 2 prominence >= 70 } #P:A TODO No EU5 equivalent: twice as likely for a prominent character (EU5 characters have no prominence)
+	}
+
+	immediate = { # Save scope and trigger next event
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					in_cabinet = yes
+					is_ruler = no
+					NOT = {
+						has_variable = ip_monarchy_21_embezzler_toggle
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			save_scope_as = ip_monarchy_22_embezzler_scope
+			set_variable = { # Toggle
+				name = ip_monarchy_21_embezzler_toggle
+				days = 3600
+			}
+		}
+		trigger_event_non_silently = {
+			id = ip_monarchy.22
+			days = { 30 60 }
+		}
+	}
+}
+
+# An official is caught embezzling from the treasury.
+ip_monarchy.22 = {
+	type = country_event
+	title = ip_monarchy.22.t
+	desc = ip_monarchy.22.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = { # Relevant character hasn't dropped dead
+		government_type = government_type:monarchy
+		exists = capital
+		exists = ruler
+		exists = scope:ip_monarchy_22_embezzler_scope
+		scope:ip_monarchy_22_embezzler_scope = {
+			is_alive = yes
+			employer = root
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # They learned their lesson
+		name = ip_monarchy.22.a
+		trigger = {
+			NOT = {
+				ruler = { # is just
+					OR = {
+						pa_imp_char_is_decent_trigger = yes
+						pa_imp_char_is_civic_trigger = yes
+						pa_imp_char_is_religious_trigger = yes
+					}
+				}
+			}
+		}
+		# scope:ip_monarchy_22_embezzler_scope = { add_corruption = corruption_huge add_loyalty = loyalty_embezzler_forgiven }
+		# ruler = { add_popularity = subtract_popularity_large add_corruption = corruption_large }
+		#P:A TODO No EU5 equivalent: embezzler +20 corruption and loyalty (loyalty_embezzler_forgiven); ruler -15 popularity, +10 corruption (EU5 characters have none of these)
+	}
+
+	option = { # Recuperate losses
+		name = ip_monarchy.22.b
+		# scope:ip_monarchy_22_embezzler_scope = { add_gold = { value = 0 subtract = peculating_cash_svalue } add_loyalty = loyalty_embezzler_fine add_corruption = corruption_huge }
+		# ruler = { add_popularity = subtract_popularity_medium add_corruption = corruption_medium }
+		#P:A TODO No EU5 equivalent: embezzler pays 6 months of income from personal wealth, gains loyalty (loyalty_embezzler_fine) and +20 corruption; ruler -10 popularity, +5 corruption
+		add_gold = {
+			value = 0
+			add = monthly_income_total
+			multiply = 6
+			ceiling = yes
+			max = 1000
+			min = 10
+		}
+	}
+
+	option = { # Fire officer
+		name = ip_monarchy.22.c
+		if = {
+			limit = {
+				scope:ip_monarchy_22_embezzler_scope = { in_cabinet = yes }
+			}
+			remove_from_cabinet = scope:ip_monarchy_22_embezzler_scope #P:A TODO Approximate: Imperator remove_all_offices; EU5 removes the character from the cabinet
+		}
+		# scope:ip_monarchy_22_embezzler_scope = { add_gold = { value = 0 subtract = peculating_cash_svalue } add_loyalty = loyalty_embezzler_fired add_corruption = corruption_huge }
+		# ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: embezzler pays 6 months of income from personal wealth, loses loyalty (loyalty_embezzler_fired), +20 corruption; ruler +10 popularity
+		add_gold = {
+			value = 0
+			add = monthly_income_total
+			multiply = 6
+			ceiling = yes
+			max = 1000
+			min = 10
+		}
+	}
+
+	option = { # Imprison
+		name = ip_monarchy.22.d
+		custom_tooltip = ip_monarchy.22.dt
+		trigger = {
+			ruler = { # is just
+				OR = {
+					pa_imp_char_is_decent_trigger = yes
+					pa_imp_char_is_civic_trigger = yes
+					pa_imp_char_is_religious_trigger = yes
+				}
+			}
+			scope:ip_monarchy_22_embezzler_scope = {
+				trigger_if = {
+					limit = {
+						root.ruler = {
+							has_dynasty = yes #P:A TODO Approximate: Imperator is_minor_character = no (the ruler has a family)
+						}
+					}
+					NOT = { #P:A TODO Approximate: Imperator from_ruler_family = no; EU5 checks the ruler's dynasty
+						AND = {
+							has_dynasty = yes
+							dynasty = root.ruler.dynasty
+						}
+					}
+				}
+				trigger_else = { always = yes }
+			}
+		}
+		ai_chance = {
+			base = 0
+		}
+		# imprison = { target = scope:ip_monarchy_22_embezzler_scope } #P:A TODO No EU5 equivalent: the embezzler is imprisoned (EU5 has no prisoners)
+		# scope:ip_monarchy_22_embezzler_scope = { add_gold = { value = 0 subtract = peculating_cash_svalue multiply = 2 } add_loyalty = loyalty_embezzler_imprisoned add_corruption = corruption_huge }
+		# ruler = { add_popularity = popularity_huge }
+		#P:A TODO No EU5 equivalent: embezzler pays 12 months of income from personal wealth, loses loyalty, +20 corruption; ruler +25 popularity
+		add_gold = {
+			value = 0
+			add = monthly_income_total
+			multiply = 12
+			ceiling = yes
+			max = 2000
+			min = 20
+		}
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+	}
+
+	option = { # What vim!
+		name = ip_monarchy.22.e
+		custom_tooltip = ip_monarchy.22.et
+		trigger = { # Ruler is bad guy
+			ruler = {
+				OR = {
+					has_trait = greedy # Imperator miserly
+					has_trait = schemer # Imperator crafty
+					# has_trait = selfish #P:A TODO No EU5 equivalent: Imperator trait "selfish"
+					has_trait = deceitful
+					has_trait = corrupt
+				}
+				# NOT = { is_friend = scope:ip_monarchy_22_embezzler_scope } #P:A TODO No EU5 equivalent: the ruler is not already the embezzler's friend
+			}
+		}
+		# scope:ip_monarchy_22_embezzler_scope = { add_corruption = corruption_huge add_loyalty = loyalty_embezzler_congratulated }
+		# ruler = { add_gold = { value = 0 add = peculating_cash_svalue multiply = 2.5 } add_corruption = corruption_large add_popularity = subtract_popularity_huge add_friend = scope:ip_monarchy_22_embezzler_scope }
+		#P:A TODO No EU5 equivalent: embezzler +20 corruption and loyalty; the ruler gets 15 months of income as personal wealth, +10 corruption, -25 popularity and befriends the embezzler (EU5 characters have no wealth, corruption, popularity or friends)
+	}
+
+	option = { # High fives friend
+		name = ip_monarchy.22.f
+		custom_tooltip = ip_monarchy.22.ft
+		trigger = { # Is friends
+			ruler = {
+				# is_friend = scope:ip_monarchy_22_embezzler_scope
+				always = no #P:A TODO No EU5 equivalent: option only if the ruler is the embezzler's friend (EU5 characters have no friends)
+			}
+		}
+		# scope:ip_monarchy_22_embezzler_scope = { add_corruption = corruption_huge add_loyalty = loyalty_embezzler_congratulated }
+		# ruler = { add_gold = { value = 0 add = peculating_cash_svalue multiply = 3.5 } add_corruption = corruption_large add_popularity = subtract_popularity_huge }
+		#P:A TODO No EU5 equivalent: embezzler +20 corruption and loyalty; the ruler gets 21 months of income as personal wealth, +10 corruption, -25 popularity
+	}
+}
+
+# Hidden: a disloyal, suspicious general or admiral draws the ruler's jealousy (Imperator character event; the commander is scope:pa_character).
+ip_monarchy.25 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		NOT = { has_variable = mon_25_toggle }
+		government_type = government_type:monarchy
+		exists = capital
+		exists = ruler
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				is_ruler = no
+				OR = {
+					is_general = yes
+					is_admiral = yes
+				}
+				OR = {
+					# has_trait = jealous #P:A TODO No EU5 equivalent: Imperator trait "jealous"
+					has_trait = craven # Imperator coward
+					# has_trait = suspicious #P:A TODO No EU5 equivalent: Imperator trait "suspicious"
+					# has_trait = sceptical #P:A TODO No EU5 equivalent: Imperator trait "sceptical"
+					# has_trait = vengeful #P:A TODO No EU5 equivalent: Imperator trait "vengeful"
+				}
+				# NOT = { is_friend = root.employer.current_ruler } #P:A TODO No EU5 equivalent: not a friend of the ruler (EU5 characters have no friends)
+				# loyalty <= 60 #P:A TODO No EU5 equivalent: loyalty 60 or less (EU5 characters have no loyalty)
+				mil >= 25
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = no
+				OR = {
+					is_general = yes
+					is_admiral = yes
+				}
+				OR = {
+					has_trait = craven # Imperator coward
+				}
+				mil >= 25
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = no
+					OR = {
+						is_general = yes
+						is_admiral = yes
+					}
+					OR = {
+						has_trait = craven # Imperator coward
+					}
+					mil >= 25
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			save_scope_as = ip_monarchy_25_general_scope
+		}
+		set_variable = {
+			name = mon_25_toggle
+			days = 18250 # 50 years
+		}
+		trigger_event_non_silently = ip_monarchy.26
+	}
+}
+
+# The ruler grows jealous of a celebrated commander.
+ip_monarchy.26 = {
+	type = country_event
+	title = ip_monarchy.26.t
+	desc = ip_monarchy.26.desc
+	illustration_tags = {
+		10 = interior
+		10 = armed
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = capital
+		exists = ruler
+		exists = scope:ip_monarchy_25_general_scope
+		scope:ip_monarchy_25_general_scope = {
+			is_alive = yes
+			employer = root
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		if = {
+			limit = {
+				any_neighbor_country = {
+					count >= 1
+				}
+			}
+			random_neighbor_country = {
+				save_scope_as = ip_monarchy_25_neighbor_scope
+			}
+		}
+		else = {
+			if = {
+				limit = {
+					any_country = {
+						within_diplomatic_range = root
+					}
+				}
+				random_country = {
+					limit = {
+						within_diplomatic_range = root
+					}
+					save_scope_as = ip_monarchy_25_neighbor_scope
+				}
+			}
+		}
+	}
+
+	option = { # Remove Generalship
+		name = ip_monarchy.26.a
+		trigger = {
+			scope:ip_monarchy_25_general_scope = {
+				# num_loyal_cohorts < 5
+				always = no #P:A TODO No EU5 equivalent: only if fewer than 5 cohorts are personally loyal to the commander (EU5 units have no personal loyalty)
+			}
+		}
+		# scope:ip_monarchy_25_general_scope = { add_loyalty = loyalty_general_relieved }
+		#P:A TODO No EU5 equivalent: the commander loses loyalty (loyalty_general_relieved); EU5 characters have no loyalty
+		remove_commander = scope:ip_monarchy_25_general_scope
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+	}
+
+	option = { # Imprison
+		name = ip_monarchy.26.b
+		# scope:ip_monarchy_25_general_scope = { add_loyalty = loyalty_general_imprisoned }
+		#P:A TODO No EU5 equivalent: the commander loses loyalty (loyalty_general_imprisoned); EU5 characters have no loyalty
+		hidden_effect = {
+			remove_commander = scope:ip_monarchy_25_general_scope
+		}
+		if = {
+			limit = {
+				OR = {
+					any_neighbor_country = { count >= 1 }
+					any_country = { within_diplomatic_range = root }
+				}
+				scope:ip_monarchy_25_general_scope = {
+					# OR = { wealth >= 500 power_base >= 50 }
+					always = no #P:A TODO No EU5 equivalent: the commander escapes abroad only with 500+ personal wealth or 50+ power base (EU5 characters have neither)
+				}
+				exists = scope:ip_monarchy_25_neighbor_scope
+			}
+			scope:ip_monarchy_25_general_scope = {
+				move_country = scope:ip_monarchy_25_neighbor_scope # Imperator banish
+			}
+			custom_tooltip = ip_monarchy.26.bt
+		}
+		else = {
+			# imprison = { target = scope:ip_monarchy_25_general_scope } #P:A TODO No EU5 equivalent: the commander is imprisoned (EU5 has no prisoners)
+		}
+		# add_tyranny = tyranny_large #P:A TODO No EU5 equivalent: +5 tyranny
+	}
+
+	option = { # Do Nothing
+		name = ip_monarchy.26.c
+		# if = {
+		# 	limit = { current_ruler = { can_get_rivals = yes } scope:ip_monarchy_25_general_scope = { can_get_rivals = yes } }
+		# 	current_ruler = { add_rival = scope:ip_monarchy_25_general_scope }
+		# }
+		# scope:ip_monarchy_25_general_scope = { add_loyalty = loyalty_general_ignored }
+		#P:A TODO No EU5 equivalent: the ruler and the commander become rivals, the commander loses loyalty (EU5 characters have no rivals or loyalty)
+		add_legitimacy = -5 # subtract_legitimacy_medium
+	}
+}
+
+# An adult child of the ruler plots against a younger half-sibling.
+ip_monarchy.27 = {
+	type = country_event
+	title = ip_monarchy.27.t
+	desc = ip_monarchy.27.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = capital
+		exists = ruler
+		NOT = { has_variable = mon_27_toggle }
+		any_character = { #P:A TODO Approximate: Imperator any_successor (the line of succession); EU5 characters eligible as heir
+			is_eligible_heir = root
+			is_child_of = root.ruler
+			age_in_years >= 20
+			#P:A Removed: prisoner = no is always true in EU5
+			pa_imp_char_is_clever_trigger = yes
+			NOT = { pa_imp_has_any_illness_trigger = yes }
+			save_temporary_scope_as = half_sibling
+			employer = {
+				any_character = {
+					is_child_of = root.ruler
+					age_in_years <= 20
+					OR = {
+						AND = {
+							exists = mother
+							NOT = { mother = scope:half_sibling.mother }
+						}
+						AND = {
+							exists = father
+							NOT = { father = scope:half_sibling.father }
+						}
+						AND = {
+							exists = scope:half_sibling.mother
+							NOT = {
+								exists = mother
+							}
+						}
+						AND = {
+							exists = scope:half_sibling.father
+							NOT = {
+								exists = father
+							}
+						}
+						AND = {
+							exists = mother
+							NOT = {
+								exists = scope:half_sibling.mother
+							}
+						}
+						AND = {
+							exists = father
+							NOT = {
+								exists = scope:half_sibling.father
+							}
+						}
+					}
+				}
+			}
+		}
+		any_neighbor_country = {
+			count >= 1
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = mon_27_toggle
+			days = 18250
+		}
+		random_character = { #P:A TODO Approximate: Imperator random_successor; EU5 characters eligible as heir
+			limit = {
+				is_eligible_heir = root
+				is_child_of = root.ruler
+				age_in_years >= 20
+				pa_imp_char_is_clever_trigger = yes
+				NOT = { pa_imp_has_any_illness_trigger = yes }
+				save_temporary_scope_as = half_sibling
+				employer = {
+					any_character = {
+						is_child_of = root.ruler
+						age_in_years <= 20
+						OR = {
+							AND = {
+								exists = mother
+								NOT = { mother = scope:half_sibling.mother }
+							}
+							AND = {
+								exists = father
+								NOT = { father = scope:half_sibling.father }
+							}
+							AND = {
+								exists = scope:half_sibling.mother
+								NOT = {
+									exists = mother
+								}
+							}
+							AND = {
+								exists = scope:half_sibling.father
+								NOT = {
+									exists = father
+								}
+							}
+							AND = {
+								exists = mother
+								NOT = {
+									exists = scope:half_sibling.mother
+								}
+							}
+							AND = {
+								exists = father
+								NOT = {
+									exists = scope:half_sibling.father
+								}
+							}
+						}
+					}
+				}
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighting by office/title importance
+			save_scope_as = mon_27_actor_scope
+		}
+		random_character = {
+			limit = {
+				age_in_years <= 20
+				is_child_of = root.ruler
+				OR = {
+					AND = {
+						exists = mother
+						NOT = { mother = scope:mon_27_actor_scope.mother }
+					}
+					AND = {
+						exists = father
+						NOT = { father = scope:mon_27_actor_scope.father }
+					}
+					AND = {
+						exists = scope:mon_27_actor_scope.mother
+						NOT = {
+							exists = mother
+						}
+					}
+					AND = {
+						exists = scope:mon_27_actor_scope.father
+						NOT = {
+							exists = father
+						}
+					}
+					AND = {
+						exists = mother
+						NOT = {
+							exists = scope:mon_27_actor_scope.mother
+						}
+					}
+					AND = {
+						exists = father
+						NOT = {
+							exists = scope:mon_27_actor_scope.father
+						}
+					}
+				}
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 50
+					is_female = no
+				}
+				modifier = {
+					factor = 40
+					is_eligible_heir = root #P:A TODO Approximate: Imperator is_successor; EU5 is_eligible_heir
+				}
+				modifier = {
+					factor = 25
+					age_in_years <= 9
+				}
+			}
+			save_scope_as = mon_27_target_scope
+		}
+		if = {
+			limit = {
+				any_neighbor_country = {
+					count >= 1
+				}
+			}
+			random_neighbor_country = {
+				save_scope_as = ip_monarchy_27_neighbor_scope
+			}
+		}
+		# if = {
+		# 	limit = { scope:mon_27_actor_scope = { can_get_rivals = yes } scope:mon_27_target_scope = { can_get_rivals = yes } }
+		# 	scope:mon_27_actor_scope = { add_rival = scope:mon_27_target_scope }
+		# }
+		#P:A TODO No EU5 equivalent: the two half-siblings become rivals (EU5 characters have no rivals)
+	}
+
+	option = { # Imprison/Banish Pretender
+		name = ip_monarchy.27.a
+		# scope:mon_27_actor_scope = { add_loyalty = loyalty_plot_publicized }
+		#P:A TODO No EU5 equivalent: the plotter loses loyalty (loyalty_plot_publicized); EU5 characters have no loyalty
+		if = {
+			limit = {
+				scope:mon_27_actor_scope = {
+					# OR = { wealth >= 500 power_base >= 50 }
+					always = no #P:A TODO No EU5 equivalent: the plotter escapes abroad only with 500+ personal wealth or 50+ power base (EU5 characters have neither)
+				}
+				exists = scope:ip_monarchy_27_neighbor_scope
+			}
+			if = {
+				limit = {
+					scope:mon_27_actor_scope = { in_cabinet = yes }
+				}
+				remove_from_cabinet = scope:mon_27_actor_scope #P:A TODO Approximate: Imperator remove_all_offices; EU5 removes the character from the cabinet
+			}
+			scope:mon_27_actor_scope = {
+				move_country = scope:ip_monarchy_27_neighbor_scope # Imperator banish
+			}
+			custom_tooltip = ip_monarchy.27.at
+		}
+		else = {
+			# imprison = { target = scope:mon_27_actor_scope } #P:A TODO No EU5 equivalent: the plotter is imprisoned (EU5 has no prisoners)
+		}
+		# if = { limit = { scope:mon_27_actor_scope.father = root.current_ruler exists = scope:mon_27_actor_scope.mother scope:mon_27_actor_scope.mother = { is_alive = yes } } scope:mon_27_actor_scope.mother = { add_loyalty = loyalty_plot_publicized_relative } }
+		# else_if = { limit = { scope:mon_27_actor_scope.mother = root.current_ruler exists = scope:mon_27_actor_scope.father scope:mon_27_actor_scope.father = { is_alive = yes } } scope:mon_27_actor_scope.mother = { add_loyalty = loyalty_plot_publicized_relative } }
+		#P:A TODO No EU5 equivalent: the other parent of the plotter loses loyalty (loyalty_plot_publicized_relative); EU5 characters have no loyalty
+		add_legitimacy = -5 # subtract_legitimacy_medium
+	}
+
+	option = { # Forbid This to Ever Happen
+		name = ip_monarchy.27.b
+		# scope:mon_27_actor_scope = { add_loyalty = loyalty_bitter_plotter }
+		# (and the other parent of the plotter: add_loyalty = loyalty_bitter_plotter_relative, same if/else_if as option a)
+		#P:A TODO No EU5 equivalent: the plotter and the other parent lose loyalty (EU5 characters have no loyalty)
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence
+	}
+
+	option = { # Allow Plot...
+		name = ip_monarchy.27.c
+		custom_tooltip = ip_monarchy.27.ct
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = plot_outcome_mon_27 #P:A TODO Imperator custom on_action (random: 5 = ip_monarchy.28, 15 = ip_monarchy.29); the orchestrator must define it in EU5
+				days = { 20 40 } # ~1 month
+			}
+		}
+		# (the other parent of the plotter: add_loyalty = loyalty_plot_endorsed, same if/else_if as option a)
+		#P:A TODO No EU5 equivalent: the other parent of the plotter gains loyalty (loyalty_plot_endorsed); EU5 characters have no loyalty
+	}
+}
+
+ip_monarchy.28 = { # Assassination goes forward
+	type = country_event
+	title = ip_monarchy.28.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					has_variable = botched_assassination_failure
+				}
+				desc = ip_monarchy.28.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					has_variable = botched_assassination_wound
+				}
+				desc = ip_monarchy.28.desc_2
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = ip_monarchy.28.desc_3
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = capital
+		exists = ruler
+		exists = scope:mon_27_actor_scope
+		exists = scope:mon_27_target_scope
+		scope:mon_27_actor_scope = {
+			is_child_of = root.ruler
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			employer = root
+		}
+		scope:mon_27_target_scope = {
+			is_child_of = root.ruler
+			is_alive = yes
+			employer = root
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			random_list = {
+				25 = {
+					set_variable = botched_assassination_wound
+					modifier = {
+						factor = 25
+						scope:mon_27_target_scope = { adm <= 30 }
+					}
+				}
+				25 = {
+					set_variable = botched_assassination_failure
+					modifier = {
+						factor = 25
+						scope:mon_27_target_scope = { adm <= 15 }
+					}
+				}
+				50 = {
+					set_variable = successful_assassination
+					modifier = {
+						factor = 25
+						scope:mon_27_target_scope = { adm >= 35 }
+					}
+				}
+			}
+		}
+	}
+
+	option = { # What a shame...
+		name = ip_monarchy.28.a
+		trigger = {
+			has_variable = successful_assassination
+		}
+		kill_character = {
+			target = scope:mon_27_target_scope
+			reason = poisoned
+			killer = scope:mon_27_actor_scope
+		}
+		remove_variable = successful_assassination
+	}
+
+	option = { # Can't he do anything right...
+		name = ip_monarchy.28.b
+		trigger = {
+			has_variable = botched_assassination_wound
+		}
+		scope:mon_27_target_scope = {
+			if = {
+				limit = {
+					NOT = {
+						has_trait = scarred
+					}
+				}
+				add_trait = trait:scarred #P:A TODO Approximate: Imperator added the temporary "wounded" trait; EU5 has no wounded trait, scarred used
+			}
+			else_if = {
+				limit = {
+					NOT = {
+						has_trait = maimed
+					}
+				}
+				add_trait = trait:maimed
+			}
+			# else = { add_health = -25 } #P:A TODO No EU5 equivalent: -25 health (EU5 characters have no health value)
+		}
+		# imprison = { target = scope:mon_27_actor_scope } #P:A TODO No EU5 equivalent: the plotter is imprisoned (EU5 has no prisoners)
+		# scope:mon_27_actor_scope = { add_popularity = subtract_popularity_huge add_corruption = corruption_huge add_loyalty = loyalty_botched_plotter_imprisoned }
+		#P:A TODO No EU5 equivalent: the plotter -25 popularity, +20 corruption, loses loyalty (EU5 characters have none of these)
+		remove_variable = botched_assassination_wound
+	}
+
+	option = { # You've got to be joking
+		name = ip_monarchy.28.c
+		trigger = {
+			has_variable = botched_assassination_failure
+		}
+		# imprison = { target = scope:mon_27_actor_scope } #P:A TODO No EU5 equivalent: the plotter is imprisoned (EU5 has no prisoners)
+		# scope:mon_27_actor_scope = { add_popularity = subtract_popularity_huge add_corruption = corruption_huge add_loyalty = loyalty_botched_plotter_imprisoned }
+		#P:A TODO No EU5 equivalent: the plotter -25 popularity, +20 corruption, loses loyalty (EU5 characters have none of these)
+		remove_variable = botched_assassination_failure
+	}
+
+	option = { # Great, now lock him up
+		name = ip_monarchy.28.d
+		trigger = {
+			has_variable = successful_assassination
+		}
+		kill_character = { #P:A TODO Approximate: Imperator death_successor_murder; EU5 death reason assassination
+			target = scope:mon_27_target_scope
+			reason = assassination
+			killer = scope:mon_27_actor_scope
+		}
+		# imprison = { target = scope:mon_27_actor_scope } #P:A TODO No EU5 equivalent: the plotter is imprisoned (EU5 has no prisoners)
+		# scope:mon_27_actor_scope = { add_popularity = subtract_popularity_huge add_corruption = corruption_huge add_loyalty = loyalty_betrayed_plotter }
+		#P:A TODO No EU5 equivalent: the plotter -25 popularity, +20 corruption, loses loyalty (EU5 characters have none of these)
+		remove_variable = successful_assassination
+	}
+}
+
+ip_monarchy.29 = { # Plot Discovered
+	type = country_event
+	title = ip_monarchy.29.t
+	desc = ip_monarchy.29.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = capital
+		exists = ruler
+		exists = scope:mon_27_actor_scope
+		exists = scope:mon_27_target_scope
+		scope:mon_27_actor_scope = {
+			is_child_of = root.ruler
+			is_alive = yes
+			employer = root
+			#P:A Removed: prisoner = no is always true in EU5
+		}
+		scope:mon_27_target_scope = {
+			is_child_of = root.ruler
+			is_alive = yes
+			employer = root
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # Imprison Pretender
+		name = ip_monarchy.29.a
+		kill_character = {
+			target = scope:mon_27_actor_scope
+			reason = execution
+			killer = root.ruler
+		}
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+	}
+
+	option = { # Execute Pretender
+		name = ip_monarchy.29.b
+		# imprison = { target = scope:mon_27_actor_scope } #P:A TODO No EU5 equivalent: the plotter is imprisoned (EU5 has no prisoners)
+		# scope:mon_27_actor_scope = { add_loyalty = loyalty_imprisoned_plotter } #P:A TODO No EU5 equivalent: the plotter loses loyalty
+		# add_tyranny = tyranny_small #P:A TODO No EU5 equivalent: +1 tyranny
+	}
+
+	option = { # Do Nothing
+		name = ip_monarchy.29.c
+		# ruler = { add_popularity = subtract_popularity_medium } #P:A TODO No EU5 equivalent: -10 popularity for the ruler
+		# scope:mon_27_target_scope = { add_loyalty = loyalty_plotter_unpunished } #P:A TODO No EU5 equivalent: the target loses loyalty
+		add_legitimacy = -2 # subtract_legitimacy_small
+	}
+}
+
+# Two sons of the ruler become rivals for the throne.
+ip_monarchy.30 = {
+	type = country_event
+	title = ip_monarchy.30.t
+	desc = ip_monarchy.30.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = mon_30_cooldown }
+		pa_imp_rival_brothers_trigger = yes # Two rulers sons, siblings, can get rivals
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		set_variable = { name = mon_30_cooldown days = 3650 } # 10 years toggle
+		pa_imp_rival_brothers_scope_effect = yes
+		# if = {
+		# 	limit = { scope:rival_brother_1 = { can_get_rivals = yes NOT = { is_rival = scope:rival_brother_2 } } scope:rival_brother_2 = { can_get_rivals = yes } }
+		# 	scope:rival_brother_1 = { add_rival = scope:rival_brother_2 }
+		# }
+		#P:A TODO No EU5 equivalent: the brothers become rivals (EU5 characters have no rivals)
+	}
+
+	option = { # Support 1
+		name = ip_monarchy.30.a
+		scope:rival_brother_1 = { # 1st bro happy and favored
+			# add_loyalty = loyalty_supported_heir #P:A TODO No EU5 equivalent: gains loyalty (loyalty_supported_heir); EU5 characters have no loyalty
+			if = {
+				limit = {
+					is_heir = no
+				}
+				add_character_modifier = {
+					modifier = character_ip_mon_supported_heir_modifier # 20 heir support
+					days = 1825 # 5 years
+				}
+			}
+		}
+		# scope:rival_brother_2 = { add_loyalty = loyalty_unsupported_heir } #P:A TODO No EU5 equivalent: the other brother loses loyalty
+		add_legitimacy = -5 # subtract_legitimacy_medium; Legitimacy confused
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = brothers_events #P:A TODO Imperator custom on_action (random ip_monarchy.31/.32, fallback brothers_events_fallback = ip_monarchy.33); the orchestrator must define it in EU5
+				days = { 30 60 }
+			}
+		}
+	}
+
+	option = { # Support 2
+		name = ip_monarchy.30.b
+		scope:rival_brother_2 = { # 2nd bro happy and favored
+			# add_loyalty = loyalty_supported_heir #P:A TODO No EU5 equivalent: gains loyalty (loyalty_supported_heir); EU5 characters have no loyalty
+			if = {
+				limit = {
+					is_heir = no
+				}
+				add_character_modifier = {
+					modifier = character_ip_mon_supported_heir_modifier # 20 heir support
+					days = 1825 # 5 years
+				}
+			}
+		}
+		# scope:rival_brother_1 = { add_loyalty = loyalty_unsupported_heir } #P:A TODO No EU5 equivalent: the other brother loses loyalty
+		add_legitimacy = -5 # subtract_legitimacy_medium; Legitimacy confused
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = brothers_events
+				days = { 30 60 }
+			}
+		}
+	}
+
+	option = { # Foolishness
+		name = ip_monarchy.30.c
+		trigger = { # Ruler not bitter and twisted
+			ruler = {
+				NOR = {
+					# has_trait = uncaring
+					# has_trait = arbitrary
+					has_trait = cruel
+					# has_trait = harsh
+					# has_trait = lunatic
+					# has_trait = cold
+					# has_trait = suspicious
+					#P:A TODO No EU5 equivalent: Imperator traits uncaring, arbitrary, harsh, lunatic, cold, suspicious
+				}
+			}
+		}
+		# scope:rival_brother_1 = { add_loyalty = loyalty_scolded_rivals }
+		# scope:rival_brother_2 = { add_loyalty = loyalty_scolded_rivals }
+		#P:A TODO No EU5 equivalent: both brothers lose loyalty (loyalty_scolded_rivals); EU5 characters have no loyalty
+		add_legitimacy = 2 # legitimacy_small; Legitimacy shown
+		hidden_effect = {
+			trigger_event_silently = {
+				on_action = brothers_events
+				days = { 30 60 }
+			}
+		}
+	}
+}
+
+# The rival brothers fight a duel.
+ip_monarchy.31 = {
+	type = country_event
+	title = ip_monarchy.31.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Duel survival
+				trigger = {
+					NOR = {
+						has_variable = rival_brothers_death
+						has_variable = rival_brothers_wound
+					}
+				}
+				desc = ip_monarchy.31.desc_1
+			}
+			triggered_desc = { # Duel wound
+				trigger = {
+					NOT = {
+						has_variable = rival_brothers_death
+					}
+					has_variable = rival_brothers_wound
+				}
+				desc = ip_monarchy.31.desc_2
+			}
+			triggered_desc = { # Duel death
+				trigger = {
+					always = yes
+				}
+				desc = ip_monarchy.31.desc_3
+			}
+		}
+	}
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		pa_imp_rival_brothers_scope_trigger = yes # Brothers still around
+		NOT = { has_variable = rival_brother_duel_cooldown }
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = rival_brother_duel_cooldown
+			days = 730 # 2 years
+		}
+		pa_imp_rival_brothers_duel_effect = yes # Decide victor
+		pa_imp_rival_brothers_duel_outcome_effect = yes # Add effects based on who won/lost
+	}
+
+	option = { # Legitimize
+		name = ip_monarchy.31.a
+		# scope:rival_brothers_victor = { add_loyalty = loyalty_victory_supported } #P:A TODO No EU5 equivalent: the victor gains loyalty (EU5 characters have no loyalty)
+		if = { # If alive loser unhappy
+			limit = {
+				NOT = { has_variable = rival_brothers_death }
+			}
+			# scope:rival_brothers_loser = { add_loyalty = loyalty_defeat_supported } #P:A TODO No EU5 equivalent: the loser loses loyalty
+			hidden_effect = {
+				trigger_event_silently = {
+					on_action = brothers_events
+					days = { 30 60 }
+				}
+			}
+		}
+		add_legitimacy = -5 # subtract_legitimacy_medium; Legitimacy wanes
+	}
+
+	option = { # Distance from ruler
+		name = ip_monarchy.31.b
+		# scope:rival_brothers_victor = { add_loyalty = loyalty_victory_unsupported } #P:A TODO No EU5 equivalent: the victor loses loyalty (EU5 characters have no loyalty)
+		if = { # If loser alive add loyalty
+			limit = {
+				NOT = { has_variable = rival_brothers_death }
+			}
+			# scope:rival_brothers_loser = { add_loyalty = loyalty_defeat_unsupported } #P:A TODO No EU5 equivalent: the loser gains loyalty
+			hidden_effect = {
+				trigger_event_silently = {
+					on_action = brothers_events
+					days = { 30 60 }
+				}
+			}
+		}
+		random_character = {
+			limit = {
+				OR = {
+					this = scope:rival_brothers_victor
+					this = scope:rival_brothers_loser
+				}
+				is_alive = yes
+				has_character_modifier = character_ip_mon_supported_heir_modifier
+			}
+			remove_character_modifier = character_ip_mon_supported_heir_modifier
+		}
+		add_legitimacy = 2 # legitimacy_small; Legitimacy shown
+	}
+
+	option = { # Imprison both if possible
+		name = ip_monarchy.31.c
+		trigger = { # If a brother is wounded or dead
+			OR = {
+				has_variable = rival_brothers_death
+				has_variable = rival_brothers_wound
+			}
+		}
+		# (Imperator had an empty "if loser alive" block here)
+		# scope:rival_brothers_victor = { add_loyalty = loyalty_duel_shunned } #P:A TODO No EU5 equivalent: the victor loses loyalty (EU5 characters have no loyalty)
+		random_character = {
+			limit = {
+				OR = {
+					this = scope:rival_brothers_victor
+					this = scope:rival_brothers_loser
+				}
+				is_alive = yes
+				has_character_modifier = character_ip_mon_supported_heir_modifier
+			}
+			remove_character_modifier = character_ip_mon_supported_heir_modifier
+		}
+		# if = { limit = { has_variable = rival_brothers_wound } imprison = { target = scope:rival_brothers_victor } if = { limit = { scope:rival_brothers_loser = { is_alive = yes } } imprison = { target = scope:rival_brothers_loser } } }
+		# else = { imprison = { target = scope:rival_brothers_victor } }
+		#P:A TODO No EU5 equivalent: the victor (and a surviving loser) are imprisoned (EU5 has no prisoners)
+		pa_imp_remove_brothers_variables_effect = yes
+	}
+}
+
+# One rival brother attempts to assassinate the other.
+ip_monarchy.32 = {
+	type = country_event
+	title = ip_monarchy.32.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Assassin botched
+				trigger = {
+					NOR = {
+						has_variable = rival_brothers_wound
+						has_variable = rival_brothers_death
+					}
+				}
+				desc = ip_monarchy.32.desc_1
+			}
+			triggered_desc = { # Assassin wounds
+				trigger = {
+					NOT = { has_variable = rival_brothers_death }
+					has_variable = rival_brothers_wound
+				}
+				desc = ip_monarchy.32.desc_2
+			}
+			triggered_desc = { # Assassin kills
+				trigger = {
+					always = yes
+				}
+				desc = ip_monarchy.32.desc_3
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		pa_imp_rival_brothers_scope_trigger = yes # Rival successor brothers exist
+		NOT = { has_variable = rival_brother_assassin_cooldown }
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		set_variable = { # Toggle
+			name = rival_brother_assassin_cooldown
+			days = 730 # 2 years
+		}
+		pa_imp_rival_brothers_assassination_effect = yes # Decide assassin
+		pa_imp_rival_brothers_duel_outcome_effect = yes # Decide outcome
+	}
+
+	option = { # Legitimize act
+		name = ip_monarchy.32.a
+		if = { # If not killed, victim unhappy
+			limit = {
+				NOT = { has_variable = rival_brothers_death }
+			}
+			# scope:rival_brothers_loser = { add_loyalty = loyalty_assassination_legitimized_victim } #P:A TODO No EU5 equivalent: the victim loses loyalty (EU5 characters have no loyalty)
+			hidden_effect = {
+				trigger_event_silently = {
+					on_action = brothers_events #P:A TODO Imperator custom on_action (random ip_monarchy.31/.32, fallback brothers_events_fallback = ip_monarchy.33); the orchestrator must define it in EU5
+					days = { 30 60 }
+				}
+			}
+		}
+		# scope:rival_brothers_victor = { add_loyalty = loyalty_assassination_legitimized_assassin } #P:A TODO No EU5 equivalent: the assassin gains loyalty (EU5 characters have no loyalty)
+		add_legitimacy = -5 # subtract_legitimacy_medium; Legitimacy evaporates
+	}
+
+	option = { # Distance ruler
+		name = ip_monarchy.32.b
+		if = { # If not killed, victim happy
+			limit = {
+				NOT = { has_variable = rival_brothers_death }
+			}
+			# scope:rival_brothers_loser = { add_loyalty = loyalty_assassination_delegitimized_victim } #P:A TODO No EU5 equivalent: the victim gains loyalty (EU5 characters have no loyalty)
+			hidden_effect = {
+				trigger_event_silently = {
+					on_action = brothers_events
+					days = { 30 60 }
+				}
+			}
+		}
+		# scope:rival_brothers_victor = { add_loyalty = loyalty_assassination_delegitimized_assassin } #P:A TODO No EU5 equivalent: the assassin loses loyalty (EU5 characters have no loyalty)
+		random_character = {
+			limit = {
+				OR = {
+					this = scope:rival_brothers_victor
+					this = scope:rival_brothers_loser
+				}
+				is_alive = yes
+				has_character_modifier = character_ip_mon_supported_heir_modifier
+			}
+			remove_character_modifier = character_ip_mon_supported_heir_modifier
+		}
+		add_legitimacy = 2 # legitimacy_small; Legitimacy peeks
+	}
+
+	option = { # Imprison assassin
+		name = ip_monarchy.32.c
+		trigger = { # If wounded or killed victim
+			OR = {
+				has_variable = rival_brothers_death
+				has_variable = rival_brothers_wound
+			}
+		}
+		# scope:rival_brothers_victor = { add_loyalty = loyalty_imprisoned_plotter } #P:A TODO No EU5 equivalent: the assassin loses loyalty (EU5 characters have no loyalty)
+		# imprison = { target = scope:rival_brothers_victor } #P:A TODO No EU5 equivalent: the assassin is imprisoned (EU5 has no prisoners)
+		# if = { limit = { NOT = { has_variable = rival_brothers_death } scope:rival_brothers_loser = { is_alive = yes } } scope:rival_brothers_loser = { add_loyalty = loyalty_plotter_punished } }
+		#P:A TODO No EU5 equivalent: a surviving victim gains loyalty (EU5 characters have no loyalty)
+		random_character = {
+			limit = {
+				OR = {
+					this = scope:rival_brothers_victor
+					this = scope:rival_brothers_loser
+				}
+				is_alive = yes
+				has_character_modifier = character_ip_mon_supported_heir_modifier
+			}
+			remove_character_modifier = character_ip_mon_supported_heir_modifier
+		}
+		pa_imp_remove_brothers_variables_effect = yes
+	}
+}
+
+# The rival brothers' feud dies down (fallback of the brothers chain).
+ip_monarchy.33 = {
+	type = country_event
+	title = ip_monarchy.33.t
+	desc = ip_monarchy.33.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		pa_imp_rival_brothers_scope_trigger = yes # Are there two rival brothers
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # Encourage friendship
+		name = ip_monarchy.33.a
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence
+		# scope:rival_brother_1 = { hidden_effect = { remove_rival = scope:rival_brother_2 } add_friend = scope:rival_brother_2 }
+		#P:A TODO No EU5 equivalent: the brothers stop being rivals and become friends (EU5 characters have no rivals or friends)
+		random_character = {
+			limit = {
+				OR = {
+					this = scope:rival_brothers_victor
+					this = scope:rival_brothers_loser
+				}
+				is_alive = yes
+				has_character_modifier = character_ip_mon_supported_heir_modifier
+			}
+			remove_character_modifier = character_ip_mon_supported_heir_modifier
+		}
+		pa_imp_remove_brothers_variables_effect = yes
+	}
+
+	option = { # At last
+		name = ip_monarchy.33.b
+		# scope:rival_brother_1 = { remove_rival = scope:rival_brother_2 } #P:A TODO No EU5 equivalent: the brothers stop being rivals (EU5 characters have no rivals)
+		add_legitimacy = 5 # legitimacy_medium
+		pa_imp_remove_brothers_variables_effect = yes
+	}
+
+	option = { # Stir them up again
+		name = ip_monarchy.33.c
+		# scope:rival_brother_1 = { add_loyalty = loyalty_infighting_encouraged }
+		# scope:rival_brother_2 = { add_loyalty = loyalty_infighting_encouraged }
+		#P:A TODO No EU5 equivalent: both brothers change loyalty (loyalty_infighting_encouraged); EU5 characters have no loyalty
+		add_legitimacy = -2 # subtract_legitimacy_small; Childish
+		pa_imp_remove_brothers_variables_effect = yes
+	}
+}
+
+# A prominent, loyal aristocrat from another family could become a friend of the ruler.
+ip_monarchy.35 = {
+	type = country_event
+	title = ip_monarchy.35.t
+	desc = ip_monarchy.35.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = { # Is there a family in a monarchy that's prestigious with a relevant prominent member?
+		government_type = government_type:monarchy
+		exists = capital
+		exists = ruler
+		# current_ruler = { can_get_friends = yes can_get_rivals = yes } #P:A TODO No EU5 equivalent: the ruler has free friend/rival slots (EU5 characters have no friends or rivals)
+		any_character = { # Prominent member? #P:A TODO Approximate: Imperator iterated the members of the country's noble families (any_family/any_family_member); EU5 checks the country's characters that belong to a dynasty
+			has_dynasty = yes
+			trigger_if = {
+				limit = {
+					exists = root.ruler.dynasty #P:A TODO Approximate: Imperator "ruler is not a minor character"; EU5 checks the ruler has a dynasty
+				}
+				NOT = { dynasty = root.ruler.dynasty } # Imperator from_ruler_family = no
+			}
+			OR = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+				is_general = yes
+				is_admiral = yes
+				# wealth >= 500 #P:A TODO No EU5 equivalent: personal wealth of 500 (EU5 characters have no wealth)
+				# power_base >= employer.total_power_base_20_percent #P:A TODO No EU5 equivalent: a fifth of the country's power base (EU5 characters have no power base; pa_imp_total_power_base_20_percent is 0)
+			}
+			# loyalty >= 60 #P:A TODO No EU5 equivalent: loyalty 60 or more (EU5 characters have no loyalty)
+			# can_get_friends = yes can_get_rivals = yes #P:A TODO No EU5 equivalent: free friend/rival slots
+			NOR = { # Not already buddy or enemy of ruler
+				# is_friend = root.ruler
+				# is_rival = root.ruler
+				#P:A TODO No EU5 equivalent: not already a friend or rival of the ruler (EU5 characters have no friends or rivals)
+				this = root.ruler
+			}
+		}
+		NOT = { has_variable = mon_35_cooldown }
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		set_variable = { # Toggle
+			name = mon_35_cooldown
+			days = 2920 # 8 years
+		}
+		random_character = { # Find relevant family member and save scope
+			#P:A TODO Approximate: Imperator took the member with the highest power base from the most prestigious qualifying family (ordered_family by prestige, ordered_family_member by power_base); EU5 dynasties have no prestige and characters no power base, so a random qualifying character is picked
+			limit = {
+				has_dynasty = yes
+				trigger_if = {
+					limit = {
+						exists = root.ruler.dynasty
+					}
+					NOT = { dynasty = root.ruler.dynasty }
+				}
+				OR = {
+					in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+					is_general = yes
+					is_admiral = yes
+					# wealth >= 500
+					# power_base >= employer.total_power_base_20_percent
+				}
+				# loyalty >= 60
+				# can_get_friends = yes can_get_rivals = yes
+				# NOR = { is_friend = root.ruler is_rival = root.ruler }
+				NOT = { this = root.ruler }
+			}
+			save_scope_as = family_leader_scope
+		}
+	}
+
+	option = { # Invite # to a private banquet...
+		name = ip_monarchy.35.a
+		add_gold = { # Price of quail eggs
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 2
+			min = -6000
+		}
+		# ruler = { add_friend = scope:family_leader_scope add_corruption = corruption_medium }
+		#P:A TODO No EU5 equivalent: the ruler befriends the aristocrat and gains 5 corruption (EU5 characters have no friends or corruption)
+		# scope:family_leader_scope = { add_loyalty = loyalty_invited_banquet }
+		#P:A TODO No EU5 equivalent: the aristocrat gains loyalty (EU5 characters have no loyalty)
+		# scope:family_leader_scope = { if = { limit = { is_minor_character = no } family = { add_prestige = prestige_medium } } }
+		#P:A TODO No EU5 equivalent: the aristocrat's family gains 15 prestige (EU5 dynasties have no prestige)
+	}
+
+	option = { # ...at a fake address.
+		name = ip_monarchy.35.b
+		# ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+		# scope:family_leader_scope = { add_rival = root.current_ruler add_loyalty = loyalty_invited_banquet_false }
+		#P:A TODO No EU5 equivalent: the aristocrat becomes the ruler's rival and loses loyalty (EU5 characters have no rivals or loyalty)
+		# scope:family_leader_scope = { if = { limit = { is_minor_character = no } family = { add_prestige = subtract_prestige_large } } }
+		#P:A TODO No EU5 equivalent: the aristocrat's family loses 35 prestige (EU5 dynasties have no prestige)
+	}
+
+	option = { # What of it?
+		name = ip_monarchy.35.c
+		# ruler = { add_popularity = subtract_popularity_small }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+	}
+}
+
+# A young woman arrives at court with the married ruler's illegitimate son.
+ip_monarchy.36 = {
+	type = country_event
+	title = ip_monarchy.36.t
+	desc = ip_monarchy.36.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = { # Is there a married male monarch capable of affair?
+		government_type = government_type:monarchy
+		exists = capital
+		exists = ruler
+		ruler = {
+			is_female = no
+			is_married = yes
+			NOR = {
+				has_trait = pious # Imperator devout
+				# has_trait = chaste
+				# has_trait = incapable
+				# has_trait = shrewd
+				# has_trait = self_controlled
+				#P:A TODO No EU5 equivalent: Imperator traits chaste, incapable, shrewd, self_controlled
+			}
+			any_spouse = { # Imperator current_ruler.spouse
+				is_alive = yes
+				employer = root
+			}
+		}
+		NOR = {
+			has_variable = mon_36_cooldown
+			has_variable = ip_mon_36_flag
+		}
+		any_neighbor_country = { count >= 1 }
+	}
+
+	immediate = {
+		set_variable = { # Toggle
+			name = mon_36_cooldown
+			days = 18250 # 50 years
+		}
+		ruler = {
+			save_scope_as = bastard_ruler # Save ruler as bastard father
+			random_spouse = {
+				limit = {
+					is_alive = yes
+					employer = root
+				}
+				save_scope_as = bastard_consort # Imperator scope:bastard_ruler.spouse
+			}
+		}
+		hidden_effect = {
+			create_character = { # Create wench bastard mother
+				female = yes
+				age = 21
+				# force_add_trait = lustful #P:A TODO No EU5 equivalent: the mother gets the Imperator trait "lustful"
+				save_scope_as = bastard_mother
+			}
+			create_character = { # Create bastard
+				#P:A TODO Approximate: in Imperator the child is born into the ruler's family and options a/b remove it (set_as_minor_character); EU5 has no way to remove a dynasty, so the child is created without one and options c/d give it the ruler's dynasty
+				culture = scope:bastard_ruler.culture
+				religion = scope:bastard_ruler.religion
+				female = no
+				mother = scope:bastard_mother
+				father = scope:bastard_ruler
+				age = 0
+				no_stats = yes
+				trait_category = none # Imperator no_traits
+				save_scope_as = bastard_child
+			}
+			scope:bastard_child = {
+				save_scope_as = pa_character
+				employer = {
+					trigger_event_silently = pa_character_events.35
+				}
+			}
+		}
+	}
+
+	option = { # Make this go away
+		name = ip_monarchy.36.a
+		# scope:bastard_ruler.spouse = { add_loyalty = loyalty_consort_reassured } #P:A TODO No EU5 equivalent: the consort gains loyalty (EU5 characters have no loyalty)
+		hidden_effect = { # Ruler does not know for sure if child is really gone for good
+			random_neighbor_country = { save_scope_as = ip_monarchy_36_neighbor_scope } # Pick neighbor for child
+			random_list = { # Child disappeared to MER and killed to hide death notice or banished to neighbour to possibly return in 18-22 years
+				2 = {
+					kill_character_silently = { #P:A TODO Approximate: Imperator death_obscurity; EU5 death reason vanished
+						target = scope:bastard_child
+						reason = vanished
+						killer = scope:bastard_ruler
+					}
+					kill_character_silently = { # Mother disappeared to MER and killed, to hide death notice for ruler
+						target = scope:bastard_mother
+						reason = vanished
+						killer = scope:bastard_ruler
+					}
+				}
+				2 = {
+					set_variable = {
+						name = ip_mon_36_flag
+						value = root.ruler
+					}
+					scope:bastard_child = {
+						set_variable = {
+							name = ip_mon_36_child_flag
+							value = root.ruler
+						}
+						move_country = scope:ip_monarchy_36_neighbor_scope # Imperator banish
+						save_scope_as = pa_character
+						employer = {
+							trigger_event_silently = {
+								id = ip_monarchy.69
+								days = { 6570 8030 } # 18-22 years
+							}
+						}
+					}
+					scope:bastard_mother = { move_country = scope:ip_monarchy_36_neighbor_scope } # Imperator banish
+					# scope:ip_monarchy_36_neighbor_scope = { scope:bastard_child = { set_as_minor_character = this } }
+					#P:A TODO No EU5 equivalent: the banished child is removed from the ruler's family (set_as_minor_character); in EU5 it simply never gets the dynasty
+				}
+			}
+		}
+		custom_tooltip = ip_monarchy.36.at
+		add_gold = { # Price of thugs
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 1
+			min = -6000
+		}
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+		add_legitimacy = -2 # subtract_legitimacy_small; Legitimacy pondered
+	}
+
+	option = { # The child will be supported, and the mother silenced
+		name = ip_monarchy.36.b
+		# scope:bastard_ruler.spouse = { add_loyalty = loyalty_consort_reassured_2 } #P:A TODO No EU5 equivalent: the consort gains loyalty (EU5 characters have no loyalty)
+		add_gold = { # Price of diapers and tablet
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 2
+			min = -6000
+		}
+		add_legitimacy = -5 # subtract_legitimacy_medium; Legitimacy mulled over
+		hidden_effect = { # Child may reappear in 18-22 years
+			# scope:bastard_child = { set_as_minor_character = this }
+			#P:A TODO No EU5 equivalent: the child is removed from the ruler's family (set_as_minor_character); in EU5 it simply never gets the dynasty
+			random = {
+				chance = 50
+				set_variable = {
+					name = ip_mon_36_flag
+					value = root.ruler
+				}
+				scope:bastard_child = {
+					set_variable = {
+						name = ip_mon_36_child_flag
+						value = root.ruler
+					}
+					save_scope_as = pa_character
+					employer = {
+						trigger_event_silently = {
+							id = ip_monarchy.69
+							days = { 6570 8030 } # 18-22 years
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = { # He has royal blood
+		name = ip_monarchy.36.c
+		# scope:bastard_ruler = { add_popularity = subtract_popularity_medium } #P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+		# scope:bastard_ruler.spouse = { add_loyalty = loyalty_bastard_legitimized }
+		# hidden_effect = { scope:bastard_ruler = { every_child = { limit = { from_ruler_family = yes age >= 10 NOT = { this = scope:bastard_child } } add_loyalty = loyalty_bastard_legitimized } } every_successor = { add_loyalty = loyalty_bastard_legitimized } }
+		#P:A TODO No EU5 equivalent: the consort, the ruler's other children (10+) and every successor lose loyalty (EU5 characters have no loyalty)
+		scope:bastard_child = { # adopted
+			# hidden_effect = { add_popularity = subtract_popularity_huge } #P:A TODO No EU5 equivalent: -25 popularity for the child
+			##bastard_major_bloodline_effect = yes # Give bloodline of ruler if relevant
+			if = {
+				limit = {
+					scope:bastard_ruler = { has_dynasty = yes }
+				}
+				change_dynasty = scope:bastard_ruler.dynasty #P:A TODO Approximate: see the create_character note; the legitimized child joins the ruler's dynasty
+			}
+		}
+		# custom_tooltip = ip_monarchy.36.ct1 #P:A TODO No EU5 equivalent: tooltip for the loyalty loss above
+		add_legitimacy = -20 # subtract_legitimacy_large; Legitimacy questioned
+	}
+
+	option = { # Ruler marries mother of child
+		name = ip_monarchy.36.d
+		# scope:bastard_ruler = { add_popularity = subtract_popularity_huge } #P:A TODO No EU5 equivalent: -25 popularity for the ruler (EU5 characters have no popularity)
+		# scope:bastard_ruler.spouse = { add_loyalty = loyalty_old_consort }
+		# hidden_effect = { scope:bastard_ruler.spouse = { add_rival = scope:bastard_mother } }
+		# hidden_effect = { scope:bastard_ruler = { every_child = { limit = { from_ruler_family = yes age >= 10 NOT = { this = scope:bastard_child } } add_loyalty = loyalty_bastard_legitimized_pretender } } every_successor = { add_loyalty = loyalty_bastard_legitimized_pretender } }
+		#P:A TODO No EU5 equivalent: the old consort loses loyalty and becomes the mother's rival; the ruler's other children (10+) and every successor lose loyalty (EU5 characters have no loyalty or rivals)
+		hidden_effect = {
+			scope:bastard_ruler = {
+				if = {
+					limit = {
+						is_married = yes
+						exists = scope:bastard_consort
+					}
+					divorce_character = scope:bastard_consort
+				}
+			}
+		}
+		scope:bastard_child = { # adopted
+			# hidden_effect = { add_popularity = subtract_popularity_huge } #P:A TODO No EU5 equivalent: -25 popularity for the child
+			##bastard_major_bloodline_effect = yes # Give bloodline of ruler if relevant
+			if = {
+				limit = {
+					scope:bastard_ruler = { has_dynasty = yes }
+				}
+				change_dynasty = scope:bastard_ruler.dynasty #P:A TODO Approximate: see the create_character note; the legitimized child joins the ruler's dynasty
+			}
+		}
+		scope:bastard_ruler = { marry_character = scope:bastard_mother }
+		# custom_tooltip = ip_monarchy.36.dt #P:A TODO No EU5 equivalent: tooltip for the loyalty loss above
+		add_legitimacy = -30 # subtract_legitimacy_huge; Legitimacy damaged
+	}
+}

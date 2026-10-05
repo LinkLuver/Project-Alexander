@@ -1,0 +1,56 @@
+﻿# Imperator scripted effects for batch b01 of the Invictus/Indomita event import (2026-09-30).
+
+#P:A Imported from Invictus: common/scripted_effects/event_picture_effect.txt
+# Imperator: set var:event_picture to a random number whose range depended on the culture group $cg$, so that the
+# event's picture block could pick one of several culture-specific pictures.
+#P:A TODO No EU5 equivalent: EU5 events pick their picture from illustration_tags, not from a script variable; kept empty so callers do not break
+pa_imp_get_event_picture = {
+}
+
+#P:A Imported from Imperator: common/scripted_effects/00_event_effects.txt (location scope; Imperator: province)
+pa_imp_create_2_slaves_effect = {
+	# custom_tooltip = create_2_slaves_effect_tooltip (dropped: add_pop shows its own tooltip)
+	add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (2 slave pops -> size 2); culture/religion of the new pops taken from the location's dominant culture and religion
+		type = pop_type:slaves
+		size = 2
+		culture = dominant_culture
+		religion = dominant_religion
+	}
+}
+
+pa_imp_create_3_slaves_effect = {
+	# custom_tooltip = create_3_slaves_effect_tooltip (dropped: add_pop shows its own tooltip)
+	add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (3 slave pops -> size 3); culture/religion of the new pops taken from the location's dominant culture and religion
+		type = pop_type:slaves
+		size = 3
+		culture = dominant_culture
+		religion = dominant_religion
+	}
+}
+
+#P:A Imported from Imperator: common/scripted_effects/00_event_effects.txt (character scope)
+# Removes the character from every position they hold.
+pa_imp_remove_all_positions = {
+	# if = { limit = { is_governor = yes } remove_as_governor = yes } #P:A TODO No EU5 equivalent: EU5 has no governors
+	# if = { limit = { has_any_office = yes } remove_all_offices = yes }
+	save_scope_as = pa_imp_position_holder
+	if = { #P:A TODO Approximate: Imperator removed all offices; EU5 has no offices, the nearest equivalent is the cabinet
+		limit = {
+			in_cabinet = yes
+		}
+		owner = {
+			remove_from_cabinet = scope:pa_imp_position_holder
+		}
+	}
+	# if = { limit = { has_tech_office = yes } remove_as_researcher = yes } #P:A TODO No EU5 equivalent: EU5 has no research offices
+	if = { # in_command = yes
+		limit = {
+			OR = {
+				is_general = yes
+				is_admiral = yes
+			}
+		}
+		remove_commander = scope:pa_imp_position_holder
+	}
+	# if = { limit = { has_legion_trigger = yes } legion = { remove_commander = PREV } } #P:A TODO No EU5 equivalent: EU5 has no legions (army commands are covered above)
+}

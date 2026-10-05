@@ -1,0 +1,514 @@
+﻿# Imperator scripted effects for batch b03 of the Invictus/Indomita event import (2026-09-30).
+
+#P:A Imported from Imperator: character_oligarchic_party_conviction_effect (common/scripted_effects/00_republic_effects.txt)
+# Character scope, parameter VALUE: in a republic, adds VALUE conviction toward the optimates or oligarchic party.
+pa_imp_character_oligarchic_party_conviction_effect = {
+	# if = {
+	# 	limit = { employer = { is_republic = yes } }
+	# 	if = {
+	# 		limit = { employer = { has_party_type = optimates_party } }
+	# 		add_party_conviction = { party_type = optimates_party value = $VALUE$ }
+	# 	}
+	# 	else_if = {
+	# 		limit = { employer = { has_party_type = oligarchic_party } }
+	# 		add_party_conviction = { party_type = oligarchic_party value = $VALUE$ }
+	# 	}
+	# }
+	#P:A TODO No EU5 equivalent: adds party conviction toward the optimates/oligarchic party (EU5 has no political parties or conviction)
+}
+
+#P:A Imported from Imperator: ip_rep_66_variable_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope: clears the oligarch plot's country variables and the supporter/counter flags on characters.
+pa_imp_ip_rep_66_variable_effect = {
+	if = {
+		limit = { has_variable = ip_rep_66_68 }
+		remove_variable = ip_rep_66_68
+	}
+	if = {
+		limit = { has_variable = ip_rep_66_69 }
+		remove_variable = ip_rep_66_69
+	}
+	if = {
+		limit = { has_variable = ip_rep_66_72 }
+		remove_variable = ip_rep_66_72
+	}
+	if = {
+		limit = { has_variable = ip_rep_66_80 }
+		remove_variable = ip_rep_66_80
+	}
+	if = {
+		limit = { has_variable = ip_rep_66_counter_support }
+		remove_variable = ip_rep_66_counter_support
+	}
+	if = {
+		limit = { has_variable = ip_rep_66_plot_support }
+		remove_variable = ip_rep_66_plot_support
+	}
+	if = {
+		limit = { has_variable = ip_rep_66_evidence_uncovered_flag }
+		remove_variable = ip_rep_66_evidence_uncovered_flag
+	}
+	if = {
+		limit = {
+			any_character = { has_variable = ip_rep_66_supporter_flag }
+		}
+		every_character = {
+			limit = {
+				has_variable = ip_rep_66_supporter_flag
+			}
+			remove_variable = ip_rep_66_supporter_flag
+		}
+	}
+	if = {
+		limit = {
+			any_character = { has_variable = ip_rep_66_counter_flag }
+		}
+		every_character = {
+			limit = {
+				has_variable = ip_rep_66_counter_flag
+			}
+			remove_variable = ip_rep_66_counter_flag
+		}
+	}
+	if = {
+		limit = { has_variable = ip_rep_66_fled }
+		remove_variable = ip_rep_66_fled
+	}
+}
+
+#P:A Imported from Imperator: befriend_event_counter_variable_effect (common/scripted_effects/00_event_effects.txt)
+# Character scope (the befriending character): counts the befriend events seen so far.
+pa_imp_befriend_event_counter_variable_effect = {
+	if = {
+		limit = {
+			NOT = {
+				has_variable = friend_event_counter
+			}
+		}
+		set_variable = {
+			name = friend_event_counter
+			value = 1
+		}
+	}
+	else = {
+		change_variable = {
+			name = friend_event_counter
+			add = 1
+		}
+	}
+}
+
+#P:A Imported from Imperator: set_friend_progress_large_effect (common/scripted_effects/00_event_effects.txt)
+# Character scope (the befriending character): +3 befriend progress.
+pa_imp_set_friend_progress_large_effect = {
+	custom_tooltip = friend_progress_large
+	if = {
+		limit = {
+			NOT = {
+				has_variable = friend_progress
+			}
+		}
+		set_variable = {
+			name = friend_progress
+			value = 3
+		}
+	}
+	else = {
+		change_variable = {
+			name = friend_progress
+			add = 3
+		}
+	}
+}
+
+#P:A Imported from Imperator: set_friend_progress_moderate_effect (common/scripted_effects/00_event_effects.txt)
+# Character scope (the befriending character): +2 befriend progress.
+pa_imp_set_friend_progress_moderate_effect = {
+	custom_tooltip = friend_progress_moderate
+	if = {
+		limit = {
+			NOT = {
+				has_variable = friend_progress
+			}
+		}
+		set_variable = {
+			name = friend_progress
+			value = 2
+		}
+	}
+	else = {
+		change_variable = {
+			name = friend_progress
+			add = 2
+		}
+	}
+}
+
+#P:A Imported from Imperator: set_friend_progress_small_effect (common/scripted_effects/00_event_effects.txt)
+# Character scope (the befriending character): +1 befriend progress.
+pa_imp_set_friend_progress_small_effect = {
+	custom_tooltip = friend_progress_small
+	if = {
+		limit = {
+			NOT = {
+				has_variable = friend_progress
+			}
+		}
+		set_variable = {
+			name = friend_progress
+			value = 1
+		}
+	}
+	else = {
+		change_variable = {
+			name = friend_progress
+			add = 1
+		}
+	}
+}
+
+#P:A Imported from Imperator: fire_next_friend_event_effect (common/scripted_effects/00_event_effects.txt)
+# Character scope (the befriending character): fires the next step of the befriend chain through the custom on_actions
+# befriend_resolution (progress >= 6), befriend_fail (3+ events seen) or befriend_pulse. Imperator fired them on the character;
+# the befriend events are country events here, so they are fired on the character's employer with the character saved as scope:pa_character.
+pa_imp_fire_next_friend_event_effect = {
+	save_scope_as = pa_character
+	if = {
+		limit = {
+			has_variable = friend_progress
+			var:friend_progress >= 6
+		}
+		employer = {
+			trigger_event_non_silently = {
+				on_action = befriend_resolution
+				days = { 15 60 }
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			has_variable = friend_event_counter
+			var:friend_event_counter >= 3
+		}
+		employer = {
+			trigger_event_non_silently = {
+				on_action = befriend_fail
+				days = { 15 60 }
+			}
+		}
+	}
+	else = {
+		employer = {
+			trigger_event_non_silently = {
+				on_action = befriend_pulse
+				days = { 15 60 }
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: demand_office_skill_effect (common/scripted_effects/00_event_effects.txt)
+# Any scope: stores on scope:demand_office_event_scope which skill it is best at (1 martial, 2 finesse, 3 charisma, 4 zeal).
+#P:A TODO Approximate: Imperator martial/finesse/charisma -> EU5 mil/adm/dip; zeal has no EU5 equivalent, so the zeal comparisons are dropped and value 4 (a zeal office) is never picked
+pa_imp_demand_office_skill_effect = {
+	if = {
+		limit = {
+			scope:demand_office_event_scope.mil >= scope:demand_office_event_scope.adm
+			scope:demand_office_event_scope.mil >= scope:demand_office_event_scope.dip
+			# scope:demand_office_event_scope.martial >= scope:demand_office_event_scope.zeal
+		}
+		scope:demand_office_event_scope = {
+			set_variable = {
+				name = demand_office_skill
+				value = 1
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:demand_office_event_scope.adm >= scope:demand_office_event_scope.mil
+			scope:demand_office_event_scope.adm >= scope:demand_office_event_scope.dip
+			# scope:demand_office_event_scope.finesse >= scope:demand_office_event_scope.zeal
+		}
+		scope:demand_office_event_scope = {
+			set_variable = {
+				name = demand_office_skill
+				value = 2
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:demand_office_event_scope.dip >= scope:demand_office_event_scope.mil
+			scope:demand_office_event_scope.dip >= scope:demand_office_event_scope.adm
+			# scope:demand_office_event_scope.charisma >= scope:demand_office_event_scope.zeal
+		}
+		scope:demand_office_event_scope = {
+			set_variable = {
+				name = demand_office_skill
+				value = 3
+			}
+		}
+	}
+	else = {
+		scope:demand_office_event_scope = {
+			set_variable = {
+				name = demand_office_skill
+				value = 4
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: demand_office_master_scope_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope: saves the current holder of the office scope:demand_office_event_scope wants as scope:demand_office_old_officer_scope.
+pa_imp_demand_office_master_scope_effect = {
+	if = {
+		limit = { scope:demand_office_event_scope.var:demand_office_skill = 1 }
+		pa_imp_demand_office_military_scope_effect = yes
+	}
+	else_if = {
+		limit = { scope:demand_office_event_scope.var:demand_office_skill = 2 }
+		pa_imp_demand_office_finesse_scope_effect = yes
+	}
+	else_if = {
+		limit = { scope:demand_office_event_scope.var:demand_office_skill = 3 }
+		pa_imp_demand_office_charisma_scope_effect = yes
+	}
+	else = {
+		pa_imp_demand_office_zeal_scope_effect = yes
+	}
+}
+
+#P:A Imported from Imperator: demand_office_military_scope_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope.
+#P:A TODO Approximate: Imperator looked for the holder of a martial office (monarchy marshal / master of the guard, republic tribune of the treasury / of the soldiers, tribe warchief / bodyguard), preferring one with no better martial skill than scope:demand_office_event_scope, else any holder of those offices. EU5 has no offices: a cabinet member with no better military skill, else any cabinet member
+pa_imp_demand_office_military_scope_effect = {
+	if = {
+		limit = {
+			any_character = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+				mil <= scope:demand_office_event_scope.mil
+			}
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+				mil <= scope:demand_office_event_scope.mil
+			}
+			save_scope_as = demand_office_old_officer_scope
+		}
+	}
+	else_if = {
+		limit = {
+			any_character = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+			}
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+			}
+			save_scope_as = demand_office_old_officer_scope
+		}
+	}
+}
+
+#P:A Imported from Imperator: demand_office_finesse_scope_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope.
+#P:A TODO Approximate: Imperator looked for the holder of a finesse office (monarchy physician / steward, republic plebeian aedile / physician, tribe apothecary / magistrate), preferring one with no better finesse than scope:demand_office_event_scope, else any holder of those offices. EU5 has no offices: a cabinet member with no better administrative skill, else any cabinet member
+pa_imp_demand_office_finesse_scope_effect = {
+	if = {
+		limit = {
+			any_character = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+				adm <= scope:demand_office_event_scope.adm
+			}
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+				adm <= scope:demand_office_event_scope.adm
+			}
+			save_scope_as = demand_office_old_officer_scope
+		}
+	}
+	else_if = {
+		limit = {
+			any_character = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+			}
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+			}
+			save_scope_as = demand_office_old_officer_scope
+		}
+	}
+}
+
+#P:A Imported from Imperator: demand_office_charisma_scope_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope.
+#P:A TODO Approximate: Imperator looked for the holder of a charisma office (monarchy royal tutor / foreign minister, republic praetor / censor, tribe arbitrator / elder), preferring one with no better charisma than scope:demand_office_event_scope, else any holder of those offices. EU5 has no offices: a cabinet member with no better diplomatic skill, else any cabinet member
+pa_imp_demand_office_charisma_scope_effect = {
+	if = {
+		limit = {
+			any_character = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+				dip <= scope:demand_office_event_scope.dip
+			}
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+				dip <= scope:demand_office_event_scope.dip
+			}
+			save_scope_as = demand_office_old_officer_scope
+		}
+	}
+	else_if = {
+		limit = {
+			any_character = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+			}
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes
+				NOT = { this = scope:demand_office_event_scope }
+			}
+			save_scope_as = demand_office_old_officer_scope
+		}
+	}
+}
+
+#P:A Imported from Imperator: demand_office_zeal_scope_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope. (Unused while pa_imp_demand_office_skill_effect never picks zeal.)
+#P:A TODO Approximate: Imperator looked for the holder of a zeal office (monarchy philosopher / high priest, republic augur / pontifex, tribe wise person / high priest), preferring one with no more zeal than scope:demand_office_event_scope. EU5 has no offices or zeal: a clergy-estate cabinet member stands in
+pa_imp_demand_office_zeal_scope_effect = {
+	if = {
+		limit = {
+			any_character = {
+				in_cabinet = yes
+				has_estate = estate_type:clergy_estate
+				NOT = { this = scope:demand_office_event_scope }
+			}
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes
+				has_estate = estate_type:clergy_estate
+				NOT = { this = scope:demand_office_event_scope }
+			}
+			save_scope_as = demand_office_old_officer_scope
+		}
+	}
+}
+
+#P:A Imported from Imperator: demand_office_transfer_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope: scope:demand_office_event_scope takes the office it wants, displacing scope:demand_office_old_officer_scope.
+#P:A TODO Approximate: Imperator gave the character the old holder's office (or, with no holder, the office matching its best skill: monarchy marshal / physician / royal tutor / philosopher, republic tribune of the treasury / plebeian aedile / praetor / augur, tribe warchief / apothecary / arbitrator / wise person) and stripped both characters' positions. EU5 has no offices: both lose their positions (pa_imp_remove_all_positions: cabinet seat, command) and the character takes a free cabinet seat
+pa_imp_demand_office_transfer_effect = {
+	hidden_effect = {
+		scope:demand_office_event_scope = { pa_imp_remove_all_positions = yes }
+		if = {
+			limit = {
+				exists = scope:demand_office_old_officer_scope
+			}
+			scope:demand_office_old_officer_scope = { pa_imp_remove_all_positions = yes }
+		}
+	}
+	if = {
+		limit = {
+			any_cabinet = {
+				NOT = { exists = cabinet_member }
+			}
+		}
+		random_cabinet = {
+			limit = {
+				NOT = { exists = cabinet_member }
+			}
+			add_to_cabinet = scope:demand_office_event_scope
+		}
+	}
+}
+
+#P:A Imported from Imperator: remove_friend_variables (common/scripted_effects/00_event_effects.txt)
+# Character scope (the befriending character): clears every variable of a finished befriend attempt, on it and on its target.
+pa_imp_remove_friend_variables = {
+	if = {
+		limit = {
+			has_variable = friend_progress
+		}
+		remove_variable = friend_progress
+	}
+	if = {
+		limit = {
+			has_variable = befriend_toggle_1
+		}
+		remove_variable = befriend_toggle_1
+	}
+	if = {
+		limit = {
+			has_variable = befriend_toggle_2
+		}
+		remove_variable = befriend_toggle_2
+	}
+	if = {
+		limit = {
+			has_variable = befriend_toggle_3
+		}
+		remove_variable = befriend_toggle_3
+	}
+	if = {
+		limit = {
+			has_variable = befriend_toggle_4
+		}
+		remove_variable = befriend_toggle_4
+	}
+	if = {
+		limit = {
+			has_variable = befriend_toggle_5
+		}
+		remove_variable = befriend_toggle_5
+	}
+	if = {
+		limit = {
+			has_variable = befriend_toggle_6
+		}
+		remove_variable = befriend_toggle_6
+	}
+	if = {
+		limit = {
+			has_variable = currently_befriending
+			exists = var:currently_befriending
+		}
+		var:currently_befriending = {
+			remove_variable = being_befriended
+		}
+	}
+	if = {
+		limit = {
+			has_variable = currently_befriending
+		}
+		remove_variable = currently_befriending
+	}
+	if = {
+		limit = {
+			has_variable = friend_event_counter
+		}
+		remove_variable = friend_event_counter
+	}
+}

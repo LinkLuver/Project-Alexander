@@ -1,0 +1,341 @@
+﻿#P:A Imported from Indomita: events/health.txt
+# Imperator character events, converted to country events: the character is scope:pa_character.
+# health.1/3/4/5 were fired by Imperator on_giving_birth (root = mother, scope:newborn). In EU5 they are meant for
+# on_character_birth (root = country, scope:character = the newborn); they read the mother from the newborn.
+namespace = health
+
+# The mother dies in childbirth.
+health.1 = {
+	type = country_event
+	title = health.1.t
+	desc = health.1.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:character
+		scope:character = {
+			exists = mother
+			mother = {
+				is_alive = yes
+				employer = root
+			}
+		}
+	}
+
+	immediate = {
+		scope:character = {
+			save_scope_as = newborn
+			mother = {
+				save_scope_as = pa_character
+			}
+		}
+		# Imperator: death_reason = death_infection_during_childbirth if the mother had the "infection" trait, else death_childbirth
+		kill_character = { #P:A TODO Approximate: EU5 has no childbirth death reason (or infection trait); sickly_death used
+			target = scope:pa_character
+			reason = sickly_death
+		}
+		if = {
+			limit = {
+				any_character = {
+					is_spouse_of = scope:pa_character
+					is_alive = yes
+				}
+			}
+			random_character = {
+				limit = {
+					is_spouse_of = scope:pa_character
+				}
+				save_scope_as = grieving_husband
+			}
+		}
+	}
+
+	option = {
+		name = health.1.a
+		# if = {
+		# 	limit = { exists = scope:grieving_husband scope:grieving_husband = { NOT = { has_trait = mourning } } }
+		# 	random = { chance = 50 scope:grieving_husband = { add_trait = mourning trigger_event = { id = health.2 days = { 360 3600 } } } }
+		# }
+		#P:A TODO No EU5 equivalent: 50% chance the widower gains the "mourning" trait (EU5 has no mourning trait); health.2 removes it later
+	}
+}
+
+# Hidden: mourning ends.
+health.2 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:pa_character
+		scope:pa_character = {
+			is_alive = yes
+			# has_trait = mourning
+		}
+		always = no #P:A TODO No EU5 equivalent: removes the "mourning" trait, which EU5 does not have
+	}
+
+	immediate = {
+		# scope:pa_character = { remove_trait = mourning }
+	}
+}
+
+# Mother and child both die in childbirth.
+health.3 = {
+	type = country_event
+	title = health.3.t
+	desc = health.3.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:character
+		scope:character = {
+			exists = mother
+			mother = {
+				is_alive = yes
+				employer = root
+			}
+		}
+	}
+
+	immediate = {
+		scope:character = {
+			save_scope_as = newborn
+			mother = {
+				save_scope_as = pa_character
+			}
+		}
+		# Imperator: death_reason = death_infection_during_childbirth / death_childbirth
+		kill_character = { #P:A TODO Approximate: EU5 has no childbirth death reason; sickly_death used
+			target = scope:pa_character
+			reason = sickly_death
+		}
+		# Imperator: death_reason = death_being_born
+		kill_character = { #P:A TODO Approximate: EU5 has no stillbirth death reason; sickly_death used
+			target = scope:newborn
+			reason = sickly_death
+		}
+		if = {
+			limit = {
+				any_character = {
+					is_spouse_of = scope:pa_character
+					is_alive = yes
+				}
+			}
+			random_character = {
+				limit = {
+					is_spouse_of = scope:pa_character
+				}
+				save_scope_as = grieving_husband
+			}
+		}
+	}
+
+	option = {
+		name = health.3.a
+		# scope:grieving_husband = { add_trait = mourning trigger_event = { id = health.2 days = { 360 3600 } } } (if not already mourning)
+		#P:A TODO No EU5 equivalent: the widower gains the "mourning" trait (EU5 has no mourning trait)
+	}
+}
+
+# The child dies at birth.
+health.4 = {
+	type = country_event
+	title = health.4.t
+	desc = health.4.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:character
+		scope:character = {
+			exists = mother
+			mother = {
+				is_alive = yes
+				employer = root
+			}
+		}
+	}
+
+	immediate = {
+		scope:character = {
+			save_scope_as = newborn
+			mother = {
+				save_scope_as = pa_character
+			}
+		}
+		# Imperator: death_reason = death_being_born
+		kill_character = { #P:A TODO Approximate: EU5 has no stillbirth death reason; sickly_death used
+			target = scope:newborn
+			reason = sickly_death
+		}
+		if = {
+			limit = {
+				any_character = {
+					is_spouse_of = scope:pa_character
+					is_alive = yes
+				}
+			}
+			random_character = {
+				limit = {
+					is_spouse_of = scope:pa_character
+					is_alive = yes
+				}
+				save_scope_as = grieving_husband
+			}
+		}
+	}
+
+	option = {
+		name = health.4.a
+		# add_trait = mourning (mother, if not already) + trigger_event health.2; same for scope:grieving_husband
+		#P:A TODO No EU5 equivalent: both parents gain the "mourning" trait (EU5 has no mourning trait)
+	}
+}
+
+# Hidden: the mother's health suffers after a birth.
+health.5 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:character
+		scope:character = {
+			exists = mother
+			mother = { is_alive = yes }
+		}
+	}
+
+	immediate = {
+		# mother: add_health = -10
+		#P:A TODO No EU5 equivalent: -10 health (EU5 characters have no health value)
+	}
+}
+
+# A character falls into depression (yearly medical pulse).
+health.6 = {
+	type = country_event
+	title = health.6.t
+	desc = health.6.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_alive = yes
+				# NOT = { has_trait = depressed }
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_alive = yes
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event gives the "depressed" trait (and removes "mourning"); EU5 has neither trait
+	}
+
+	# weight_multiplier = { modifier = { factor = 2 has_trait = mourning } }
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = { is_alive = yes }
+				save_scope_as = pa_character
+			}
+		}
+	}
+
+	option = {
+		name = health.6.a
+		# scope:pa_character = { remove_trait = mourning add_trait = depressed }
+		#P:A TODO No EU5 equivalent: removes "mourning", adds "depressed"
+	}
+}
+
+# A character recovers from depression (yearly medical pulse).
+health.7 = {
+	type = country_event
+	title = health.7.t
+	desc = health.7.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_alive = yes
+				# has_trait = depressed
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_alive = yes
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: requires the "depressed" trait, which EU5 does not have
+	}
+
+	# weight_multiplier = {
+	# 	modifier = { factor = 1.5 num_of_children >= 1 }
+	# 	modifier = { factor = 1.5 is_married = yes }
+	# 	modifier = { factor = 1.5 num_of_friends = yes }
+	# }
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = { is_alive = yes }
+				save_scope_as = pa_character
+			}
+		}
+	}
+
+	option = {
+		name = health.7.a
+		# scope:pa_character = { remove_trait = depressed }
+		#P:A TODO No EU5 equivalent: removes the "depressed" trait
+	}
+}
+
+# Hidden: yearly health loss.
+health.8 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		# add_health = -5 (on a living character)
+		#P:A TODO No EU5 equivalent: -5 health (EU5 characters have no health value)
+	}
+}
+
+# Hidden: yearly health gain.
+health.9 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		# add_health = 5 (on a living character)
+		#P:A TODO No EU5 equivalent: +5 health (EU5 characters have no health value)
+	}
+}

@@ -1,0 +1,162 @@
+﻿#P:A Imported from Invictus: events/desecration.txt
+#P:A TODO These events were fired by the Invictus unit ability desecrate_holysite and the "desecrate holy site" button (scope:shrine_location, scope:sacker, scope:provincial_deity). EU5 has no such action, so nothing fires them yet.
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = desecration
+
+# The owner of a sacked shrine learns of the desecration.
+desecration.1 = {
+	type = location_event
+	title = desecration.1.t
+	desc = desecration.1.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	immediate = {
+		show_as_tooltip = {
+			scope:shrine_location = {
+				# remove_province_deity = yes #P:A TODO No EU5 equivalent: removes the location's patron deity (EU5 locations have no deities)
+				add_location_modifier = {
+					modifier = upset_local_priests
+					days = 365
+				}
+			}
+		}
+	}
+
+	option = {
+		name = desecration.1.a
+		owner = {
+			add_opinion = {
+				target = scope:sacker
+				modifier = sacked_our_holy_site
+			}
+		}
+	}
+}
+
+# The sacker: our troops destroyed the temple.
+desecration.2 = {
+	type = country_event
+	title = desecration.2.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:shrine_location = {
+						this = location:sidon #P:A TODO Approximate location: Imperator Tyrus (p:743) mapped to sidon (no Tyre location in the mod map)
+					}
+					NOT = { has_global_variable = cr_melqart_is_dead_flag }
+				}
+				desc = cr_religious_flavour_events.1.desc
+			}
+			triggered_desc = {
+				desc = desecration.2.desc
+			}
+		}
+	}
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		show_as_tooltip = {
+			# pay_price = desecrate #P:A TODO No EU5 equivalent: the Invictus "desecrate" action price (no such action in EU5)
+			scope:shrine_location = {
+				# remove_province_deity = yes #P:A TODO No EU5 equivalent: removes the location's patron deity (EU5 locations have no deities)
+				add_location_modifier = {
+					modifier = upset_local_priests
+					days = 365
+				}
+			}
+		}
+		# Tooltip warning that countries following the deity's religion may take offence.
+		# if = {
+		# 	limit = {
+		# 		any_country = {
+		# 			has_land = yes
+		# 			scope:provincial_deity = { deity_religion = PREV.religion }
+		# 			NOR = { THIS = scope:shrine_location.owner AND = { exists = scope:shrine_location.owner THIS = scope:shrine_location.owner } }
+		# 		}
+		# 	}
+		# 	custom_tooltip = desecration_opinion
+		# }
+		#P:A TODO No EU5 equivalent: the check needs the religion of the location's deity (scope:provincial_deity); EU5 locations have no deities
+		hidden_effect = {
+			if = {
+				limit = {
+					scope:shrine_location = {
+						this = location:sidon #P:A TODO Approximate location: Imperator Tyrus (p:743) mapped to sidon
+					}
+					NOT = {
+						has_global_variable = cr_melqart_is_dead_flag
+					}
+				}
+				location:cadiz = {
+					trigger_event_non_silently = {
+						id = cr_religious_flavour_events.2
+						days = { 180 360 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = desecration.2.a
+	}
+}
+
+# Countries of the shrine's religion hear that it was sacked.
+desecration.3 = {
+	type = country_event
+	title = desecration.3.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:shrine_location = {
+						this = location:sidon #P:A TODO Approximate location: Imperator Tyrus (p:743) mapped to sidon
+					}
+					NOT = { has_global_variable = cr_melqart_is_dead_flag }
+				}
+				desc = cr_religious_flavour_events.1.desc_phoenician
+			}
+			triggered_desc = {
+				desc = desecration.3.desc
+			}
+		}
+	}
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	immediate = {
+		# show_as_tooltip = { scope:shrine_location = { remove_province_deity = yes } }
+		#P:A TODO No EU5 equivalent: removes the location's patron deity (EU5 locations have no deities)
+	}
+
+	option = {
+		name = desecration.3.a
+		add_opinion = {
+			target = scope:sacker
+			modifier = sacked_holy_site
+		}
+	}
+
+	option = {
+		name = desecration.3.b
+		scope:sacker = {
+			add_opinion = {
+				target = root
+				modifier = overlooked_sacking
+			}
+		}
+	}
+}

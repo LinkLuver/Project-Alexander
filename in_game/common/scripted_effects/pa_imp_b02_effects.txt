@@ -1,0 +1,460 @@
+﻿# Imperator scripted effects for batch b02 of the Invictus/Indomita event import (2026-09-30).
+# Party approval and party leaders are approximated by EU5 estates, same mapping as pa_imp_b02_triggers.txt:
+#   populares / democratic -> burghers_estate, optimates / oligarchic -> nobles_estate, boni / traditionalist -> clergy_estate.
+# Imperator party approval runs 0-100; EU5 estate satisfaction runs 0-1, so $VALUE$ is divided by 100.
+
+#P:A Imported from Imperator: add_stability_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope.
+pa_imp_add_stability_effect = {
+	if = {
+		limit = {
+			stability >= 90
+		}
+		# add_political_influence = 15 # influence_medium
+		#P:A TODO No EU5 equivalent: +15 political influence instead of stability when stability is already 90+ (EU5 has no political influence)
+	}
+	else_if = {
+		limit = {
+			is_ai = yes
+		}
+		add_stability = 8
+	}
+	else = {
+		add_stability = 6
+	}
+}
+
+#P:A Imported from Imperator: add_stability_effect_small (common/scripted_effects/00_decision_effects.txt)
+# Country scope.
+pa_imp_add_stability_effect_small = {
+	add_stability = 3
+}
+
+#P:A Imported from Imperator: remove_stability_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope.
+pa_imp_remove_stability_effect = {
+	if = {
+		limit = {
+			stability < 5
+		}
+		# add_political_influence = -15 # subtract_influence_medium
+		#P:A TODO No EU5 equivalent: -15 political influence instead of stability when stability is already below 5 (EU5 has no political influence)
+	}
+	else_if = {
+		limit = {
+			is_ai = yes
+		}
+		add_stability = -4
+	}
+	else = {
+		add_stability = -5
+	}
+}
+
+#P:A Imported from Imperator: remove_stability_effect_small (common/scripted_effects/00_decision_effects.txt)
+# Country scope.
+pa_imp_remove_stability_effect_small = {
+	add_stability = -5
+}
+
+#P:A Imported from Imperator: democratic_approval_effect (common/scripted_effects/00_republic_effects.txt)
+# Country scope. Parameter VALUE = Imperator party approval change.
+pa_imp_democratic_approval_effect = {
+	if = {
+		limit = {
+			government_type = government_type:republic
+			country_has_estate = estate_type:burghers_estate
+		}
+		add_estate_satisfaction = { #P:A TODO Approximate: Imperator populares/democratic party approval; EU5 has no parties, burghers satisfaction (VALUE / 100) stands in
+			type = estate_type:burghers_estate
+			value = {
+				value = $VALUE$
+				divide = 100
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: traditionalist_approval_effect (common/scripted_effects/00_republic_effects.txt)
+# Country scope. Parameter VALUE = Imperator party approval change.
+pa_imp_traditionalist_approval_effect = {
+	if = {
+		limit = {
+			government_type = government_type:republic
+			country_has_estate = estate_type:clergy_estate
+		}
+		add_estate_satisfaction = { #P:A TODO Approximate: Imperator boni/traditionalist party approval; EU5 has no parties, clergy satisfaction (VALUE / 100) stands in
+			type = estate_type:clergy_estate
+			value = {
+				value = $VALUE$
+				divide = 100
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: oligarchic_approval_effect (common/scripted_effects/00_republic_effects.txt)
+# Country scope. Parameter VALUE = Imperator party approval change.
+pa_imp_oligarchic_approval_effect = {
+	if = {
+		limit = {
+			government_type = government_type:republic
+			country_has_estate = estate_type:nobles_estate
+		}
+		add_estate_satisfaction = { #P:A TODO Approximate: Imperator optimates/oligarchic party approval; EU5 has no parties, nobles satisfaction (VALUE / 100) stands in
+			type = estate_type:nobles_estate
+			value = {
+				value = $VALUE$
+				divide = 100
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: democratic_leader_effect (common/scripted_effects)
+# Country scope. Saves scope:democratic_leader (Imperator: leader of the populares/democratic party).
+pa_imp_democratic_leader_effect = {
+	ordered_character = { #P:A TODO Approximate: Imperator party leader; EU5 has no parties, the most able adult burghers-estate character (not the ruler) stands in
+		limit = {
+			is_adult = yes
+			is_ruler = no
+			has_estate = estate_type:burghers_estate
+		}
+		order_by = total_abilities
+		max = 1
+		check_range_bounds = no
+		save_scope_as = democratic_leader
+	}
+}
+
+#P:A Imported from Invictus: oligarchic_leader_effect (common/scripted_effects)
+# Country scope. Saves scope:oligarchic_leader (Imperator: leader of the optimates/oligarchic party).
+pa_imp_oligarchic_leader_effect = {
+	ordered_character = { #P:A TODO Approximate: Imperator party leader; EU5 has no parties, the most able adult nobles-estate character (not the ruler) stands in
+		limit = {
+			is_adult = yes
+			is_ruler = no
+			has_estate = estate_type:nobles_estate
+		}
+		order_by = total_abilities
+		max = 1
+		check_range_bounds = no
+		save_scope_as = oligarchic_leader
+	}
+}
+
+#P:A Imported from Invictus: traditionalist_leader_effect (common/scripted_effects)
+# Country scope. Saves scope:traditionalist_leader (Imperator: leader of the boni/traditionalist party).
+pa_imp_traditionalist_leader_effect = {
+	ordered_character = { #P:A TODO Approximate: Imperator party leader; EU5 has no parties, the most able adult clergy-estate character (not the ruler) stands in
+		limit = {
+			is_adult = yes
+			is_ruler = no
+			has_estate = estate_type:clergy_estate
+		}
+		order_by = total_abilities
+		max = 1
+		check_range_bounds = no
+		save_scope_as = traditionalist_leader
+	}
+}
+
+#P:A Imported from Imperator: add_city_fire_effect (common/scripted_effects/00_event_effects.txt)
+# Location scope. Purely visual in Imperator.
+pa_imp_add_city_fire_effect = {
+	# hidden_effect = { add_vfx = { name = "city_fire" duration = 60 locator = city } }
+	#P:A TODO No EU5 equivalent: "city_fire" map VFX on the location (EU5 has no such VFX; add_vfx only knows weather/volcano effects)
+}
+
+#P:A Imported from Invictus: set_primary_culture_cleanup_effect (common/scripted_effects/00_decision_effects_inv.txt)
+# Country scope. Parameters:
+#   NEW_PRIMARY_CULTURE = a bare mod culture key (e.g. macedonian), as the Imperator callers pass it
+#   MAKE_OLD_CULTURE_INTEGRATED = yes/no: keep the old primary culture as an accepted culture
+pa_imp_set_primary_culture_cleanup_effect = {
+	if = {
+		limit = {
+			NOT = { culture = culture:$NEW_PRIMARY_CULTURE$ }
+		}
+		#P:A TODO No EU5 equivalent: Imperator removed the country-culture rights modifiers of the old and new primary
+		#   culture (trial_right, citizenship_by_adoption, land_protection, patronizing_literature, bestowed_city_rights,
+		#   promoted_administrators_in_subcultures, honor_guard, right_of_marriage, torture_protection,
+		#   right_to_enter_contracts, inheritance_right, colonia_founded, officer_right and their country modifiers)
+		#   and integrated the new culture; EU5 has no country-culture modifiers or integration
+		culture = {
+			save_scope_as = old_primary_culture
+		}
+		change_culture = culture:$NEW_PRIMARY_CULTURE$
+		set_variable = {
+			name = integrate_culture_yes_no
+			value = $MAKE_OLD_CULTURE_INTEGRATED$
+		}
+		if = {
+			limit = {
+				always = $MAKE_OLD_CULTURE_INTEGRATED$
+				NOT = { has_accepted_culture = scope:old_primary_culture }
+			}
+			add_accepted_culture = scope:old_primary_culture #P:A TODO Approximate: Imperator kept the old primary culture integrated; EU5 accepted culture stands in
+		}
+	}
+}
+
+#P:A Imported from Imperator: taken_bribe_effect (common/scripted_effects/00_event_effects.txt)
+# Character scope: counts the bribes the character has taken.
+pa_imp_taken_bribe_effect = {
+	if = {
+		limit = {
+			NOT = {
+				has_variable = taken_bribe
+			}
+		}
+		set_variable = {
+			name = taken_bribe
+			value = 1
+		}
+	}
+	else = {
+		change_variable = {
+			name = taken_bribe
+			add = 1
+		}
+	}
+}
+
+#P:A Imported from Imperator: taken_bribe_effect_big (common/scripted_effects/00_event_effects.txt)
+# Character scope.
+pa_imp_taken_bribe_effect_big = {
+	if = {
+		limit = {
+			NOT = {
+				has_variable = taken_bribe
+			}
+		}
+		set_variable = {
+			name = taken_bribe
+			value = 4
+		}
+	}
+	else = {
+		change_variable = {
+			name = taken_bribe
+			add = 4
+		}
+	}
+}
+
+#P:A Imported from Imperator: add_commander_ambition_effect (common/scripted_effects/00_event_effects.txt)
+# Character scope (a general).
+pa_imp_add_commander_ambition_effect = {
+	custom_tooltip = commander_becomes_ambitious
+	if = {
+		limit = {
+			NOT = {
+				has_variable = commander_ambition
+			}
+		}
+		set_variable = {
+			name = commander_ambition
+			value = 1
+		}
+	}
+	else = {
+		change_variable = {
+			name = commander_ambition
+			add = 1
+		}
+	}
+}
+
+#P:A Imported from Imperator: subtract_commander_ambition_effect (common/scripted_effects/00_event_effects.txt)
+# Character scope (a general).
+pa_imp_subtract_commander_ambition_effect = {
+	if = {
+		limit = {
+			NOT = {
+				has_variable = commander_ambition
+			}
+		}
+		set_variable = {
+			name = commander_ambition
+			value = 0
+		}
+	}
+	else = {
+		change_variable = {
+			name = commander_ambition
+			add = -1
+		}
+	}
+}
+
+#P:A Imported from Imperator: destroy_building_effect (common/scripted_effects/00_event_effects.txt)
+# Location scope. Removes one level of a building in the location: a fixed order in rural locations, a weighted random pick in towns and cities.
+# No b02 event uses it any more (the Yuezhi invasion was skipped as date-bound); kept so a later port can.
+pa_imp_destroy_building_effect = {
+	save_scope_as = destroy_random_building_scope
+	if = {
+		limit = { location_rank = location_rank:rural_settlement } # has_city_status = no
+		# Imperator order: basic_settlement_infratructure_building, hill_fort, slave_mine_building, latifundia_building, local_forum_building, barracks_building, fortress_building
+		#P:A TODO No EU5 equivalent: basic_settlement_infratructure_building, hill_fort, slave_mine_building and local_forum_building have no EU5 building; they are left out of the order
+		if = {
+			limit = { has_building = building_type:latifundia }
+			change_building_level_in_location = {
+				building = building_type:latifundia
+				value = -1
+			}
+		}
+		else_if = {
+			limit = { has_building = building_type:training_fields } #P:A TODO Approximate: Imperator barracks_building -> EU5 training_fields
+			change_building_level_in_location = {
+				building = building_type:training_fields
+				value = -1
+			}
+		}
+		else_if = {
+			limit = { has_building = building_type:castle } #P:A TODO Approximate: Imperator fortress_building -> EU5 castle
+			change_building_level_in_location = {
+				building = building_type:castle
+				value = -1
+			}
+		}
+	}
+	else = { # has_city_status = yes
+		if = {
+			limit = { any_buildings_in_location = { always = yes } } # Imperator num_of_used_building_slots > 0
+			custom_tooltip = destroy_building_effect.tt
+		}
+		hidden_effect = {
+			random_list = {
+				# Unlimited Buildings
+				# population_building, military_building, town_hall_building (99 each), workshop_building (10)
+				#P:A TODO No EU5 equivalent: Imperator population, military, town hall and workshop buildings have no EU5 building; left out of the list
+				99 = {
+					trigger = { has_building = building_type:aqueduct_system }
+					change_building_level_in_location = {
+						building = building_type:aqueduct_system
+						value = -1
+					}
+				}
+				99 = {
+					trigger = { has_building = building_type:marketplace } # Imperator commerce_building
+					change_building_level_in_location = {
+						building = building_type:marketplace
+						value = -1
+					}
+				}
+				99 = {
+					trigger = { has_building = building_type:library }
+					change_building_level_in_location = {
+						building = building_type:library
+						value = -1
+					}
+				}
+				10 = {
+					trigger = { has_building = building_type:dock } #P:A TODO Approximate: Imperator port_building -> EU5 dock
+					change_building_level_in_location = {
+						building = building_type:dock
+						value = -1
+					}
+				}
+				# Limited Buildings
+				10 = {
+					trigger = { has_building = building_type:academy }
+					change_building_level_in_location = {
+						building = building_type:academy
+						value = -1
+					}
+				}
+				10 = {
+					trigger = { has_building = building_type:court_of_law } #P:A TODO Approximate: Imperator court_building -> EU5 court_of_law
+					change_building_level_in_location = {
+						building = building_type:court_of_law
+						value = -1
+					}
+				}
+				10 = {
+					trigger = { has_building = building_type:forums }
+					change_building_level_in_location = {
+						building = building_type:forums
+						value = -1
+					}
+				}
+				10 = {
+					trigger = {
+						has_building = building_type:castle #P:A TODO Approximate: Imperator fortress_building -> EU5 castle
+						is_capital = no
+					}
+					change_building_level_in_location = {
+						building = building_type:castle
+						value = -1
+					}
+				}
+				# Unique Buildings
+				1 = {
+					trigger = { has_building = building_type:temple }
+					change_building_level_in_location = {
+						building = building_type:temple
+						value = -1
+					}
+				}
+				1 = {
+					trigger = { has_building = building_type:theater } # Imperator theathre_building
+					change_building_level_in_location = {
+						building = building_type:theater
+						value = -1
+					}
+				}
+				1 = {
+					trigger = { has_building = building_type:local_smelters } #P:A TODO Approximate: Imperator foundry_building -> EU5 local_smelters
+					change_building_level_in_location = {
+						building = building_type:local_smelters
+						value = -1
+					}
+				}
+				1 = {
+					trigger = { has_building = building_type:city_walls } #P:A TODO Approximate: Imperator fortress_ramparts_building -> EU5 city_walls
+					change_building_level_in_location = {
+						building = building_type:city_walls
+						value = -1
+					}
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: process_states_that_just_revolted (common/scripted_effects/ai_war_effects.txt)
+# Any scope. Invictus AI bookkeeping: the current wars that a newly seceded country fights as attacker are recorded as independence wars.
+#P:A TODO No EU5 equivalent: Invictus fills the global list territories_that_just_revolted from its own AI secession scripts (on_action ai_on_state_secession), and reads war_of_independence_for_countries in its AI war logic; nothing in EU5 does either, so this effect has nothing to process. Its only caller, ai_war_events.1, was skipped as plumbing.
+pa_imp_process_states_that_just_revolted = {
+	if = {
+		limit = {
+			pa_imp_has_non_empty_global_variable_list = {
+				name = territories_that_just_revolted
+			}
+		}
+		every_in_global_list = {
+			variable = territories_that_just_revolted
+			if = {
+				limit = {
+					exists = owner
+					owner = {
+						at_war = yes
+					}
+				}
+				owner = {
+					save_temporary_scope_as = country_that_just_revolted
+					every_current_war = {
+						limit = {
+							is_an_attacker = scope:country_that_just_revolted # Imperator any_war_attacker = { this = scope:country_that_just_revolted }
+						}
+						add_to_variable_list = {
+							name = war_of_independence_for_countries
+							target = scope:country_that_just_revolted
+						}
+					}
+				}
+			}
+		}
+		clear_global_variable_list = territories_that_just_revolted
+	}
+}

@@ -1,0 +1,1335 @@
+﻿#P:A Imported from Invictus: events/befriend.txt
+# The Invictus "befriend" chain: a ruler tries to befriend a character (Imperator character interaction, scripted effect befriend_effect).
+# befriend.1-6 were drawn at random by the custom on_action befriend_pulse (fallback befriend_fail -> befriend.8),
+# befriend.7/8 by befriend_resolution (fallback befriend_end -> befriend.9); befriend.10-12 are country events.
+# Imperator character events are country events here; the character is scope:pa_character.
+#P:A TODO EU5 characters have no friends/rivals, no loyalty and no befriend interaction; see the TODOs per line.
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = befriend
+
+# Imperator note: each of befriend.1-6 is one step of a befriend attempt (3 steps per attempt); the options add progress through
+# pa_imp_set_friend_progress_*_effect and every option fires pa_imp_fire_next_friend_event_effect. befriend.7 fires on success, befriend.8 on failure,
+# befriend.9 cleans up. In Imperator the chain started from the befriend character interaction (befriend_effect), which set the
+# character variable currently_befriending = <target>; EU5 has no such interaction yet.
+
+# Political Ambitions: the target wants an office
+befriend.1 = {
+	type = country_event
+	title = befriend.1.t
+	desc = befriend.1.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_1
+				}
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: room for another friend (EU5 characters have no friends)
+				# NOT = { is_rival = var:currently_befriending } #P:A TODO No EU5 equivalent: character rivals
+				var:currently_befriending = {
+					employer = root
+					in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no -> not in the cabinet
+					# is_governor = no #P:A Removed: EU5 has no governors, so this is always true
+					is_general = no
+					is_admiral = no
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_1
+				}
+				var:currently_befriending = {
+					employer = root
+					in_cabinet = no
+					is_general = no
+					is_admiral = no
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = currently_befriending
+					exists = var:currently_befriending
+					NOT = {
+						has_variable = befriend_toggle_1
+					}
+					var:currently_befriending = {
+						employer = root
+						in_cabinet = no
+						is_general = no
+						is_admiral = no
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = befriend_toggle_1
+				days = 720
+			}
+			var:currently_befriending = {
+				save_scope_as = friend_target
+				save_scope_as = demand_office_event_scope
+			}
+			pa_imp_befriend_event_counter_variable_effect = yes
+		}
+		pa_imp_demand_office_skill_effect = yes # Picks which office schemer wants based on their best skill
+		pa_imp_demand_office_master_scope_effect = yes # Sets scope of disputed office's current holder (if they exist) (Imperator: on the employer, i.e. root)
+	}
+
+	option = {
+		name = befriend.1.a
+		scope:pa_character = {
+			pa_imp_set_friend_progress_large_effect = yes
+		}
+		pa_imp_demand_office_transfer_effect = yes # Imperator: employer = { ... }
+		# if = {
+		# 	limit = { exists = scope:demand_office_old_officer_scope }
+		# 	scope:demand_office_old_officer_scope = { add_loyalty = loyalty_removed_office }
+		# }
+		# else = {
+		# 	add_popularity = subtract_popularity_medium
+		# }
+		#P:A TODO No EU5 equivalent: the displaced office holder gets the "removed from office" loyalty modifier, or with no holder the befriending character loses 10 popularity (EU5 characters have no loyalty or popularity)
+		# ROOT.employer = {
+		# 	add_political_influence = subtract_influence_small
+		# 	add_tyranny = 5.0
+		# }
+		#P:A TODO No EU5 equivalent: -10 political influence and +5 tyranny
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+
+		ai_chance = {
+			modifier = {
+				factor = 1000
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				# root.employer = {
+				# 	political_influence >= influence_medium # Must be 5 PI left for e.g. bribing
+				# 	tyranny < 25
+				# }
+				#P:A TODO No EU5 equivalent: at least 15 political influence and tyranny below 25
+			}
+		}
+	}
+
+	option = {
+		name = befriend.1.b
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+}
+
+# Exotic Gifts: send an exotic animal as a gift
+befriend.2 = {
+	type = country_event
+	title = befriend.2.t
+	desc = befriend.2.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_2
+				}
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: room for another friend (EU5 characters have no friends)
+				# NOT = { is_rival = var:currently_befriending } #P:A TODO No EU5 equivalent: character rivals
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_2
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = currently_befriending
+					exists = var:currently_befriending
+					NOT = {
+						has_variable = befriend_toggle_2
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = befriend_toggle_2
+				days = 720
+			}
+			var:currently_befriending = {
+				save_scope_as = friend_target
+			}
+			pa_imp_befriend_event_counter_variable_effect = yes
+		}
+	}
+
+	option = {
+		name = befriend.2.a
+		scope:pa_character = {
+			pa_imp_set_friend_progress_large_effect = yes
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+		if = {
+			limit = {
+				scope:friend_target = {
+					NOT = { employer = root }
+				}
+			}
+			add_gold = -50 # Imperator: the employer pays for a foreign target
+		}
+		# else = { add_gold = -100 } # (on the character) #P:A TODO No EU5 equivalent: the befriending character pays 100 gold of personal wealth for a target of the same country (EU5 characters have no wealth)
+
+		ai_chance = {
+			modifier = {
+				factor = 1000
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				# scope:pa_character = { wealth >= 100 } #P:A TODO No EU5 equivalent: character wealth of 100+
+			}
+		}
+	}
+
+	option = {
+		name = befriend.2.b
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+		if = {
+			limit = {
+				scope:friend_target = {
+					NOT = { employer = root }
+				}
+			}
+			add_gold = -30 # Imperator: the employer pays for a foreign target
+		}
+		# else = { add_gold = -50 } # (on the character) #P:A TODO No EU5 equivalent: the befriending character pays 50 gold of personal wealth for a target of the same country (EU5 characters have no wealth)
+
+		ai_chance = {
+			modifier = {
+				factor = 100
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				# scope:pa_character = { wealth >= 50 } #P:A TODO No EU5 equivalent: character wealth of 50+
+			}
+		}
+	}
+
+	option = {
+		name = befriend.2.c
+		scope:pa_character = {
+			pa_imp_set_friend_progress_small_effect = yes
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+		if = {
+			limit = {
+				scope:friend_target = {
+					NOT = { employer = root }
+				}
+			}
+			add_gold = -15 # Imperator: the employer pays for a foreign target
+		}
+		# else = { add_gold = -25 } # (on the character) #P:A TODO No EU5 equivalent: the befriending character pays 25 gold of personal wealth for a target of the same country (EU5 characters have no wealth)
+
+		ai_chance = {
+			modifier = {
+				factor = 10
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				# scope:pa_character = { wealth >= 25 } #P:A TODO No EU5 equivalent: character wealth of 25+
+			}
+		}
+	}
+
+	option = {
+		name = befriend.2.d
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+}
+
+# Everyone Likes Gold: a gift of money
+befriend.3 = {
+	type = country_event
+	title = befriend.3.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:friend_target = {
+						NOT = { employer = root }
+					}
+				}
+				desc = befriend.3.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = befriend.3.desc_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_3
+				}
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: room for another friend (EU5 characters have no friends)
+				# NOT = { is_rival = var:currently_befriending } #P:A TODO No EU5 equivalent: character rivals
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_3
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = currently_befriending
+					exists = var:currently_befriending
+					NOT = {
+						has_variable = befriend_toggle_3
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = befriend_toggle_3
+				days = 720
+			}
+			var:currently_befriending = {
+				save_scope_as = friend_target
+			}
+			pa_imp_befriend_event_counter_variable_effect = yes
+		}
+	}
+
+	option = {
+		name = befriend.3.a
+		trigger = {
+			scope:friend_target = {
+				NOT = { employer = root }
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_large_effect = yes
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+			min = -6000
+		}
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+
+	option = {
+		name = befriend.3.b
+		trigger = {
+			scope:friend_target = {
+				NOT = { employer = root }
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -2
+			min = -6000
+		}
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+
+	option = {
+		name = befriend.3.c
+		trigger = {
+			scope:friend_target = {
+				NOT = { employer = root }
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_small_effect = yes
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -1
+			min = -6000
+		}
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+
+	option = {
+		name = befriend.3.d
+		trigger = {
+			scope:friend_target = {
+				employer = root
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_large_effect = yes
+		}
+		# custom_tooltip = befriend.3.dt
+		# hidden_effect = {
+		# 	add_gold = -250.0
+		# 	scope:friend_target = {
+		# 		add_gold = 250.0
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: the befriending character gives the target 250 gold of personal wealth (EU5 characters have no wealth)
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+
+		ai_chance = {
+			modifier = {
+				factor = 1000
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				# scope:pa_character = { wealth >= 250 } #P:A TODO No EU5 equivalent: character wealth of 250+
+			}
+		}
+	}
+
+	option = {
+		name = befriend.3.e
+		trigger = {
+			scope:friend_target = {
+				employer = root
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+		}
+		# custom_tooltip = befriend.3.et
+		# hidden_effect = {
+		# 	add_gold = -100.0
+		# 	scope:friend_target = {
+		# 		add_gold = 100.0
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: the befriending character gives the target 100 gold of personal wealth (EU5 characters have no wealth)
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+
+		ai_chance = {
+			modifier = {
+				factor = 100
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				# scope:pa_character = { wealth >= 100 } #P:A TODO No EU5 equivalent: character wealth of 100+
+			}
+		}
+	}
+
+	option = {
+		name = befriend.3.f
+		trigger = {
+			scope:friend_target = {
+				employer = root
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_small_effect = yes
+		}
+		# custom_tooltip = befriend.3.ft
+		# hidden_effect = {
+		# 	add_gold = -50.0
+		# 	scope:friend_target = {
+		# 		add_gold = 50.0
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: the befriending character gives the target 50 gold of personal wealth (EU5 characters have no wealth)
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+
+		ai_chance = {
+			modifier = {
+				factor = 10
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				# scope:pa_character = { wealth >= 50 } #P:A TODO No EU5 equivalent: character wealth of 50+
+			}
+		}
+	}
+
+	option = {
+		name = befriend.3.g
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+}
+
+# The Gladiator: a famous gladiator as a gift
+befriend.4 = {
+	type = country_event
+	title = befriend.4.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:friend_target = {
+						NOT = { employer = root }
+					}
+				}
+				desc = befriend.4.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = befriend.4.desc_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_4
+				}
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: room for another friend (EU5 characters have no friends)
+				# NOT = { is_rival = var:currently_befriending } #P:A TODO No EU5 equivalent: character rivals
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_4
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = currently_befriending
+					exists = var:currently_befriending
+					NOT = {
+						has_variable = befriend_toggle_4
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = befriend_toggle_4
+				days = 720
+			}
+			var:currently_befriending = {
+				save_scope_as = friend_target
+			}
+			pa_imp_befriend_event_counter_variable_effect = yes
+		}
+	}
+
+	option = {
+		name = befriend.4.a
+		trigger = {
+			scope:friend_target = {
+				NOT = { employer = root }
+			}
+		}
+		# add_popularity = subtract_popularity_small #P:A TODO No EU5 equivalent: -5 popularity for the befriending character
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+		# ROOT.employer = { add_political_influence = subtract_influence_small } #P:A TODO No EU5 equivalent: -10 political influence
+	}
+
+	option = {
+		name = befriend.4.b
+		trigger = {
+			scope:friend_target = {
+				employer = root
+			}
+		}
+		# add_popularity = subtract_popularity_small #P:A TODO No EU5 equivalent: -5 popularity for the befriending character
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+		# ROOT.employer = { add_political_influence = subtract_influence_small } #P:A TODO No EU5 equivalent: -10 political influence
+
+		ai_chance = {
+			modifier = {
+				factor = 1000
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				# root.employer = { political_influence >= influence_medium } # Must be 5 PI left for e.g. bribing #P:A TODO No EU5 equivalent: at least 15 political influence
+			}
+		}
+	}
+
+	option = {
+		name = befriend.4.c
+		# add_popularity = subtract_popularity_small #P:A TODO No EU5 equivalent: -5 popularity for the befriending character
+		if = {
+			limit = {
+				scope:friend_target = {
+					NOT = { employer = root }
+				}
+			}
+			add_gold = -25 # Imperator: the employer pays for a foreign target
+		}
+		# else = { add_gold = -50 } # (on the character) #P:A TODO No EU5 equivalent: the befriending character pays 50 gold of personal wealth for a target of the same country (EU5 characters have no wealth)
+		scope:pa_character = {
+			pa_imp_set_friend_progress_small_effect = yes
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+
+		ai_chance = {
+			modifier = {
+				factor = 100
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				# scope:pa_character = { wealth >= 50 } #P:A TODO No EU5 equivalent: character wealth of 50+
+			}
+		}
+	}
+
+	option = {
+		name = befriend.4.d
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+}
+
+# Making an Impression: public or diplomatic flattery
+befriend.5 = {
+	type = country_event
+	title = befriend.5.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:friend_target = {
+						NOT = { employer = root }
+					}
+				}
+				desc = befriend.5.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = befriend.5.desc_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_5
+				}
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: room for another friend (EU5 characters have no friends)
+				# NOT = { is_rival = var:currently_befriending } #P:A TODO No EU5 equivalent: character rivals
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_5
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = currently_befriending
+					exists = var:currently_befriending
+					NOT = {
+						has_variable = befriend_toggle_5
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = befriend_toggle_5
+				days = 720
+			}
+			var:currently_befriending = {
+				save_scope_as = friend_target
+			}
+			pa_imp_befriend_event_counter_variable_effect = yes
+		}
+	}
+
+	option = {
+		name = befriend.5.a
+		trigger = {
+			scope:friend_target = {
+				employer = root
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+		}
+		# ROOT.employer = { add_political_influence = subtract_influence_small } #P:A TODO No EU5 equivalent: -10 political influence
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+
+		ai_chance = {
+			modifier = {
+				factor = 100
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				# root.employer = { political_influence >= influence_medium } # Must be 5 PI left for e.g. bribing #P:A TODO No EU5 equivalent: at least 15 political influence
+			}
+		}
+	}
+
+	option = {
+		name = befriend.5.b
+		trigger = {
+			scope:friend_target = {
+				employer = root
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+		}
+		add_stability = -5
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+
+		ai_chance = {
+			modifier = {
+				factor = 0
+			}
+		}
+	}
+
+	option = {
+		name = befriend.5.c
+		trigger = {
+			scope:friend_target = {
+				employer = root
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+		}
+		add_gold = {
+			value = {
+				integer_range = { min = -30 max = -10 }
+			}
+		}
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+
+		ai_chance = {
+			modifier = {
+				factor = 1000
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				gold >= 30 # Imperator: root.employer treasury >= 30
+			}
+		}
+	}
+
+	option = {
+		name = befriend.5.d
+		trigger = {
+			scope:friend_target = {
+				NOT = { employer = root }
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+		}
+		add_stability = -5
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+
+		ai_chance = {
+			modifier = {
+				factor = 0
+			}
+		}
+	}
+
+	option = {
+		name = befriend.5.e
+		trigger = {
+			scope:friend_target = {
+				NOT = { employer = root }
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+		}
+		# ROOT.employer = { add_political_influence = subtract_influence_medium } #P:A TODO No EU5 equivalent: -15 political influence
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+
+	option = {
+		name = befriend.5.f
+		trigger = {
+			scope:friend_target = {
+				NOT = { employer = root }
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+		}
+		add_manpower = -5
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+
+	option = {
+		name = befriend.5.g
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+}
+
+# The Benefits of Power: silence an outspoken critic of the target
+befriend.6 = {
+	type = country_event
+	title = befriend.6.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:friend_target = {
+						NOT = { employer = root }
+					}
+				}
+				desc = befriend.6.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = befriend.6.desc_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_6
+				}
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: room for another friend (EU5 characters have no friends)
+				# NOT = { is_rival = var:currently_befriending } #P:A TODO No EU5 equivalent: character rivals
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				NOT = {
+					has_variable = befriend_toggle_6
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = currently_befriending
+					exists = var:currently_befriending
+					NOT = {
+						has_variable = befriend_toggle_6
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = befriend_toggle_6
+				days = 720
+			}
+			var:currently_befriending = {
+				save_scope_as = friend_target
+			}
+			pa_imp_befriend_event_counter_variable_effect = yes
+		}
+	}
+
+	option = {
+		name = befriend.6.a
+		trigger = {
+			scope:friend_target = {
+				NOT = { employer = root }
+			}
+		}
+		scope:pa_character = {
+			pa_imp_set_friend_progress_moderate_effect = yes
+		}
+		# ROOT.employer = {
+		# 	add_tyranny = 5
+		# 	add_political_influence = subtract_influence_small
+		# }
+		#P:A TODO No EU5 equivalent: +5 tyranny and -10 political influence
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+
+	option = {
+		name = befriend.6.b
+		trigger = {
+			scope:friend_target = {
+				employer = root
+			}
+		}
+		# add_gold = -30.0 # (on the character) #P:A TODO No EU5 equivalent: the befriending character pays 30 gold of personal wealth for the bribes (EU5 characters have no wealth)
+		scope:pa_character = {
+			pa_imp_set_friend_progress_small_effect = yes
+		}
+		# ROOT.employer = { add_tyranny = 5 } #P:A TODO No EU5 equivalent: +5 tyranny
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+
+		ai_chance = {
+			modifier = {
+				factor = 1000
+				scope:pa_character = { pa_imp_ruler_befriending_disloyal_powerful_character = yes }
+				# scope:pa_character = { wealth >= 30 } #P:A TODO No EU5 equivalent: character wealth of 30+
+				# root.employer = { tyranny < 25 } #P:A TODO No EU5 equivalent: tyranny below 25
+			}
+		}
+	}
+
+	option = {
+		name = befriend.6.c
+		scope:pa_character = {
+			pa_imp_fire_next_friend_event_effect = yes
+		}
+	}
+}
+
+# Make friend! The befriend attempt succeeds
+befriend.7 = {
+	type = country_event
+	title = befriend.7.t
+	desc = befriend.7.desc
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				has_variable = friend_progress
+				var:friend_progress >= 6
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				has_variable = friend_progress
+				var:friend_progress >= 6
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = currently_befriending
+					exists = var:currently_befriending
+					has_variable = friend_progress
+					var:friend_progress >= 6
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			var:currently_befriending = {
+				save_scope_as = friend_target
+			}
+		}
+	}
+
+	option = {
+		name = befriend.7.a
+		# add_friend = scope:friend_target #P:A TODO No EU5 equivalent: the befriending character and scope:friend_target become friends (EU5 characters have no friends); the event only clears the befriend variables
+		scope:pa_character = {
+			pa_imp_remove_friend_variables = yes
+		}
+		# if = {
+		# 	limit = {
+		# 		OR = {
+		# 			scope:friend_target = char:180
+		# 			AND = {
+		# 				exists = scope:friend_target.father
+		# 				scope:friend_target.father = char:180
+		# 			}
+		# 		}
+		# 		NOT = {
+		# 			has_global_variable = directors_cuirass_v
+		# 		}
+		# 	}
+		# 	set_global_variable = {
+		# 		name = directors_cuirass_v
+		# 	}
+		# 	employer = {
+		# 		create_country_treasure = {
+		# 			key = directors_cuirass
+		# 			icon = treasure_armor
+		# 			modifier = {
+		# 				global_slaves_output = 0.1
+		# 			}
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: befriending the Imperator setup character char:180 (or a son of his) gave the employer the "Director's Cuirass" treasure (+10% slave output); EU5 character ids differ and EU5 has no treasures
+	}
+}
+
+# YOU FAILED: the befriend attempt fails
+befriend.8 = {
+	type = country_event
+	title = befriend.8.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:friend_target = {
+						NOT = { employer = root }
+					}
+				}
+				desc = befriend.8.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = befriend.8.desc_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				has_variable = friend_progress
+				var:friend_progress < 6
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = currently_befriending
+				exists = var:currently_befriending
+				has_variable = friend_progress
+				var:friend_progress < 6
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = currently_befriending
+					exists = var:currently_befriending
+					has_variable = friend_progress
+					var:friend_progress < 6
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = befriend_toggle_6
+				days = 720
+			}
+			var:currently_befriending = {
+				save_scope_as = friend_target
+			}
+		}
+	}
+
+	option = {
+		name = befriend.8.a
+		scope:pa_character = {
+			pa_imp_remove_friend_variables = yes
+		}
+	}
+}
+
+# Hidden clean-up: clears the befriend variables when the chain ends without a result (fallback of befriend_resolution)
+befriend.9 = {
+	type = country_event
+	hidden = yes
+
+	# Imperator had no trigger (the character was root). Without scope:pa_character, pick a character with an open befriend attempt.
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			always = yes
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = currently_befriending
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = currently_befriending
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			pa_imp_remove_friend_variables = yes
+		}
+	}
+}
+
+# Friend Request: a foreign ruler invites our ruler to a banquet to become friends (asked of human players only)
+# Imperator: fired on the target ruler's country by the befriend character interaction (scripted effect befriend_effect),
+# with scope:actor = the befriending country and scope:target = our ruler. EU5 has no such interaction yet.
+befriend.10 = {
+	type = country_event
+	title = befriend.10.t
+	desc = befriend.10.desc
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	#P:A Added: the event needs the scopes of the Imperator interaction (Imperator had no trigger)
+	trigger = {
+		exists = scope:actor
+		exists = scope:target
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:actor = {
+			ruler ?= {
+				save_scope_as = befriend_actor_ruler
+			}
+		}
+	}
+
+	option = {
+		name = befriend.10.a
+		# scope:target = {
+		# 	add_friend = scope:actor.current_ruler
+		# }
+		#P:A TODO No EU5 equivalent: our ruler (scope:target) and the ruler of scope:actor become friends (EU5 characters have no friends)
+		custom_tooltip = friend_refusal
+		hidden_effect = {
+			if = {
+				limit = {
+					scope:actor = {
+						exists = capital # Imperator has_land = yes
+					}
+				}
+				scope:actor = {
+					trigger_event_non_silently = {
+						id = befriend.12
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = befriend.10.b
+		custom_tooltip = friend_refusal
+		hidden_effect = {
+			if = {
+				limit = {
+					scope:actor = {
+						exists = capital # Imperator has_land = yes
+					}
+				}
+				scope:actor = {
+					trigger_event_non_silently = {
+						id = befriend.11
+					}
+				}
+			}
+		}
+	}
+}
+
+# Declined! The foreign ruler refused our friendship (from befriend.10; scope:target = that ruler)
+befriend.11 = {
+	type = country_event
+	title = befriend.11.t
+	desc = befriend.11.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+	outcome = negative
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = befriend.11.a
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Friendship Secured! The foreign ruler accepted our friendship (from befriend.10; scope:target = that ruler)
+befriend.12 = {
+	type = country_event
+	title = befriend.12.t
+	desc = befriend.12.desc
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+	outcome = positive
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = befriend.12.a
+		# show_as_tooltip = {
+		# 	scope:target = {
+		# 		add_friend = scope:actor.current_ruler
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: tooltip that scope:target and our ruler are now friends (EU5 characters have no friends; the friendship itself was set in befriend.10)
+	}
+}

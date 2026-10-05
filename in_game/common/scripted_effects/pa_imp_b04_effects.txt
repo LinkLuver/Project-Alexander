@@ -1,0 +1,869 @@
+﻿# Imperator scripted effects for batch b04 of the Invictus/Indomita event import (2026-09-30).
+
+#P:A Imported from Invictus: end_plot_event_chain_effect (common/scripted_effects). Country scope.
+pa_imp_end_plot_event_chain_effect = {
+	custom_tooltip = end_plot_chain_tooltip
+	if = {
+		limit = {
+			has_variable = ongoing_plot
+		}
+		remove_variable = ongoing_plot
+	}
+	if = {
+		limit = {
+			has_variable = surveillance
+		}
+		remove_variable = surveillance
+	}
+	if = {
+		limit = {
+			has_variable = successor_warned
+		}
+		remove_variable = successor_warned
+	}
+	if = {
+		limit = {
+			has_variable = surveillance_discovered
+		}
+		remove_variable = surveillance_discovered
+	}
+	if = {
+		limit = {
+			has_variable = plot_insult
+		}
+		remove_variable = plot_insult
+	}
+}
+
+#P:A Imported from Imperator: ip_mon_13_negative_trait_effect (common/scripted_effects/00_event_effects.txt). Character scope.
+# Removes up to two bad-leader traits (see pa_imp_char_is_bad_leader_trigger); needs var:ip_mon_13_trait_counter set by the caller.
+pa_imp_ip_mon_13_negative_trait_effect = {
+	while = {
+		limit = {
+			var:ip_mon_13_trait_counter < 2
+		}
+		# if = { limit = { has_trait = tactically_inflexible } remove_trait = tactically_inflexible change_variable = { name = ip_mon_13_trait_counter add = 1 } }
+		# if = { limit = { has_trait = arbitrary } remove_trait = arbitrary change_variable = { name = ip_mon_13_trait_counter add = 1 } }
+		#P:A TODO No EU5 equivalent: the Imperator traits tactically_inflexible and arbitrary
+		if = {
+			limit = {
+				has_trait = cruel
+			}
+			remove_trait = trait:cruel
+			change_variable = {
+				name = ip_mon_13_trait_counter
+				add = 1
+			}
+		}
+		if = {
+			limit = {
+				has_trait = corrupt
+			}
+			remove_trait = trait:corrupt
+			change_variable = {
+				name = ip_mon_13_trait_counter
+				add = 1
+			}
+		}
+		# if = { limit = { has_trait = selfish } remove_trait = selfish change_variable = { name = ip_mon_13_trait_counter add = 1 } }
+		#P:A TODO No EU5 equivalent: the Imperator trait selfish
+		if = {
+			limit = {
+				has_trait = deceitful
+			}
+			remove_trait = trait:deceitful
+			change_variable = {
+				name = ip_mon_13_trait_counter
+				add = 1
+			}
+		}
+		if = {
+			limit = {
+				has_trait = lazy
+			}
+			remove_trait = trait:lazy
+			change_variable = {
+				name = ip_mon_13_trait_counter
+				add = 1
+			}
+		}
+		# if = { limit = { has_trait = foolish } remove_trait = foolish change_variable = { name = ip_mon_13_trait_counter add = 1 } }
+		#P:A TODO No EU5 equivalent: the Imperator trait foolish
+		if = {
+			limit = {
+				has_trait = greedy # Imperator miserly
+			}
+			remove_trait = trait:greedy
+			change_variable = {
+				name = ip_mon_13_trait_counter
+				add = 1
+			}
+		}
+	}
+	remove_variable = ip_mon_13_trait_counter
+}
+
+#P:A Imported from Invictus: mon_18_mad_melee_effect (common/scripted_effects). Country scope (ip_monarchy.19).
+# A melee between the old ruler (scope:old_ruler_mon_18) and up to three plotters; a surviving plotter or the preferred heir takes the throne.
+pa_imp_mon_18_mad_melee_effect = {
+	hidden_effect = {
+		if = {
+			limit = {
+				exists = scope:mon_18_plotter_2
+				exists = scope:mon_18_plotter_3
+			}
+			random_list = { #Outcome of mad melee
+				33 = {
+					kill_character = { # Plotter 1 dies
+						target = scope:mon_18_plotter
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+				}
+				33 = {
+					kill_character = { # Plotter 2 dies
+						target = scope:mon_18_plotter_2
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+				}
+				33 = {
+					kill_character = { # Plotter 3 dies
+						target = scope:mon_18_plotter_3
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+				}
+				33 = {
+					kill_character = { # Ruler dies
+						target = scope:old_ruler_mon_18
+						reason = combat
+						killer = scope:mon_18_plotter
+					}
+				}
+				1 = {
+					kill_character = { # Everybody dies...
+						target = scope:mon_18_plotter
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+					kill_character = {
+						target = scope:mon_18_plotter_2
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+					kill_character = {
+						target = scope:mon_18_plotter_3
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+					kill_character = {
+						target = scope:old_ruler_mon_18
+						reason = combat
+						killer = scope:mon_18_plotter
+					}
+				}
+			}
+			# if = { limit = { scope:old_ruler_mon_18 = { is_alive = yes } } imprison = { target = scope:old_ruler_mon_18 } }
+			#P:A TODO No EU5 equivalent: a surviving old ruler is imprisoned (EU5 has no prisoners)
+			if = { # If plotter 1 didn't die seize power
+				limit = {
+					scope:mon_18_plotter = {
+						is_alive = yes
+					}
+				}
+				set_new_ruler = scope:mon_18_plotter
+			}
+			else_if = { # If plotter 1 did die plotter 2 seize power
+				limit = {
+					scope:mon_18_plotter_2 = {
+						is_alive = yes
+					}
+				}
+				set_new_ruler = scope:mon_18_plotter_2
+			}
+			else_if = { # If plotter 1 and 2 died plotter 3 seize power
+				limit = {
+					scope:mon_18_plotter_3 = {
+						is_alive = yes
+					}
+				}
+				set_new_ruler = scope:mon_18_plotter_3
+			}
+			else_if = { # If all died, old ruler preferred heir takes power
+				limit = {
+					exists = scope:mon_18_preferred_heir
+					scope:mon_18_preferred_heir = {
+						is_alive = yes
+						employer = root
+					}
+				}
+				set_new_ruler = scope:mon_18_preferred_heir
+			}
+		}
+		else_if = {
+			limit = {
+				exists = scope:mon_18_plotter_2
+				NOT = { exists = scope:mon_18_plotter_3 }
+			}
+			random_list = { #Outcome of mad melee
+				33 = {
+					kill_character = { # Plotter 1 dies
+						target = scope:mon_18_plotter
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+				}
+				33 = {
+					kill_character = { # Plotter 2 dies
+						target = scope:mon_18_plotter_2
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+				}
+				33 = {
+					kill_character = { # Ruler dies
+						target = scope:old_ruler_mon_18
+						reason = combat
+						killer = scope:mon_18_plotter
+					}
+				}
+				1 = {
+					kill_character = { # Everybody dies...
+						target = scope:mon_18_plotter
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+					kill_character = {
+						target = scope:mon_18_plotter_2
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+					kill_character = {
+						target = scope:old_ruler_mon_18
+						reason = combat
+						killer = scope:mon_18_plotter
+					}
+				}
+			}
+			# if = { limit = { scope:old_ruler_mon_18 = { is_alive = yes } } imprison = { target = scope:old_ruler_mon_18 } }
+			#P:A TODO No EU5 equivalent: a surviving old ruler is imprisoned (EU5 has no prisoners)
+			if = { # If plotter 1 didn't die seize power
+				limit = {
+					scope:mon_18_plotter = {
+						is_alive = yes
+					}
+				}
+				set_new_ruler = scope:mon_18_plotter
+			}
+			else_if = { # If plotter 1 did die plotter 2 seize power
+				limit = {
+					scope:mon_18_plotter_2 = {
+						is_alive = yes
+					}
+				}
+				set_new_ruler = scope:mon_18_plotter_2
+			}
+			else_if = { # If all died, old ruler preferred heir takes power
+				limit = {
+					exists = scope:mon_18_preferred_heir
+					scope:mon_18_preferred_heir = {
+						is_alive = yes
+						employer = root
+					}
+				}
+				set_new_ruler = scope:mon_18_preferred_heir
+			}
+		}
+		else = {
+			random_list = { #Outcome of mad melee
+				33 = {
+					kill_character = { # Plotter 1 dies
+						target = scope:mon_18_plotter
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+				}
+				33 = {
+					kill_character = { # Ruler dies
+						target = scope:old_ruler_mon_18
+						reason = combat
+						killer = scope:mon_18_plotter
+					}
+				}
+				1 = {
+					kill_character = { # Everybody dies...
+						target = scope:mon_18_plotter
+						reason = combat
+						killer = scope:old_ruler_mon_18
+					}
+					kill_character = {
+						target = scope:old_ruler_mon_18
+						reason = combat
+						killer = scope:mon_18_plotter
+					}
+				}
+			}
+			# if = { limit = { scope:old_ruler_mon_18 = { is_alive = yes } } imprison = { target = scope:old_ruler_mon_18 } }
+			#P:A TODO No EU5 equivalent: a surviving old ruler is imprisoned (EU5 has no prisoners)
+			if = { # If plotter 1 didn't die seize power
+				limit = {
+					scope:mon_18_plotter = {
+						is_alive = yes
+					}
+				}
+				set_new_ruler = scope:mon_18_plotter
+			}
+			else_if = { # If all died, old ruler preferred heir takes power
+				limit = {
+					exists = scope:mon_18_preferred_heir
+					scope:mon_18_preferred_heir = {
+						is_alive = yes
+						employer = root
+					}
+				}
+				set_new_ruler = scope:mon_18_preferred_heir
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: rival_brothers_scope_effect (common/scripted_effects/00_event_effects.txt). Country scope.
+# Saves the oldest qualifying son as scope:rival_brother_1 and one of his brothers as scope:rival_brother_2.
+pa_imp_rival_brothers_scope_effect = {
+	ordered_character = {
+		limit = {
+			is_eligible_heir = root #P:A TODO Approximate: Imperator ordered_successor (the line of succession); EU5 characters eligible as heir
+			is_child_of = root.ruler
+			# from_ruler_family = yes #P:A TODO Approximate: Imperator from_ruler_family; EU5 relies on is_child_of the ruler
+			is_female = no
+			age_in_years >= 18
+			age_in_years <= 30
+			pa_imp_has_any_illness_trigger = no
+			employer = root
+			save_temporary_scope_as = rival_brother_1_temp_e
+			OR = {
+				AND = {
+					# can_get_rivals = yes
+					root = {
+						any_character = { # Imperator any_sibling
+							is_sibling_of = scope:rival_brother_1_temp_e
+							is_eligible_heir = root
+							is_child_of = root.ruler
+							is_female = no
+							age_in_years >= 18
+							age_in_years <= 30
+							# can_get_rivals = yes # Is not rival and could be
+							pa_imp_has_any_illness_trigger = no
+							employer = root
+							# NOT = { is_rival = scope:rival_brother_1_temp_e }
+						}
+					}
+				}
+				# AND = { num_of_rivals >= 1 any_rival = { ... } }
+				#P:A TODO No EU5 equivalent: rival slots and existing rivalries between the brothers (EU5 characters have no rivals)
+			}
+		}
+		order_by = age_in_days
+		save_scope_as = rival_brother_1
+		root = {
+			random_character = { # Save second brother (Imperator random_sibling)
+				limit = {
+					is_sibling_of = scope:rival_brother_1
+					is_child_of = root.ruler
+					is_female = no
+					age_in_years >= 18
+					age_in_years <= 30
+					# OR = { AND = { can_get_rivals = yes NOT = { is_rival = scope:rival_brother_1 } } AND = { num_of_rivals >= 1 is_rival = scope:rival_brother_1 } }
+					#P:A TODO No EU5 equivalent: the brother can become (or already is) a rival (EU5 characters have no rivals)
+					pa_imp_has_any_illness_trigger = no
+				}
+				# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighting by office/title importance
+				save_scope_as = rival_brother_2
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: remove_brothers_variables_effect (common/scripted_effects/00_event_effects.txt). Country scope.
+pa_imp_remove_brothers_variables_effect = {
+	hidden_effect = {
+		if = {
+			limit = {
+				has_variable = rival_brother_assassin_cooldown
+			}
+			remove_variable = rival_brother_assassin_cooldown
+		}
+		if = {
+			limit = {
+				has_variable = rival_brother_duel_cooldown
+			}
+			remove_variable = rival_brother_duel_cooldown
+		}
+		if = {
+			limit = {
+				has_variable = rival_brothers_death
+			}
+			remove_variable = rival_brothers_death
+		}
+		if = {
+			limit = {
+				has_variable = rival_brothers_wound
+			}
+			remove_variable = rival_brothers_wound
+		}
+		if = {
+			limit = {
+				exists = scope:rival_brothers_victor
+			}
+			clear_saved_scope = rival_brothers_victor
+		}
+		if = {
+			limit = {
+				exists = scope:rival_brothers_loser
+			}
+			clear_saved_scope = rival_brothers_loser
+		}
+	}
+}
+
+#P:A Imported from Imperator: rival_brothers_duel_effect (common/scripted_effects/00_event_effects.txt). Country scope.
+# Picks the duel winner between scope:rival_brother_1 and scope:rival_brother_2, and whether the loser is wounded or killed.
+pa_imp_rival_brothers_duel_effect = {
+	hidden_effect = {
+		random_list = { # Pick Winner
+			5 = {
+				modifier = {
+					factor = 2
+					scope:rival_brother_1 = { mil > 20 }
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_1 = { mil > 30 }
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_1 = { mil > 40 }
+				}
+				# modifier = { factor = 2 scope:rival_brother_1 = { has_trait = brave } } (also confident, energetic, reckless)
+				#P:A TODO No EU5 equivalent: x2 per Imperator trait brave, confident, energetic, reckless
+				modifier = {
+					factor = 2
+					scope:rival_brother_1 = { has_character_modifier = character_ip_mon_supported_heir_modifier }
+				}
+				scope:rival_brother_1 = {
+					save_scope_as = rival_brothers_victor
+				}
+				scope:rival_brother_2 = {
+					save_scope_as = rival_brothers_loser
+				}
+			}
+			5 = {
+				modifier = {
+					factor = 2
+					scope:rival_brother_2 = { mil > 20 }
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_2 = { mil > 30 }
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_2 = { mil > 40 }
+				}
+				# modifier = { factor = 2 scope:rival_brother_2 = { has_trait = brave } } (also confident, energetic, reckless)
+				#P:A TODO No EU5 equivalent: x2 per Imperator trait brave, confident, energetic, reckless
+				modifier = {
+					factor = 2
+					scope:rival_brother_2 = { has_character_modifier = character_ip_mon_supported_heir_modifier }
+				}
+				scope:rival_brother_1 = {
+					save_scope_as = rival_brothers_loser
+				}
+				scope:rival_brother_2 = {
+					save_scope_as = rival_brothers_victor
+				}
+			}
+		}
+		random_list = { # Pick Result
+			6 = {
+				modifier = {
+					factor = 2
+					scope:rival_brothers_victor = { has_trait = kind_hearted } # Imperator merciful
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brothers_victor = { has_trait = pious }
+				}
+				# modifier = { factor = 2 scope:rival_brothers_victor = { has_trait = loving } } #P:A TODO No EU5 equivalent: Imperator trait "loving"
+				set_variable = {
+					name = rival_brothers_wound
+					value = 0
+				}
+			}
+			2 = {
+				# modifier = { factor = 2 scope:rival_brothers_victor = { has_trait = vengeful } } #P:A TODO No EU5 equivalent: Imperator trait "vengeful"
+				modifier = {
+					factor = 2
+					scope:rival_brothers_victor = { has_trait = cruel }
+				}
+				# modifier = { factor = 2 scope:rival_brothers_victor = { has_trait = ambitious } } #P:A TODO No EU5 equivalent: Imperator trait "ambitious"
+				set_variable = rival_brothers_death
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: rival_brothers_duel_outcome_effect (common/scripted_effects/00_event_effects.txt). Country scope.
+pa_imp_rival_brothers_duel_outcome_effect = {
+	if = { # Wound
+		limit = {
+			has_variable = rival_brothers_wound
+			scope:rival_brothers_loser = { is_alive = yes }
+		}
+		random_list = {
+			40 = {
+				trigger = {
+					scope:rival_brothers_loser = {
+						NOT = { has_trait = scarred } #P:A TODO Approximate: Imperator "wounded" trait; EU5 has no wounded trait, scarred used
+					}
+				}
+				change_variable = {
+					name = rival_brothers_wound
+					add = 1
+				}
+			}
+			20 = {
+				trigger = {
+					scope:rival_brothers_loser = {
+						NOT = { has_trait = maimed }
+					}
+				}
+				change_variable = {
+					name = rival_brothers_wound
+					add = 2
+				}
+			}
+			10 = {
+				# trigger = { scope:rival_brothers_loser = { NOT = { has_trait = blind } } } #P:A TODO No EU5 equivalent: EU5 has no "blind" trait, so this entry is always possible
+				change_variable = {
+					name = rival_brothers_wound
+					add = 3
+				}
+			}
+			20 = {
+				trigger = {
+					scope:rival_brothers_loser = {
+						has_trait = maimed
+						has_trait = scarred #P:A TODO Approximate: Imperator "wounded" trait; scarred used
+					}
+				}
+				change_variable = {
+					name = rival_brothers_wound
+					add = 4
+				}
+			}
+		}
+		if = {
+			limit = { var:rival_brothers_wound = 1 }
+			scope:rival_brothers_loser = { add_trait = trait:scarred } #P:A TODO Approximate: Imperator "wounded" trait; scarred used
+		}
+		else_if = {
+			limit = { var:rival_brothers_wound = 2 }
+			scope:rival_brothers_loser = { add_trait = trait:maimed }
+		}
+		else_if = {
+			limit = { var:rival_brothers_wound = 3 }
+			scope:rival_brothers_loser = {
+				if = {
+					limit = { has_trait = one_eyed }
+					# hidden_effect = { remove_trait = one_eyed } add_trait = blind #P:A TODO No EU5 equivalent: a one-eyed loser is blinded (EU5 has no "blind" trait)
+				}
+				else = { add_trait = trait:one_eyed }
+			}
+		}
+		else_if = {
+			limit = { var:rival_brothers_wound = 4 }
+			# scope:rival_brothers_loser = { add_health = -25 } #P:A TODO No EU5 equivalent: -25 health (EU5 characters have no health value)
+		}
+	}
+	else_if = { # If succeed and kill
+		limit = {
+			has_variable = rival_brothers_death
+			scope:rival_brothers_loser = { is_alive = yes }
+		}
+		kill_character = { #P:A TODO Approximate: Imperator death_stabbing; EU5 death reason combat
+			target = scope:rival_brothers_loser
+			reason = combat
+			killer = scope:rival_brothers_victor
+		}
+		if = {
+			limit = {
+				scope:rival_brothers_victor = { is_alive = yes }
+			}
+			if = {
+				limit = {
+					scope:rival_brothers_victor = {
+						num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4); EU5 counts ruler traits
+						NOT = { has_trait = cruel }
+					}
+				}
+				scope:rival_brothers_victor = { add_trait = trait:cruel }
+			}
+			else = {
+				# scope:rival_brothers_victor = { add_popularity = subtract_popularity_medium } #P:A TODO No EU5 equivalent: -10 popularity (EU5 characters have no popularity)
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: rival_brothers_assassination_effect (common/scripted_effects/00_event_effects.txt). Country scope.
+# Picks which of scope:rival_brother_1 / scope:rival_brother_2 attempts the assassination, and whether the victim is wounded or killed.
+pa_imp_rival_brothers_assassination_effect = {
+	hidden_effect = {
+		random_list = { # Pick Assassin
+			5 = {
+				modifier = {
+					factor = 3
+					scope:rival_brother_1 = { adm > 20 } # Imperator finesse > 4
+				}
+				modifier = {
+					factor = 3
+					scope:rival_brother_1 = { adm > 30 } # Imperator finesse > 6
+				}
+				modifier = {
+					factor = 3
+					scope:rival_brother_1 = { adm > 40 } # Imperator finesse > 8
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_1 = { has_trait = schemer } # Imperator crafty
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_1 = { has_trait = corrupt }
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_1 = { has_trait = deceitful }
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_1 = { has_trait = craven } # Imperator coward
+				}
+				# modifier = { factor = 2 scope:rival_brother_1 = { has_trait = harsh } } (also shrewd, ambitious, jealous, arbitrary, uncaring)
+				#P:A TODO No EU5 equivalent: x2 per Imperator trait harsh, shrewd, ambitious, jealous, arbitrary, uncaring
+				modifier = {
+					factor = 2
+					scope:rival_brother_1 = { has_character_modifier = character_ip_mon_supported_heir_modifier }
+				}
+				scope:rival_brother_1 = {
+					save_scope_as = rival_brothers_victor
+				}
+				scope:rival_brother_2 = {
+					save_scope_as = rival_brothers_loser
+				}
+			}
+			5 = {
+				modifier = {
+					factor = 3
+					scope:rival_brother_2 = { adm > 20 } # Imperator finesse > 4
+				}
+				modifier = {
+					factor = 3
+					scope:rival_brother_2 = { adm > 30 } # Imperator finesse > 6
+				}
+				modifier = {
+					factor = 3
+					scope:rival_brother_2 = { adm > 40 } # Imperator finesse > 8
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_2 = { has_trait = schemer } # Imperator crafty
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_2 = { has_trait = corrupt }
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_2 = { has_trait = deceitful }
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brother_2 = { has_trait = craven } # Imperator coward
+				}
+				# modifier = { factor = 2 scope:rival_brother_2 = { has_trait = harsh } } (also shrewd, ambitious, jealous, arbitrary, uncaring)
+				#P:A TODO No EU5 equivalent: x2 per Imperator trait harsh, shrewd, ambitious, jealous, arbitrary, uncaring
+				modifier = {
+					factor = 2
+					scope:rival_brother_2 = { has_character_modifier = character_ip_mon_supported_heir_modifier }
+				}
+				scope:rival_brother_2 = {
+					save_scope_as = rival_brothers_victor
+				}
+				scope:rival_brother_1 = {
+					save_scope_as = rival_brothers_loser
+				}
+			}
+		}
+		random_list = { # Pick Result
+			6 = {
+				modifier = {
+					factor = 2
+					scope:rival_brothers_victor = { adm <= 25 } # Imperator finesse <= 5
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brothers_victor = { has_trait = craven } # Imperator coward
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brothers_victor = { has_trait = arrogant }
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brothers_victor = { has_trait = lazy }
+				}
+				# modifier = { factor = 2 scope:rival_brothers_victor = { has_trait = rash } } (also weak_willed, obsessive, foolish, reckless, proud, incapable, dumb)
+				#P:A TODO No EU5 equivalent: x2 per Imperator trait rash, weak_willed, obsessive, foolish, reckless, proud, incapable, dumb
+				random = {
+					chance = 70
+					set_variable = {
+						name = rival_brothers_wound
+						value = 0
+					}
+				}
+			}
+			2 = {
+				modifier = {
+					factor = 2
+					scope:rival_brothers_victor = { adm >= 30 } # Imperator finesse >= 6
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brothers_victor = { has_trait = deceitful }
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brothers_victor = { has_trait = silver_tongue } # Imperator silver_tongued
+				}
+				modifier = {
+					factor = 2
+					scope:rival_brothers_victor = { has_trait = stubborn }
+				}
+				# modifier = { factor = 2 scope:rival_brothers_victor = { has_trait = vengeful } } (also cautious, ambitious, intelligent, sceptical, polymath)
+				#P:A TODO No EU5 equivalent: x2 per Imperator trait vengeful, cautious, ambitious, intelligent, sceptical, polymath
+				set_variable = rival_brothers_death
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: amazing_martial_effect (common/scripted_effects/00_character_stats_effects.txt). Character scope.
+# Imperator martial +8..+12; EU5 skills are 0-100, so x5.
+pa_imp_amazing_martial_effect = {
+	random_list = {
+		1 = {
+			add_mil = 40
+		}
+		2 = {
+			add_mil = 45
+		}
+		3 = {
+			add_mil = 50
+		}
+		2 = {
+			add_mil = 55
+		}
+		1 = {
+			add_mil = 60
+		}
+	}
+}
+
+#P:A Imported from Imperator: good_charisma_effect (common/scripted_effects/00_character_stats_effects.txt). Character scope.
+# Imperator charisma +4..+8; EU5 diplomacy x5.
+pa_imp_good_charisma_effect = {
+	random_list = {
+		1 = {
+			add_dip = 20
+		}
+		2 = {
+			add_dip = 25
+		}
+		3 = {
+			add_dip = 30
+		}
+		2 = {
+			add_dip = 35
+		}
+		1 = {
+			add_dip = 40
+		}
+	}
+}
+
+#P:A Imported from Imperator: good_finesse_effect (common/scripted_effects/00_character_stats_effects.txt). Character scope.
+# Imperator finesse +4..+8; EU5 administration x5.
+pa_imp_good_finesse_effect = {
+	random_list = {
+		1 = {
+			add_adm = 20
+		}
+		2 = {
+			add_adm = 25
+		}
+		3 = {
+			add_adm = 30
+		}
+		2 = {
+			add_adm = 35
+		}
+		1 = {
+			add_adm = 40
+		}
+	}
+}
+
+#P:A Imported from Imperator: average_zeal_effect (common/scripted_effects/00_character_stats_effects.txt). Character scope.
+#P:A TODO No EU5 equivalent: +2..+6 zeal (EU5 characters have no zeal skill); kept empty so callers do not break
+# random_list = { 1 = { add_zeal = 2 } 2 = { add_zeal = 3 } 3 = { add_zeal = 4 } 2 = { add_zeal = 5 } 1 = { add_zeal = 6 } }
+pa_imp_average_zeal_effect = {
+}
+
+#P:A Imported from Invictus: positive_martial_trait_effect (common/scripted_effects/00_character_traits_effects.txt). Character scope.
+# Imperator added one random personality/military trait the character lacks (energetic, reckless, aggressive, confident,
+# disciplined, oarmaster, original_thinker, seadog, tactician, steadfast, comradely), or +1 martial when trait slots were full.
+pa_imp_positive_martial_trait_effect = {
+	# random_list = {
+	# 	100 = { trigger = { NOR = { number_of_personality_traits > max_number_of_traits_svalue has_trait = energetic } } add_trait = energetic }
+	# 	100 = { trigger = { NOR = { number_of_personality_traits > max_number_of_traits_svalue has_trait = reckless } } add_trait = reckless }
+	# 	100 = { trigger = { NOR = { number_of_military_traits > max_number_of_military_traits_svalue has_trait = aggressive } } add_trait = aggressive }
+	# 	... (same for confident, disciplined, oarmaster, original_thinker, seadog, tactician, steadfast, comradely)
+	# }
+	#P:A TODO No EU5 equivalent: none of the Imperator traits energetic, reckless, aggressive, confident, disciplined, oarmaster, original_thinker, seadog, tactician, steadfast, comradely exist in EU5 (EU5 general traits such as offensive_planner or strategist could approximate some)
+	if = { # Fallback (Imperator: only when personality and military trait slots are full, i.e. 5+ personality and 2+ military traits)
+		limit = {
+			num_of_traits_of_category = { type = ruler value > 4 } #P:A TODO Approximate: Imperator number_of_personality_traits > max_number_of_traits_svalue (4); EU5 counts ruler traits
+			num_of_traits_of_category = { type = general value > 1 } #P:A TODO Approximate: Imperator number_of_military_traits > max_number_of_military_traits_svalue (1); EU5 counts general traits
+		}
+		add_mil = 5 # Imperator add_martial = 1
+	}
+}
+
+#P:A Imported from Indomita: add_fort_fire_effect (common/scripted_effects/00_event_effects.txt). Location scope (Imperator: province).
+pa_imp_add_fort_fire_effect = {
+	hidden_effect = {
+		if = {
+			limit = {
+				has_fort = yes # Imperator fort_level >= 1
+			}
+			# random_list = {
+			# 	50 = { add_vfx = { name = "fort_fire" duration = 30 locator = fort } }
+			# 	50 = { add_vfx = { name = "fort_fire_2" duration = 30 locator = fort } }
+			# }
+			#P:A TODO No EU5 equivalent: 30 days of burning-fort map VFX (EU5 has add_vfx, but defines no fort_fire VFX in gfx/map/map_objects/dynamic_game_objects.txt)
+		}
+	}
+}

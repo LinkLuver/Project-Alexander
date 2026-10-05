@@ -1,0 +1,38 @@
+﻿# Imperator script values for batch b02 of the Invictus/Indomita event import (2026-09-30).
+
+#P:A Imported from Imperator: corruption_svalue_halved (common/script_values/00_event_values.txt)
+# Minus half the event character's corruption. Imperator read root.corruption (root = the event character); in the
+# converted events that character is scope:pa_character.
+pa_imp_corruption_svalue_halved = {
+	value = 0
+	# subtract = root.corruption
+	#P:A TODO Approximate: Imperator character corruption (0-100) has no EU5 equivalent; estimated from traits: corrupt = 20, honest = 0, otherwise 5
+	if = {
+		limit = {
+			exists = scope:pa_character
+			scope:pa_character = { has_trait = corrupt }
+		}
+		subtract = 20
+	}
+	else_if = {
+		limit = {
+			exists = scope:pa_character
+			scope:pa_character = { NOT = { has_trait = honest } }
+		}
+		subtract = 5
+	}
+	divide = 2
+}
+
+#P:A Imported from Imperator: army_25_svalue (common/script_values/00_army_values.txt)
+# Character scope (a general): a quarter of the sub-units under the character's command.
+pa_imp_army_25_svalue = {
+	value = 0
+	# every_character_unit = { every_sub_unit = { add = 1 } }
+	unit ?= { #P:A TODO Approximate: Imperator counted the cohorts of every unit the character commanded; an EU5 general leads one unit
+		every_sub_unit = {
+			add = 1
+		}
+	}
+	divide = 4
+}
