@@ -1,3 +1,103 @@
 ﻿#P:A Imported from Invictus: events/00_inv_after_battle.txt
 namespace = inv_after_battle
 
+
+# Imperator character event (root = the character), converted to a country event: the character is scope:pa_character.
+# Invictus never fires it (no on_action, event or script calls inv_after_battle.1).
+inv_after_battle.1 = { #Comradely Check
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to inv_after_battle.11, which exists to give the character the Imperator trait comradely (EU5 has no such trait)
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				NOR = {
+					# has_trait = victorious #P:A TODO No EU5 equivalent: Imperator trait victorious
+					has_trait = conqueror
+					# has_trait = comradely #P:A TODO No EU5 equivalent: Imperator trait comradely
+				}
+				is_adult = yes
+			}
+		}
+		trigger_else = {
+			any_character = {
+				NOR = {
+					# has_trait = victorious #P:A TODO No EU5 equivalent: Imperator trait victorious
+					has_trait = conqueror
+					# has_trait = comradely #P:A TODO No EU5 equivalent: Imperator trait comradely
+				}
+				is_adult = yes
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:pa_character
+			add = {
+				value = scope:pa_character.mil
+				divide = 20 # Imperator martial / 4 (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					NOR = {
+						# has_trait = victorious #P:A TODO No EU5 equivalent: Imperator trait victorious
+						has_trait = conqueror
+						# has_trait = comradely #P:A TODO No EU5 equivalent: Imperator trait comradely
+					}
+					is_adult = yes
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			save_scope_as = inv_after_battle_1_target
+		}
+		trigger_event_non_silently = { # Imperator: employer = { trigger_event = ... } (root is the employer)
+			id = inv_after_battle.11
+		}
+	}
+}
+
+inv_after_battle.11 = { #Comradely Assignment TODO write this event
+	type = country_event
+	title = inv_after_battle.11.t
+	desc = inv_after_battle.11.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the character the Imperator trait comradely (EU5 has no such trait)
+		exists = scope:inv_after_battle_1_target
+		scope:inv_after_battle_1_target = {
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = inv_after_battle.11.a
+		# scope:inv_after_battle_1_target = {
+		# 	add_trait = comradely
+		# }
+		#P:A TODO No EU5 equivalent: adds the Imperator trait comradely to the character
+	}
+}

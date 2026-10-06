@@ -1,0 +1,2827 @@
+﻿#P:A Imported from Invictus: events/ba_trade_goods_flavour.txt
+# Trade goods flavour: events about the raw materials produced in the country.
+# Most were fired by the Imperator country pulse main_event_pulse_country (see reports/b10.json); follow-ups are fired from here.
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = trade_goods_flavour
+
+trade_goods_flavour.4 = { #find cypriot dwarf elephants and dwarf hippo bones found
+	type = country_event #I originally thought, that the elephants only died out in the BA. turns out it was around 12000 BCE; they'd get ivory
+	title = trade_goods_flavour.4.t
+	desc = trade_goods_flavour.4.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		# NOT = {
+		# 	exists = treasure:cypriot_dwarf_elephant_bones #not that they'd recognise it...
+		# }
+		#P:A TODO No EU5 equivalent: "the Cypriot dwarf elephant bones treasure does not exist yet" (EU5 has no treasures); the global variable check below still blocks repeats
+		has_global_variable = collecting_dwarf_bones #P:A TODO Invictus source bug: this variable is only set by option a of this same event, so the event can never fire; NOT = { has_global_variable = collecting_dwarf_bones } was probably meant (kept as in the source)
+		any_owned_location = {
+			pa_imp_in_area_cyprus_area = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # collect the bones
+		name = trade_goods_flavour.4.a
+		set_global_variable = collecting_dwarf_bones
+		trigger_event_non_silently = {
+			id = trade_goods_flavour.5
+			days = { 120 160 }
+		}
+		add_gold = -200
+	}
+
+	option = { #sell them
+		name = trade_goods_flavour.4.b
+		add_gold = monthly_income_total # Imperator has_monthly_income
+	}
+
+	option = { #ignore them
+		name = trade_goods_flavour.4.c
+	}
+}
+
+trade_goods_flavour.5 = { # coherence? not quite...
+	type = country_event
+	title = trade_goods_flavour.5.t
+	desc = trade_goods_flavour.5.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.5.a
+		# create_country_treasure = {
+		# 	key = "cypriot_dwarf_elephant_bones"
+		# 	icon = "treasure_sarcophagus"
+		# 	modifier = {
+		# 		local_country_civilization_value = 3
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: creates the treasure "Cypriot Dwarf Elephant Bones" (+3 civilization in the province holding it); EU5 has no treasures
+	}
+
+	option = { #what a waste of time...
+		name = trade_goods_flavour.5.b
+	}
+
+	after = {
+		remove_global_variable = collecting_dwarf_bones
+	}
+}
+
+trade_goods_flavour.10 = { #Silphium - Find out the many uses Silphium had: aphrodisiac, contraceptive, medicine, spice and more. Associated with love and sexuality; Heart symbol comes from Silphium seed or fruit
+	type = country_event
+	title = trade_goods_flavour.10.t
+	desc = trade_goods_flavour.10.desc
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	fire_only_once = yes
+
+	trigger = {
+		any_owned_location = {
+			count >= 3 #out of 8
+			raw_material = goods:medicaments #P:A TODO Approximate: Imperator trade good silphium -> EU5 medicaments (EU5 has no silphium)
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #use it more ourselves
+		name = trade_goods_flavour.10.a
+		add_country_modifier = {
+			modifier = silphium_used
+			days = 3650
+		}
+	}
+
+	option = { #leave as is
+		name = trade_goods_flavour.10.b
+	}
+
+	option = { #focus on exports
+		name = trade_goods_flavour.10.c
+		add_country_modifier = {
+			modifier = silphium_sold
+			days = 3650
+		}
+	}
+}
+
+trade_goods_flavour.11 = { #Silphium - cooking
+	type = country_event
+	title = trade_goods_flavour.11.t
+	desc = trade_goods_flavour.11.desc
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		pa_imp_silphium_in_country_trigger = yes
+		NOT = {
+			has_variable = silphium_flavour_cooldown
+		}
+		exists = ruler
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = silphium_flavour_cooldown
+			days = 7300 # 20 years
+		}
+	}
+
+	option = { # roast a boar
+		name = trade_goods_flavour.11.a
+		ruler ?= {
+			add_character_modifier = {
+				modifier = silphium_roast
+				days = 3650 # 10 years
+			}
+		}
+	}
+
+	option = { # make a soup
+		name = trade_goods_flavour.11.b
+		ruler ?= {
+			add_character_modifier = {
+				modifier = silphium_soup
+				days = 3650 # 10 years
+			}
+		}
+	}
+
+	option = { # spice up the dessert
+		name = trade_goods_flavour.11.c
+		ruler ?= {
+			add_character_modifier = {
+				modifier = silphium_dessert
+				days = 3650 # 10 years
+			}
+		}
+	}
+
+	option = { # make a snack
+		name = trade_goods_flavour.11.d
+		ruler ?= {
+			add_character_modifier = {
+				modifier = silphium_snack
+				days = 3650 # 10 years
+			}
+		}
+	}
+}
+
+trade_goods_flavour.12 = { # Silphium - Healing
+	type = country_event
+	title = trade_goods_flavour.12.t
+	desc = trade_goods_flavour.12.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		pa_imp_silphium_in_country_trigger = yes
+		OR = {
+			ruler ?= {
+				pa_imp_recoverable_ailments_trigger = yes
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+			consort ?= {
+				pa_imp_recoverable_ailments_trigger = yes
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.12.a
+		custom_tooltip = silphium_healing_tt
+		if = {
+			limit = {
+				ruler ?= {
+					pa_imp_recoverable_ailments_trigger = yes
+					NOT = {
+						has_variable = seeking_treatment
+					}
+				}
+			}
+			ruler = {
+				pa_imp_recover_from_affliction_effect = yes
+			}
+		}
+		if = {
+			limit = {
+				consort ?= {
+					pa_imp_recoverable_ailments_trigger = yes
+					NOT = {
+						has_variable = seeking_treatment
+					}
+				}
+			}
+			consort = {
+				pa_imp_recover_from_affliction_effect = yes
+			}
+		}
+	}
+}
+
+trade_goods_flavour.13 = { # Silphium - Silphium Farming
+	type = country_event
+	title = trade_goods_flavour.13.t
+	desc = trade_goods_flavour.13.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		any_owned_location = {
+			raw_material = goods:medicaments #P:A TODO Approximate: Imperator trade good silphium -> EU5 medicaments (EU5 has no silphium)
+		}
+		NOT = {
+			has_variable = silphium_flavour_cooldown
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = silphium_flavour_cooldown
+			days = 7300 # 20 years
+		}
+		random_owned_location = {
+			limit = {
+				raw_material = goods:medicaments #P:A TODO Approximate: Imperator trade good silphium -> EU5 medicaments
+				NOT = {
+					has_location_modifier = silphium_farm_pmod
+				}
+			}
+			save_scope_as = silphium_farm
+		}
+	}
+
+	option = { #Farm Silphium More
+		name = trade_goods_flavour.13.a
+		scope:silphium_farm = {
+			add_location_modifier = {
+				modifier = silphium_farm_pmod
+				days = -1
+			}
+		}
+	}
+
+	option = { #Try to have it spread
+		name = trade_goods_flavour.13.b
+		trigger = {
+			OR = {
+				scope:silphium_farm = {
+					any_neighbor_location = {
+						owner = root
+						NOT = {
+							raw_material = goods:medicaments #P:A TODO Approximate: Imperator trade good silphium -> EU5 medicaments
+						}
+						OR = {
+							topography = flatland # Imperator terrain plains
+							topography = hills
+						}
+					}
+				}
+				any_owned_location = { #original silphium province disappeared
+					pa_imp_is_original_silphium_province = yes
+					NOT = {
+						raw_material = goods:medicaments #P:A TODO Approximate: Imperator trade good silphium -> EU5 medicaments
+					}
+				}
+			}
+			scope:silphium_farm = {
+				region = {
+					any_location_in_region = {
+						count <= 10 #at most 10 at any give time
+						raw_material = goods:medicaments #P:A TODO Approximate: Imperator trade good silphium -> EU5 medicaments; EU5 regions are not Imperator regions
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				any_owned_location = { #original silphium province disappeared
+					pa_imp_is_original_silphium_province = yes
+					NOT = {
+						raw_material = goods:medicaments
+					}
+				}
+			}
+			random = {
+				chance = 75 #higher chance of Silphium reappearing
+				random_owned_location = {
+					limit = {
+						pa_imp_is_original_silphium_province = yes
+						NOT = {
+							raw_material = goods:medicaments
+						}
+					}
+					change_raw_material = goods:medicaments #P:A TODO Approximate: Imperator set_trade_goods = silphium -> EU5 medicaments
+				}
+			}
+		}
+		else = {
+			random = {
+				chance = 30
+				scope:silphium_farm = {
+					random_neighbor_location = {
+						limit = {
+							NOT = {
+								raw_material = goods:medicaments
+							}
+							OR = {
+								topography = flatland # Imperator terrain plains
+								topography = hills
+							}
+						}
+						change_raw_material = goods:medicaments #P:A TODO Approximate: Imperator set_trade_goods = silphium -> EU5 medicaments
+					}
+				}
+			}
+		}
+	}
+
+	option = { #We should not overexploit it
+		name = trade_goods_flavour.13.c
+		scope:silphium_farm = {
+			add_location_modifier = {
+				modifier = silphium_farm_pmod
+				days = 3650 # 10 years
+			}
+		}
+	}
+}
+
+trade_goods_flavour.15 = { # Cedar - Get Naval Bonus from having enough cedars for a big, strong fleet
+	type = country_event
+	title = trade_goods_flavour.15.t
+	desc = trade_goods_flavour.15.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		at_war = yes
+		NOT = {
+			has_country_modifier = cedar_planks
+		}
+		any_owned_location = {
+			raw_material = goods:lumber #P:A TODO Approximate: Imperator trade good cedar -> EU5 lumber (EU5 has no separate cedar)
+			count >= 12
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.15.a
+		add_country_modifier = {
+			modifier = cedar_planks
+			days = 1875
+		}
+	}
+}
+
+trade_goods_flavour.16 = { # Cedar - lose Naval Bonus from not having enough cedars for a big, strong fleet
+	type = country_event
+	title = trade_goods_flavour.16.t
+	desc = trade_goods_flavour.16.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		always = no # disabled in the Invictus source
+		has_country_modifier = cedar_planks
+		any_owned_location = {
+			raw_material = goods:lumber #P:A TODO Approximate: Imperator trade good cedar -> EU5 lumber (EU5 has no separate cedar)
+			count < 12
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.16.a
+		remove_country_modifier = cedar_planks
+	}
+}
+
+trade_goods_flavour.17 = { # Cedar - lose one territory cedar for a temporary naval bonus
+	type = country_event
+	title = trade_goods_flavour.17.t
+	desc = trade_goods_flavour.17.desc
+	illustration_tags = {
+		10 = interior
+		10 = armed
+	}
+
+	trigger = {
+		is_ai = no
+		NOR = {
+			has_country_modifier = cedar_used_up
+			has_variable = cedar_flavour_cooldown
+		}
+		any_owned_location = {
+			raw_material = goods:lumber #P:A TODO Approximate: Imperator trade good cedar -> EU5 lumber (EU5 has no separate cedar)
+			NOR = {
+				is_capital = yes
+				location_rank = location_rank:city #P:A TODO Approximate: Imperator province rank city_metropolis -> EU5 city
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = cedar_flavour_cooldown
+			days = 7300 # 20 years
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.17.a
+		trigger = {
+			any_owned_location = {
+				raw_material = goods:lumber #P:A TODO Approximate: Imperator trade good cedar -> EU5 lumber
+				NOR = {
+					# too lazy to create a script that would remove the provinces without the first modifier or that would reapply it in case of regrowth
+					# scripted trigger like for silphium isn't as easy bcs a) more provinces and b) dynamic for the 2nd modifier; don't want to see the prov mods gone
+					has_location_modifier = cedars_of_lebanon
+					has_location_modifier = bred_cedars_future
+				}
+				NOR = {
+					is_capital = yes
+					location_rank = location_rank:city #P:A TODO Approximate: Imperator province rank city_metropolis -> EU5 city
+				}
+			}
+		}
+		add_country_modifier = {
+			modifier = cedar_used_up
+			days = 5475 # 15 years
+		}
+		random_owned_location = {
+			limit = {
+				raw_material = goods:lumber #P:A TODO Approximate: Imperator trade good cedar -> EU5 lumber
+				NOR = {
+					has_location_modifier = cedars_of_lebanon
+					has_location_modifier = bred_cedars_future
+				}
+			}
+			# set_trade_goods = wood
+			#P:A TODO No EU5 equivalent: turned the cedar territory into ordinary wood; cedar and wood both map to EU5 lumber, so there is nothing to switch (the cost of this option is lost)
+			set_variable = cedar_gone_variable #next event can restore forests; no growth of total amount of cedars
+		}
+
+		ai_chance = {
+			factor = 0
+		}
+	}
+
+	option = { #exploit just a little bit
+		name = trade_goods_flavour.17.b
+		add_country_modifier = {
+			modifier = cedar_used_up
+			days = 1825 # 5 years
+		}
+		random_owned_location = {
+			limit = {
+				raw_material = goods:lumber #P:A TODO Approximate: Imperator trade good cedar -> EU5 lumber
+				#since not permanent removal, it's fine to not restrict
+			}
+			add_location_modifier = {
+				modifier = exploited_cedar
+				days = 9125 # 25 years
+			}
+		}
+	}
+
+	option = { #do not touch more than we'd usually do
+		name = trade_goods_flavour.17.c
+	}
+}
+
+trade_goods_flavour.18 = { #Cedar - Regrowth
+	type = country_event
+	title = trade_goods_flavour.18.t
+	desc = trade_goods_flavour.18.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOR = { #doesn't exploit anymore or other flavour
+			has_country_modifier = cedar_used_up
+			has_variable = cedar_flavour_cooldown
+		}
+		any_owned_location = { #exploited territory
+			has_variable = cedar_gone_variable
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = cedar_flavour_cooldown
+			days = 7300 # 20 years
+		}
+		random_owned_location = {
+			limit = {
+				has_variable = cedar_gone_variable
+			}
+			change_raw_material = goods:lumber #P:A TODO Approximate: Imperator set_trade_goods = cedar -> EU5 lumber (EU5 has no separate cedar; the territory already produces lumber, see trade_goods_flavour.17)
+			remove_variable = cedar_gone_variable
+			save_scope_as = cedar_regrown
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.18.a
+	}
+}
+
+trade_goods_flavour.19 = { #Cedar - Shipyards profiting
+	type = country_event
+	title = trade_goods_flavour.19.t
+	desc = trade_goods_flavour.19.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = cedar_flavour_cooldown
+		}
+		navy_size >= 25 # Imperator num_of_ships
+		any_owned_location = {
+			has_building = building_type:dock #P:A TODO Approximate: Imperator num_of_port_building >= 3 (three port levels) -> EU5 dock (one level only)
+			#num_of_shipyards >= 1
+			province = {
+				any_location_in_province = {
+					count >= 3
+					raw_material = goods:lumber
+				}
+			} #P:A TODO Approximate: Imperator "the state has a cedar trade surplus of 5 or more" -> 3+ lumber locations in the province (EU5 has no per-province surplus; cedar -> lumber)
+		}
+		NOR = {
+			any_owned_location = {
+				has_location_modifier = quality_shipyard
+			}
+			any_owned_location = {
+				has_location_modifier = quantity_shipyard
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = cedar_flavour_cooldown
+			days = 7300 # 20 years
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:dock #P:A TODO Approximate: Imperator num_of_port_building >= 3 -> EU5 dock
+				#num_of_shipyards >= 1
+				province = {
+					any_location_in_province = {
+						count >= 3
+						raw_material = goods:lumber
+					}
+				} #P:A TODO Approximate: Imperator state cedar surplus >= 5 -> 3+ lumber locations in the province
+			}
+			save_scope_as = main_shipyard_prov
+		}
+	}
+
+	option = { #quantity
+		name = trade_goods_flavour.19.a
+		scope:main_shipyard_prov = {
+			add_location_modifier = {
+				modifier = quantity_shipyard
+				days = -1
+			}
+		}
+	}
+
+	option = { #quality
+		name = trade_goods_flavour.19.b
+		scope:main_shipyard_prov = {
+			add_location_modifier = {
+				modifier = quality_shipyard
+				days = -1
+			}
+		}
+	}
+}
+
+trade_goods_flavour.20 = { # Wood - Get Naval Bonus from having enough wood for a cheaper fleet
+	type = country_event
+	title = trade_goods_flavour.20.t
+	desc = trade_goods_flavour.20.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		at_war = yes
+		NOT = {
+			has_country_modifier = wood_surplus_navy_cmod
+		}
+		any_owned_location = {
+			raw_material = goods:lumber # Imperator wood
+			count >= 35
+		}
+		navy_size >= 50 # Imperator num_of_ships
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.20.a
+		add_country_modifier = {
+			modifier = wood_surplus_navy_cmod
+			days = 1875
+		}
+	}
+}
+
+trade_goods_flavour.21 = { # Wood - lose Naval Bonus from not having enough wood
+	type = country_event
+	title = trade_goods_flavour.21.t
+	desc = trade_goods_flavour.21.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		always = no # disabled in the Invictus source
+		has_country_modifier = wood_surplus_navy_cmod
+		any_owned_location = {
+			raw_material = goods:lumber # Imperator wood
+			count < 35
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.21.a
+		remove_country_modifier = wood_surplus_navy_cmod
+	}
+}
+
+trade_goods_flavour.22 = { # Wood - Deforestation if there are too many people
+	type = country_event
+	title = trade_goods_flavour.22.t
+	desc = trade_goods_flavour.22.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		any_owned_location = {
+			raw_material = goods:lumber # Imperator wood
+			NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status
+			population >= 50 #P:A TODO Approximate: Imperator total_population >= 50 pops converted 1:1 to EU5 population (thousands)
+			NOR = {
+				is_capital = yes
+				location_rank = location_rank:city #P:A TODO Approximate: Imperator province rank city_metropolis -> EU5 city
+			}
+		}
+		NOT = {
+			has_variable = wood_flavour_cooldown
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = wood_flavour_cooldown
+			days = 3650
+		}
+		random_owned_location = {
+			limit = {
+				raw_material = goods:lumber # Imperator wood
+				NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status
+				population >= 50 #P:A TODO Approximate: Imperator total_population >= 50 pops converted 1:1 to EU5 population (thousands)
+				NOT = {
+					pa_imp_city_has_special_trade_goods_trigger = yes
+				}
+				NOR = {
+					is_capital = yes
+					location_rank = location_rank:city #P:A TODO Approximate: Imperator province rank city_metropolis -> EU5 city
+				}
+			}
+			save_scope_as = wood_city_scope
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.22.a
+		if = {
+			limit = {
+				scope:wood_city_scope = {
+					OR = {
+						vegetation = farmland # Imperator terrain farmland
+						topography = flatland # Imperator terrain plains
+					}
+				}
+			}
+			scope:wood_city_scope = {
+				change_raw_material = goods:wool #P:A TODO Approximate: Imperator set_trade_goods = cloth -> EU5 wool (cloth is a produced good in EU5 and cannot be a location's raw material)
+				set_variable = had_grain #in case of city getting revoked
+			}
+		}
+		else = {
+			scope:wood_city_scope = {
+				change_raw_material = goods:clay #P:A TODO Approximate: Imperator set_trade_goods = earthware -> EU5 clay (pottery is a produced good in EU5 and cannot be a location's raw material)
+				set_variable = had_cattle #in case of city getting revoked (since wood is now rare)
+			}
+		}
+	}
+}
+
+trade_goods_flavour.29 = { # Wine - Wine Culture (other wine events won't be the same as beer, don't worry xD)
+	type = country_event
+	title = trade_goods_flavour.29.t
+	desc = trade_goods_flavour.29.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { government_type = government_type:tribe } # Imperator is_tribal = no
+		any_owned_location = {
+			NOT = {
+				has_location_modifier = wine_culture
+			}
+			raw_material = goods:wine
+		}
+		NOT = {
+			has_variable = wine_flavour_cooldown
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = wine_flavour_cooldown
+			days = 7300 # 20 years
+		}
+		random_owned_location = {
+			limit = {
+				NOT = {
+					has_location_modifier = wine_culture
+				}
+				raw_material = goods:wine
+			}
+			save_scope_as = wine_city_scope
+		}
+	}
+
+	option = { #Support it
+		name = trade_goods_flavour.29.a
+		add_gold = -200
+		scope:wine_city_scope = {
+			add_location_modifier = {
+				modifier = wine_culture
+				days = -1
+			}
+		}
+	}
+
+	option = { #It will die down
+		name = trade_goods_flavour.29.b
+		scope:wine_city_scope = {
+			add_location_modifier = {
+				modifier = wine_culture
+				days = 1825 # 5 years
+			}
+		}
+	}
+}
+
+trade_goods_flavour.30 = { #Myrrhs and Incense - Censers invented
+	type = country_event
+	title = trade_goods_flavour.30.t
+	desc = trade_goods_flavour.30.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists only to create the "Censer" treasure (EU5 has no treasures); kept disabled until a replacement reward exists
+		NOR = {
+			has_variable = has_incense_flavour_var
+			# exists = treasure:censer_treasure #P:A TODO No EU5 equivalent: treasures
+		}
+		# both so it doesn't hsppen too early into the game
+		pa_imp_myrrh_in_country_trigger = yes
+		pa_imp_incense_in_country_trigger = yes
+		NOT = { government_type = government_type:tribe } # Imperator is_tribal = no
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = has_incense_flavour_var
+			days = 3650 #10 years
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.30.a
+		# create_country_treasure = {
+		# 	key = "censer_treasure"
+		# 	icon = "treasure_chest"
+		# 	modifier = {
+		# 		local_happiness_for_same_religion_modifier = 0.05
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: creates the treasure "Censer" (+5% happiness of same-religion pops in the province holding it); EU5 has no treasures
+	}
+
+	after = {
+		trigger_event_non_silently = trade_goods_flavour.31 # Imperator days = -1
+	}
+}
+
+trade_goods_flavour.31 = { # Incense and Myrrh - Censer Bearer
+	type = country_event
+	title = trade_goods_flavour.31.t
+	desc = trade_goods_flavour.31.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		always = no # disabled in the Invictus source
+		#treasure:censer_treasure = {
+		#	treasure_owned_or_altared_trigger = { SHINY = treasure:censer_treasure }
+		#}
+		any_owned_location = {
+			raw_material = goods:incense #P:A TODO Approximate: Imperator trade goods myrrh or incense -> EU5 incense (EU5 has no myrrh)
+		}
+		NOT = {
+			any_character = {
+				has_character_modifier = censer_bearer_char_mod
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_estate = estate_type:clergy_estate #P:A TODO Approximate: Imperator high priest office holder; EU5 has no offices, a clergy-estate character stands in
+			}
+			save_scope_as = censer_bearer_scope
+		}
+		random_character = {
+			limit = {
+				dynasty = root.ruler.dynasty
+				is_heir = yes # Imperator is_primary_heir
+				NOT = {
+					has_estate = estate_type:clergy_estate #P:A TODO Approximate: Imperator "does not hold the high priest office" -> not a clergy-estate character
+				}
+				# OR = {
+				# 	can_hold_office = office_high_priest
+				# 	can_hold_office = office_high_priest_monarchy
+				# }
+				#P:A TODO No EU5 equivalent: "can hold the high priest office" (EU5 has no offices)
+			}
+			save_scope_as = family_censer_bearer_scope
+		}
+	}
+
+	option = { # Highpriest as Option
+		name = trade_goods_flavour.31.a
+		scope:censer_bearer_scope = {
+			add_character_modifier = {
+				modifier = censer_bearer_char_mod
+				days = -1
+			}
+		}
+	}
+
+	option = { # Someone from the family
+		name = trade_goods_flavour.31.b
+		scope:family_censer_bearer_scope = {
+			add_character_modifier = {
+				modifier = censer_bearer_char_mod
+				days = -1
+			}
+			# if = {
+			# 	limit = {
+			# 		scope:family_censer_bearer_scope.employer = { is_tribal = yes }
+			# 	}
+			# 	give_office = office_high_priest
+			# }
+			# else = {
+			# 	give_office = office_high_priest_monarchy
+			# }
+			#P:A TODO No EU5 equivalent: makes the character the high priest (EU5 has no offices)
+		}
+	}
+}
+
+trade_goods_flavour.32 = { # Incense - Try to make a farm
+	type = country_event
+	title = trade_goods_flavour.32.t
+	desc = trade_goods_flavour.32.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = has_incense_flavour_var
+		}
+		any_owned_location = {
+			NOT = {
+				raw_material = goods:incense
+				#trade_goods = lapis #just in case
+				#trade_goods = tin #just in case
+			}
+			OR = {
+				climate = arid #P:A TODO Approximate: Imperator terrain desert -> EU5 arid climate
+				AND = { topography = hills climate = arid } # Imperator terrain desert_hills
+				#terrain = desert_valley
+			}
+			any_neighbor_location = {
+				owner = root
+				raw_material = goods:incense
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = has_incense_flavour_var
+			days = 3650 # 10 years
+		}
+		random_owned_location = {
+			limit = {
+				NOT = {
+					raw_material = goods:incense
+					#trade_goods = lapis #just in case
+					#trade_goods = tin
+				}
+				OR = {
+					climate = arid #P:A TODO Approximate: Imperator terrain desert -> EU5 arid climate
+					AND = { topography = hills climate = arid } # Imperator terrain desert_hills
+					#terrain = desert_valley
+				}
+				any_neighbor_location = {
+					owner = root
+					raw_material = goods:incense
+				}
+			}
+			save_scope_as = incense_spread_scope
+		}
+	}
+
+	option = { #spread
+		name = trade_goods_flavour.32.a
+		scope:incense_spread_scope = {
+			change_raw_material = goods:incense
+		}
+		add_gold = {
+			add = {
+				value = -100
+				multiply = pa_imp_owned_incense_province_svalue
+			}
+			max = -200
+			min = -500
+		}
+	}
+
+	option = { #not worth the investment
+		name = trade_goods_flavour.32.b
+		add_gold = 200
+	}
+}
+
+trade_goods_flavour.33 = { # Myrrh - Try to make a farm; same as event 32
+	#P:A TODO Approximate: Imperator myrrh maps to EU5 incense (EU5 has no myrrh), so in EU5 this event is a duplicate of trade_goods_flavour.32 (they share the cooldown variable)
+	type = country_event
+	title = trade_goods_flavour.33.t
+	desc = trade_goods_flavour.33.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = has_incense_flavour_var
+		}
+		any_owned_location = {
+			NOT = {
+				raw_material = goods:incense # Imperator myrrh
+				#trade_goods = lapis #just in case
+				#trade_goods = tin #just in case
+			}
+			OR = {
+				climate = arid #P:A TODO Approximate: Imperator terrain desert -> EU5 arid climate
+				AND = { topography = hills climate = arid } # Imperator terrain desert_hills
+				#terrain = desert_valley
+			}
+			any_neighbor_location = {
+				owner = root
+				raw_material = goods:incense # Imperator myrrh
+				#NOT = { has_province_modifier = myrrh_import_hub }
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = has_incense_flavour_var
+			days = 3650 # 10 years
+		}
+		random_owned_location = {
+			limit = {
+				NOT = {
+					raw_material = goods:incense # Imperator myrrh
+					#trade_goods = lapis #just in case
+					#trade_goods = tin #just in case
+					#has_province_modifier = myrrh_import_hub
+				}
+				OR = {
+					climate = arid #P:A TODO Approximate: Imperator terrain desert -> EU5 arid climate
+					AND = { topography = hills climate = arid } # Imperator terrain desert_hills
+					#terrain = desert_valley
+				}
+				any_neighbor_location = {
+					owner = root
+					raw_material = goods:incense # Imperator myrrh
+					#NOT = { has_province_modifier = myrrh_import_hub }
+				}
+			}
+			save_scope_as = myrrh_spread_scope
+		}
+	}
+
+	option = { #spread
+		name = trade_goods_flavour.33.a
+		scope:myrrh_spread_scope = {
+			change_raw_material = goods:incense #P:A TODO Approximate: Imperator set_trade_goods = myrrh -> EU5 incense
+		}
+		add_gold = {
+			add = {
+				value = -100
+				multiply = pa_imp_owned_myrrh_province_svalue
+			}
+			max = -200
+			min = -500
+		}
+	}
+
+	option = { #not worth the investment
+		name = trade_goods_flavour.33.b
+		add_gold = 200
+	}
+}
+
+trade_goods_flavour.39 = { #Ivory - Carving made by a carver
+	type = country_event
+	title = trade_goods_flavour.39.t
+	desc = trade_goods_flavour.39.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = ivory_cooldown
+		}
+		any_owned_location = {
+			raw_material = goods:elephants
+		}
+		government_type = government_type:monarchy # Imperator is_monarchy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = ivory_cooldown
+			days = 7300 # 20 years
+		}
+	}
+
+	option = { # Sell it
+		name = trade_goods_flavour.39.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 4
+			max = 300
+			min = 5
+		}
+	}
+
+
+	option = { # Display it in the the palace
+		name = trade_goods_flavour.39.b
+		add_country_modifier = {
+			modifier = magnificent_carving
+			days = 3650 # 10 years
+		}
+	}
+
+
+	option = { # Gift it to a temple
+		name = trade_goods_flavour.39.c
+		# trigger = {
+		# 	NOT = {
+		# 		exists = treasure:ivory_carving
+		# 	}
+		# }
+		# create_country_treasure = {
+		# 	key = "ivory_carving"
+		# 	icon = "treasure_chest"
+		# 	modifier = {
+		# 		local_pop_promotion_speed_modifier = 0.15
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: creates the treasure "Ivory Carving" (+15% pop promotion speed in the province holding it); EU5 has no treasures, so this option currently does nothing
+	}
+}
+
+trade_goods_flavour.40 = { #Ivory - Commission a Throne made of Ivory
+	type = country_event
+	title = trade_goods_flavour.40.t
+	desc = trade_goods_flavour.40.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = ivory_cooldown
+		}
+		any_owned_location = {
+			raw_material = goods:elephants
+		}
+		monthly_income_total >= 75 # Imperator has_monthly_income
+		NOR = {
+			has_country_modifier = ivory_throne_cmod
+			has_country_modifier = ivory_throne_small_cmod
+			# exists = treasure:ivory_throne #P:A TODO No EU5 equivalent: treasures
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = ivory_cooldown
+			days = 7300 # 20 years
+		}
+	}
+
+	option = { # use myself
+		name = trade_goods_flavour.40.a
+		trigger = {
+			NOT = {
+				has_country_modifier = ivory_throne_cmod
+			}
+		}
+		add_country_modifier = {
+			modifier = ivory_throne_cmod
+			days = 3650
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -1
+			max = -5
+			min = -300
+		}
+	}
+
+
+	option = { # temple
+		name = trade_goods_flavour.40.b
+		# trigger = {
+		# 	NOT = {
+		# 		exists = treasure:ivory_throne
+		# 	}
+		# }
+		# create_country_treasure = {
+		# 	key = "ivory_throne"
+		# 	icon = "treasure_chest"
+		# 	modifier = {
+		# 		local_output_modifier = 0.05
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: creates the treasure "Ivory Throne" (+5% output in the province holding it); EU5 has no treasures, only the cost below remains
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -1
+			max = -5
+			min = -300
+		}
+	}
+
+	option = { # use myself
+		name = trade_goods_flavour.40.c
+		# highlight = yes #P:A TODO No EU5 equivalent: highlighted option
+		custom_tooltip = small_ivory_throne_tt
+		trigger = {
+			has_country_modifier = ivory_throne_cmod
+		}
+		add_country_modifier = {
+			modifier = ivory_throne_small_cmod
+			days = 3650 # 10 years
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -0.5
+			max = -5
+			min = -150
+		}
+	}
+
+	option = { # we are too poor
+		name = trade_goods_flavour.40.d
+		remove_variable = ivory_cooldown
+		set_variable = {
+			name = ivory_cooldown
+			days = 1825 # 5 years
+		}
+	}
+}
+
+trade_goods_flavour.41 = { # Ivory - Elephant Hunt; Elephant fitting for hunt sighted
+	type = country_event
+	title = trade_goods_flavour.41.t
+	desc = trade_goods_flavour.41.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOR = {
+			has_variable = ivory_cooldown
+			has_country_modifier = successful_hunt
+		}
+		any_owned_location = {
+			raw_material = goods:elephants
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = ivory_cooldown
+			days = 7300 # 20 years
+		}
+	}
+
+	option = { # yes, start hunt
+		name = trade_goods_flavour.41.a
+		trigger_event_non_silently = {
+			id = trade_goods_flavour.42
+			days = { 7 14 }
+		}
+		custom_tooltip = hunt_help_tt
+		pa_imp_hunt_calc_effect = {
+			ANIMAL_VALUE = -6
+		}
+	}
+
+	option = { # do not hunt
+		name = trade_goods_flavour.41.b
+	}
+}
+
+trade_goods_flavour.42 = { # Ivory - Elephant Hunt
+	type = country_event
+	title = trade_goods_flavour.42.t
+	desc = {
+		first_valid = {
+			triggered_desc = { #disaster; you die
+				trigger = { var:hunting_variable < 0 }
+				desc = trade_goods_flavour.42.desc_1
+			}
+			triggered_desc = { # bad, you wounded
+				trigger = { var:hunting_variable = 0 }
+				desc = trade_goods_flavour.42.desc_2
+			}
+			triggered_desc = { # yay, success
+				trigger = { var:hunting_variable > 0 }
+				desc = trade_goods_flavour.42.desc_3
+			}
+		}
+	}
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			random_list = { # only gets used if you "win" the hunt
+				1 = {
+					set_variable = hunt_money_var
+				}
+				# 1 = {
+				# 	trigger = { ### ADJUST for new event
+				# 		NOT = {
+				# 			exists = treasure:elephant_hunt_reward
+				# 		}
+				# 	}
+				# 	set_variable = hunt_treasure_var
+				# }
+				#P:A TODO No EU5 equivalent: the "Elephant Hunt Reward" treasure outcome (EU5 has no treasures); only the gold and modifier rewards remain
+				1 = {
+					set_variable = hunt_mod_var
+				}
+			}
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.42.a
+		trigger = {
+			var:hunting_variable <= 0
+		}
+		if = {
+			limit = {
+				var:hunting_variable < 0
+			}
+			ruler ?= {
+				kill_character = {
+					target = this
+					reason = hunting_accident # Imperator death_hunting_accident
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				var:hunting_variable = 0
+			}
+			# current_ruler = {
+			# 	add_trait = wounded
+			# }
+			#P:A TODO No EU5 equivalent: the ruler is wounded (EU5 has no wounded trait)
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.42.b
+		trigger = {
+			var:hunting_variable > 0
+		}
+		if = {
+			limit = {
+				has_variable = hunt_money_var
+			}
+			add_gold = {
+				value = monthly_income_total # Imperator has_monthly_income
+				multiply = 3
+				max = 300
+				min = 5
+			}
+		}
+		# else_if = {
+		# 	limit = { ### ADJUST for new event
+		# 		has_variable = hunt_treasure_var
+		# 	}
+		# 	create_country_treasure = {
+		# 		key = "elephant_hunt_reward"
+		# 		icon = "treasure_chest"
+		# 		modifier = {
+		# 			local_population_capacity_modifier = 0.05
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: creates the treasure "Elephant Hunt Reward" (+5% population capacity in the province holding it); EU5 has no treasures
+		else_if = {
+			limit = {
+				has_variable = hunt_mod_var
+			}
+			add_country_modifier = {
+				modifier = successful_hunt
+				days = 3650 # 10 years
+			}
+		}
+	}
+
+	after = {
+		if = {
+			limit = {
+				has_variable = hunt_money_var
+			}
+			remove_variable = hunt_money_var
+		}
+		else_if = {
+			limit = {
+				has_variable = hunt_treasure_var
+			}
+			remove_variable = hunt_treasure_var
+		}
+		else_if = {
+			limit = {
+				has_variable = hunt_mod_var
+			}
+			remove_variable = hunt_mod_var
+		}
+	}
+}
+
+trade_goods_flavour.43 = { # Wild Game - Stag Hunt
+	type = country_event
+	title = trade_goods_flavour.43.t
+	desc = trade_goods_flavour.43.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOR = {
+			has_variable = wild_game_cooldown
+			has_country_modifier = successful_hunt
+		}
+		any_owned_location = {
+			raw_material = goods:wild_game
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = wild_game_cooldown
+			days = 7300 # 20 years
+		}
+	}
+
+	option = { # yes, start hunt
+		name = trade_goods_flavour.43.a
+		trigger_event_non_silently = {
+			id = trade_goods_flavour.44
+			days = { 7 14 }
+		}
+		custom_tooltip = hunt_help_tt
+		pa_imp_hunt_calc_effect = {
+			ANIMAL_VALUE = -2
+		}
+	}
+
+	option = { # do not hunt
+		name = trade_goods_flavour.43.b
+	}
+}
+
+trade_goods_flavour.44 = { # Wild - Stag Hunt
+	type = country_event
+	title = trade_goods_flavour.44.t
+	desc = {
+		first_valid = {
+			triggered_desc = { #disaster; you die
+				trigger = { var:hunting_variable < 0 }
+				desc = trade_goods_flavour.44.desc_1
+			}
+			triggered_desc = { # bad, you wounded
+				trigger = { var:hunting_variable = 0 }
+				desc = trade_goods_flavour.44.desc_2
+			}
+			triggered_desc = { # yay, success
+				trigger = { var:hunting_variable > 0 }
+				desc = trade_goods_flavour.44.desc_3
+			}
+		}
+	}
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			random_list = { # only gets used if you "win" the hunt
+				1 = {
+					set_variable = hunt_money_var
+				}
+				# 1 = {
+				# 	trigger = { ### ADJUST for new event
+				# 		NOT = {
+				# 			exists = treasure:stag_hunt_reward
+				# 		}
+				# 	}
+				# 	set_variable = hunt_treasure_var
+				# }
+				#P:A TODO No EU5 equivalent: the "Stag Hunt Reward" treasure outcome (EU5 has no treasures); only the gold and modifier rewards remain
+				1 = {
+					set_variable = hunt_mod_var
+				}
+			}
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.44.a
+		trigger = {
+			var:hunting_variable <= 0
+		}
+		if = {
+			limit = {
+				var:hunting_variable < 0
+			}
+			ruler ?= {
+				kill_character = {
+					target = this
+					reason = hunting_accident # Imperator death_hunting_accident
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				var:hunting_variable = 0
+			}
+			# current_ruler = {
+			# 	add_trait = wounded
+			# }
+			#P:A TODO No EU5 equivalent: the ruler is wounded (EU5 has no wounded trait)
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.44.b
+		trigger = {
+			var:hunting_variable > 0
+		}
+		if = {
+			limit = {
+				has_variable = hunt_money_var
+			}
+			add_gold = {
+				value = monthly_income_total # Imperator has_monthly_income
+				multiply = 3
+				max = 300
+				min = 5
+			}
+		}
+		# else_if = {
+		# 	limit = { ### ADJUST for new event
+		# 		has_variable = hunt_treasure_var
+		# 	}
+		# 	create_country_treasure = {
+		# 		key = "stag_hunt_reward"
+		# 		icon = "treasure_chest"
+		# 		modifier = {
+		# 			local_freemen_output = 0.06
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: creates the treasure "Stag Hunt Reward" (+6% freemen output in the province holding it); EU5 has no treasures
+		else_if = {
+			limit = {
+				has_variable = hunt_mod_var
+			}
+			add_country_modifier = {
+				modifier = successful_hunt
+				days = 3650 # 10 years
+			}
+		}
+	}
+
+	after = {
+		if = {
+			limit = {
+				has_variable = hunt_money_var
+			}
+			remove_variable = hunt_money_var
+		}
+		else_if = {
+			limit = {
+				has_variable = hunt_treasure_var
+			}
+			remove_variable = hunt_treasure_var
+		}
+		else_if = {
+			limit = {
+				has_variable = hunt_mod_var
+			}
+			remove_variable = hunt_mod_var
+		}
+	}
+}
+
+trade_goods_flavour.45 = { # Wild Game - Boar Hunt
+	type = country_event
+	title = trade_goods_flavour.45.t
+	desc = trade_goods_flavour.45.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOR = {
+			has_variable = wild_game_cooldown
+			has_country_modifier = successful_hunt
+		}
+		any_owned_location = {
+			raw_material = goods:wild_game
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = wild_game_cooldown
+			days = 7300 # 20 years
+		}
+	}
+
+	option = { # yes, start hunt
+		name = trade_goods_flavour.45.a
+		trigger_event_non_silently = {
+			id = trade_goods_flavour.46
+			days = { 7 14 }
+		}
+		custom_tooltip = hunt_help_tt
+		pa_imp_hunt_calc_effect = {
+			ANIMAL_VALUE = -3
+		}
+	}
+
+	option = { # do not hunt
+		name = trade_goods_flavour.45.b
+	}
+}
+
+trade_goods_flavour.46 = { # Wild game - Boar Hunt
+	type = country_event
+	title = trade_goods_flavour.46.t
+	desc = {
+		first_valid = {
+			triggered_desc = { #disaster; you die
+				trigger = { var:hunting_variable < 0 }
+				desc = trade_goods_flavour.46.desc_1
+			}
+			triggered_desc = { # bad, you wounded
+				trigger = { var:hunting_variable = 0 }
+				desc = trade_goods_flavour.46.desc_2
+			}
+			triggered_desc = { # yay, success
+				trigger = { var:hunting_variable > 0 }
+				desc = trade_goods_flavour.46.desc_3
+			}
+		}
+	}
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			random_list = { # only gets used if you "win" the hunt
+				1 = {
+					set_variable = hunt_money_var
+				}
+				# 1 = {
+				# 	trigger = { ### ADJUST for new event
+				# 		NOT = {
+				# 			exists = treasure:boar_hunt_reward
+				# 		}
+				# 	}
+				# 	set_variable = hunt_treasure_var
+				# }
+				#P:A TODO No EU5 equivalent: the "Boar Hunt Reward" treasure outcome (EU5 has no treasures); only the gold and modifier rewards remain
+				1 = {
+					set_variable = hunt_mod_var
+				}
+			}
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.46.a
+		trigger = {
+			var:hunting_variable <= 0
+		}
+		if = {
+			limit = {
+				var:hunting_variable < 0
+			}
+			ruler ?= {
+				kill_character = {
+					target = this
+					reason = hunting_accident # Imperator death_hunting_accident
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				var:hunting_variable = 0
+			}
+			# current_ruler = {
+			# 	add_trait = wounded
+			# }
+			#P:A TODO No EU5 equivalent: the ruler is wounded (EU5 has no wounded trait)
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.46.b
+		trigger = {
+			var:hunting_variable > 0
+		}
+		if = {
+			limit = {
+				has_variable = hunt_money_var
+			}
+			add_gold = {
+				value = monthly_income_total # Imperator has_monthly_income
+				multiply = 3
+				max = 300
+				min = 5
+			}
+		}
+		# else_if = {
+		# 	limit = { ### ADJUST for new event
+		# 		has_variable = hunt_treasure_var
+		# 	}
+		# 	create_country_treasure = {
+		# 		key = "boar_hunt_reward"
+		# 		icon = "treasure_chest"
+		# 		modifier = {
+		# 			local_freemen_desired_pop_ratio = 0.05
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: creates the treasure "Boar Hunt Reward" (+5% desired share of freemen in the province holding it); EU5 has no treasures
+		else_if = {
+			limit = {
+				has_variable = hunt_mod_var
+			}
+			add_country_modifier = {
+				modifier = successful_hunt
+				days = 3650 # 10 years
+			}
+		}
+	}
+
+	after = {
+		if = {
+			limit = {
+				has_variable = hunt_money_var
+			}
+			remove_variable = hunt_money_var
+		}
+		else_if = {
+			limit = {
+				has_variable = hunt_treasure_var
+			}
+			remove_variable = hunt_treasure_var
+		}
+		else_if = {
+			limit = {
+				has_variable = hunt_mod_var
+			}
+			remove_variable = hunt_mod_var
+		}
+	}
+}
+
+trade_goods_flavour.47 = { # Furs - Bear Hunt
+	type = country_event
+	title = trade_goods_flavour.47.t
+	desc = trade_goods_flavour.47.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOR = {
+			has_variable = fur_cooldown
+			has_country_modifier = successful_hunt
+		}
+		any_owned_location = {
+			raw_material = goods:fur
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = fur_cooldown
+			days = 7300 # 20 years
+		}
+	}
+
+	option = { # yes, start hunt
+		name = trade_goods_flavour.47.a
+		trigger_event_non_silently = {
+			id = trade_goods_flavour.48
+			days = { 7 14 }
+		}
+		custom_tooltip = hunt_help_tt
+		pa_imp_hunt_calc_effect = {
+			ANIMAL_VALUE = -4
+		}
+	}
+
+	option = { # do not hunt
+		name = trade_goods_flavour.47.b
+	}
+}
+
+trade_goods_flavour.48 = { # Fur - Bear Hunt
+	type = country_event
+	title = trade_goods_flavour.48.t
+	desc = {
+		first_valid = {
+			triggered_desc = { #disaster; you die
+				trigger = { var:hunting_variable < 0 }
+				desc = trade_goods_flavour.48.desc_1
+			}
+			triggered_desc = { # bad, you wounded
+				trigger = { var:hunting_variable = 0 }
+				desc = trade_goods_flavour.48.desc_2
+			}
+			triggered_desc = { # yay, success
+				trigger = { var:hunting_variable > 0 }
+				desc = trade_goods_flavour.48.desc_3
+			}
+		}
+	}
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			random_list = { # only gets used if you "win" the hunt
+				1 = {
+					set_variable = hunt_money_var
+				}
+				# 1 = {
+				# 	trigger = { ### ADJUST for new event
+				# 		NOT = {
+				# 			exists = treasure:bear_hunt_reward
+				# 		}
+				# 	}
+				# 	set_variable = hunt_treasure_var
+				# }
+				#P:A TODO No EU5 equivalent: the "Bear Hunt Reward" treasure outcome (EU5 has no treasures); only the gold and modifier rewards remain
+				1 = {
+					set_variable = hunt_mod_var
+				}
+			}
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.48.a
+		trigger = {
+			var:hunting_variable <= 0
+		}
+		if = {
+			limit = {
+				var:hunting_variable < 0
+			}
+			ruler ?= {
+				kill_character = {
+					target = this
+					reason = hunting_accident # Imperator death_hunting_accident
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				var:hunting_variable = 0
+			}
+			# current_ruler = {
+			# 	add_trait = wounded
+			# }
+			#P:A TODO No EU5 equivalent: the ruler is wounded (EU5 has no wounded trait)
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.48.b
+		trigger = {
+			var:hunting_variable > 0
+		}
+		if = {
+			limit = {
+				has_variable = hunt_money_var
+			}
+			add_gold = {
+				value = monthly_income_total # Imperator has_monthly_income
+				multiply = 3
+				max = 300
+				min = 5
+			}
+		}
+		# else_if = {
+		# 	limit = { ### ADJUST for new event
+		# 		has_variable = hunt_treasure_var
+		# 	}
+		# 	create_country_treasure = {
+		# 		key = "bear_hunt_reward"
+		# 		icon = "treasure_chest"
+		# 		modifier = {
+		# 			local_manpower_modifier = 0.1
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: creates the treasure "Bear Hunt Reward" (+10% manpower in the province holding it); EU5 has no treasures
+		else_if = {
+			limit = {
+				has_variable = hunt_mod_var
+			}
+			add_country_modifier = {
+				modifier = successful_hunt
+				days = 3650 # 10 years
+			}
+		}
+	}
+
+	after = {
+		if = {
+			limit = {
+				has_variable = hunt_money_var
+			}
+			remove_variable = hunt_money_var
+		}
+		else_if = {
+			limit = {
+				has_variable = hunt_treasure_var
+			}
+			remove_variable = hunt_treasure_var
+		}
+		else_if = {
+			limit = {
+				has_variable = hunt_mod_var
+			}
+			remove_variable = hunt_mod_var
+		}
+	}
+}
+
+trade_goods_flavour.49 = { # Fur - Lion Hunt
+	type = country_event
+	title = trade_goods_flavour.49.t
+	desc = trade_goods_flavour.49.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOR = {
+			has_variable = fur_cooldown
+			has_country_modifier = successful_hunt
+		}
+		any_owned_location = {
+			raw_material = goods:fur
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = fur_cooldown
+			days = 7300 # 20 years
+		}
+	}
+
+	option = { # yes, start hunt
+		name = trade_goods_flavour.49.a
+		trigger_event_non_silently = {
+			id = trade_goods_flavour.50
+			days = { 7 14 }
+		}
+		custom_tooltip = hunt_help_tt
+		pa_imp_hunt_calc_effect = {
+			ANIMAL_VALUE = -5
+		}
+	}
+
+	option = { # do not hunt
+		name = trade_goods_flavour.49.b
+	}
+}
+
+trade_goods_flavour.50 = { # Fur - Lion Hunt
+	type = country_event
+	title = trade_goods_flavour.50.t
+	desc = {
+		first_valid = {
+			triggered_desc = { #disaster; you die
+				trigger = { var:hunting_variable < 0 }
+				desc = trade_goods_flavour.50.desc_1
+			}
+			triggered_desc = { # bad, you wounded
+				trigger = { var:hunting_variable = 0 }
+				desc = trade_goods_flavour.50.desc_2
+			}
+			triggered_desc = { # yay, success
+				trigger = { var:hunting_variable > 0 }
+				desc = trade_goods_flavour.50.desc_3
+			}
+		}
+	}
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			random_list = { # only gets used if you "win" the hunt
+				1 = {
+					set_variable = hunt_money_var
+				}
+				# 1 = {
+				# 	trigger = { ### ADJUST for new event
+				# 		NOT = {
+				# 			exists = treasure:lion_hunt_reward
+				# 		}
+				# 	}
+				# 	set_variable = hunt_treasure_var
+				# }
+				#P:A TODO No EU5 equivalent: the "Lion Hunt Reward" treasure outcome (EU5 has no treasures); only the gold and modifier rewards remain
+				1 = {
+					set_variable = hunt_mod_var
+				}
+			}
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.50.a
+		trigger = {
+			var:hunting_variable <= 0
+		}
+		if = {
+			limit = {
+				var:hunting_variable < 0
+			}
+			ruler ?= {
+				kill_character = {
+					target = this
+					reason = hunting_accident # Imperator death_hunting_accident
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				var:hunting_variable = 0
+			}
+			# current_ruler = {
+			# 	add_trait = wounded
+			# }
+			#P:A TODO No EU5 equivalent: the ruler is wounded (EU5 has no wounded trait)
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.50.b
+		trigger = {
+			var:hunting_variable > 0
+		}
+		if = {
+			limit = {
+				has_variable = hunt_money_var
+			}
+			add_gold = {
+				value = monthly_income_total # Imperator has_monthly_income
+				multiply = 3
+				max = 300
+				min = 5
+			}
+		}
+		# else_if = {
+		# 	limit = { ### ADJUST for new event
+		# 		has_variable = hunt_treasure_var
+		# 	}
+		# 	create_country_treasure = {
+		# 		key = "lion_hunt_reward"
+		# 		icon = "treasure_chest"
+		# 		modifier = {
+		# 			local_freemen_desired_pop_ratio = 0.05
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: creates the treasure "Lion Hunt Reward" (+5% desired share of freemen in the province holding it); EU5 has no treasures
+		else_if = {
+			limit = {
+				has_variable = hunt_mod_var
+			}
+			add_country_modifier = {
+				modifier = successful_hunt
+				days = 3650 # 10 years
+			}
+		}
+	}
+
+	after = {
+		if = {
+			limit = {
+				has_variable = hunt_money_var
+			}
+			remove_variable = hunt_money_var
+		}
+		else_if = {
+			limit = {
+				has_variable = hunt_treasure_var
+			}
+			remove_variable = hunt_treasure_var
+		}
+		else_if = {
+			limit = {
+				has_variable = hunt_mod_var
+			}
+			remove_variable = hunt_mod_var
+		}
+	}
+}
+
+trade_goods_flavour.51 = { #Horses - Breeder
+	type = country_event
+	title = trade_goods_flavour.51.t
+	desc = trade_goods_flavour.51.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		any_owned_location = {
+			raw_material = goods:horses
+			NOT = {
+				has_location_modifier = horses_escaped
+			}
+		}
+		NOT = {
+			has_variable = horses_flavour_cooldown
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = horses_flavour_cooldown
+			days = 7300 # 20 years
+		}
+	}
+
+	option = { # Horses for War Chariots
+		name = trade_goods_flavour.51.a
+		add_country_modifier = {
+			modifier = war_horse_breed
+			days = 5475 # 15 years
+		}
+	}
+
+	option = { # Horses for Farming
+		name = trade_goods_flavour.51.b
+		add_country_modifier = {
+			modifier = farm_horse_breed
+			days = 5475 # 15 years
+		}
+	}
+
+	option = { # Have the breeder join the court
+		name = trade_goods_flavour.51.c
+		custom_tooltip = master_breeder_joins_court_tt
+		hidden_effect = {
+			create_character = {
+				female = no
+				culture = root.culture
+				religion = root.religion
+				save_scope_as = pa_master_breeder
+			}
+			scope:pa_master_breeder = {
+				add_adm = 25 # Imperator add_finesse = 5 (x5)
+				# add_trait = intelligent #P:A TODO No EU5 equivalent: trait intelligent
+			}
+		}
+	}
+}
+
+trade_goods_flavour.52 = { # Wood - Sacred Groves
+	type = country_event
+	title = trade_goods_flavour.52.t
+	desc = trade_goods_flavour.52.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		any_holy_site_in_country = { #P:A TODO Approximate: Imperator holy site (a province with a deity) -> EU5 religious holy site located in the country
+			location ?= {
+				raw_material = goods:lumber # Imperator wood
+			}
+		}
+		NOT = {
+			has_variable = wood_flavour_cooldown
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = wood_flavour_cooldown
+			days = 7300
+		}
+		random_holy_site_in_country = {
+			limit = {
+				location ?= {
+					raw_material = goods:lumber # Imperator wood
+				}
+			}
+			location = {
+				save_scope_as = grove_scope
+			}
+		}
+	}
+
+	option = { # Keep the Grove
+		name = trade_goods_flavour.52.a
+		add_country_modifier = {
+			modifier = grove_preserved
+			days = 7300 # 20 years
+		}
+	}
+
+	option = { # We need the trees for building
+		name = trade_goods_flavour.52.b
+		add_country_modifier = {
+			modifier = grove_desecrated
+			days = 7300 # 20 years
+		}
+		# scope:grove_scope = {
+		# 	remove_province_deity = yes
+		# }
+		#P:A TODO No EU5 equivalent: removes the deity from the grove's holy site (EU5 locations have no deities; destroy_holy_site would permanently delete a fixed religious site)
+		# add_political_influence = 25 #P:A TODO No EU5 equivalent: +25 political influence
+	}
+}
+
+trade_goods_flavour.53 = { #Horses - Horses Escape
+	type = country_event
+	title = trade_goods_flavour.53.t
+	desc = trade_goods_flavour.53.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = horses_flavour_cooldown
+		}
+		any_owned_location = {
+			raw_material = goods:horses
+			raw_material_output >= 2 #P:A TODO Approximate: Imperator num_goods_produced >= 2 (trade goods units) -> EU5 raw material output, scale unverified
+			NOT = {
+				has_location_modifier = horses_escaped
+			}
+		}
+		monthly_balance >= 8 # Imperator has_monthly_balance
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = horses_flavour_cooldown
+			days = 7300 # 20 years
+		}
+		random_owned_location = {
+			limit = {
+				raw_material = goods:horses
+				raw_material_output >= 2 #P:A TODO Approximate: Imperator num_goods_produced >= 2 -> EU5 raw material output, scale unverified
+				NOT = {
+					has_location_modifier = horses_escaped
+				}
+			}
+			save_scope_as = horse_farm_scope
+			add_location_modifier = {
+				modifier = horses_escaped
+				days = 3650 # 10 years
+			}
+		}
+	}
+
+	option = { # Try to find them again
+		name = trade_goods_flavour.53.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+			min = -300 # min = most negative number
+			max = -5
+		}
+		custom_tooltip = horses_capture_again_tt
+	}
+
+	option = { # Lost is lost
+		name = trade_goods_flavour.53.b
+		custom_tooltip = horses_escaped_tt
+		hidden_effect = {
+			scope:horse_farm_scope = {
+				add_location_modifier = {
+					modifier = horses_escaped
+					mode = add
+					days = 3650 # 10 years
+				}
+			}
+		}
+	}
+}
+
+trade_goods_flavour.54 = { # "Fur" - Nemean Lion Sighted
+	type = country_event
+	title = trade_goods_flavour.54.t
+	desc = trade_goods_flavour.54.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		owns = location:argos #Nemea (Argos)
+		location:argos = {
+			NOT = {
+				has_location_modifier = nemean_lion_hunted
+			}
+		}
+		NOT = {
+			has_global_variable = pa_nemean_lion_pelt #P:A TODO Approximate: Imperator "the treasure Nemean Lion Pelt exists"; EU5 has no treasures, so trade_goods_flavour.55 sets this global variable instead
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		location:argos = {
+			add_location_modifier = {
+				modifier = nemean_lion_hunted
+				days = 1825 # 5 years
+			}
+		}
+	}
+
+	option = { # Hunt it
+		name = trade_goods_flavour.54.a
+		custom_tooltip = nemean_lion_hunt_tt
+		hidden_effect = {
+			random_list = {
+				1 = {
+					trigger_event_non_silently = { # found
+						id = trade_goods_flavour.55
+						days = 7
+					}
+				}
+				99 = {
+					trigger_event_non_silently = { # hunt without success
+						id = trade_goods_flavour.56
+						days = 7
+					}
+				}
+			}
+		}
+	}
+
+	option = { # It is too dangerous
+		name = trade_goods_flavour.54.b
+	}
+}
+
+trade_goods_flavour.55 = { #found the nemean lion
+	type = country_event
+	title = trade_goods_flavour.55.t
+	desc = trade_goods_flavour.55.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		pa_imp_hunt_calc_effect = {
+			ANIMAL_VALUE = -10
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.55.a
+		# create_country_treasure = {
+		# 	key = "nemean_lion_pelt"
+		# 	icon = "treasure_chest"
+		# 	modifier = {
+		# 		local_defensive = 0.5
+		# 		local_combat_width_modifier = -5
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: creates the treasure "Nemean Lion Pelt" (+50% defense and -5 combat width in the province holding it); EU5 has no treasures. The global variable below only keeps trade_goods_flavour.54 from firing again
+		set_global_variable = pa_nemean_lion_pelt
+		if = {
+			limit = {
+				var:hunting_variable < 0
+			}
+			ruler ?= {
+				kill_character = {
+					target = this
+					reason = hunting_accident # Imperator death_hunting_accident
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				var:hunting_variable = 0
+			}
+			# current_ruler = {
+			# 	add_trait = wounded
+			# }
+			#P:A TODO No EU5 equivalent: the ruler is wounded (EU5 has no wounded trait)
+		}
+		else_if = {
+			limit = {
+				var:hunting_variable > 0
+			}
+			# current_ruler = {
+			# 	add_trait = brave
+			# }
+			#P:A TODO No EU5 equivalent: the ruler gains the Imperator trait "brave"
+		}
+	}
+}
+
+trade_goods_flavour.56 = { #didn't find the lion
+	type = country_event
+	title = trade_goods_flavour.56.t
+	desc = trade_goods_flavour.56.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.56.a
+	}
+}
+
+trade_goods_flavour.57 = { # "Fur" - Erymanthian Boar Sighted
+	type = country_event
+	title = trade_goods_flavour.57.t
+	desc = trade_goods_flavour.57.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			pa_imp_in_area_achaea_area = yes
+		}
+		NOT = {
+			has_global_variable = pa_erymanthian_boar_tusk #P:A TODO Approximate: Imperator "the treasure Erymanthian Boar Tusk exists"; EU5 has no treasures, so trade_goods_flavour.58 sets this global variable instead
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_owned_location = {
+			limit = {
+				pa_imp_in_area_achaea_area = yes
+			}
+			add_location_modifier = {
+				modifier = erymanthian_boar_hunted
+				days = 1825 # 5 years
+			}
+		}
+	}
+
+	option = { # Hunt it
+		name = trade_goods_flavour.57.a
+		custom_tooltip = nemean_lion_hunt_tt
+		hidden_effect = {
+			random_list = { # both outcomes fire trade_goods_flavour.58 in the Invictus source
+				1 = {
+					trigger_event_non_silently = { # found
+						id = trade_goods_flavour.58
+						days = 7
+					}
+				}
+				99 = {
+					trigger_event_non_silently = { # hunt without success
+						id = trade_goods_flavour.58
+						days = 7
+					}
+				}
+			}
+		}
+	}
+
+	option = { # It is too dangerous
+		name = trade_goods_flavour.57.b
+	}
+}
+
+trade_goods_flavour.58 = { #found the erymanthian boar
+	type = country_event
+	title = trade_goods_flavour.58.t
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	desc = {
+		first_valid = {
+			triggered_desc = { #disaster; you die
+				trigger = { var:hunting_variable < 0 }
+				desc = trade_goods_flavour.58.desc_1
+			}
+			triggered_desc = { # bad, you wounded
+				trigger = { var:hunting_variable = 0 }
+				desc = trade_goods_flavour.58.desc_2
+			}
+			triggered_desc = { # yay, success
+				trigger = { var:hunting_variable > 0 }
+				desc = trade_goods_flavour.58.desc_3
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		pa_imp_hunt_calc_effect = {
+			ANIMAL_VALUE = -9
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.58.a
+		# create_country_treasure = {
+		# 	key = "erymanthian_boar_tusk"
+		# 	icon = "treasure_chest"
+		# 	modifier = {
+		# 		max_attrition = 0.05
+		# 		local_hostile_attrition = 2
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: creates the treasure "Erymanthian Boar Tusk" (+5% max attrition and +2 hostile attrition in the province holding it); EU5 has no treasures. The global variable below only keeps trade_goods_flavour.57 from firing again
+		set_global_variable = pa_erymanthian_boar_tusk
+		if = {
+			limit = {
+				var:hunting_variable < 0
+			}
+			ruler ?= {
+				kill_character = {
+					target = this
+					reason = hunting_accident # Imperator death_hunting_accident
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				var:hunting_variable = 0
+			}
+			# current_ruler = {
+			# 	add_trait = wounded
+			# }
+			#P:A TODO No EU5 equivalent: the ruler is wounded (EU5 has no wounded trait)
+		}
+		else_if = {
+			limit = {
+				var:hunting_variable > 0
+			}
+			# current_ruler = {
+			# 	add_trait = brave
+			# }
+			#P:A TODO No EU5 equivalent: the ruler gains the Imperator trait "brave"
+		}
+	}
+}
+
+trade_goods_flavour.59 = { #didn't find the boar
+	# Nothing fires this event in Invictus: trade_goods_flavour.57 fires .58 on both outcomes (probably meant .59 for the 99-weight branch)
+	type = country_event
+	title = trade_goods_flavour.59.t
+	desc = trade_goods_flavour.59.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.59.a
+	}
+}
+
+trade_goods_flavour.60 = { # Fruits - Pops are eating healthy (same event will exist for veggies)
+	type = country_event
+	title = trade_goods_flavour.60.t
+	desc = trade_goods_flavour.60.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = pop_health_var
+		}
+		any_owned_location = {
+			raw_material = goods:fruit
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = pop_health_var
+			days = 3650 # 10 years
+		}
+		random_owned_location = {
+			limit = {
+				raw_material = goods:fruit
+			}
+			save_scope_as = fruits_scope
+		}
+	}
+
+	option = {
+		name = trade_goods_flavour.60.a
+		scope:fruits_scope = {
+			add_location_modifier = {
+				modifier = healthy_pops_pmod
+				days = 3650 # 10 years
+			}
+		}
+	}
+}

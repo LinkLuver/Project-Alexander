@@ -1,2 +1,173 @@
-#P:A Imported from Invictus: events/flavor_germanics.txt (only the generic events: 3-7, 13, 70-80)
+﻿#P:A Imported from Invictus: events/flavor_germanics.txt (only the generic events 6, 7 and 13; batch b01 skipped 3-5 as tag-bound and 70-80 as empty mission placeholders)
 namespace = flavor_germanics
+
+# The yearly sacrifice to Mannus in his sacred grove.
+flavor_germanics.6 = {
+	type = country_event
+	title = flavor_germanics.6.t
+	desc = flavor_germanics.6.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		religion = religion:tuisto_pantheon #P:A TODO Approximate: Imperator religion germanic_religion mapped to tuisto_pantheon
+		culture = culture:irminonic
+		owns = location:belzig #P:A TODO Approximate location: Imperator Uarinia (p:3986) mapped to belzig
+		NOT = { has_variable = rel_flavor_germanics_6_cooldown }
+		# any_character = { prisoner = yes NOT = { has_religion = root.religion } } #P:A TODO No EU5 equivalent: required a prisoner of another religion to sacrifice (EU5 has no imprisoned characters); dropped so the ritual still fires, the victim stays unnamed
+		any_character = {
+			pa_imp_has_priest_office_trigger = yes
+			religion = root.religion
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = rel_flavor_germanics_6_cooldown
+			days = 1825
+		}
+		# random_character = { limit = { prisoner = yes NOT = { has_religion = root.religion } } save_scope_as = sacrifice_character } #P:A TODO No EU5 equivalent: picked the prisoner to sacrifice (EU5 has no imprisoned characters)
+		random_character = {
+			limit = {
+				pa_imp_has_priest_office_trigger = yes
+				religion = root.religion
+			}
+			save_scope_as = priest_advisor
+		}
+	}
+
+	option = {
+		name = flavor_germanics.6.a
+		add_stability = 5
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = -10 (tribal centralization 0-100); EU5 moves the centralization/decentralization societal value 10 towards decentralization
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_right
+		}
+		# scope:priest_advisor = { add_loyalty = loyalty_priest_allowed } #P:A TODO No EU5 equivalent: +loyalty for the priest (EU5 characters have no loyalty)
+		# scope:sacrifice_character = { death = { killer = scope:priest_advisor death_reason = death_sacrifice } } #P:A TODO No EU5 equivalent: the priest kills the sacrificed prisoner (EU5 has no imprisoned characters, so there is no victim)
+	}
+
+	option = {
+		name = flavor_germanics.6.b
+		add_country_modifier = {
+			modifier = priests_refusing_to_perform_rites
+			days = 3650
+		}
+		# scope:priest_advisor = { add_loyalty = loyalty_priest_refused } #P:A TODO No EU5 equivalent: -loyalty for the priest (EU5 characters have no loyalty)
+		# scope:sacrifice_character = { add_rival = scope:priest_advisor } #P:A TODO No EU5 equivalent: the spared prisoner becomes the priest's rival (EU5 has no prisoners or character rivals)
+	}
+}
+
+# Nerthuz's wagon returns to the sea; the slaves who washed it are drowned as the last sacrifice.
+flavor_germanics.7 = {
+	type = country_event
+	title = flavor_germanics.7.t
+	desc = flavor_germanics.7.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		religion = religion:tuisto_pantheon #P:A TODO Approximate: Imperator religion germanic_religion mapped to tuisto_pantheon
+		OR = {
+			# has_this_omen = deity:omen_nerthus #P:A TODO No EU5 equivalent: the country had Nerthus' omen active (EU5 has no deities or omens)
+			owns = location:kalundborg #P:A TODO Approximate location: Imperator Herulia Borealis (p:3886) mapped to kalundborg
+		}
+		at_war = no
+		any_owned_location = { # has_coasts = yes
+			is_coastal = yes
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				pa_imp_has_priest_office_trigger = yes
+				religion = root.religion
+			}
+			save_scope_as = priest_advisor
+		}
+		random_owned_location = {
+			limit = {
+				num_pop_type:slaves > 1 #P:A TODO Approximate: Imperator num_of_slaves > 1 counted slave pops; EU5 counts slaves in thousands (1 pop = 1 thousand)
+				is_coastal = yes
+			}
+			save_scope_as = coastl_nerthus_scope
+		}
+	}
+
+	option = {
+		name = flavor_germanics.7.a
+		if = {
+			limit = {
+				exists = scope:coastl_nerthus_scope
+			}
+			scope:coastl_nerthus_scope = {
+				random_pop = {
+					limit = {
+						pop_type = pop_type:slaves
+					}
+					add_pop_size = { #P:A TODO Approximate: Imperator kill_pop removed 1 whole slave pop; EU5 removes up to 1 (thousand) people from a slave pop
+						value = pop_size
+						multiply = -1
+						min = -1
+					}
+				}
+			}
+		}
+		add_stability = 5
+	}
+
+	option = {
+		name = flavor_germanics.7.b
+		add_country_modifier = {
+			modifier = priests_refusing_to_perform_rites
+			days = 3650
+		}
+	}
+}
+
+# Thanksgiving to Nehalennia, whose ship carries the dead and brings the newborn.
+flavor_germanics.13 = {
+	type = country_event
+	title = flavor_germanics.13.t
+	desc = flavor_germanics.13.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		religion = religion:tuisto_pantheon #P:A TODO Approximate: Imperator religion germanic_religion mapped to tuisto_pantheon
+		# has_this_omen = deity:omen_nehalennia
+		always = no #P:A TODO No EU5 equivalent: fires only while Nehalennia's omen is active (EU5 has no deities or omens); kept false because the omen is what the event is about and was its only recurring gate (no cooldown)
+		at_war = no
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				pa_imp_has_priest_office_trigger = yes
+				religion = root.religion
+			}
+			save_scope_as = priest_advisor
+		}
+	}
+
+	option = {
+		name = flavor_germanics.13.a
+		add_stability = 5
+	}
+}

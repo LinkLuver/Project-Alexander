@@ -491,3 +491,2689 @@ inv_building_events.8 = {
 		#P:A TODO No EU5 equivalent: the port manager loses loyalty (EU5 characters have no loyalty)
 	}
 }
+
+# Rats infest the harbor district of a poor port province.
+inv_building_events.9 = {
+	type = country_event
+	title = inv_building_events.9.t
+	desc = inv_building_events.9.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:dock #P:A TODO Approximate: Imperator num_of_port_building > 1 (port level 2+); EU5 dock has a single level
+			location_tax_base < 3 #P:A TODO Approximate: Imperator province_income < 3 (monthly province income); EU5 location tax base has a different scale
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:dock #P:A TODO Approximate: Imperator num_of_port_building > 1
+				location_tax_base < 3 #P:A TODO Approximate: Imperator province_income < 3
+			}
+			save_scope_as = building_province
+		}
+		# Imperator: the port manager was the province's holding owner, else a newly created man.
+		#P:A TODO No EU5 equivalent: holdings and holding owners; the new character is always created
+		hidden_effect = {
+			create_character = {
+				female = no
+				birth_location = scope:building_province
+				save_scope_as = port_manager
+			}
+			scope:port_manager = {
+				pa_imp_bad_popularity_trait_effect = yes
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.9.a
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = rat_infestation_in_port
+				days = 1825
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.9.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		add_manpower = -1
+	}
+}
+
+# Master shipbuilders of a poor port province ask to reinvest local taxes in the harbor.
+inv_building_events.10 = {
+	type = country_event
+	title = inv_building_events.10.t
+	desc = inv_building_events.10.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:dock #P:A TODO Approximate: Imperator num_of_port_building > 1 (port level 2+); EU5 dock has a single level
+			location_tax_base < 3 #P:A TODO Approximate: Imperator province_income < 3 (monthly province income); EU5 location tax base has a different scale
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:dock #P:A TODO Approximate: Imperator num_of_port_building > 1
+				location_tax_base < 3 #P:A TODO Approximate: Imperator province_income < 3
+			}
+			save_scope_as = building_province
+		}
+		# Imperator: the port manager was the province's holding owner, else a newly created man.
+		#P:A TODO No EU5 equivalent: holdings and holding owners; the new character is always created
+		hidden_effect = {
+			create_character = {
+				female = no
+				birth_location = scope:building_province
+				save_scope_as = port_manager
+			}
+			scope:port_manager = {
+				pa_imp_good_finesse_trait_effect = yes
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.10.a
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 12
+			floor = yes
+			max = -20
+			min = -4000
+		}
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = locally_expanded_port_infrastructure_modifier
+				days = -1
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.10.b
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 6
+			ceiling = yes
+			max = 1000
+			min = 10
+		}
+	}
+}
+
+# A pyromaniac governor or holding owner lets a fire ravage a harbor district.
+inv_building_events.11 = {
+	type = country_event
+	title = inv_building_events.11.t
+	desc = inv_building_events.11.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:dock #P:A TODO Approximate: Imperator num_of_port_building >= 1 mapped to the EU5 dock
+			# OR = {
+			# 	AND = { exists = governor_or_ruler governor_or_ruler = { has_trait = pyromaniac } }
+			# 	AND = { exists = holding_owner holding_owner = { has_trait = pyromaniac } }
+			# }
+			always = no #P:A TODO No EU5 equivalent: the province's governor or holding owner has the "pyromaniac" trait (EU5 has no governors, holdings or pyromaniac trait)
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:dock #P:A TODO Approximate: Imperator had no port check here
+				# OR = {
+				# 	AND = { exists = governor_or_ruler governor_or_ruler = { has_trait = pyromaniac } }
+				# 	AND = { exists = holding_owner holding_owner = { has_trait = pyromaniac } }
+				# }
+				#P:A TODO No EU5 equivalent: governor or holding owner with the "pyromaniac" trait
+			}
+			save_scope_as = burning_port_province
+		}
+		# scope:burning_port_province = {
+		# 	if = { limit = { exists = holding_owner holding_owner = { has_trait = pyromaniac } } holding_owner = { save_scope_as = pyromaniac_administrator } }
+		# 	else_if = { limit = { exists = governor_or_ruler governor_or_ruler = { has_trait = pyromaniac } } governor_or_ruler = { save_scope_as = pyromaniac_administrator } }
+		# }
+		#P:A TODO No EU5 equivalent: saves the pyromaniac holding owner / governor as scope:pyromaniac_administrator (EU5 has neither)
+	}
+
+	option = {
+		name = inv_building_events.11.a
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 3
+			min = -6000
+		}
+		scope:burning_port_province = {
+			add_location_modifier = {
+				modifier = decreased_defense_in_this_province
+				days = 3650
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.11.b
+		# scope:pyromaniac_administrator = {
+		# 	add_gold = -100
+		# 	add_loyalty = loyalty_publicly_slandered
+		# }
+		#P:A TODO No EU5 equivalent: the administrator pays 100 of his own gold and loses loyalty (EU5 characters have no personal wealth or loyalty)
+	}
+}
+
+# Drunken soldiers start a fire near the barracks of a recruiting province.
+inv_building_events.12 = {
+	type = country_event
+	title = inv_building_events.12.t
+	desc = inv_building_events.12.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:training_fields #P:A TODO Approximate: Imperator barracks_building mapped to training_fields
+			# province_manpower_income >= 5
+			#P:A TODO No EU5 equivalent: province manpower income >= 5 (EU5 has no location-level manpower trigger)
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:training_fields #P:A TODO Approximate: Imperator barracks_building
+				# province_manpower_income >= 5 #P:A TODO No EU5 equivalent: location manpower income
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.12.a
+		add_manpower = -2
+		add_stability = -3
+	}
+	option = {
+		name = inv_building_events.12.b
+		# add_tyranny = 3
+		#P:A TODO No EU5 equivalent: +3 tyranny (EU5 has no tyranny)
+	}
+}
+
+# A martial governor personally trains the troops of a recruiting province.
+inv_building_events.13 = {
+	type = country_event
+	title = inv_building_events.13.t
+	desc = inv_building_events.13.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:training_fields #P:A TODO Approximate: Imperator barracks_building mapped to training_fields
+			# province_manpower_income >= 3
+			#P:A TODO No EU5 equivalent: province manpower income >= 3 (EU5 has no location-level manpower trigger)
+		}
+		# exists = governor
+		# NOT = { governor = root.current_ruler }
+		# governor = { highest_skill = martial martial >= 8 }
+		any_character = { #P:A TODO Approximate: Imperator governor of that province (not the ruler) whose highest skill is martial, martial >= 8; EU5 has no governors, any adult non-ruler character with mil >= 40 is used
+			is_ruler = no
+			is_adult = yes
+			mil >= 40
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:training_fields #P:A TODO Approximate: Imperator barracks_building
+				# province_manpower_income >= 3 #P:A TODO No EU5 equivalent: location manpower income
+			}
+			save_scope_as = building_province
+		}
+		# scope:building_province = { governor = { save_scope_as = governor_dude } }
+		random_character = { #P:A TODO Approximate: Imperator took the province's governor; EU5 has no governors
+			limit = {
+				is_ruler = no
+				is_adult = yes
+				mil >= 40
+			}
+			save_scope_as = governor_dude
+		}
+	}
+
+	option = {
+		name = inv_building_events.13.a
+		# scope:governor_dude = {
+		# 	add_trait = ambitious
+		# 	add_loyalty = loyalty_publicly_slandered
+		# }
+		#P:A TODO No EU5 equivalent: the governor gains the "ambitious" trait and loses loyalty (EU5 has no ambitious trait and no character loyalty)
+	}
+	option = {
+		name = inv_building_events.13.b
+	}
+}
+
+# A legendary soldier challenges an unpopular governor to a duel.
+inv_building_events.14 = {
+	type = country_event
+	title = inv_building_events.14.t
+	desc = inv_building_events.14.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:training_fields #P:A TODO Approximate: Imperator barracks_building mapped to training_fields
+			# province_manpower_income >= 0 (always true in Imperator)
+		}
+		# exists = governor
+		# NOT = { governor = root.current_ruler }
+		# governor = { highest_skill = martial martial >= 8 }
+		any_character = { #P:A TODO Approximate: Imperator governor of that province (not the ruler) whose highest skill is martial, martial >= 8; EU5 has no governors, any adult non-ruler character with mil >= 40 is used
+			is_ruler = no
+			is_adult = yes
+			mil >= 40
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = military_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:training_fields #P:A TODO Approximate: Imperator barracks_building
+			}
+			save_scope_as = building_province
+		}
+		# scope:building_province = { governor = { save_scope_as = bitch_ass_governor } }
+		random_character = { #P:A TODO Approximate: Imperator took the province's governor; EU5 has no governors
+			limit = {
+				is_ruler = no
+				is_adult = yes
+				mil >= 40
+			}
+			save_scope_as = bitch_ass_governor
+		}
+		hidden_effect = {
+			create_character = {
+				female = no
+				birth_location = scope:building_province
+				save_scope_as = badass_soldier
+			}
+			scope:badass_soldier = {
+				pa_imp_positive_martial_trait_effect = yes
+				add_mil = 10 # Imperator add_martial = 2
+			}
+		}
+	}
+
+	option = { # Let them fight
+		name = inv_building_events.14.a
+		add_stability = 3
+	}
+	option = { # This "soldier" is out of line...have him executed
+		name = inv_building_events.14.b
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+		# scope:bitch_ass_governor = {
+		# 	add_loyalty = loyalty_publicly_slandered
+		# 	add_trait = wounded
+		# }
+		#P:A TODO No EU5 equivalent: the governor loses loyalty and gains the "wounded" trait (EU5 has no character loyalty and no wounded trait)
+		kill_character = {
+			target = scope:badass_soldier
+			reason = execution
+			killer = ruler
+		}
+	}
+}
+
+# The barracks of a recruiting province experiment with new drilling techniques (once per country).
+inv_building_events.15 = {
+	type = country_event
+	title = inv_building_events.15.t
+	desc = inv_building_events.15.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		NOT = { has_variable = barracks_drill_event_happened }
+		any_owned_location = {
+			has_building = building_type:training_fields #P:A TODO Approximate: Imperator barracks_building mapped to training_fields
+			# province_manpower_income >= 3
+			#P:A TODO No EU5 equivalent: province manpower income >= 3 (EU5 has no location-level manpower trigger)
+		}
+	}
+
+	immediate = {
+		set_variable = barracks_drill_event_happened
+		random_owned_location = {
+			limit = {
+				has_building = building_type:training_fields #P:A TODO Approximate: Imperator barracks_building
+				# province_manpower_income >= 5 #P:A TODO No EU5 equivalent: location manpower income
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.15.a
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+	}
+	option = {
+		name = inv_building_events.15.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = increased_defense_in_this_province
+				days = -1 # Imperator duration = -1850 (negative, i.e. permanent)
+			}
+		}
+	}
+}
+
+# The foundry of a rich province is thriving.
+inv_building_events.16 = {
+	type = country_event
+	title = inv_building_events.16.t
+	desc = inv_building_events.16.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:local_smelters #P:A TODO Approximate: Imperator foundry_building mapped to local_smelters
+			location_tax_base >= 3 #P:A TODO Approximate: Imperator province_income >= 3 (monthly province income); EU5 location tax base has a different scale
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = military_building_cooldown
+			days = 1825 # medium_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:local_smelters #P:A TODO Approximate: Imperator foundry_building
+				location_tax_base >= 3 #P:A TODO Approximate: Imperator province_income >= 3
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.16.a
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_economic_boom_modifier
+				days = -1 # Imperator duration = -1850 (negative, i.e. permanent)
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.16.b
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 3
+			max = 5000
+		}
+	}
+}
+
+# A renowned weapon or armor foundry asks for state investment.
+inv_building_events.17 = {
+	type = country_event
+	title = inv_building_events.17.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { var:foundry_type = flag:weapons }
+				desc = inv_building_events.17.desc.1
+			}
+			triggered_desc = {
+				trigger = { var:foundry_type = flag:armour }
+				desc = inv_building_events.17.desc.2
+			}
+		}
+	}
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:local_smelters #P:A TODO Approximate: Imperator foundry_building mapped to local_smelters
+			location_tax_base >= 3 #P:A TODO Approximate: Imperator province_income >= 3 (monthly province income); EU5 location tax base has a different scale
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		hidden_effect = {
+			random_list = {
+				1 = {
+					set_variable = {
+						name = foundry_type
+						value = flag:weapons
+					}
+				}
+				1 = {
+					set_variable = {
+						name = foundry_type
+						value = flag:armour
+					}
+				}
+			}
+		}
+		set_variable = {
+			name = military_building_cooldown
+			days = 1825 # medium_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:local_smelters #P:A TODO Approximate: Imperator foundry_building
+				location_tax_base >= 3 #P:A TODO Approximate: Imperator province_income >= 3
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.17.a
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		add_country_modifier = {
+			modifier = iron_weapons
+			days = 1830
+		}
+	}
+	option = {
+		name = inv_building_events.17.b
+	}
+	after = {
+		remove_variable = foundry_type
+	}
+}
+
+# Slaves murder the master of a foundry.
+inv_building_events.18 = {
+	type = country_event
+	title = inv_building_events.18.t
+	desc = inv_building_events.18.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = military_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:local_smelters #P:A TODO Approximate: Imperator foundry_building mapped to local_smelters
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_slaves >= 5 (5 slave pops); EU5 checks 5 (thousand) slaves, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:slaves }
+				value >= 5
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = military_building_cooldown
+			days = 9125 # very_long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:local_smelters #P:A TODO Approximate: Imperator foundry_building
+				population_with_traits = { #P:A TODO Approximate: Imperator num_of_slaves >= 5
+					limit = { pop_type = pop_type:slaves }
+					value >= 5
+				}
+			}
+			save_scope_as = building_province
+		}
+		hidden_effect = {
+			create_character = {
+				female = no
+				birth_location = scope:building_province
+				save_scope_as = murdered_master
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.18.a
+		add_stability = -3
+		kill_character = {
+			target = scope:murdered_master
+			reason = beheading # Imperator death_decapitated
+		}
+	}
+	option = {
+		name = inv_building_events.18.b
+		add_manpower = -2
+		add_gold = -50
+		kill_character = {
+			target = scope:murdered_master
+			reason = beheading # Imperator death_decapitated
+		}
+	}
+}
+
+# The aqueducts of a restless province spring leaks.
+inv_building_events.26 = {
+	type = country_event
+	title = inv_building_events.26.t
+	desc = inv_building_events.26.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = economy_building_cooldown }
+		any_owned_location = {
+			location_building_level = { # Imperator num_of_aqueduct_building >= 2
+				building_type = building_type:aqueduct_system
+				value >= 2
+			}
+			average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2; EU5 has no location unrest value, low pop satisfaction used
+			# exists = governor_or_ruler (always true in EU5: the ruler stands in)
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = economy_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				location_building_level = {
+					building_type = building_type:aqueduct_system
+					value >= 2
+				}
+				average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2
+			}
+			save_scope_as = building_province
+		}
+		# scope:building_province.governor_or_ruler = { save_scope_as = aqueduct_governor }
+		ruler ?= { save_scope_as = aqueduct_governor } #P:A TODO Approximate: Imperator portrayed the province's governor (or the ruler if none); EU5 has no governors, the ruler is used
+	}
+
+	option = {
+		name = inv_building_events.26.a
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = grateful_populace_modifier
+				days = -1 # Imperator duration = -1850 (negative, i.e. permanent)
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.26.b
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_heavy_unrest
+				days = -1 # Imperator duration = -1850 (negative, i.e. permanent)
+			}
+		}
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+	}
+}
+
+# The aqueducts of a restless province are sabotaged.
+inv_building_events.27 = {
+	type = country_event
+	title = inv_building_events.27.t
+	desc = inv_building_events.27.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = economy_building_cooldown }
+		any_owned_location = {
+			location_building_level = { # Imperator num_of_aqueduct_building >= 2
+				building_type = building_type:aqueduct_system
+				value >= 2
+			}
+			average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2; EU5 has no location unrest value, low pop satisfaction used
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = economy_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				location_building_level = {
+					building_type = building_type:aqueduct_system
+					value >= 2
+				}
+				average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2
+			}
+			save_scope_as = building_province
+		}
+		scope:building_province = {
+			change_building_level_in_location = { # Imperator remove_building_level = aqueduct_building
+				building = building_type:aqueduct_system
+				value = -1
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.27.a
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 1840
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.27.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+	}
+}
+
+# The aqueducts of a province bring it renown and prosperity.
+inv_building_events.28 = {
+	type = country_event
+	title = inv_building_events.28.t
+	desc = inv_building_events.28.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { has_variable = economy_building_cooldown }
+		any_owned_location = {
+			location_building_level = { # Imperator num_of_aqueduct_building >= 2
+				building_type = building_type:aqueduct_system
+				value >= 2
+			}
+			average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2; EU5 has no location unrest value, low pop satisfaction used
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = economy_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				location_building_level = {
+					building_type = building_type:aqueduct_system
+					value >= 2
+				}
+				average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.28.a
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = happy_city_reward_modifier
+				days = 1840
+			}
+		}
+	}
+}
+
+# The high priest is murdered while visiting the temples of a restless province.
+inv_building_events.29 = {
+	type = country_event
+	title = inv_building_events.29.t
+	desc = inv_building_events.29.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		# any_character = { OR = { has_office = office_pontifex has_office = office_high_priest has_office = office_high_priest_monarchy } }
+		any_character = { #P:A TODO Approximate: Imperator required a pontifex/high priest office holder; EU5 has no offices, a clergy-estate character stands in
+			has_estate = estate_type:clergy_estate
+		}
+		NOT = { has_variable = economy_building_cooldown }
+		any_owned_location = {
+			dominant_religion = root.religion # Imperator this.religion = root.religion
+			has_building = building_type:temple
+			average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2; EU5 has no location unrest value, low pop satisfaction used
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = economy_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				dominant_religion = root.religion
+				has_building = building_type:temple
+				average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2
+			}
+			save_scope_as = building_province
+		}
+		random_character = {
+			limit = {
+				has_estate = estate_type:clergy_estate #P:A TODO Approximate: Imperator pontifex/high priest office holder
+			}
+			save_scope_as = dead_priest
+		}
+	}
+
+	option = {
+		name = inv_building_events.29.a
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 3
+			min = -6000
+		}
+	}
+	option = {
+		name = inv_building_events.29.b
+		add_stability = -3
+	}
+}
+
+# The magistrates of a temple province ask for help funding a religious festival.
+inv_building_events.30 = {
+	type = country_event
+	title = inv_building_events.30.t
+	desc = inv_building_events.30.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { has_variable = economy_building_cooldown }
+		any_owned_location = {
+			dominant_religion = root.religion # Imperator this.religion = root.religion
+			has_building = building_type:temple
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = economy_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				dominant_religion = root.religion
+				has_building = building_type:temple
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.30.a
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 8
+			min = -6000
+		}
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_economic_boom_modifier
+				days = 1840
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.30.b
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_heavy_unrest
+				days = 1840
+			}
+		}
+	}
+}
+
+# Lightning strikes a temple; the locals fear an omen.
+inv_building_events.31 = {
+	type = country_event
+	title = inv_building_events.31.t
+	desc = inv_building_events.31.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = economy_building_cooldown }
+		any_owned_location = {
+			dominant_religion = root.religion # Imperator this.religion = root.religion
+			has_building = building_type:temple
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = economy_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				dominant_religion = root.religion
+				has_building = building_type:temple
+			}
+			save_scope_as = building_province
+		}
+		scope:building_province = {
+			change_building_level_in_location = { # Imperator remove_building_level = temple_building
+				building = building_type:temple
+				value = -1
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.31.a
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 3
+			min = -6000
+		}
+		add_stability = 3
+	}
+	option = {
+		name = inv_building_events.31.b
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 6
+			ceiling = yes
+			max = 1000
+			min = 10
+		}
+		# current_ruler = { add_corruption = 5 }
+		#P:A TODO No EU5 equivalent: +5 corruption for the ruler (EU5 characters have no corruption)
+	}
+}
+
+# A province with overflowing granaries shares its surplus with a starving neighbor.
+inv_building_events.32 = {
+	type = country_event
+	title = inv_building_events.32.t
+	desc = inv_building_events.32.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { has_variable = economy_building_cooldown }
+		any_province = { # Imperator any_country_state
+			province_food >= 1200 #P:A TODO Approximate: Imperator has_state_food >= 1200; EU5 province food stockpile has a different scale
+			pa_imp_granaries_in_state >= 2
+			pa_imp_state_food_current >= pa_imp_state_food_max
+			area = {
+				any_neighbor_area = {
+					# Imperator: every province of that area owned by root has a starving state
+					any_province_in_area = {
+						owner = root
+						province_food <= pa_imp_low_state_food
+					}
+					NOT = {
+						any_province_in_area = {
+							owner = root
+							province_food > pa_imp_low_state_food
+						}
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = economy_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_province = { # Imperator random_country_state
+			limit = {
+				province_food >= 1200 #P:A TODO Approximate: Imperator has_state_food >= 1200
+				pa_imp_granaries_in_state >= 2
+				pa_imp_state_food_current >= pa_imp_state_food_max
+				area = {
+					any_neighbor_area = {
+						any_province_in_area = {
+							owner = root
+							province_food <= pa_imp_low_state_food
+						}
+						NOT = {
+							any_province_in_area = {
+								owner = root
+								province_food > pa_imp_low_state_food
+							}
+						}
+					}
+				}
+			}
+			area = {
+				random_neighbor_area = {
+					limit = {
+						any_province_in_area = {
+							owner = root
+							province_food <= pa_imp_low_state_food
+						}
+						NOT = {
+							any_province_in_area = {
+								owner = root
+								province_food > pa_imp_low_state_food
+							}
+						}
+					}
+					# Imperator took the state of any province of the area; restricted here to a starving one of root's
+					random_province_in_area = {
+						limit = {
+							owner = root
+							province_food <= pa_imp_low_state_food
+						}
+						save_scope_as = state_to_help
+						province_capital = {
+							save_scope_as = prov_to_help
+						}
+					}
+				}
+			}
+			save_scope_as = helping_state
+			province_capital = {
+				save_scope_as = helping_prov
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.32.a
+		add_stability = 1
+		scope:helping_state = {
+			change_province_food = { #P:A TODO Approximate: Imperator moved 200 state food; EU5 province food stockpile has a different scale
+				value = 200
+				multiply = -1
+			}
+		}
+		scope:state_to_help = {
+			change_province_food = 200
+		}
+	}
+}
+
+# Mold spreads through the granaries of a province.
+inv_building_events.33 = {
+	type = country_event
+	title = inv_building_events.33.t
+	desc = inv_building_events.33.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = economy_building_cooldown }
+		any_province = { # Imperator any_country_state
+			any_location_in_province = {
+				count >= 2
+				owner = root
+				location_building_level = { #P:A TODO Approximate: Imperator num_of_population_building >= 2 (granaries); EU5 granary level >= 2
+					building_type = building_type:granary
+					value >= 2
+				}
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = economy_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_province = { # Imperator random_country_state
+			limit = {
+				any_location_in_province = {
+					count >= 2
+					owner = root
+					location_building_level = {
+						building_type = building_type:granary
+						value >= 2
+					}
+				}
+			}
+			random_location_in_province = {
+				limit = {
+					owner = root
+					location_building_level = {
+						building_type = building_type:granary
+						value >= 2
+					}
+				}
+				save_scope_as = building_province
+			}
+			save_scope_as = building_state
+		}
+	}
+
+	option = {
+		name = inv_building_events.33.a
+		# current_ruler = { add_popularity = 5 }
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 3
+			min = -6000
+		}
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = grateful_populace_modifier
+				days = 1840
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.33.b
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 2
+			max = 5000
+		}
+		# current_ruler = { add_corruption = 5 }
+		#P:A TODO No EU5 equivalent: +5 corruption for the ruler (EU5 characters have no corruption)
+	}
+}
+
+# A starving mob overruns the granaries of a disloyal province and turns on its corrupt governor.
+inv_building_events.34 = {
+	type = country_event
+	title = inv_building_events.34.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					NOT = { has_variable = governor_killed }
+				}
+				# [corrupt_governor] barely escaped mob with [GetHerHis] life
+				desc = inv_building_events.34.desc_1
+			}
+			triggered_desc = {
+				trigger = { has_variable = governor_killed }
+				# [corrupt_governor] killed by mob
+				desc = inv_building_events.34.desc_2
+			}
+		}
+	}
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = economy_building_cooldown }
+		any_owned_location = {
+			province = {
+				province_average_control < 0.2 #P:A TODO Approximate: Imperator state_loyalty < 20; EU5 has no state loyalty, low average control of the province used
+				province_food <= pa_imp_low_state_food
+			}
+			location_building_level = { #P:A TODO Approximate: Imperator num_of_population_building >= 3 (granaries); EU5 granary level >= 3
+				building_type = building_type:granary
+				value >= 3
+			}
+		}
+		# exists = governor
+		# governor = { NOT = { this = root.current_ruler } corruption > 10 }
+		any_character = { #P:A TODO Approximate: Imperator governor of that province (not the ruler) with corruption > 10; EU5 has no governors or corruption, any adult non-ruler character with the corrupt trait is used
+			is_ruler = no
+			is_adult = yes
+			has_trait = corrupt
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = economy_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				province = {
+					province_average_control < 0.2 #P:A TODO Approximate: Imperator state_loyalty < 20
+					province_food <= pa_imp_low_state_food
+				}
+				location_building_level = {
+					building_type = building_type:granary
+					value >= 3
+				}
+			}
+			save_scope_as = building_province
+		}
+		# governor = { save_scope_as = corrupt_governor }
+		random_character = { #P:A TODO Approximate: Imperator took the province's corrupt governor; EU5 has no governors
+			limit = {
+				is_ruler = no
+				is_adult = yes
+				has_trait = corrupt
+			}
+			save_scope_as = corrupt_governor
+		}
+		hidden_effect = {
+			random = {
+				chance = 15
+				modifier = {
+					factor = 0.5
+					scope:corrupt_governor = {
+						has_trait = embezzler #P:A TODO Approximate: Imperator corruption > 25 (EU5 characters have no corruption); the embezzler trait stands in
+					}
+				}
+				modifier = {
+					factor = 0.5
+					scope:building_province.province = {
+						province_average_control < 0.1 #P:A TODO Approximate: Imperator state_loyalty < 10
+					}
+				}
+				modifier = {
+					factor = 0.5
+					scope:building_province.province = {
+						province_food <= pa_imp_low_state_food
+					}
+				}
+				set_variable = governor_killed
+				scope:corrupt_governor = {
+					pa_imp_random_death = yes
+				}
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.34.a
+		add_manpower = -2
+	}
+	option = {
+		name = inv_building_events.34.b
+		add_stability = -3
+	}
+	after = {
+		remove_variable = governor_killed
+	}
+}
+
+# A freeman murders a nobleman outside a theater.
+inv_building_events.41 = {
+	type = country_event
+	title = inv_building_events.41.t
+	desc = inv_building_events.41.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_freemen >= 3 (3 freemen pops); EU5 checks 3 (thousand) peasants, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:peasants }
+				value >= 3
+			}
+			any_pop = { #P:A TODO Approximate: Imperator freemen_happiness <= 0.60 (average of the freemen); EU5 checks any peasant pop
+				pop_type = pop_type:peasants
+				pop_satisfaction <= 0.6
+			}
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_nobles >= 3 (3 noble pops); EU5 checks 3 (thousand) nobles, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:nobles }
+				value >= 3
+			}
+			has_building = building_type:theater
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = population_building_cooldown
+			days = 9125 # very_long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:peasants }
+					value >= 3
+				}
+				any_pop = {
+					pop_type = pop_type:peasants
+					pop_satisfaction <= 0.6
+				}
+				population_with_traits = {
+					limit = { pop_type = pop_type:nobles }
+					value >= 3
+				}
+				has_building = building_type:theater
+			}
+			save_scope_as = building_province
+			random_pop = {
+				limit = { pop_type = pop_type:nobles }
+				add_pop_size = { #P:A TODO Approximate: Imperator kill_pop removed one whole noble pop; EU5 removes up to 1 (thousand) people from a noble pop
+					value = pop_size
+					multiply = -1
+					min = -1
+				}
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.41.a
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_heavy_unrest
+				days = 1840
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.41.b
+		add_manpower = -2
+		# Take revenge on the freemen, they are too free!
+		scope:building_province = {
+			ordered_pop = {
+				limit = { pop_type = pop_type:peasants }
+				max = 2
+				order_by = pop_satisfaction # Imperator: pop_hapiness
+				add_pop_size = { #P:A TODO Approximate: Imperator kill_pop removed 2 whole freemen pops; EU5 removes up to 1 (thousand) people from each of the 2 most satisfied peasant pops
+					value = pop_size
+					multiply = -1
+					min = -1
+				}
+			}
+		}
+	}
+}
+
+# A famous theater draws nobles from a neighboring foreign province.
+inv_building_events.42 = {
+	type = country_event
+	title = inv_building_events.42.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					NOT = { has_variable = neighbor_mad }
+				}
+				desc = inv_building_events.42.desc
+			}
+			triggered_desc = {
+				# Neighbor wants to fight you (maybe)
+				trigger = {
+					has_variable = neighbor_mad
+				}
+				desc = inv_building_events.42.desc.2
+			}
+		}
+	}
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_nobles >= 3 (noble pops); EU5 checks 3 (thousand) nobles, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:nobles }
+				value >= 3
+			}
+			has_building = building_type:theater
+			any_neighbor_location = {
+				population_with_traits = { #P:A TODO Approximate: Imperator 2 <= num_of_nobles < 15; pop count converted 1:1 to size
+					limit = { pop_type = pop_type:nobles }
+					value >= 2
+				}
+				population_with_traits = {
+					limit = { pop_type = pop_type:nobles }
+					value < 15
+				}
+				exists = owner
+				owner = {
+					NOR = {
+						this = root
+						is_subject_of = root
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = population_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		set_variable = {
+			name = num_nobles_moved
+			value = 0
+		}
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:nobles }
+					value >= 3
+				}
+				has_building = building_type:theater
+				any_neighbor_location = {
+					population_with_traits = {
+						limit = { pop_type = pop_type:nobles }
+						value >= 2
+					}
+					population_with_traits = {
+						limit = { pop_type = pop_type:nobles }
+						value < 15
+					}
+					exists = owner
+					owner = {
+						NOR = {
+							this = root
+							is_subject_of = root
+						}
+					}
+				}
+			}
+			save_scope_as = building_province
+			random_neighbor_location = {
+				limit = {
+					population_with_traits = {
+						limit = { pop_type = pop_type:nobles }
+						value >= 2
+					}
+					exists = owner
+					owner = {
+						NOR = {
+							this = root
+							is_subject_of = root
+						}
+					}
+				}
+				save_scope_as = neighbor_province
+				owner = {
+					save_scope_as = neighbor
+					ruler ?= { save_scope_as = neighbor_ruler }
+				}
+			}
+		}
+		hidden_effect = {
+			# Imperator: moves 1-3 noble pops (ordered_nobles, max = random 1-3) from the neighbor province to ours and counts them
+			scope:neighbor_province = {
+				random_pop = {
+					limit = { pop_type = pop_type:nobles }
+					random_list = { #P:A TODO Approximate: Imperator move_pop moved 1-3 whole noble pops; EU5 splits 1-3 (thousand) nobles off one noble pop and moves them, pop count converted 1:1 to size
+						1 = {
+							split_pop = {
+								size = 1
+								location = scope:building_province
+							}
+							root = { set_variable = { name = num_nobles_moved value = 1 } }
+						}
+						1 = {
+							split_pop = {
+								size = 2
+								location = scope:building_province
+							}
+							root = { set_variable = { name = num_nobles_moved value = 2 } }
+						}
+						1 = {
+							split_pop = {
+								size = 3
+								location = scope:building_province
+							}
+							root = { set_variable = { name = num_nobles_moved value = 3 } }
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				var:num_nobles_moved >= 3
+				scope:neighbor = {
+					opinion = {
+						target = root
+						value < 0
+					}
+				}
+			}
+			set_variable = neighbor_mad
+		}
+	}
+
+	option = {
+		name = inv_building_events.42.a
+		# current_ruler = { add_popularity = 5 }
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+		# Nice we can use the new people!
+	}
+	option = {
+		name = inv_building_events.42.b
+		# [neighbor.GetRuler] is mad we are taking their people...this may mean war...
+		trigger = {
+			has_variable = neighbor_mad
+		}
+		# highlight = yes (no EU5 option field)
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 1840
+			}
+		}
+	}
+	after = {
+		remove_variable = num_nobles_moved
+		remove_variable = neighbor_mad
+	}
+}
+
+# A terrible play provokes a riot at the theater of a provincial city.
+inv_building_events.43 = {
+	type = country_event
+	title = inv_building_events.43.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					var:play_type = flag:drama
+				}
+				desc = inv_building_events.43_drama
+			}
+			triggered_desc = {
+				trigger = {
+					var:play_type = flag:tragedy
+				}
+				desc = inv_building_events.43_tragedy
+			}
+			triggered_desc = {
+				trigger = {
+					var:play_type = flag:comedy
+				}
+				desc = inv_building_events.43_comedy
+			}
+			triggered_desc = {
+				trigger = {
+					var:play_type = flag:satyr
+				}
+				desc = inv_building_events.43_satyr
+			}
+		}
+	}
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_nobles >= 3 (noble pops); EU5 checks 3 (thousand) nobles, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:nobles }
+				value >= 3
+			}
+			any_pop = { #P:A TODO Approximate: Imperator nobles_happiness < 0.75 (average of the nobles); EU5 checks any noble pop
+				pop_type = pop_type:nobles
+				pop_satisfaction < 0.75
+			}
+			has_building = building_type:theater
+			NOT = { region = root.capital.region } #P:A TODO Approximate: Imperator required a governorship other than the capital's; EU5 has no governorships, a region other than the capital's is used
+			# exists = governor #P:A TODO No EU5 equivalent: the governorship's governor (only used for the portrait)
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = population_building_cooldown
+			days = 9125 # very_long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:nobles }
+					value >= 3
+				}
+				any_pop = {
+					pop_type = pop_type:nobles
+					pop_satisfaction < 0.75
+				}
+				has_building = building_type:theater
+				NOT = { region = root.capital.region } #P:A TODO Approximate: Imperator governorship other than the capital's
+			}
+			save_scope_as = building_province
+			# governor = { save_scope_as = theater_governor }
+		}
+		hidden_effect = {
+			random_list = {
+				1 = {
+					set_variable = {
+						name = play_type
+						value = flag:drama
+					}
+				}
+				1 = {
+					set_variable = {
+						name = play_type
+						value = flag:tragedy
+					}
+				}
+				1 = {
+					set_variable = {
+						name = play_type
+						value = flag:comedy
+					}
+				}
+				1 = {
+					set_variable = {
+						name = play_type
+						value = flag:satyr
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.43.a
+		add_stability = -3
+	}
+	option = {
+		name = inv_building_events.43.b
+		add_manpower = -2
+	}
+	after = {
+		remove_variable = play_type
+	}
+}
+
+# An unintegrated minority burns sacred books in a library near the capital.
+inv_building_events.44 = {
+	type = country_event
+	title = inv_building_events.44.t
+	desc = inv_building_events.44.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			region = root.capital.region #P:A TODO Approximate: Imperator required the capital's governorship; EU5 has no governorships, the capital's region is used
+			location_building_level = { # Imperator num_of_library_building >= 2
+				building_type = building_type:library
+				value >= 2
+			}
+			any_pop = {
+				percent >= 0.25
+				culture = {
+					NOT = { is_primary_or_accepted_in = root } # Imperator country_culture is_integrated = no
+				}
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = population_building_cooldown
+			days = 9125 # very_long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				region = root.capital.region #P:A TODO Approximate: Imperator capital's governorship
+				location_building_level = {
+					building_type = building_type:library
+					value >= 2
+				}
+				any_pop = {
+					percent >= 0.25
+					culture = {
+						NOT = { is_primary_or_accepted_in = root }
+					}
+				}
+			}
+			save_scope_as = building_province
+			random_pop = {
+				limit = {
+					culture = {
+						NOT = { is_primary_or_accepted_in = root }
+					}
+				}
+				culture = {
+					save_scope_as = assimilating_culture
+				}
+			}
+			change_building_level_in_location = { # Imperator remove_building_level = library_building
+				building = building_type:library
+				value = -1
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.44.a
+		add_manpower = -3
+	}
+	option = {
+		name = inv_building_events.44.b
+		# add_political_influence = -20
+		#P:A TODO No EU5 equivalent: -20 political influence (EU5 has no political influence)
+	}
+}
+
+# The scholars of a great library make a breakthrough.
+inv_building_events.45 = {
+	type = country_event
+	title = inv_building_events.45.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					var:idea_type = flag:science
+				}
+				desc = inv_building_events.45_science
+			}
+			triggered_desc = {
+				trigger = {
+					var:idea_type = flag:philosophy
+				}
+				desc = inv_building_events.45_philosophy
+			}
+			triggered_desc = {
+				trigger = {
+					var:idea_type = flag:medicine
+				}
+				desc = inv_building_events.45_medicine
+			}
+		}
+	}
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			location_building_level = { # Imperator num_of_library_building >= 3
+				building_type = building_type:library
+				value >= 3
+			}
+			# exists = governor #P:A TODO No EU5 equivalent: the province's governor (only used for a portrait)
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = population_building_cooldown
+			days = 9125 # very_long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				location_building_level = {
+					building_type = building_type:library
+					value >= 3
+				}
+			}
+			save_scope_as = building_province
+			# governor = { save_scope_as = building_governor }
+		}
+		hidden_effect = {
+			random_list = {
+				1 = {
+					set_variable = {
+						name = idea_type
+						value = flag:science
+					}
+				}
+				1 = {
+					set_variable = {
+						name = idea_type
+						value = flag:philosophy
+					}
+				}
+				1 = {
+					set_variable = {
+						name = idea_type
+						value = flag:medicine
+					}
+				}
+			}
+			create_character = {
+				female = no
+				age = 60
+				birth_location = scope:building_province
+				save_scope_as = great_thinker
+			}
+			scope:great_thinker = {
+				add_adm = 20 # Imperator add_finesse = 4
+				# add_zeal = 3 #P:A TODO No EU5 equivalent: +3 zeal (EU5 characters have no zeal skill)
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.45.a
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 2
+			max = 5000
+		}
+	}
+	option = {
+		name = inv_building_events.45.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 1
+			min = -6000
+		}
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_economic_boom_modifier
+				days = 3650
+			}
+		}
+	}
+}
+
+# Philosophers at an academy in a restless province preach revolution.
+inv_building_events.46 = {
+	type = country_event
+	title = inv_building_events.46.t
+	desc = inv_building_events.46.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:academy
+			OR = {
+				average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2; EU5 has no location unrest value, low pop satisfaction used
+				province ?= { province_average_control < 0.25 } #P:A TODO Approximate: Imperator state_loyalty < 25; EU5 has no state loyalty, low average control of the province used
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = population_building_cooldown
+			days = 9125 # very_long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:academy
+				OR = {
+					average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2
+					province ?= { province_average_control < 0.25 } #P:A TODO Approximate: Imperator state_loyalty < 25
+				}
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.46.a
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 3650
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.46.b
+		add_stability = 3
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_heavy_unrest
+				days = 3650
+			}
+		}
+	}
+}
+
+# A beloved provincial governor is found murdered in the marketplace.
+inv_building_events.48 = {
+	type = country_event
+	title = inv_building_events.48.t
+	desc = inv_building_events.48.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:marketplace
+			NOT = { region = root.capital.region } #P:A TODO Approximate: Imperator required a governorship other than the capital's; EU5 has no governorships, a region other than the capital's is used
+		}
+		# exists = governor
+		any_character = { #P:A TODO Approximate: Imperator governor of that province; EU5 has no governors, any adult non-ruler character is used
+			is_ruler = no
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = population_building_cooldown
+			days = 9125 # very_long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:marketplace
+				NOT = { region = root.capital.region } #P:A TODO Approximate: Imperator governorship other than the capital's
+			}
+			save_scope_as = building_province
+		}
+		# governor = { save_scope_as = building_governor }
+		random_character = { #P:A TODO Approximate: Imperator took the province's governor; EU5 has no governors
+			limit = {
+				is_ruler = no
+				is_adult = yes
+			}
+			save_scope_as = building_governor
+		}
+	}
+
+	option = {
+		name = inv_building_events.48.a
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_economic_bust_modifier
+				days = 3650
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.48.b
+		add_manpower = -2
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = grateful_populace_modifier
+				days = 3650
+			}
+		}
+	}
+}
+
+# Thriving markets send a gift to the capital.
+inv_building_events.49 = {
+	type = country_event
+	title = inv_building_events.49.t
+	desc = inv_building_events.49.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:marketplace
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = population_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:marketplace
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.49.a
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 4
+			max = 5000
+		}
+	}
+	option = {
+		name = inv_building_events.49.b
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = grateful_populace_modifier
+				days = 3650
+			}
+		}
+	}
+}
+
+# A corrupt politician on trial offers money for the state's intervention.
+inv_building_events.50 = {
+	type = country_event
+	title = inv_building_events.50.t
+	desc = inv_building_events.50.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		# any_politician = { corruption > 25 }
+		any_character = { #P:A TODO Approximate: Imperator politician with corruption > 25; EU5 has no politicians or corruption, any adult non-ruler character with the corrupt trait is used
+			is_ruler = no
+			is_adult = yes
+			has_trait = corrupt
+		}
+		any_owned_location = {
+			has_building = building_type:court_of_law #P:A TODO Approximate: Imperator court_building mapped to court_of_law
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = population_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_character = { #P:A TODO Approximate: Imperator random_politician with corruption > 25
+			limit = {
+				is_ruler = no
+				is_adult = yes
+				has_trait = corrupt
+			}
+			save_scope_as = politician_on_trial
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:court_of_law #P:A TODO Approximate: Imperator court_building
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.50.a
+		ruler ?= {
+			add_trait = trait:just
+			# add_popularity = 5 #P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+		}
+	}
+	option = {
+		name = inv_building_events.50.b
+		# add_political_influence = 20
+		#P:A TODO No EU5 equivalent: +20 political influence (EU5 has no political influence)
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 6
+			ceiling = yes
+			max = 1000
+			min = 10
+		}
+		# current_ruler = { add_corruption = 5 }
+		#P:A TODO No EU5 equivalent: +5 corruption for the ruler (EU5 characters have no corruption)
+	}
+}
+
+# A provincial governor's courts are hopelessly corrupt.
+inv_building_events.51 = {
+	type = country_event
+	title = inv_building_events.51.t
+	desc = inv_building_events.51.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:court_of_law #P:A TODO Approximate: Imperator court_building mapped to court_of_law
+		}
+		# exists = governor
+		# governor = { corruption > 25 }
+		any_character = { #P:A TODO Approximate: Imperator governor of that province with corruption > 25; EU5 has no governors or corruption, any adult non-ruler character with the corrupt trait is used
+			is_ruler = no
+			is_adult = yes
+			has_trait = corrupt
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = population_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:court_of_law #P:A TODO Approximate: Imperator court_building
+			}
+			save_scope_as = building_province
+		}
+		# scope:building_province = { governor = { save_scope_as = building_governor } }
+		random_character = { #P:A TODO Approximate: Imperator took the province's corrupt governor; EU5 has no governors
+			limit = {
+				is_ruler = no
+				is_adult = yes
+				has_trait = corrupt
+			}
+			save_scope_as = building_governor
+		}
+	}
+
+	option = {
+		name = inv_building_events.51.a
+	}
+	option = {
+		name = inv_building_events.51.b
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 3650
+			}
+		}
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 3
+			max = 5000
+		}
+		# current_ruler = { add_corruption = 5 }
+		#P:A TODO No EU5 equivalent: +5 corruption for the ruler (EU5 characters have no corruption)
+	}
+}
+
+# A military training exercise turns into deadly brawls.
+inv_building_events.52 = {
+	type = country_event
+	title = inv_building_events.52.t
+	desc = inv_building_events.52.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			location_building_level = { #P:A TODO Approximate: Imperator num_of_military_building > 1 (Training Camp); EU5 training_fields level >= 2
+				building_type = building_type:training_fields
+				value >= 2
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = population_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				location_building_level = { #P:A TODO Approximate: Imperator num_of_military_building > 1
+					building_type = building_type:training_fields
+					value >= 2
+				}
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.52.a
+		add_country_modifier = {
+			modifier = grumbling_petty_soldiers
+			days = 365
+		}
+	}
+	option = {
+		name = inv_building_events.52.b
+		add_stability = -3
+		# add_military_experience = 5
+		#P:A TODO No EU5 equivalent: +5 military experience (EU5 army tradition is not a spendable currency)
+	}
+}
+
+# A recruiting drive brings a surge of manpower.
+inv_building_events.53 = {
+	type = country_event
+	title = inv_building_events.53.t
+	desc = inv_building_events.53.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			location_building_level = { #P:A TODO Approximate: Imperator num_of_military_building > 1 (Training Camp); EU5 training_fields level >= 2
+				building_type = building_type:training_fields
+				value >= 2
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = population_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				location_building_level = { #P:A TODO Approximate: Imperator num_of_military_building > 1
+					building_type = building_type:training_fields
+					value >= 2
+				}
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.53.a
+		add_manpower = 3
+		add_stability = 5
+	}
+	option = {
+		name = inv_building_events.53.b
+		add_manpower = 2
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 3
+			max = 5000
+		}
+	}
+}
+
+# Fires gut the training camps of a province.
+inv_building_events.54 = {
+	type = country_event
+	title = inv_building_events.54.t
+	desc = inv_building_events.54.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			location_building_level = { #P:A TODO Approximate: Imperator num_of_military_building > 1 (Training Camp); EU5 training_fields level >= 2
+				building_type = building_type:training_fields
+				value >= 2
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = population_building_cooldown
+			days = 9125 # very_long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				location_building_level = { #P:A TODO Approximate: Imperator num_of_military_building > 1
+					building_type = building_type:training_fields
+					value >= 2
+				}
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.54.a
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_economic_boom_modifier
+				days = 3650
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.54.b
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 3650
+			}
+		}
+		add_stability = -3
+	}
+}
+
+# Citizens in the forum attack an ineffective governor.
+inv_building_events.55 = {
+	type = country_event
+	title = inv_building_events.55.t
+	desc = inv_building_events.55.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_citizen > 5 (citizen pops); EU5 checks more than 5 (thousand) burghers, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:burghers }
+				value > 5
+			}
+			has_building = building_type:forums
+		}
+		# exists = governor
+		any_character = { #P:A TODO Approximate: Imperator governor of that province; EU5 has no governors, any adult non-ruler character is used
+			is_ruler = no
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = population_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:burghers }
+					value > 5
+				}
+				has_building = building_type:forums
+			}
+			save_scope_as = building_province
+		}
+		# governor = { save_scope_as = building_governor }
+		random_character = { #P:A TODO Approximate: Imperator took the province's governor; EU5 has no governors
+			limit = {
+				is_ruler = no
+				is_adult = yes
+			}
+			save_scope_as = building_governor
+		}
+	}
+
+	option = {
+		name = inv_building_events.55.a
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_heavy_unrest
+				days = 3650
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.55.b
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 3650
+			}
+		}
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+	}
+}
+
+# Philosophical schools spring up around the forum of a province.
+inv_building_events.56 = {
+	type = country_event
+	title = inv_building_events.56.t
+	desc = inv_building_events.56.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { has_variable = forum_research_boon_happened }
+		any_owned_location = {
+			has_building = building_type:forums
+		}
+	}
+
+	immediate = {
+		set_variable = forum_research_boon_happened
+		random_owned_location = {
+			limit = {
+				has_building = building_type:forums
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.56.a
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = grateful_populace_modifier
+				days = 3650
+			}
+		}
+	}
+	option = {
+		name = inv_building_events.56.b
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_heavy_unrest
+				days = 3650
+			}
+		}
+	}
+}
+
+# The tax offices of a province fall short of their quotas.
+inv_building_events.57 = {
+	type = country_event
+	title = inv_building_events.57.t
+	desc = inv_building_events.57.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:counting_house #P:A TODO Approximate: Imperator num_of_town_hall_building > 1 (Tax Office level 2+); EU5 counting_house (single level, crown power instead of local tax)
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = population_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:counting_house #P:A TODO Approximate: Imperator num_of_town_hall_building > 1
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = inv_building_events.57.a
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = grateful_populace_modifier
+				days = 3650
+			}
+		}
+		# current_ruler = { add_popularity = 5 }
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+	}
+	option = {
+		name = inv_building_events.57.b
+		add_manpower = -2
+		add_gold = {
+			value = root.monthly_income_total
+			multiply = 3
+			max = 5000
+		}
+		# add_tyranny = 5
+		#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		scope:building_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 3650
+			}
+		}
+	}
+}
+
+# Slaves break free and kill nobles in a province.
+inv_building_events.58 = {
+	type = country_event
+	title = inv_building_events.58.t
+	desc = inv_building_events.58.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = population_building_cooldown }
+		any_owned_location = {
+			has_building = building_type:counting_house #P:A TODO Approximate: Imperator num_of_town_hall_building > 1 (Tax Office level 2+); EU5 counting_house (single level)
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_slaves > 4 (slave pops); EU5 checks more than 4 (thousand) slaves, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:slaves }
+				value > 4
+			}
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_nobles > 3 (noble pops); EU5 checks more than 3 (thousand) nobles, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:nobles }
+				value > 3
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = population_building_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				has_building = building_type:counting_house #P:A TODO Approximate: Imperator num_of_town_hall_building > 1
+				population_with_traits = {
+					limit = { pop_type = pop_type:slaves }
+					value > 4
+				}
+				population_with_traits = {
+					limit = { pop_type = pop_type:nobles }
+					value > 3
+				}
+			}
+			save_scope_as = building_province
+		}
+		scope:building_province = {
+			ordered_pop = {
+				limit = { pop_type = pop_type:nobles }
+				order_by = pop_satisfaction # Imperator: pop_hapiness
+				add_pop_size = { #P:A TODO Approximate: Imperator kill_pop removed 1-4 whole noble pops (the happiest); EU5 removes 1-4 (thousand) people from the most satisfied noble pop
+					integer_range = {
+						min = 1
+						max = 4
+					}
+					max = pop_size
+					multiply = -1
+				}
+			}
+		}
+	}
+
+	option = {
+		name = inv_building_events.58.a
+		add_stability = -3
+	}
+	option = {
+		name = inv_building_events.58.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		# current_ruler = { add_popularity = 5 }
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+	}
+}

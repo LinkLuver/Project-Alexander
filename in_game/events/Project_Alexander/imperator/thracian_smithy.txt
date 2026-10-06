@@ -1,2 +1,92 @@
 ﻿#P:A Imported from Invictus: events/thracian_smithy.txt
 namespace = thracian_smithy_inv
+
+# The master smith hired through the Thracian smithy decision presents his work.
+thracian_smithy_inv.1 = {
+	type = country_event
+	title = thracian_smithy_inv.1.t
+	desc = thracian_smithy_inv.1.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		always = yes
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		random_character = {
+			limit = {
+				culture ?= {
+					OR = {
+						has_culture_group = culture_group:illyrian_group
+						has_culture_group = culture_group:dacian_group
+						# has_culture_group = thrace_group #P:A TODO Approximate: Imperator thrace_group has no separate EU5 group; covered by dacian_group
+					}
+				}
+				adm > 45 # Imperator finesse > 9
+			}
+			save_scope_as = master_smith
+		}
+	}
+
+	option = {
+		name = thracian_smithy_inv.1.a
+		random_list = {
+			# 5 = { trigger = { current_ruler = { NOR = { has_trait = dacian_helmet has_trait = dacian_mantle } } } current_ruler = { add_trait = dacian_helmet } }
+			# 5 = { trigger = { current_ruler = { NOR = { has_trait = dacian_helmet has_trait = dacian_mantle } } } current_ruler = { add_trait = dacian_mantle } }
+			# 5 = { trigger = { current_ruler = { NOR = { has_trait = dacian_weapon has_trait = dacian_shield } } } current_ruler = { add_trait = dacian_weapon } }
+			# 5 = { trigger = { current_ruler = { NOR = { has_trait = dacian_weapon has_trait = dacian_shield } } } current_ruler = { add_trait = dacian_shield } }
+			#P:A TODO No EU5 equivalent: the ruler could receive one of the Imperator item traits dacian_helmet, dacian_mantle, dacian_weapon, dacian_shield (5 each); these traits do not exist in EU5
+			# 10 = { trigger = { NOR = { has_variable = thracian_item_1_variable exists = treasure:thracian_item_1 } } create_country_treasure = { key = thracian_treasure_1 icon = treasure_it_skinfaxi_ritual_sun_chariot modifier = { local_start_experience = 20 } } set_variable = thracian_item_1_variable } # chariot
+			# 10 = { trigger = { NOR = { has_variable = thracian_item_2_variable exists = treasure:thracian_item_2 } } create_country_treasure = { key = thracian_treasure_2 icon = treasure_chest modifier = { local_monthly_food_modifier = 0.25 } } set_variable = thracian_item_2_variable } # sickle
+			# 10 = { trigger = { NOR = { has_variable = thracian_item_3_variable exists = treasure:thracian_item_3 } } create_country_treasure = { key = thracian_treasure_3 icon = treasure_chest modifier = { local_population_growth = 0.1 } } set_variable = thracian_item_3_variable } # plough
+			#P:A TODO No EU5 equivalent: three country treasures (sun chariot +20 local start experience, sickle +25% local food, plough +10% local pop growth); EU5 has no treasures. Only the two modifier items below remain, so the odds changed
+			5 = { # Banner
+				trigger = {
+					NOT = { has_variable = gallic_item_7_variable }
+				}
+				add_country_modifier = {
+					modifier = gallic_item_7
+					days = -1
+				}
+				set_variable = gallic_item_7_variable
+			}
+			5 = { # Prestigious chariot
+				trigger = {
+					NOT = { has_variable = thracian_item_4_variable }
+				}
+				add_country_modifier = {
+					modifier = thracian_item_4
+					days = -1
+				}
+				set_variable = thracian_item_4_variable
+			}
+		}
+	}
+}
+
+# The master smith has nothing left to forge and refunds the payment.
+thracian_smithy_inv.2 = {
+	type = country_event
+	title = thracian_smithy_inv.2.t
+	desc = thracian_smithy_inv.2.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+	}
+
+	option = {
+		name = thracian_smithy_inv.2.a
+		add_gold = 350
+		# add_political_influence = 35
+		#P:A TODO No EU5 equivalent: +35 political influence refunded (EU5 has no political influence)
+	}
+}

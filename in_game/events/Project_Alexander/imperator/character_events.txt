@@ -1,0 +1,2422 @@
+﻿#P:A Imported from Invictus: events/character_events.txt
+# Namespace renamed character_events -> pa_character_events (EU5 already has a character_events namespace).
+# Imperator character events are converted to country events: root = the character's employer, the character is scope:pa_character.
+namespace = pa_character_events
+
+# Hidden: a wealthy character who is not head of his family dies; his fortune is contested (pa_character_events.2).
+# Imperator fired this from on_character_death on the dead character. Written for EU5 on_character_death
+# (root = country, scope:target = the dead character).
+pa_character_events.1 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:target
+		scope:target = {
+			employer = root # Imperator: exists = employer, country = employer
+			# prisoner = no #P:A Removed: prisoner = no is always true in EU5
+			# wealth > 1000 #P:A TODO No EU5 equivalent: the dead character's personal wealth is above 1000 (EU5 characters have no wealth)
+			is_dynasty_head = no
+		}
+		NOT = {
+			has_variable = character_events_1_flag
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about who inherits the dead character's personal fortune (wealth > 1000), and EU5 characters have no wealth
+	}
+
+	weight_multiplier = {
+		base = 1
+		# modifier = { factor = 3 wealth > 2000 } #P:A TODO No EU5 equivalent: 3x as likely if the fortune is above 2000 (EU5 characters have no wealth)
+	}
+
+	immediate = {
+		scope:target = {
+			save_scope_as = target
+		}
+		set_variable = {
+			name = character_events_1_flag
+			value = 1
+		}
+		trigger_event_non_silently = {
+			id = pa_character_events.2
+			days = 90
+		}
+	}
+}
+
+# A dead character's fortune draws claimants.
+pa_character_events.2 = {
+	type = country_event
+	title = pa_character_events.2.t
+	desc = pa_character_events.2.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = ruler
+		any_character = {
+			is_ruler = no
+			# popularity < 60 #P:A TODO No EU5 equivalent: the claimant's popularity is below 60 (EU5 characters have no popularity)
+			# prisoner = no #P:A Removed: prisoner = no is always true in EU5
+			employer = root # Imperator: country = employer
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				is_ruler = no
+				# popularity < 60
+				employer = root
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighted the pick by the character's office/title importance
+			save_scope_as = antagonist
+		}
+	}
+
+	option = {
+		name = pa_character_events.2.a
+		hidden_effect = {
+			remove_variable = character_events_1_flag
+		}
+		# scope:antagonist = { add_gold = 1000 } #P:A TODO No EU5 equivalent: the claimant receives 1000 personal gold (EU5 characters have no wealth)
+	}
+
+	option = {
+		name = pa_character_events.2.b
+		trigger = {
+			scope:target = {
+				num_of_children >= 1
+			}
+		}
+		hidden_effect = {
+			remove_variable = character_events_1_flag
+		}
+		# scope:antagonist = { add_loyalty = loyalty_inheritance_divided } #P:A TODO No EU5 equivalent: the claimant loses loyalty (EU5 characters have no loyalty)
+		custom_tooltip = pa_character_events.2.b.tooltip
+		# hidden_effect = { scope:target = { while = { limit = { any_child = { NOT = { has_variable = inheritance_ftw } } }
+		# 	random_child = { weight = { title_importance_modifier = yes } add_gold = { value = 1000 divide = { value = scope:target.num_of_children } }
+		# 	add_loyalty = loyalty_inheritance_defended set_variable = { name = inheritance_ftw value = 1 } } } } }
+		#P:A TODO No EU5 equivalent: the 1000 gold is split among the dead character's children as personal wealth, and they gain loyalty (EU5 characters have no wealth or loyalty)
+	}
+
+	option = {
+		name = pa_character_events.2.c
+		hidden_effect = {
+			remove_variable = character_events_1_flag
+		}
+		# scope:antagonist = { add_gold = 100 add_loyalty = loyalty_inheritance_divided } #P:A TODO No EU5 equivalent: the claimant receives 100 personal gold and loses loyalty (EU5 characters have no wealth or loyalty)
+		add_gold = 100
+	}
+}
+
+# Scandal: a married office holder is caught with a lover.
+pa_character_events.3 = {
+	type = country_event
+	title = pa_character_events.3.t
+	desc = pa_character_events.3.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = character_3_toggle
+		}
+		any_character = {
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, cabinet membership stands in
+			is_adult = yes
+			is_ruler = no
+			is_married = yes
+			is_female = no
+			# prisoner = no #P:A Removed: prisoner = no is always true in EU5
+			any_spouse = { # Imperator: exists = spouse, spouse = { ... }
+				pa_imp_char_valid_for_country_events_trigger = yes
+				is_alive = yes
+			}
+		}
+		any_character = {
+			is_female = yes
+			is_ruler = no
+			is_married = no
+			is_adult = yes
+			# prisoner = no
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = character_3_toggle
+			days = 1825
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+				is_adult = yes
+				is_ruler = no
+				is_married = yes
+				is_female = no
+				any_spouse = {
+					pa_imp_char_valid_for_country_events_trigger = yes
+					is_alive = yes
+				}
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighted the pick by the character's office/title importance
+			save_scope_as = character_events_3_target
+			set_variable = {
+				name = character_events_3_target_var
+				days = 1
+			}
+			random_spouse = {
+				limit = {
+					pa_imp_char_valid_for_country_events_trigger = yes
+					is_alive = yes
+				}
+				save_scope_as = character_events_3_spouse
+			}
+		}
+		hidden_effect = {
+			random_list = {
+				25 = {
+					trigger = {
+						any_character = {
+							is_female = no
+							is_ruler = no
+							is_married = no
+							is_adult = yes
+							# prisoner = no
+						}
+					}
+					random_character = {
+						limit = {
+							is_female = no
+							is_ruler = no
+							is_married = no
+							is_adult = yes
+							NOT = {
+								has_variable = character_events_3_target_var
+							}
+						}
+						# weight = { title_importance_modifier = yes }
+						save_scope_as = character_events_3_lover
+					}
+				}
+				75 = {
+					trigger = {
+						any_character = {
+							is_female = yes
+							is_married = no
+							is_ruler = no
+							is_adult = yes
+							# prisoner = no
+						}
+					}
+					random_character = {
+						limit = {
+							is_female = yes
+							is_married = no
+							is_ruler = no
+							is_adult = yes
+							NOT = {
+								has_variable = character_events_3_target_var
+							}
+						}
+						# weight = { title_importance_modifier = yes }
+						save_scope_as = character_events_3_lover
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.3.a
+		if = {
+			limit = {
+				pa_imp_country_has_democratic_party_trigger = yes
+			}
+			pa_imp_democratic_approval_effect = {
+				VALUE = 10 # party_approval_medium
+			}
+		}
+		# ruler = { add_popularity = -5 } #P:A TODO No EU5 equivalent: the ruler loses 5 popularity (subtract_popularity_small; EU5 characters have no popularity)
+		# scope:character_events_3_spouse = { add_loyalty = loyalty_scandal_ignored add_rival = scope:character_events_3_lover }
+		#P:A TODO No EU5 equivalent: the betrayed spouse loses loyalty and becomes the lover's rival (EU5 characters have no loyalty or character rivals)
+	}
+	option = {
+		name = pa_character_events.3.b
+		# scope:character_events_3_target = { add_prominence = -10 } #P:A TODO No EU5 equivalent: the unfaithful official loses 10 prominence (EU5 characters have no prominence)
+		if = { #P:A TODO Approximate: Imperator remove_all_offices; EU5 has no offices, the official is removed from the cabinet
+			limit = {
+				scope:character_events_3_target = {
+					in_cabinet = yes
+				}
+			}
+			remove_from_cabinet = scope:character_events_3_target
+		}
+	}
+	option = {
+		name = pa_character_events.3.c
+		# scope:character_events_3_spouse = { add_loyalty = loyalty_scandal_placated } #P:A TODO No EU5 equivalent: the spouse gains loyalty (EU5 characters have no loyalty)
+		random_list = {
+			75 = {
+				# scope:character_events_3_target = { add_loyalty = loyalty_scandal_flogged } #P:A TODO No EU5 equivalent: the flogged official loses loyalty (EU5 characters have no loyalty)
+			}
+			25 = {
+				# trigger = { NOT = { scope:character_events_3_target = { has_trait = wounded } } }
+				# scope:character_events_3_target = { add_trait = wounded }
+				#P:A TODO No EU5 equivalent: the flogged official is wounded (EU5 has no wounded trait)
+			}
+			25 = {
+				trigger = {
+					scope:character_events_3_target = {
+						OR = {
+							# has_trait = wounded #P:A TODO No EU5 equivalent: Imperator wounded trait
+							has_trait = maimed
+						}
+					}
+				}
+				kill_character = { #P:A TODO Approximate: Imperator death_flogging; EU5 has no flogging death reason, execution used
+					target = scope:character_events_3_target
+					reason = execution
+				}
+			}
+		}
+	}
+}
+
+# Hidden: a character who moves to (or is captured by) another country becomes a foreign citizen there.
+# Imperator fired this from on_being_captured and on_move_country on the character. EU5 has no captured characters.
+# Meant for EU5 on_character_moved_country (root = character, scope:target = new country, scope:owner = old country):
+# the on_action has to save the character as pa_character and fire this event on scope:target.
+# No random-character fallback: the event only makes sense for the character who moved.
+pa_character_events.4 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:pa_character
+	}
+
+	immediate = {
+		scope:pa_character = {
+			if = {
+				limit = {
+					# is_governor = no #P:A Removed: EU5 has no governors, so this is always true
+					is_mercenary_leader = no # Imperator is_mercenary
+					is_alive = yes
+					# trigger_if = { limit = { has_variable = came_from } NOT = { employer = { civil_war_with = root.var:came_from } } }
+					#P:A TODO No EU5 equivalent: Imperator exempted a character who had joined the other side of a civil war against his former country (var:came_from was set by the Invictus on_move_country; EU5 has no country-vs-country civil war trigger)
+					NOT = {
+						has_character_modifier = foreign_citizen
+					}
+				}
+				add_character_modifier = {
+					modifier = foreign_citizen
+					days = -1
+				}
+			}
+		}
+	}
+}
+
+# Hidden: a child born to foreign-citizen parents is a foreign citizen too.
+# Imperator fired this from on_giving_birth (root = mother, scope:newborn). Written for EU5 on_character_birth
+# (root = country, scope:character = the newborn); the mother is read from the newborn.
+pa_character_events.5 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:character
+		scope:character = {
+			exists = mother
+			mother = {
+				OR = {
+					any_spouse = { # spouse is a foreign citizen at the same court
+						is_alive = yes
+						employer = root # Imperator: employer = root.employer (the mother's employer)
+						has_character_modifier = foreign_citizen
+					}
+					AND = { # spouse is dead, abroad or a citizen, and the mother is a foreign citizen
+						any_spouse = {
+							NOR = {
+								is_alive = yes
+								employer = root
+								has_character_modifier = foreign_citizen
+							}
+						}
+						has_character_modifier = foreign_citizen
+					}
+					AND = { # unmarried foreign-citizen mother
+						num_of_spouses = 0 # Imperator: NOT = { exists = spouse }
+						has_character_modifier = foreign_citizen
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		scope:character = {
+			add_character_modifier = {
+				modifier = foreign_citizen
+				days = -1
+			}
+		}
+	}
+}
+
+# A disgruntled former commander with loyal troops turns one of the ruler's friends against him.
+pa_character_events.6 = {
+	type = country_event
+	title = pa_character_events.6.t
+	desc = pa_character_events.6.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = character_6_toggle
+		}
+		# ruler = { num_of_friends >= 1 any_friend = { employer = root } }
+		#P:A TODO No EU5 equivalent: the ruler has a friend at court (EU5 has no character friendships)
+		any_character = {
+			is_ruler = no
+			is_general = no
+			# loyalty < 50 #P:A TODO No EU5 equivalent: the character's loyalty is below 50 (EU5 characters have no loyalty)
+			# num_loyal_cohorts >= 10 #P:A TODO No EU5 equivalent: at least 10 cohorts personally loyal to the character (EU5 has no loyal cohorts)
+			# NOT = { is_friend = root.current_ruler }
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about a ruler's friend being swayed by a disloyal ex-general with loyal cohorts (EU5 has no friendships, loyalty or loyal cohorts)
+	}
+
+	immediate = {
+		set_variable = {
+			name = character_6_toggle
+			days = 3650
+		}
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				is_general = no
+				# loyalty < 50
+				# num_loyal_cohorts >= 10
+				# NOT = { is_friend = root.current_ruler }
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighted the pick by the character's office/title importance
+			save_scope_as = angry_ex_general
+		}
+		# random_character = { limit = { is_friend = root.current_ruler employer = root } weight = { title_importance_modifier = yes } save_scope_as = swayed_friend }
+		#P:A TODO No EU5 equivalent: picks a friend of the ruler as swayed_friend (EU5 has no character friendships)
+	}
+
+	option = {
+		name = pa_character_events.6.a
+		# scope:swayed_friend = {
+		# 	remove_friend = root.current_ruler
+		# 	if = { limit = { can_get_friends = yes NOT = { is_friend = scope:angry_ex_general } }
+		# 		if = { limit = { is_rival = scope:angry_ex_general } remove_rival = scope:angry_ex_general }
+		# 		add_friend = scope:angry_ex_general
+		# 	}
+		# 	add_loyalty = loyalty_swayed_friend
+		# }
+		#P:A TODO No EU5 equivalent: the ruler's friend drops the ruler, befriends the ex-general and loses loyalty (EU5 has no friendships, rivalries or loyalty)
+	}
+}
+
+# A former general idling in a research office broods over his lost command.
+pa_character_events.7 = {
+	type = country_event
+	title = pa_character_events.7.t
+	desc = pa_character_events.7.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		any_character = {
+			is_ruler = no
+			is_general = no
+			# has_tech_office = yes #P:A TODO No EU5 equivalent: the character holds a research office (EU5 has no offices or research offices)
+			# num_loyal_cohorts >= 10 #P:A TODO No EU5 equivalent: at least 10 cohorts personally loyal to the character (EU5 has no loyal cohorts)
+		}
+		NOT = {
+			has_variable = character_7_toggle
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about a former general with loyal cohorts wasting away in a research office (EU5 has neither); its only gates are untranslatable
+	}
+
+	immediate = {
+		set_variable = {
+			name = character_7_toggle
+			days = 3650
+		}
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				is_general = no
+				# has_tech_office = yes
+				# num_loyal_cohorts >= 10
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighted the pick by the character's office/title importance
+			save_scope_as = angry_ex_general
+		}
+	}
+
+	option = {
+		name = pa_character_events.7.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -6
+			min = -6000
+		}
+		# scope:angry_ex_general = { add_gold = { value = root.has_monthly_income multiply = 6 } } #P:A TODO No EU5 equivalent: the 6 months of income go to the character's personal wealth (EU5 characters have no wealth)
+	}
+
+	option = {
+		name = pa_character_events.7.b
+		add_country_modifier = {
+			modifier = bad_research_general_modifier
+			days = 1825
+		}
+	}
+}
+
+# Hidden: a new ruler stops being a foreign citizen.
+# Imperator fired this from on_ruler_change; meant for EU5 on_new_ruler (root = country).
+pa_character_events.8 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = ruler
+		ruler = {
+			has_character_modifier = foreign_citizen
+		}
+	}
+
+	immediate = {
+		ruler = {
+			remove_character_modifier = foreign_citizen
+		}
+	}
+}
+
+# Hidden: a deeply indebted character is brought before the court's chief justice (pa_character_events.11).
+# Imperator fired this from yearly_debt_pulse on the character; meant for a yearly EU5 country pulse.
+pa_character_events.10 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				# wealth <= -100 #P:A TODO No EU5 equivalent: the character's personal debt is at least 100 (EU5 characters have no wealth)
+				is_ruler = no
+				is_general = no
+				is_adult = yes
+				NOT = {
+					has_variable = prison_refused
+				}
+				# NOR = { has_office = office_magistrate has_office = office_praetor has_office = office_steward }
+			}
+		}
+		trigger_else = {
+			any_character = {
+				# wealth <= -100
+				is_ruler = no
+				is_general = no
+				is_adult = yes
+				NOT = {
+					has_variable = prison_refused
+				}
+			}
+		}
+		# any_character = { OR = { has_office = office_magistrate has_office = office_praetor has_office = office_steward } }
+		#P:A TODO No EU5 equivalent: the court has a magistrate, praetor or steward to judge the debtor, who must not hold one of those offices himself (EU5 has no offices)
+		NOT = {
+			has_variable = ongoing_trial
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about imprisoning a character for personal debt (EU5 characters have no wealth and cannot be imprisoned)
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = no
+					is_general = no
+					is_adult = yes
+					NOT = {
+						has_variable = prison_refused
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			save_scope_as = debtor
+		}
+		# random_character = { limit = { OR = { has_office = office_magistrate has_office = office_praetor has_office = office_steward } } weight = { title_importance_modifier = yes } save_scope_as = chief_justice }
+		random_character = { #P:A TODO Approximate: Imperator picked the magistrate, praetor or steward (justice offices); EU5 has no offices, a cabinet member stands in
+			limit = {
+				in_cabinet = yes
+				NOT = { this = scope:debtor }
+			}
+			save_scope_as = chief_justice
+		}
+		trigger_event_non_silently = pa_character_events.11
+	}
+}
+
+# A debtor is imprisoned until the debt is paid.
+pa_character_events.11 = {
+	type = country_event
+	title = pa_character_events.11.t
+	desc = pa_character_events.11.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:chief_justice
+		exists = scope:debtor
+		scope:debtor = {
+			is_alive = yes
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = ongoing_trial
+			days = 365
+		}
+	}
+
+	option = {
+		name = pa_character_events.11.a
+		# imprison = { target = scope:debtor } #P:A TODO No EU5 equivalent: the debtor is imprisoned (EU5 has no imprisonment)
+		custom_tooltip = working_towards_release_tooltip
+		# scope:chief_justice = { add_prominence = 2 } #P:A TODO No EU5 equivalent: the chief justice gains 2 prominence (prominence_small; EU5 characters have no prominence)
+		hidden_effect = {
+			scope:debtor = {
+				add_character_modifier = {
+					modifier = debt_payoff_toggle
+					days = -1
+				}
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.11.b
+		trigger = {
+			# scope:debtor = { num_loyal_cohorts >= 10 }
+			always = no #P:A TODO No EU5 equivalent: only available if the debtor has at least 10 cohorts personally loyal to him (EU5 has no loyal cohorts)
+		}
+		custom_tooltip = loyal_cohorts_say_no
+		exclusive = yes
+		# highlight = yes (no EU5 option field; it only highlighted the option)
+		scope:debtor = {
+			# add_prominence = 10 #P:A TODO No EU5 equivalent: the debtor gains 10 prominence (EU5 characters have no prominence)
+			hidden_effect = {
+				set_variable = {
+					name = prison_refused
+				}
+			}
+		}
+		# scope:chief_justice = { add_popularity = -5 add_prominence = -5 } #P:A TODO No EU5 equivalent: the chief justice loses 5 popularity and 5 prominence (EU5 characters have neither)
+	}
+}
+
+# Hidden: an indebted, martially skilled character secretly fights in the pits for money.
+# Imperator fired this from yearly_debt_pulse (characters with wealth < 0, not imprisoned, adult); meant for a yearly EU5 country pulse.
+pa_character_events.12 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				is_adult = yes # yearly_debt_pulse gate
+				# wealth < 0 # yearly_debt_pulse gate
+				is_general = no
+				mil >= 30 # Imperator martial >= 6
+				# trigger_if = { limit = { employer = { gender_equality = no } } is_female = no }
+				#P:A TODO No EU5 equivalent: without gender equality the character had to be male (EU5 gender_equality is a modifier, not a trigger)
+				NOT = {
+					has_character_modifier = secret_pit_fighter
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_adult = yes
+				is_general = no
+				mil >= 30
+				NOT = {
+					has_character_modifier = secret_pit_fighter
+				}
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about a character paying off personal debt (yearly_debt_pulse fired only for wealth < 0) and earns him 600 personal gold; EU5 characters have no wealth
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_adult = yes
+					is_general = no
+					mil >= 30
+					NOT = {
+						has_character_modifier = secret_pit_fighter
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			# add_gold = 600 #P:A TODO No EU5 equivalent: +600 personal gold (EU5 characters have no wealth)
+			add_character_modifier = {
+				modifier = secret_pit_fighter
+				days = 3650
+			}
+		}
+	}
+}
+
+# Hidden: an indebted character takes up gambling in secret.
+# Imperator fired this from yearly_debt_pulse (characters with wealth < 0, not imprisoned, adult); meant for a yearly EU5 country pulse.
+pa_character_events.13 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				is_adult = yes # yearly_debt_pulse gate
+				# wealth < 0 # yearly_debt_pulse gate
+				NOR = {
+					has_character_modifier = secret_gambler
+					has_character_modifier = reformed_gambler
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_adult = yes
+				NOR = {
+					has_character_modifier = secret_gambler
+					has_character_modifier = reformed_gambler
+				}
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about a character in personal debt (yearly_debt_pulse fired only for wealth < 0); EU5 characters have no wealth
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_adult = yes
+					NOR = {
+						has_character_modifier = secret_gambler
+						has_character_modifier = reformed_gambler
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			add_character_modifier = {
+				modifier = secret_gambler
+				days = -1
+			}
+		}
+	}
+}
+
+# Hidden: a secret gambler gives up gambling.
+# Imperator fired this from character_story_events (random character pulse); meant for a periodic EU5 country pulse.
+pa_character_events.14 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				has_character_modifier = secret_gambler
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_character_modifier = secret_gambler
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_character_modifier = secret_gambler
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			remove_character_modifier = secret_gambler
+			add_character_modifier = {
+				modifier = reformed_gambler
+				days = -1
+			}
+		}
+	}
+}
+
+# Hidden: a new ruler loses the debt, pit-fighting and gambling modifiers.
+# Imperator fired this from on_ruler_change; meant for EU5 on_new_ruler (root = country).
+pa_character_events.15 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = ruler
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				ruler = {
+					has_character_modifier = debt_payoff_toggle
+				}
+			}
+			ruler = {
+				remove_character_modifier = debt_payoff_toggle
+			}
+		}
+		if = {
+			limit = {
+				ruler = {
+					has_character_modifier = secret_pit_fighter
+				}
+			}
+			ruler = {
+				remove_character_modifier = secret_pit_fighter
+			}
+		}
+		if = {
+			limit = {
+				ruler = {
+					has_character_modifier = secret_gambler
+				}
+			}
+			ruler = {
+				remove_character_modifier = secret_gambler
+				add_character_modifier = {
+					modifier = reformed_gambler
+					days = -1
+				}
+			}
+		}
+	}
+}
+
+# Hidden: a character who moves to another country loses the debt, pit-fighting, gambling and foreign royalty modifiers.
+# Imperator fired this from on_move_country on the character. Meant for EU5 on_character_moved_country
+# (root = character, scope:target = new country): the on_action has to save the character as pa_character
+# and fire this event on scope:target. No random-character fallback: the event only makes sense for the character who moved.
+pa_character_events.16 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:pa_character
+	}
+
+	immediate = {
+		scope:pa_character = {
+			if = {
+				limit = {
+					has_character_modifier = debt_payoff_toggle
+				}
+				remove_character_modifier = debt_payoff_toggle
+			}
+			if = {
+				limit = {
+					has_character_modifier = secret_pit_fighter
+				}
+				remove_character_modifier = secret_pit_fighter
+			}
+			if = {
+				limit = {
+					has_character_modifier = secret_gambler
+				}
+				remove_character_modifier = secret_gambler
+				add_character_modifier = {
+					modifier = reformed_gambler
+					days = -1
+				}
+			}
+			if = {
+				limit = {
+					has_character_modifier = foreign_royalty
+				}
+				remove_character_modifier = foreign_royalty
+			}
+		}
+	}
+}
+
+# Hidden: an imprisoned character stops gambling.
+# Imperator fired this from on_being_imprisoned on the character.
+#P:A TODO No EU5 equivalent: EU5 has no imprisonment and no on_action for it, so nothing fires this event; kept for a future prison system (needs scope:pa_character)
+pa_character_events.17 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:pa_character
+	}
+
+	immediate = {
+		scope:pa_character = {
+			if = {
+				limit = {
+					has_character_modifier = secret_gambler
+				}
+				remove_character_modifier = secret_gambler
+			}
+		}
+	}
+}
+
+# Hidden: a secret gambler deep in debt gives up gambling.
+# Imperator fired this from character_story_events (random character pulse); meant for a periodic EU5 country pulse.
+pa_character_events.18 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				has_character_modifier = secret_gambler
+				# wealth <= -500 #P:A TODO No EU5 equivalent: the gambler's personal debt is at least 500 (EU5 characters have no wealth); without it this event behaves like pa_character_events.14
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_character_modifier = secret_gambler
+				# wealth <= -500
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_character_modifier = secret_gambler
+					# wealth <= -500
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			remove_character_modifier = secret_gambler
+			add_character_modifier = {
+				modifier = reformed_gambler
+				days = -1
+			}
+		}
+	}
+}
+
+# Hidden: an indebted character in a republic turns to a wealthy leader of another party (pa_character_events.20).
+# Imperator fired this from yearly_debt_pulse on the character; meant for a yearly EU5 country pulse.
+pa_character_events.19 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		government_type = government_type:republic # Imperator is_republic
+		# any_character = { is_party_leader = yes wealth >= 500 NOR = { is_same_party_as = root.employer.current_ruler is_same_party_as = root } }
+		#P:A TODO No EU5 equivalent: a wealthy (wealth >= 500) leader of a party other than the ruler's and the debtor's (EU5 has no parties and characters have no wealth)
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				# wealth < -100 #P:A TODO No EU5 equivalent: the character's personal debt is between 100 and 500 (EU5 characters have no wealth)
+				# wealth > -500
+				is_general = no
+				NOR = {
+					has_character_modifier = debt_payoff_toggle
+					has_character_modifier = secret_pit_fighter
+				}
+				# is_party_leader = no #P:A TODO No EU5 equivalent: the character is not a party leader (EU5 has no parties)
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_general = no
+				NOR = {
+					has_character_modifier = debt_payoff_toggle
+					has_character_modifier = secret_pit_fighter
+				}
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about a party leader buying an indebted character's debts for party loyalty (EU5 characters have no wealth and EU5 has no parties)
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_general = no
+					NOR = {
+						has_character_modifier = debt_payoff_toggle
+						has_character_modifier = secret_pit_fighter
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			save_scope_as = debtor
+		}
+		# random_character = { limit = { is_party_leader = yes NOR = { is_same_party_as = root.current_ruler is_same_party_as = scope:debtor } wealth >= 500 } weight = { title_importance_modifier = yes } save_scope_as = randomized_party_leader }
+		#P:A TODO No EU5 equivalent: picks the wealthy leader of another party as randomized_party_leader (EU5 has no parties and characters have no wealth)
+		trigger_event_non_silently = pa_character_events.20
+	}
+}
+
+# A party leader offers to pay an indebted character's debts in exchange for his loyalty.
+pa_character_events.20 = {
+	type = country_event
+	title = pa_character_events.20.t
+	desc = pa_character_events.20.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic # Imperator is_republic
+		exists = scope:debtor
+		exists = scope:randomized_party_leader
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = pa_character_events.20.a
+		# scope:randomized_party_leader = { add_gold = { value = 0 add = scope:debtor.wealth } }
+		# scope:debtor = { add_gold = { value = 0 subtract = wealth } }
+		#P:A TODO No EU5 equivalent: the party leader takes over the debtor's debt and the debtor's wealth is reset to 0 (EU5 characters have no wealth)
+		# scope:debtor = { if = { limit = { is_minor_character = no } family = { add_prestige = -100 } } }
+		#P:A TODO No EU5 equivalent: the debtor's family loses 100 prestige (EU5 dynasties have no prestige)
+		# scope:debtor = { add_party_conviction = { party = scope:randomized_party_leader.character_party value = 20 } }
+		#P:A TODO No EU5 equivalent: the debtor gains 20 conviction for the party leader's party (EU5 has no parties)
+	}
+
+	option = {
+		name = pa_character_events.20.b
+		# add_treasury = { value = 0 add = scope:debtor.wealth }
+		# scope:debtor = { add_gold = { value = 0 subtract = wealth } }
+		#P:A TODO No EU5 equivalent: the state pays the debtor's debt (100-500 gold) out of the treasury and the debtor's wealth is reset to 0 (EU5 characters have no wealth, so the amount is unknown)
+		# scope:debtor = { if = { limit = { is_minor_character = no } family = { add_prestige = -100 } } }
+		#P:A TODO No EU5 equivalent: the debtor's family loses 100 prestige (EU5 dynasties have no prestige)
+		# scope:debtor = { add_party_conviction = { party = root.current_ruler.character_party value = 50 } }
+		#P:A TODO No EU5 equivalent: the debtor gains 50 conviction for the ruler's party (EU5 has no parties)
+	}
+}
+
+# Hidden: a governor adopts the dominant religion of the province he lives in.
+# Imperator fired this from yearly_culture_religion_switch_pulse on the character; meant for a yearly EU5 country pulse.
+pa_character_events.21 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				# is_governor = yes #P:A TODO Approximate: Imperator required a governor; EU5 has no governors, a character living away from the capital stands in
+				is_ruler = no
+				is_heir = no # Imperator is_primary_heir
+				NOT = {
+					has_character_modifier = switched_char_religion
+				}
+				exists = location
+				location = {
+					NOT = { this = root.capital }
+					exists = dominant_religion
+					NOT = { dominant_religion = prev.religion } # Imperator dominant_province_religion
+					# NOT = { governor_policy = religious_conversion } #P:A TODO No EU5 equivalent: not while the governorship runs the religious conversion policy (EU5 has no governor policies)
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = no
+				is_heir = no
+				NOT = {
+					has_character_modifier = switched_char_religion
+				}
+				exists = location
+				location = {
+					NOT = { this = root.capital }
+					exists = dominant_religion
+					NOT = { dominant_religion = prev.religion }
+				}
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 1.5
+			scope:pa_character ?= { has_trait = tolerant }
+		}
+		# modifier = { factor = 1.5 has_trait = lapsed } #P:A TODO No EU5 equivalent: 1.5x as likely for a lapsed character (EU5 has no lapsed trait)
+		# modifier = { factor = 0.75 has_trait = devout } #P:A TODO Approximate: Imperator devout maps to EU5 pious, which already has its own 0.75 factor below
+		# modifier = { factor = 0.75 has_trait = sceptical } #P:A TODO No EU5 equivalent: 0.75x for a sceptical character (EU5 has no sceptical trait)
+		modifier = {
+			factor = 0.75
+			scope:pa_character ?= { has_trait = abrasive }
+		}
+		modifier = {
+			factor = 0.75
+			scope:pa_character ?= { has_trait = pious }
+		}
+		modifier = {
+			factor = 0.75
+			scope:pa_character ?= { has_trait = zealot } # Imperator zealous
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = no
+					is_heir = no
+					NOT = {
+						has_character_modifier = switched_char_religion
+					}
+					exists = location
+					location = {
+						NOT = { this = root.capital }
+						exists = dominant_religion
+						NOT = { dominant_religion = prev.religion }
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			location = {
+				save_scope_as = religion_switch_province
+			}
+			change_character_religion = scope:religion_switch_province.dominant_religion
+			add_character_modifier = {
+				modifier = switched_char_religion
+				days = 1825
+			}
+			# if = { limit = { has_trait = lapsed } remove_trait = lapsed } #P:A TODO No EU5 equivalent: a lapsed character loses the lapsed trait (EU5 has no lapsed trait)
+		}
+	}
+}
+
+# Hidden: a governor adopts the dominant culture of the province he lives in.
+# Imperator fired this from yearly_culture_religion_switch_pulse on the character; meant for a yearly EU5 country pulse.
+pa_character_events.22 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				# is_governor = yes #P:A TODO Approximate: Imperator required a governor; EU5 has no governors, a character living away from the capital stands in
+				is_ruler = no
+				is_heir = no # Imperator is_primary_heir
+				NOT = {
+					has_character_modifier = switched_char_culture
+				}
+				exists = location
+				location = {
+					NOT = { this = root.capital }
+					exists = dominant_culture
+					NOT = { dominant_culture = prev.culture } # Imperator dominant_province_culture
+					# NOT = { governor_policy = cultural_assimilation } #P:A TODO No EU5 equivalent: not while the governorship runs the cultural assimilation policy (EU5 has no governor policies)
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = no
+				is_heir = no
+				NOT = {
+					has_character_modifier = switched_char_culture
+				}
+				exists = location
+				location = {
+					NOT = { this = root.capital }
+					exists = dominant_culture
+					NOT = { dominant_culture = prev.culture }
+				}
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 1.5
+			scope:pa_character ?= { has_trait = tolerant }
+		}
+		# modifier = { factor = 1.5 has_trait = lapsed } #P:A TODO No EU5 equivalent: 1.5x as likely for a lapsed character (EU5 has no lapsed trait)
+		# modifier = { factor = 0.75 has_trait = devout } #P:A TODO Approximate: Imperator devout maps to EU5 pious, which already has its own 0.75 factor below
+		# modifier = { factor = 0.75 has_trait = sceptical } #P:A TODO No EU5 equivalent: 0.75x for a sceptical character (EU5 has no sceptical trait)
+		modifier = {
+			factor = 0.75
+			scope:pa_character ?= { has_trait = abrasive }
+		}
+		modifier = {
+			factor = 0.75
+			scope:pa_character ?= { has_trait = pious }
+		}
+		modifier = {
+			factor = 0.75
+			scope:pa_character ?= { has_trait = zealot } # Imperator zealous
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = no
+					is_heir = no
+					NOT = {
+						has_character_modifier = switched_char_culture
+					}
+					exists = location
+					location = {
+						NOT = { this = root.capital }
+						exists = dominant_culture
+						NOT = { dominant_culture = prev.culture }
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			location = {
+				save_scope_as = culture_switch_province
+			}
+			change_character_culture = scope:culture_switch_province.dominant_culture
+			add_character_modifier = {
+				modifier = switched_char_culture
+				days = 1825
+			}
+		}
+	}
+}
+
+# Hidden: an office holder of foreign culture adopts the culture of his country.
+# Imperator fired this from yearly_culture_religion_switch_pulse on the character; meant for a yearly EU5 country pulse.
+pa_character_events.24 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, cabinet membership stands in
+				is_ruler = no
+				is_heir = no # Imperator is_primary_heir
+				NOT = {
+					has_character_modifier = switched_char_culture
+				}
+				NOT = {
+					culture = root.culture
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				in_cabinet = yes
+				is_ruler = no
+				is_heir = no
+				NOT = {
+					has_character_modifier = switched_char_culture
+				}
+				NOT = {
+					culture = root.culture
+				}
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		# modifier = { factor = 2 has_trait = ambitious } #P:A TODO No EU5 equivalent: 2x as likely for an ambitious character (EU5 has no ambitious trait)
+		# modifier = { factor = 0.75 has_trait = devout } #P:A TODO Approximate: Imperator devout maps to EU5 pious, which already has its own 0.75 factor below
+		# modifier = { factor = 0.75 has_trait = sceptical } #P:A TODO No EU5 equivalent: 0.75x for a sceptical character (EU5 has no sceptical trait)
+		modifier = {
+			factor = 0.75
+			scope:pa_character ?= { has_trait = pious }
+		}
+		modifier = {
+			factor = 0.75
+			scope:pa_character ?= { has_trait = abrasive }
+		}
+		modifier = {
+			factor = 0.75
+			scope:pa_character ?= { has_trait = zealot } # Imperator zealous
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					in_cabinet = yes
+					is_ruler = no
+					is_heir = no
+					NOT = {
+						has_character_modifier = switched_char_culture
+					}
+					NOT = {
+						culture = root.culture
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			change_character_culture = root.culture
+			add_character_modifier = {
+				modifier = switched_char_culture
+				days = 1825
+			}
+		}
+	}
+}
+
+# Switch heir religion to tutor
+pa_character_events.25 = {
+	type = country_event
+	title = pa_character_events.25.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Tutor is foreign
+				trigger = {
+					scope:royal_tutor = {
+						NOT = { religion = root.religion }
+					}
+				}
+				desc = pa_character_events.25.desc_1
+			}
+			triggered_desc = { # Child is foreign
+				trigger = {
+					scope:royal_tutor = {
+						religion = root.religion
+					}
+				}
+				desc = pa_character_events.25.desc_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:monarchy # Imperator is_monarchy
+		exists = heir # Imperator has_primary_heir
+		heir = {
+			is_adult = no
+			NOT = {
+				has_character_modifier = switched_char_religion
+			}
+		}
+		any_character = { #P:A TODO Approximate: Imperator required the holder of the royal tutor office (the first one found) to differ in religion from the heir; EU5 has no offices or tutors, a cabinet member of another religion stands in
+			in_cabinet = yes
+			NOT = { religion = root.heir.religion } # Imperator: NOT = { has_same_religion_as = scope:royal_tutor }
+		}
+	}
+
+	immediate = {
+		heir = {
+			save_scope_as = religion_switch_heir
+		}
+		random_character = { #P:A TODO Approximate: Imperator picked the royal tutor office holder; EU5 has no offices, a cabinet member of another religion stands in
+			limit = {
+				in_cabinet = yes
+				NOT = { religion = scope:religion_switch_heir.religion }
+			}
+			save_scope_as = royal_tutor
+		}
+	}
+
+	option = {
+		name = pa_character_events.25.a
+		trigger = {
+			scope:royal_tutor = {
+				NOT = { religion = root.religion }
+			}
+		}
+		scope:religion_switch_heir = {
+			change_character_religion = scope:royal_tutor.religion
+			add_character_modifier = {
+				modifier = switched_char_religion
+				days = 1825
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.25.b
+		trigger = {
+			scope:royal_tutor = {
+				religion = root.religion
+			}
+		}
+		scope:religion_switch_heir = {
+			change_character_religion = scope:royal_tutor.religion
+			add_character_modifier = {
+				modifier = switched_char_religion
+				days = 1825
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.25.c
+		# scope:royal_tutor = { remove_office = office_royal_tutor }
+		remove_from_cabinet = scope:royal_tutor #P:A TODO Approximate: Imperator removed the royal tutor office; EU5 has no offices, the tutor stand-in leaves the cabinet
+		scope:royal_tutor = {
+			hidden_effect = {
+				pa_imp_remove_all_positions = yes
+			}
+		}
+	}
+}
+
+# Switch heir culture to tutor
+pa_character_events.26 = {
+	type = country_event
+	title = pa_character_events.26.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Tutor is foreign
+				trigger = {
+					scope:royal_tutor = {
+						NOT = { culture = root.culture }
+					}
+				}
+				desc = pa_character_events.26.desc_1
+			}
+			triggered_desc = { # Child is foreign
+				trigger = {
+					scope:royal_tutor = {
+						culture = root.culture
+					}
+				}
+				desc = pa_character_events.26.desc_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:monarchy # Imperator is_monarchy
+		exists = heir # Imperator has_primary_heir
+		heir = {
+			is_adult = no
+			NOT = {
+				has_character_modifier = switched_char_culture
+			}
+		}
+		any_character = { #P:A TODO Approximate: Imperator required the holder of the royal tutor office (the first one found) to differ in culture from the heir; EU5 has no offices or tutors, a cabinet member of another culture stands in
+			in_cabinet = yes
+			NOT = { culture = root.heir.culture } # Imperator: NOT = { has_same_culture_as = scope:royal_tutor }
+		}
+	}
+
+	immediate = {
+		heir = {
+			save_scope_as = culture_switch_heir
+		}
+		random_character = { #P:A TODO Approximate: Imperator picked the royal tutor office holder; EU5 has no offices, a cabinet member of another culture stands in
+			limit = {
+				in_cabinet = yes
+				NOT = { culture = scope:culture_switch_heir.culture }
+			}
+			save_scope_as = royal_tutor
+		}
+	}
+
+	option = {
+		name = pa_character_events.26.a
+		trigger = {
+			scope:royal_tutor = {
+				NOT = { culture = root.culture }
+			}
+		}
+		scope:culture_switch_heir = {
+			change_character_culture = scope:royal_tutor.culture
+			add_character_modifier = {
+				modifier = switched_char_culture
+				days = 1825
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.26.b
+		trigger = {
+			scope:royal_tutor = {
+				culture = root.culture
+			}
+		}
+		scope:culture_switch_heir = {
+			change_character_culture = scope:royal_tutor.culture
+			add_character_modifier = {
+				modifier = switched_char_culture
+				days = 1825
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.26.c
+		# scope:royal_tutor = { remove_office = office_royal_tutor }
+		remove_from_cabinet = scope:royal_tutor #P:A TODO Approximate: Imperator removed the royal tutor office; EU5 has no offices, the tutor stand-in leaves the cabinet
+		scope:royal_tutor = {
+			hidden_effect = {
+				pa_imp_remove_all_positions = yes
+			}
+		}
+	}
+}
+
+# Switch Ruler religion to country
+pa_character_events.27 = {
+	type = country_event
+	title = pa_character_events.27.t
+	desc = pa_character_events.27.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = ruler
+		ruler = {
+			NOT = {
+				religion = root.religion # Imperator has_religion
+			}
+			NOT = {
+				has_variable = will_not_convert
+			}
+			NOT = {
+				has_character_modifier = switched_char_religion
+			}
+			NOT = {
+				has_variable = ruler_rel_switch_toggle
+			}
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+			set_variable = {
+				name = ruler_rel_switch_toggle
+				days = 3650
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.27.a
+		ruler = {
+			change_character_religion = root.religion
+			add_character_modifier = {
+				modifier = switched_char_religion
+				days = 1825
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.27.b
+		# ruler = { add_popularity = 20 } #P:A TODO No EU5 equivalent: the ruler gains 20 popularity (EU5 characters have no popularity)
+		add_stability = -20
+	}
+
+	option = {
+		name = pa_character_events.27.c
+		custom_tooltip = character_too_devout_tooltip
+		trigger = {
+			ruler = {
+				has_trait = pious # Imperator pious or devout (both map to EU5 pious)
+			}
+		}
+		exclusive = yes
+		# highlight = yes (no EU5 option field; it only highlighted the option)
+		ruler = {
+			# add_zeal = 1 #P:A TODO No EU5 equivalent: the ruler gains 1 zeal (EU5 characters have no zeal skill)
+			hidden_effect = {
+				set_variable = {
+					name = will_not_convert
+				}
+			}
+		}
+		add_stability = -25
+	}
+
+	option = {
+		name = pa_character_events.27.d
+		custom_tooltip = sceptical_bad_tooltip
+		trigger = {
+			# ruler = { has_trait = sceptical }
+			always = no #P:A TODO No EU5 equivalent: only available to a ruler with the sceptical trait (EU5 has no sceptical trait)
+		}
+		exclusive = yes
+		# highlight = yes (no EU5 option field; it only highlighted the option)
+		# if = { limit = { current_ruler = { zeal >= 1 } } current_ruler = { add_zeal = -1 } } else = { add_stability_effect = yes }
+		#P:A TODO No EU5 equivalent: a ruler with at least 1 zeal loses 1 zeal instead of the country gaining stability (EU5 characters have no zeal skill); only the stability branch is kept
+		pa_imp_add_stability_effect = yes
+	}
+}
+
+# character_events.29 ("Murder!") not imported: Invictus marks it #Deprecated (one empty option, no immediate, nothing fires it).
+
+# Hidden: after a ruler change, a disloyal sibling of the ruler (a pretender, or the heir with low loyalty) prepares to flee abroad (pa_character_events.31).
+# Imperator fired this from on_ruler_change; meant for EU5 on_new_ruler (root = country).
+pa_character_events.30 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		government_type = government_type:monarchy # Imperator is_monarchy
+		exists = ruler
+		any_character = {
+			is_sibling_of = root.ruler
+			is_adult = yes
+			employer = root
+			NOT = {
+				has_character_modifier = disloyal_successor_cmod
+			}
+			# OR = { is_pretender = yes AND = { is_primary_heir = yes loyalty < 60 } }
+			always = no #P:A TODO No EU5 equivalent: the sibling had to be a pretender to the throne, or the heir with loyalty below 60 (EU5 has no pretender characters or character loyalty); without this gate every adult sibling of a new ruler would flee
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				is_sibling_of = root.ruler
+				is_adult = yes
+				employer = root
+				NOT = {
+					has_character_modifier = disloyal_successor_cmod
+				}
+				# OR = { is_pretender = yes AND = { is_primary_heir = yes loyalty < 60 } }
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighted the pick by the character's office/title importance
+			save_scope_as = fleeing_sibling
+		}
+		random_neighbor_country = {
+			weight = {
+				factor = 1
+				modifier = {
+					factor = 10
+					NOT = {
+						is_allied_with = { target = root } # Imperator alliance_with
+					}
+				}
+				modifier = {
+					factor = 3
+					num_locations >= root.num_locations # Imperator num_of_cities
+				}
+				modifier = {
+					factor = 20
+					OR = {
+						tag = PRY
+						tag = MAC
+						tag = EGY
+						tag = TRE
+						tag = SEL
+					}
+				}
+			}
+			save_scope_as = flight_target
+		}
+		trigger_event_non_silently = {
+			id = pa_character_events.31
+			days = { 20 70 }
+		}
+	}
+}
+
+# The ruler's sibling flees abroad and seeks asylum (the host country decides in pa_character_events.32).
+pa_character_events.31 = {
+	type = country_event
+	title = pa_character_events.31.t
+	desc = pa_character_events.31.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:fleeing_sibling
+		scope:fleeing_sibling = {
+			is_alive = yes
+			is_ruler = no
+		}
+	}
+
+	immediate = {
+		save_scope_as = flight_home_country
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		if = {
+			limit = {
+				NOT = {
+					exists = scope:flight_target
+				}
+			}
+			random_country = {
+				weight = {
+					factor = 1
+					modifier = {
+						factor = 10
+						NOR = {
+							is_allied_with = { target = root } # Imperator alliance_with
+							in_civil_war = yes # Imperator has_civil_war
+							any_current_war = {
+								any_war_participant = {
+									this = root
+								}
+							}
+						}
+					}
+					modifier = {
+						factor = 3
+						num_locations >= root.num_locations # Imperator num_of_cities
+					}
+					modifier = {
+						factor = 10
+						government_type = government_type:monarchy # Imperator is_monarchy
+					}
+					modifier = {
+						factor = 20
+						OR = {
+							tag = PRY
+							tag = MAC
+							tag = EGY
+							tag = TRE
+							tag = SEL
+						}
+					}
+				}
+				save_scope_as = flight_target
+			}
+		}
+		scope:fleeing_sibling = {
+			pa_imp_remove_all_positions = yes
+			move_country = scope:flight_target
+			# set_as_minor_character = this #P:A TODO No EU5 equivalent: the sibling becomes a minor character at the new court (EU5 has no minor characters)
+		}
+		hidden_effect = {
+			scope:flight_target = {
+				trigger_event_non_silently = pa_character_events.32
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.31.a
+		add_legitimacy = -20 # subtract_legitimacy_large
+	}
+
+	option = {
+		name = pa_character_events.31.b
+		scope:flight_target = {
+			add_opinion = {
+				modifier = harboring_fugitive
+				target = root
+			}
+		}
+		add_opinion = {
+			modifier = harbored_fugitive
+			target = scope:flight_target
+		}
+	}
+
+	option = {
+		name = pa_character_events.31.c
+		custom_tooltip = character_events_31_tooltip
+		trigger = {
+			scope:fleeing_sibling = {
+				OR = {
+					is_general = yes
+					is_admiral = yes
+				}
+			}
+		}
+		exclusive = yes
+		# ruler = { add_popularity = -5 } #P:A TODO No EU5 equivalent: the ruler loses 5 popularity (subtract_popularity_small; EU5 characters have no popularity)
+		add_legitimacy = -20 # subtract_legitimacy_large
+	}
+}
+
+# A fleeing royal sibling asks our court for asylum (fired by pa_character_events.31 on the host country).
+pa_character_events.32 = {
+	type = country_event
+	title = pa_character_events.32.t
+	desc = pa_character_events.32.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:flight_home_country
+		exists = scope:fleeing_sibling
+		scope:fleeing_sibling = {
+			is_alive = yes
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		scope:flight_home_country = {
+			ruler = {
+				save_scope_as = pa_home_ruler
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.32.b
+		# ruler = { add_popularity = 10 } #P:A TODO No EU5 equivalent: the ruler gains 10 popularity (popularity_medium; EU5 characters have no popularity)
+		kill_character = { #P:A TODO Approximate: Imperator death_crucified; EU5 has no crucifixion death reason, execution used
+			target = scope:fleeing_sibling
+			reason = execution
+		}
+		custom_tooltip = character_events_32_tooltip
+		show_as_tooltip = {
+			scope:flight_home_country = {
+				add_opinion = {
+					modifier = executed_relative
+					target = scope:flight_target
+				}
+			}
+		}
+		hidden_effect = {
+			scope:flight_home_country = {
+				trigger_event_non_silently = pa_character_events.33
+			}
+		}
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 2
+				is_at_war_with = scope:flight_home_country # Imperator war_with
+			}
+			# modifier = { factor = 2 current_ruler = { is_rival = scope:flight_home_country.current_ruler } } #P:A TODO No EU5 equivalent: twice as likely if the two rulers are personal rivals (EU5 has no character rivalries)
+		}
+	}
+
+	option = {
+		name = pa_character_events.32.c
+		if = {
+			limit = {
+				government_type = government_type:monarchy # Imperator is_monarchy
+			}
+			add_legitimacy = 10 # legitimacy_large
+		}
+		scope:fleeing_sibling = {
+			# add_loyalty = loyalty_pretender_protected #P:A TODO No EU5 equivalent: the sibling gains loyalty to his protectors (EU5 characters have no loyalty)
+			add_character_modifier = {
+				modifier = foreign_royalty
+				days = -1
+			}
+		}
+		ai_chance = {
+			base = 2
+		}
+	}
+}
+
+# The ruler's fugitive sibling was executed abroad (fired by pa_character_events.32 on the home country).
+pa_character_events.33 = {
+	type = country_event
+	title = pa_character_events.33.t
+	desc = pa_character_events.33.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:flight_target
+		exists = scope:fleeing_sibling
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = pa_character_events.33.a
+		# ruler = { add_popularity = 5 } #P:A TODO No EU5 equivalent: the ruler gains 5 popularity (popularity_small; EU5 characters have no popularity)
+		add_opinion = {
+			target = scope:flight_target
+			modifier = executed_relative
+		}
+	}
+
+	option = {
+		name = pa_character_events.33.b
+		# ruler = { add_popularity = -5 } #P:A TODO No EU5 equivalent: the ruler loses 5 popularity (subtract_popularity_small; EU5 characters have no popularity)
+	}
+}
+
+# character_events.34 ("Efforts Failed") not imported: plumbing for the Imperator scheme system - a notification that an
+# "inspire disloyalty" scheme against scope:cancelled_target was cancelled; empty option, nothing in Invictus fires it, and EU5 has no schemes.
+
+# Hidden: a newborn inherits his parents' bloodlines. This has to be an event, don't put it in OA effects.
+# Callers: ip_monarchy.36/.37/.39 (already wired with scope:pa_character = the newborn) and Imperator on_being_born.
+# For on_being_born it is written for EU5 on_character_birth (root = country, scope:character = the newborn).
+pa_character_events.35 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		OR = {
+			exists = scope:pa_character
+			exists = scope:character
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				NOT = { exists = scope:pa_character }
+			}
+			scope:character = {
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			pa_imp_bloodline_on_born_effect = yes
+		}
+	}
+}
+
+# Hidden: a wealthy, disloyal character starts financially supporting a pretender among his friends.
+# Imperator fired this from yearly_financial_support_pulse on the character; meant for a yearly EU5 country pulse.
+pa_character_events.36 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		government_type = government_type:monarchy # Imperator is_monarchy
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				is_ruler = no
+				# is_pretender = no #P:A TODO No EU5 equivalent: the character is not a pretender (EU5 has no pretender characters)
+				is_general = no
+				is_admiral = no
+				# loyalty <= 50 #P:A TODO No EU5 equivalent: loyalty at most 50 (EU5 characters have no loyalty)
+				# wealth >= 1000 #P:A TODO No EU5 equivalent: personal wealth at least 1000 (EU5 characters have no wealth)
+				# any_friend = { employer = root.employer is_pretender = yes loyalty <= 50 NOT = { has_character_modifier = being_financially_supported } }
+				#P:A TODO No EU5 equivalent: a disloyal pretender at the same court among the character's friends (EU5 has no friendships, pretenders or loyalty)
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = no
+				is_general = no
+				is_admiral = no
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about a rich, disloyal courtier funding a pretender friend out of his personal wealth (EU5 has no character wealth, loyalty, friendships or pretenders)
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = no
+					is_general = no
+					is_admiral = no
+				}
+				save_scope_as = pa_character
+			}
+		}
+		# scope:pa_character = {
+		# 	random_friend = { limit = { employer = root is_pretender = yes loyalty <= 50 NOT = { has_character_modifier = being_financially_supported } }
+		# 		weight = { title_importance_modifier = yes } save_scope_as = support_target
+		# 		set_variable = { name = being_financially_supported_var value = scope:pa_character days = 1826 }
+		# 		add_triggered_character_modifier = { name = being_financially_supported duration = 1825 } }
+		# 	set_variable = { name = financially_supporting_var value = scope:support_target days = 1826 }
+		# 	add_triggered_character_modifier = { name = financially_supporting duration = 1825 }
+		# }
+		#P:A TODO No EU5 equivalent: picks the pretender friend as support_target and links the two with variables and the triggered modifiers financially_supporting / being_financially_supported (50 gold a month moves between their personal wealth); EU5 has no friendships or character wealth
+	}
+}
+
+# Hidden: a wealthy, disloyal character befriends a disloyal pretender among the successors.
+# Imperator fired this from yearly_financial_support_pulse on the character; meant for a yearly EU5 country pulse.
+pa_character_events.37 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		government_type = government_type:monarchy # Imperator is_monarchy
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				is_ruler = no
+				is_heir = no # Imperator is_primary_heir
+				is_general = no
+				is_admiral = no
+				# loyalty <= 50 #P:A TODO No EU5 equivalent: loyalty at most 50 (EU5 characters have no loyalty)
+				# wealth >= 1000 #P:A TODO No EU5 equivalent: personal wealth at least 1000 (EU5 characters have no wealth)
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = no
+				is_heir = no
+				is_general = no
+				is_admiral = no
+			}
+		}
+		# any_successor = { is_pretender = yes loyalty < 50 is_adult = yes can_get_friends = yes NOT = { this = <the character> } }
+		#P:A TODO No EU5 equivalent: an adult, disloyal pretender among the country's successors who can still make friends (EU5 has no pretenders, loyalty or friendships)
+		always = no #P:A TODO No EU5 equivalent: the event is about a rich, disloyal courtier befriending a pretender (EU5 has no character wealth, loyalty, friendships or pretenders)
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = no
+					is_heir = no
+					is_general = no
+					is_admiral = no
+				}
+				save_scope_as = pa_character
+			}
+		}
+		# random_successor = { limit = { is_pretender = yes loyalty < 50 is_adult = yes can_get_friends = yes NOT = { this = scope:pa_character } }
+		# 	weight = { modifier = { factor = 100 this = root.preferred_heir } } save_scope_as = disloyal_friend_target }
+		# scope:pa_character = {
+		# 	if = { limit = { can_get_friends = no num_of_friends >= 1 } random_friend = { weight = { modifier = { factor = 100 is_pretender = no } } remove_friend = scope:pa_character } }
+		# 	add_friend = scope:disloyal_friend_target
+		# }
+		#P:A TODO No EU5 equivalent: picks the pretender (preferring the preferred heir) and makes him the character's friend, dropping a non-pretender friend if the friend list is full (EU5 has no friendships or pretenders)
+	}
+}
+
+# The royal tutor asks which education the child (scope:recipient) should receive.
+# Imperator fired this from the character interactions tutor_child / tutor_heir (scope:recipient = the child, scope:target = the tutor).
+#P:A TODO No EU5 equivalent: EU5 has no tutor character interactions, so nothing fires this event yet; a caller has to save scope:recipient and scope:target
+pa_character_events.38 = {
+	type = country_event
+	title = pa_character_events.38.t
+	desc = pa_character_events.38.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:recipient
+	}
+
+	option = {
+		name = pa_character_events.38.a # Military
+		trigger = {
+			scope:recipient = {
+				NOT = { has_child_education = military_education } #P:A TODO Approximate: Imperator has_ambition = ambition_become_great_warrior; EU5 has no ambitions, the child's education stands in
+			}
+		}
+		scope:recipient = {
+			hidden_effect = { pa_imp_clear_ambition_effect = yes }
+			# add_loyalty = loyalty_education_diverted #P:A TODO No EU5 equivalent: the child's loyalty changes (EU5 characters have no loyalty)
+			custom_tooltip = military_ambition_tutor
+			hidden_effect = {
+				set_child_education = child_education:military_education #P:A TODO Approximate: Imperator gave a 90% chance of the ambition "become a great warrior"; EU5 has no ambitions, the child gets a military education instead
+				# 10 = { modifier = { factor = 2 scope:target = { has_trait = prominent } } modifier = { factor = 2 scope:target = { has_trait = ambitious } } modifier = { factor = 2 scope:target = { has_trait = cruel } } set_ambition = ambition_become_despot }
+				#P:A TODO No EU5 equivalent: 10% chance (higher with a prominent, ambitious or cruel tutor) of the negative ambition "become a despot" instead (EU5 has no ambitions)
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.38.b # Oratory
+		trigger = {
+			scope:recipient = {
+				NOT = { has_child_education = diplomatic_education } #P:A TODO Approximate: Imperator has_ambition = ambition_become_politician; EU5 has no ambitions, the child's education stands in
+			}
+		}
+		scope:recipient = {
+			hidden_effect = { pa_imp_clear_ambition_effect = yes }
+			# add_loyalty = loyalty_education_diverted #P:A TODO No EU5 equivalent: the child's loyalty changes (EU5 characters have no loyalty)
+			custom_tooltip = oratory_ambition_tutor
+			hidden_effect = {
+				set_child_education = child_education:diplomatic_education #P:A TODO Approximate: Imperator gave a 90% chance of the ambition "become a politician"; EU5 has no ambitions, the child gets a diplomatic education instead
+				# 10 = { modifier = { factor = 2 scope:target = { has_trait = harsh } } modifier = { factor = 2 scope:target = { has_trait = vengeful } } modifier = { factor = 2 scope:target = { has_trait = suspicious } } set_ambition = ambition_become_demagogue }
+				#P:A TODO No EU5 equivalent: 10% chance (higher with a harsh, vengeful or suspicious tutor) of the negative ambition "become a demagogue" instead (EU5 has no ambitions)
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.38.c # Finesse
+		trigger = {
+			scope:recipient = {
+				NOT = { has_child_education = administrative_education } #P:A TODO Approximate: Imperator has_ambition = ambition_become_bureacrat; EU5 has no ambitions, the child's education stands in
+			}
+		}
+		scope:recipient = {
+			hidden_effect = { pa_imp_clear_ambition_effect = yes }
+			# add_loyalty = loyalty_education_diverted #P:A TODO No EU5 equivalent: the child's loyalty changes (EU5 characters have no loyalty)
+			custom_tooltip = finesse_ambition_tutor
+			hidden_effect = {
+				set_child_education = child_education:administrative_education #P:A TODO Approximate: Imperator gave a 90% chance of the ambition "become a bureaucrat"; EU5 has no ambitions, the child gets an administrative education instead
+				# 10 = { modifier = { factor = 2 scope:target = { has_trait = gluttonous } } modifier = { factor = 2 scope:target = { has_trait = crafty } } modifier = { factor = 2 scope:target = { has_trait = shrewd } } set_ambition = ambition_become_rich }
+				#P:A TODO No EU5 equivalent: 10% chance (higher with a gluttonous, crafty or shrewd tutor) of the negative ambition "become rich" instead (EU5 has no ambitions)
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.38.d # Religious
+		# trigger = { scope:recipient = { NOT = { has_ambition = ambition_become_holy } } }
+		scope:recipient = {
+			hidden_effect = { pa_imp_clear_ambition_effect = yes }
+			# add_loyalty = loyalty_education_diverted #P:A TODO No EU5 equivalent: the child's loyalty changes (EU5 characters have no loyalty)
+			custom_tooltip = religious_ambition_tutor
+			# hidden_effect = { set_ambition = ambition_become_holy }
+			#P:A TODO No EU5 equivalent: the child gets the ambition "become holy" (EU5 has no ambitions, and the mod has no religious child education)
+		}
+	}
+
+	option = {
+		name = pa_character_events.38.e # none
+		custom_tooltip = no_effect_tooltip
+		scope:recipient = {
+			remove_variable = tutored_already
+		}
+		# refund_price = price_tutor_heir
+	}
+}
+
+# character_events.39 not imported: it only targets two specific Imperator setup characters (char:178 / char:180), killing them
+# ("death_books_stairs") once they have a child. Character-specific like a tag event; EU5 character ids differ.
+
+# character_events.40 not imported: Invictus marks it #Deprecated (empty hidden event; "generals spend cash on buying unit loyalty").
+
+# A character who left to live as a mercenary adventurer has died abroad.
+# Imperator fired this from on_character_death on var:adventuring_from (the home country), with scope:dead_merc = the dead
+# character and scope:death_location = his location; the local variable next_in_succession marked a dead heir.
+# EU5 on_character_death has root = the dead character's employer, so a caller must do the Imperator on_action part:
+# scope:target = { if has_variable = adventuring_from and employer != var:adventuring_from: save dead_merc / death_location,
+# then var:adventuring_from = { trigger_event_non_silently = pa_character_events.48 } }.
+#P:A TODO No EU5 equivalent: adventuring_from / next_in_succession were set only by the Invictus create_mercenary character interaction, which EU5 lacks, so nothing can fire this yet
+pa_character_events.48 = {
+	type = country_event
+	title = pa_character_events.48.t
+	desc = {
+		desc = pa_character_events.48.desc
+		triggered_desc = {
+			trigger = {
+				scope:dead_merc = {
+					has_variable = next_in_succession # Imperator: has_local_variable = next_in_succession (set from this variable by the on_action)
+				}
+			}
+			desc = pa_character_events.48.desc_successor
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:dead_merc
+		exists = scope:death_location
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = pa_character_events.48.a
+		# ruler = { add_popularity = -10 } #P:A TODO No EU5 equivalent: the ruler loses 10 popularity (subtract_popularity_medium; EU5 characters have no popularity)
+		if = {
+			limit = {
+				scope:dead_merc = {
+					has_variable = next_in_succession
+				}
+				government_type = government_type:monarchy # Imperator is_monarchy
+			}
+			add_legitimacy = -30 # subtract_legitimacy_huge
+			pa_imp_remove_stability_effect = yes
+		}
+	}
+}
+
+# character_events.49 not imported: portrait plumbing - it randomly sets the variable "bald" on characters aged 30+, which only the
+# Imperator portrait modifier gfx/portraits/portrait_modifiers/hair_loss.txt reads. EU5 portraits do not use it.
+
+# An ostracized character leaves for exile abroad.
+# Imperator fired this from the character interaction ostracize_char (Athenian republic government, tag ATH or ath_unique_mech) on the actor,
+# with scope:target = the ostracized character and scope:random_target = the country he was banished to.
+#P:A TODO No EU5 equivalent: EU5 has no ostracism interaction, so nothing fires this event yet; a caller has to banish scope:target to scope:random_target and fire it
+pa_character_events.50 = {
+	type = country_event
+	title = pa_character_events.50.t
+	desc = pa_character_events.50.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:target
+		exists = scope:random_target
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		scope:random_target = {
+			ruler = {
+				save_scope_as = pa_exile_host_ruler
+			}
+		}
+	}
+
+	option = {
+		name = pa_character_events.50.a
+		custom_tooltip = ostracism_flees_to
+		scope:random_target = {
+			add_opinion = {
+				target = root
+				modifier = mg_ostra
+			}
+		}
+	}
+}
+
+# Hidden: an ostracized exile seizes the throne of the minor AI monarchy or tribe that took him in, and his home country hears of it (pa_character_events.52).
+# Imperator fired this 1-2 years after ostracize_char (20% chance) on the exile (variable ostracized_from = the country that ostracized him).
+# Written as a country event on the exile's new employer with scope:pa_character = the exile; without a caller it finds an exile itself.
+pa_character_events.51 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		is_ai = yes
+		OR = {
+			government_type = government_type:monarchy # Imperator is_monarchy
+			government_type = government_type:tribe # Imperator is_tribal
+		}
+		num_locations <= 100 # Imperator num_of_cities
+		NOT = {
+			pa_imp_is_diadochi_trigger = yes
+		}
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				is_alive = yes
+				has_variable = ostracized_from
+				var:ostracized_from = {
+					exists = capital # Imperator has_land
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_alive = yes
+				has_variable = ostracized_from
+				var:ostracized_from = {
+					exists = capital
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_alive = yes
+					has_variable = ostracized_from
+					var:ostracized_from = {
+						exists = capital
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			save_scope_as = coup_leader
+			# set_as_minor_character = this #P:A TODO No EU5 equivalent: the exile stops being a minor character (EU5 has no minor characters)
+		}
+		set_new_ruler = scope:coup_leader # Imperator set_as_ruler
+		scope:coup_leader = { #P:A TODO Approximate: Imperator create_family made the exile the head of a new noble family in this country; EU5 founds a new dynasty for him only if he has none
+			if = {
+				limit = {
+					NOT = { exists = dynasty }
+				}
+				found_dynasty = random # as vanilla DHE/flavor_DLH.txt
+			}
+		}
+		save_scope_as = coup_target
+		scope:coup_leader.var:ostracized_from = {
+			save_scope_as = from_over_here
+		}
+		scope:from_over_here = {
+			trigger_event_non_silently = pa_character_events.52
+		}
+	}
+}
+
+# A character we ostracized has seized power in his country of exile (fired by pa_character_events.51 on the home country).
+pa_character_events.52 = {
+	type = country_event
+	title = pa_character_events.52.t
+	desc = pa_character_events.52.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:coup_target
+		exists = scope:coup_leader
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = pa_character_events.52.a
+		# ruler = { add_popularity = -15 } #P:A TODO No EU5 equivalent: the ruler loses 15 popularity (subtract_popularity_large; EU5 characters have no popularity)
+		scope:coup_target = {
+			add_opinion = {
+				target = root
+				modifier = mg_ostra_oops
+			}
+		}
+	}
+}
+
+# character_events.53 not imported: plumbing for the Invictus betrothal system - when a betrothed character comes of age it
+# fires royal_marriage.2 for the pair saved in variable betrothed_flag. betrothed_flag is set only by the Invictus propose_marriage
+# character interaction (no EU5 equivalent), and royal_marriage.2 is not part of the import. pa_imp_betrothed_trigger is still defined (b09 triggers).
+
+# Generic new character appears event (notification; the caller saves the new character as scope:new_character).
+# Imperator fired this from the invention civic_1 and the military tradition mauryan_philosophy, which create a character.
+#P:A TODO No EU5 equivalent: EU5 has no inventions or military traditions, so nothing fires this yet; any future caller must save scope:new_character
+pa_character_events.54 = {
+	type = country_event
+	title = pa_character_events.54.t
+	desc = pa_character_events.54.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = scope:new_character
+	}
+
+	option = {
+		name = pa_character_events.54.a
+		custom_tooltip = pa_character_events.54.at
+	}
+}

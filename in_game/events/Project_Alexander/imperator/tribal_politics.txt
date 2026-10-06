@@ -1,0 +1,3538 @@
+﻿#P:A Imported from Invictus: events/tribal_politics.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+# Tribal politics: clan chiefs, centralization and tribal offices. Imperator offices (warchief, magistrate, arbitrator,
+# high priest ...) do not exist in EU5; where an event needs an office holder, an estate character stands in (Approximate).
+namespace = tribal_pol
+
+# The tribes are decentralizing because of instability
+tribal_pol.1 = {
+	type = country_event
+	title = tribal_pol.1.t
+	desc = tribal_pol.1.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_1_cooldown }
+		societal_value:centralization_vs_decentralization <= 0 #P:A TODO Approximate: Imperator centralization >= 0 (-100..100); EU5 centralization is the left side of the centralization/decentralization societal value
+		stability <= 50
+		# any_character = { has_office = office_warchief }
+		# any_character = { has_office = office_magistrate }
+		any_cabinet_character = { #P:A TODO Approximate: Imperator required a warchief and a magistrate office holder; EU5 has no offices, two cabinet members stand in
+			count >= 2
+		}
+		num_locations >= 1 # Imperator num_of_cities
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_1_cooldown
+			years = 15
+		}
+		random_owned_location = {
+			save_scope_as = randomized_country_province
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_cabinet_character = { #P:A TODO Approximate: Imperator office_warchief holder; a cabinet member stands in
+			save_scope_as = warchief_official
+		}
+		random_cabinet_character = { #P:A TODO Approximate: Imperator office_magistrate holder; another cabinet member stands in
+			limit = {
+				NOT = { this = scope:warchief_official }
+			}
+			save_scope_as = magistrate_official
+		}
+	}
+
+	option = { # Use Military Power to force people to centralize
+		name = tribal_pol.1.a
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 1 (centralization_large); EU5 moves the centralization/decentralization societal value towards centralization
+			type = centralization_vs_decentralization
+			value = -1
+		}
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny (EU5 has no tyranny)
+	}
+
+	option = { # Use Oratory Power to force people to centralize
+		name = tribal_pol.1.b
+		trigger = {
+			NOT = {
+				ruler ?= {
+					has_trait = silver_tongue
+				}
+			}
+		}
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 1 (centralization_large); EU5 societal value moved towards centralization
+			type = centralization_vs_decentralization
+			value = -1
+		}
+	}
+
+	option = { # More effective use of Oratory Power to force people to centralize
+		name = tribal_pol.1.d
+		# highlight = yes (Imperator UI highlight; no EU5 field)
+		trigger = {
+			ruler ?= {
+				has_trait = silver_tongue
+			}
+		}
+		custom_tooltip = silver_tongued_tooltip
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 2 (centralization_huge); EU5 societal value moved towards centralization
+			type = centralization_vs_decentralization
+			value = -2
+		}
+	}
+
+	option = { # Let people decentralize
+		name = tribal_pol.1.c
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = -1 (subtract_centralization_large); EU5 societal value moved towards decentralization
+			type = centralization_vs_decentralization
+			value = 1
+		}
+	}
+}
+
+# The tribes are centralizing because of stability
+tribal_pol.2 = {
+	type = country_event
+	title = tribal_pol.2.t
+	desc = tribal_pol.2.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_2_cooldown }
+		societal_value:centralization_vs_decentralization > 0 #P:A TODO Approximate: Imperator centralization < 0; EU5 decentralization is the right side of the centralization/decentralization societal value
+		stability > 50
+		# any_character = { has_any_office = yes is_ruler = no }
+		any_cabinet_character = { #P:A TODO Approximate: Imperator required an office holder who is not the ruler; EU5 has no offices, a cabinet member stands in
+			is_ruler = no
+		}
+		any_owned_location = {
+			NOR = {
+				has_location_modifier = tribal_pol_2_population_influx
+				has_location_modifier = tribal_pol_2_population_efflux
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_2_cooldown
+			years = 15
+		}
+		random_owned_location = {
+			limit = {
+				NOR = {
+					has_location_modifier = tribal_pol_2_population_influx
+					has_location_modifier = tribal_pol_2_population_efflux
+				}
+			}
+			save_scope_as = randomized_country_province
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_cabinet_character = { #P:A TODO Approximate: Imperator office holder; a cabinet member stands in
+			limit = {
+				is_ruler = no
+			}
+			save_scope_as = randomized_official
+		}
+	}
+
+	option = { # Use Oratory Power to have more effective centralization
+		name = tribal_pol.2.a
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 1 (centralization_large); EU5 societal value moved towards centralization
+			type = centralization_vs_decentralization
+			value = -1
+		}
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		scope:randomized_country_province = {
+			add_location_modifier = {
+				modifier = tribal_pol_2_population_influx
+				days = 3650
+			}
+		}
+	}
+
+	option = { # Let it happen naturally, but slower
+		name = tribal_pol.2.b
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 0.25 (centralization_small); EU5 societal value moved towards centralization
+			type = centralization_vs_decentralization
+			value = -0.25
+		}
+	}
+
+	option = { # Use Military Power to enforce decentralization
+		name = tribal_pol.2.c
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = -1 (subtract_centralization_large); EU5 societal value moved towards decentralization
+			type = centralization_vs_decentralization
+			value = 1
+		}
+		scope:randomized_country_province = {
+			add_location_modifier = {
+				modifier = tribal_pol_2_population_efflux
+				days = 3650
+			}
+		}
+	}
+}
+
+# An Official suggests way to increase Centralization
+tribal_pol.3 = {
+	type = country_event
+	title = tribal_pol.3.t
+	desc = tribal_pol.3.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_3_cooldown }
+		stability >= 50
+		# any_character = { OR = { has_office = office_magistrate has_office = office_elder has_office = office_arbitrator } is_ruler = no }
+		any_cabinet_character = { #P:A TODO Approximate: Imperator required a magistrate, elder or arbitrator office holder; EU5 has no offices, a cabinet member stands in
+			is_ruler = no
+		}
+		NOR = {
+			has_country_modifier = centralization_efforts
+			has_country_modifier = natural_centralization
+			has_country_modifier = focusing_centralization
+			has_country_modifier = focusing_decentralization
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_3_cooldown
+			years = 15
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_cabinet_character = { #P:A TODO Approximate: Imperator magistrate/elder/arbitrator office holder; a cabinet member stands in
+			limit = {
+				is_ruler = no
+			}
+			save_scope_as = randomized_official
+		}
+	}
+
+	option = { # Pay for more centralization
+		name = tribal_pol.3.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -5
+			min = -6000
+		}
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 0.5 (centralization_medium); EU5 societal value moved towards centralization
+			type = centralization_vs_decentralization
+			value = -0.5
+		}
+		add_country_modifier = {
+			modifier = centralization_efforts
+			days = 1825
+		}
+	}
+
+	option = { # Ignore your official, and get less centralization and some disloyalty from him/her
+		name = tribal_pol.3.b
+		add_country_modifier = {
+			modifier = natural_centralization
+			days = 1825
+		}
+		# scope:randomized_official = { add_loyalty = loyalty_advice_ignored_bad } #P:A TODO No EU5 equivalent: -loyalty for the ignored official (EU5 characters have no loyalty)
+	}
+}
+
+# Religious festival
+tribal_pol.4 = {
+	type = country_event
+	title = tribal_pol.4.t
+	desc = tribal_pol.4.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_4_cooldown }
+		NOT = {
+			has_country_modifier = gathering_place
+		}
+		num_locations >= 1 # Imperator num_of_cities
+		# any_character = { has_office = office_high_priest }
+		any_character = { #P:A TODO Approximate: Imperator required a high priest office holder; EU5 has no offices, a clergy-estate character stands in
+			has_estate = estate_type:clergy_estate
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_4_cooldown
+			years = 15
+		}
+		random_owned_location = {
+			save_scope_as = randomized_country_province
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = { #P:A TODO Approximate: Imperator high priest office holder; a clergy-estate character stands in
+			limit = {
+				has_estate = estate_type:clergy_estate
+			}
+			save_scope_as = priest_official
+		}
+		event_illustration_estate_effect = {
+			foreground = estate_type:clergy_estate
+			background = estate_type:clergy_estate
+		}
+	}
+
+	option = { # Pay a lot of money, receive religious power and make it a popular gathering place
+		name = tribal_pol.4.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		pa_imp_add_stability_effect_small = yes
+		# scope:priest_official = { add_loyalty = loyalty_priest_festival } #P:A TODO No EU5 equivalent: +loyalty for the priest (EU5 characters have no loyalty)
+		add_country_modifier = {
+			modifier = gathering_place
+			days = 1825
+		}
+	}
+
+	option = { # Pay a smaller sum, receive only some religious power
+		name = tribal_pol.4.b
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+			min = -6000
+		}
+		pa_imp_add_stability_effect_small = yes
+	}
+
+	option = { # Ignore the peasants, pay religious power
+		name = tribal_pol.4.c
+		# scope:priest_official = { add_loyalty = loyalty_no_festival } #P:A TODO No EU5 equivalent: -loyalty for the slighted priest (EU5 characters have no loyalty)
+	}
+}
+
+# Not at war, tribesmen starting to get impatient and unstable
+tribal_pol.5 = {
+	type = country_event
+	title = tribal_pol.5.t
+	desc = tribal_pol.5.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_5_cooldown }
+		at_war = no
+		war_exhaustion = 0
+		stability >= 50
+		# any_character = { has_office = office_warchief }
+		any_cabinet_character = { #P:A TODO Approximate: Imperator required a warchief office holder; EU5 has no offices, a cabinet member stands in
+			is_ruler = no
+		}
+		any_owned_location = {
+			NOT = {
+				has_location_modifier = tribal_pol_2_population_efflux
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_5_cooldown
+			years = 15
+		}
+		random_owned_location = {
+			limit = {
+				NOT = {
+					has_location_modifier = tribal_pol_2_population_efflux
+				}
+			}
+			save_scope_as = randomized_country_province
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_cabinet_character = { #P:A TODO Approximate: Imperator office_warchief holder; a cabinet member stands in
+			limit = {
+				is_ruler = no
+			}
+			save_scope_as = warchief_official
+		}
+	}
+
+	option = { # Use military power to calm things down
+		name = tribal_pol.5.a
+		trigger = {
+			NOT = {
+				ruler ?= {
+					pa_imp_char_is_general_trigger = yes
+				}
+			}
+		}
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny (EU5 has no tyranny)
+	}
+
+	option = { # Use less military power to calm things down, if have a general trait
+		name = tribal_pol.5.b
+		trigger = {
+			ruler ?= {
+				pa_imp_char_is_general_trigger = yes
+			}
+		}
+		# add_tyranny = tyranny_small #P:A TODO No EU5 equivalent: +1 tyranny (EU5 has no tyranny)
+	}
+
+	option = { # Let them cause chaos, take instability hit
+		name = tribal_pol.5.c
+		pa_imp_remove_stability_effect = yes
+		scope:randomized_country_province = {
+			add_location_modifier = {
+				modifier = tribal_pol_6_rioters
+				days = 1825
+			}
+		}
+	}
+
+	option = { # Decentralize, to disperse the rioters
+		name = tribal_pol.5.d
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = -2 (subtract_centralization_huge); EU5 societal value moved towards decentralization
+			type = centralization_vs_decentralization
+			value = 2
+		}
+		scope:randomized_country_province = {
+			add_location_modifier = {
+				modifier = tribal_pol_2_population_efflux
+				days = 3650
+			}
+		}
+	}
+}
+
+# At war, more stability as there is fewer people around to cause chaos
+tribal_pol.6 = {
+	type = country_event
+	title = tribal_pol.6.t
+	desc = tribal_pol.6.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_6_cooldown }
+		at_war = yes
+		stability <= 50
+		any_owned_location = {
+			is_capital = yes
+		}
+		any_owned_location = {
+			is_capital = no
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_6_cooldown
+			years = 15
+		}
+		random_owned_location = {
+			limit = {
+				is_capital = yes
+			}
+			save_scope_as = randomized_capital_province
+		}
+		random_owned_location = {
+			limit = {
+				is_capital = no
+			}
+			save_scope_as = randomized_non_capital_province
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # Make some money out of the situation
+		name = tribal_pol.6.a
+		pa_imp_add_stability_effect = yes
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 6
+			max = 5000
+		}
+	}
+
+	option = { # Use the chance to centralize a bit
+		name = tribal_pol.6.b
+		pa_imp_add_stability_effect = yes
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 1 (centralization_large); EU5 societal value moved towards centralization
+			type = centralization_vs_decentralization
+			value = -1
+		}
+		scope:randomized_non_capital_province = {
+			random_pop = { #P:A TODO Approximate: Imperator move_pop moved one whole pop to the capital; EU5 splits off size 1 (one Imperator pop converted 1:1 to EU5 size)
+				split_pop = {
+					size = 1
+					location = scope:randomized_capital_province
+				}
+			}
+		}
+	}
+}
+
+# Official asks for funds to do his/her job better
+# Imperator picked the modifier by office: bodyguard/warchief -> martial, high priest -> zeal, magistrate/physician -> finesse,
+# arbitrator/elder -> charisma. EU5 has no offices: a clergy-estate character gets the zeal one, everyone else the one
+# matching their best skill (mil -> martial, adm -> finesse, dip -> charisma).
+tribal_pol.7 = {
+	type = country_event
+	title = tribal_pol.7.t
+	desc = tribal_pol.7.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_7_cooldown }
+		# any_character = { OR = { has_office = office_bodyguard has_office = office_high_priest has_office = office_magistrate has_office = office_arbitrator has_office = office_warchief has_office = office_elder has_office = office_physician } ... }
+		any_cabinet_character = { #P:A TODO Approximate: Imperator required a tribal office holder (bodyguard, high priest, magistrate, arbitrator, warchief, elder or physician); EU5 has no offices, a cabinet member stands in
+			is_ruler = no
+			NOR = {
+				has_character_modifier = improved_office_martial
+				has_character_modifier = improved_office_zeal
+				has_character_modifier = improved_office_finesse
+				has_character_modifier = improved_office_charisma
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_7_cooldown
+			years = 15
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_cabinet_character = { #P:A TODO Approximate: Imperator tribal office holder; a cabinet member stands in
+			limit = {
+				is_ruler = no
+				NOR = {
+					has_character_modifier = improved_office_martial
+					has_character_modifier = improved_office_zeal
+					has_character_modifier = improved_office_finesse
+					has_character_modifier = improved_office_charisma
+				}
+			}
+			save_scope_as = randomized_official
+		}
+	}
+
+	option = { # Use treasury to fund it
+		name = tribal_pol.7.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		scope:randomized_official = {
+			if = { #P:A TODO Approximate: Imperator chose the modifier by the character's office; EU5 uses estate and best skill (see the comment above the event)
+				limit = {
+					has_estate = estate_type:clergy_estate # Imperator office_high_priest
+				}
+				add_character_modifier = {
+					modifier = improved_office_zeal
+					days = 1825
+				}
+			}
+			else_if = {
+				limit = {
+					mil >= scope:randomized_official.adm
+					mil >= scope:randomized_official.dip
+				}
+				add_character_modifier = {
+					modifier = improved_office_martial
+					days = 1825
+				}
+			}
+			else_if = {
+				limit = {
+					adm >= scope:randomized_official.dip
+				}
+				add_character_modifier = {
+					modifier = improved_office_finesse
+					days = 1825
+				}
+			}
+			else = {
+				add_character_modifier = {
+					modifier = improved_office_charisma
+					days = 1825
+				}
+			}
+			# add_loyalty = loyalty_office_funded_1 #P:A TODO No EU5 equivalent: +loyalty for the funded official (EU5 characters have no loyalty)
+		}
+	}
+
+	option = { # Use Power to fund it
+		name = tribal_pol.7.b
+		scope:randomized_official = {
+			if = { #P:A TODO Approximate: Imperator chose the modifier by the character's office; EU5 uses estate and best skill (see the comment above the event)
+				limit = {
+					has_estate = estate_type:clergy_estate # Imperator office_high_priest
+				}
+				# root = { add_political_influence = subtract_influence_small } #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+				add_character_modifier = {
+					modifier = improved_office_zeal
+					days = 1825
+				}
+			}
+			else_if = {
+				limit = {
+					mil >= scope:randomized_official.adm
+					mil >= scope:randomized_official.dip
+				}
+				# root = { add_political_influence = subtract_influence_medium } #P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+				add_character_modifier = {
+					modifier = improved_office_martial
+					days = 1825
+				}
+			}
+			else_if = {
+				limit = {
+					adm >= scope:randomized_official.dip
+				}
+				# root = { add_political_influence = subtract_influence_small } #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+				add_character_modifier = {
+					modifier = improved_office_finesse
+					days = 1825
+				}
+			}
+			else = {
+				# root = { add_political_influence = subtract_influence_small } #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+				add_character_modifier = {
+					modifier = improved_office_charisma
+					days = 1825
+				}
+			}
+			# add_loyalty = loyalty_office_funded_2 #P:A TODO No EU5 equivalent: +loyalty for the funded official (EU5 characters have no loyalty)
+		}
+	}
+
+	option = { # We won't fund it
+		name = tribal_pol.7.c
+		# scope:randomized_official = { add_loyalty = loyalty_office_not_funded } #P:A TODO No EU5 equivalent: -loyalty for the refused official (EU5 characters have no loyalty)
+	}
+}
+
+# High Priest asks for funds
+tribal_pol.8 = {
+	type = country_event
+	title = tribal_pol.8.t
+	desc = tribal_pol.8.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_8_cooldown }
+		# any_character = { has_office = office_high_priest }
+		any_character = { #P:A TODO Approximate: Imperator required a high priest office holder; EU5 has no offices, a clergy-estate character stands in
+			has_estate = estate_type:clergy_estate
+		}
+		# political_influence > 100
+		always = no #P:A TODO No EU5 equivalent: the event trades gold for +25 political influence and the high priest's loyalty, and needs more than 100 political influence (EU5 has neither political influence nor character loyalty)
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_8_cooldown
+			years = 15
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = { #P:A TODO Approximate: Imperator high priest office holder; a clergy-estate character stands in
+			limit = {
+				has_estate = estate_type:clergy_estate
+			}
+			save_scope_as = priest_official
+		}
+		event_illustration_estate_effect = {
+			foreground = estate_type:clergy_estate
+			background = estate_type:clergy_estate
+		}
+	}
+
+	option = { # Use treasury to fund the High Priest
+		name = tribal_pol.8.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		# add_political_influence = influence_large #P:A TODO No EU5 equivalent: +25 political influence (EU5 has no political influence)
+		# scope:priest_official = { add_loyalty = loyalty_religious_funding } #P:A TODO No EU5 equivalent: +loyalty for the high priest (EU5 characters have no loyalty)
+	}
+
+	option = { # Don't fund the High Priest
+		name = tribal_pol.8.b
+		# scope:priest_official = { add_loyalty = loyalty_no_religious_funding } #P:A TODO No EU5 equivalent: -loyalty for the high priest (EU5 characters have no loyalty)
+	}
+}
+
+# Religious pay off event
+tribal_pol.9 = {
+	type = country_event
+	title = tribal_pol.9.t
+	desc = tribal_pol.9.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		# any_character = { has_office = office_high_priest loyalty >= 75 }
+		any_character = { #P:A TODO Approximate: Imperator required a high priest office holder; EU5 has no offices, a clergy-estate character stands in
+			has_estate = estate_type:clergy_estate
+			# loyalty >= 75 #P:A TODO No EU5 equivalent: the high priest had to be at least 75 loyal (EU5 characters have no loyalty)
+		}
+		ruler ?= {
+			# zeal >= 6 #P:A TODO No EU5 equivalent: the ruler needed at least 6 zeal (EU5 characters have no zeal skill)
+			NOT = {
+				has_character_modifier = blessed_ruler
+			}
+		}
+		NOT = {
+			has_variable = tribal_pol_9_cooldown
+		}
+		always = no #P:A TODO No EU5 equivalent: the event only gives the ruler blessed_ruler (+1 zeal), and is gated on zeal and the priest's loyalty (EU5 characters have no zeal or loyalty)
+	}
+
+	immediate = {
+		random_character = { #P:A TODO Approximate: Imperator high priest office holder; a clergy-estate character stands in
+			limit = {
+				has_estate = estate_type:clergy_estate
+				# loyalty >= 75
+			}
+			save_scope_as = priest_official
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_9_cooldown
+				years = 15
+			}
+		}
+		event_illustration_estate_effect = {
+			foreground = estate_type:clergy_estate
+			background = estate_type:clergy_estate
+		}
+	}
+
+	option = {
+		name = tribal_pol.9.a
+		ruler ?= {
+			add_character_modifier = {
+				modifier = blessed_ruler
+				days = 1825
+			}
+		}
+	}
+}
+
+# Trying to fix a broken relationship with a Clan Chief
+tribal_pol.10 = {
+	type = country_event
+	title = tribal_pol.10.t
+	desc = tribal_pol.10.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_10_cooldown }
+		any_character = {
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			# loyalty < 30
+			is_ruler = no
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about a clan chief with less than 30 loyalty, and every option moves that loyalty (EU5 characters have no loyalty)
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_10_cooldown
+			years = 15
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				# loyalty < 30
+				is_ruler = no
+			}
+			save_scope_as = disloyal_clan_chief
+		}
+	}
+
+	option = { # Military Might
+		name = tribal_pol.10.a
+		# add_tyranny = tyranny_small #P:A TODO No EU5 equivalent: +1 tyranny (EU5 has no tyranny)
+		# scope:disloyal_clan_chief = { add_loyalty = loyalty_military_coercion } #P:A TODO No EU5 equivalent: +loyalty for the clan chief (EU5 characters have no loyalty)
+	}
+
+	option = { # Funds
+		name = tribal_pol.10.b
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+			min = -6000
+		}
+		# scope:disloyal_clan_chief = { add_loyalty = loyalty_gift_bribe_1 } #P:A TODO No EU5 equivalent: +loyalty for the clan chief (EU5 characters have no loyalty)
+		# scope:disloyal_clan_chief = { add_gold = { value = root.has_monthly_income multiply = 3 } } #P:A TODO No EU5 equivalent: the gold went to the clan chief's personal wealth (EU5 characters have no wealth)
+	}
+
+	option = { # Oratory Power
+		name = tribal_pol.10.c
+		# highlight = yes (Imperator UI highlight; no EU5 field)
+		trigger = {
+			ruler ?= {
+				# has_trait = modest
+				always = no #P:A TODO No EU5 equivalent trait for Imperator modest (only gate of this option)
+			}
+		}
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		# scope:disloyal_clan_chief = { add_loyalty = loyalty_convinced_ruler } #P:A TODO No EU5 equivalent: +loyalty for the clan chief (EU5 characters have no loyalty)
+	}
+
+	option = { # Refrain from mending relations
+		name = tribal_pol.10.d
+		# scope:disloyal_clan_chief = { add_loyalty = loyalty_ignored_chieftain } #P:A TODO No EU5 equivalent: -loyalty for the clan chief (EU5 characters have no loyalty)
+	}
+}
+
+# Loyal Clan Chief reward ruler
+tribal_pol.11 = {
+	type = country_event
+	title = tribal_pol.11.t
+	desc = tribal_pol.11.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		any_character = {
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			# loyalty >= 75 #P:A TODO No EU5 equivalent: the clan chief had to be at least 75 loyal (EU5 characters have no loyalty)
+			is_ruler = no
+		}
+		NOT = {
+			has_variable = tribal_pol_11_cooldown
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				# loyalty >= 75
+				is_ruler = no
+			}
+			save_scope_as = loyal_clan_chief
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_11_cooldown
+				years = 10
+			}
+		}
+	}
+
+	option = { # Support us militarily (Military Power)
+		name = tribal_pol.11.a
+		if = {
+			limit = {
+				scope:loyal_clan_chief = {
+					pa_imp_char_is_general_trigger = yes
+				}
+			}
+			# ruler = { add_popularity = popularity_large } #P:A TODO No EU5 equivalent: +15 ruler popularity (EU5 characters have no popularity)
+			add_manpower = 10
+		}
+		else_if = {
+			limit = {
+				scope:loyal_clan_chief = {
+					pa_imp_char_is_bad_leader_trigger = yes
+				}
+			}
+			# ruler = { add_popularity = popularity_small } #P:A TODO No EU5 equivalent: +5 ruler popularity (EU5 characters have no popularity)
+			add_manpower = 5
+		}
+		else = {
+			# ruler = { add_popularity = popularity_medium } #P:A TODO No EU5 equivalent: +10 ruler popularity (EU5 characters have no popularity)
+			add_manpower = 7
+		}
+	}
+
+	option = { # Support us demagoguely (Oratory Power)
+		name = tribal_pol.11.b
+		# if = { limit = { scope:loyal_clan_chief = { char_is_demagogue_trigger = yes } } ruler = { add_popularity = popularity_large } add_political_influence = influence_large }
+		# else_if = { limit = { scope:loyal_clan_chief = { char_is_rude_trigger = yes } } ruler = { add_popularity = popularity_small } add_political_influence = influence_small }
+		# else = { ruler = { add_popularity = popularity_medium } add_political_influence = influence_medium }
+		#P:A TODO No EU5 equivalent: +5/10/15 ruler popularity and +10/15/25 political influence, graded by the chief's demagogue/rude traits (EU5 has no popularity or political influence)
+	}
+}
+
+# A loyal magistrate asking if we want a more centralized realm or not
+tribal_pol.12 = {
+	type = country_event
+	title = tribal_pol.12.t
+	desc = tribal_pol.12.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_12_cooldown }
+		# any_character = { has_office = office_magistrate loyalty > 65 }
+		any_cabinet_character = { #P:A TODO Approximate: Imperator required a magistrate office holder; EU5 has no offices, a cabinet member stands in
+			is_ruler = no
+			# loyalty > 65 #P:A TODO No EU5 equivalent: the magistrate had to be more than 65 loyal (EU5 characters have no loyalty)
+		}
+		NOR = {
+			has_country_modifier = centralization_efforts
+			has_country_modifier = natural_centralization
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_12_cooldown
+			years = 15
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_cabinet_character = { #P:A TODO Approximate: Imperator office_magistrate holder; a cabinet member stands in
+			limit = {
+				is_ruler = no
+				# loyalty > 65
+			}
+			save_scope_as = magistrate_official
+		}
+	}
+
+	option = { # Centralization using Civic Power
+		name = tribal_pol.12.a
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		add_country_modifier = {
+			modifier = focusing_centralization
+			days = 1825
+		}
+	}
+
+	option = { # Decentralization using Civic Power
+		name = tribal_pol.12.b
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		add_country_modifier = {
+			modifier = focusing_decentralization
+			days = 1825
+		}
+	}
+
+	option = { # Let things progress naturally
+		name = tribal_pol.12.c
+		add_country_modifier = {
+			modifier = natural_centralization
+			days = 1825
+		}
+	}
+}
+
+# Successful loyal Warchief
+tribal_pol.13 = {
+	type = country_event
+	title = tribal_pol.13.t
+	desc = tribal_pol.13.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_13_cooldown }
+		# any_character = { has_office = office_warchief loyalty > 75 martial > 5 }
+		any_cabinet_character = { #P:A TODO Approximate: Imperator required a warchief office holder; EU5 has no offices, a cabinet member stands in
+			is_ruler = no
+			# loyalty > 75 #P:A TODO No EU5 equivalent: the warchief had to be more than 75 loyal (EU5 characters have no loyalty)
+			mil > 25 # Imperator martial > 5 (x5)
+		}
+		NOR = {
+			any_owned_location = {
+				has_location_modifier = warchief_improved_province
+			}
+			any_owned_location = {
+				has_location_modifier = warchief_diminished_province
+			}
+		}
+		num_locations >= 1 # Imperator num_of_cities
+		always = no #P:A TODO No EU5 equivalent: the only effects are +10 political influence and warchief_improved_province (+5% pop happiness), neither of which EU5 has; the gate also needed the warchief's loyalty
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_13_cooldown
+			years = 15
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_cabinet_character = { #P:A TODO Approximate: Imperator office_warchief holder; a cabinet member stands in
+			limit = {
+				is_ruler = no
+				mil > 25
+			}
+			save_scope_as = warchief_official
+		}
+		random_owned_location = {
+			save_scope_as = randomized_country_province
+		}
+	}
+
+	option = {
+		name = tribal_pol.13.a
+		# if = { limit = { scope:warchief_official = { char_is_general_trigger = yes } } add_political_influence = influence_small } else = { add_political_influence = influence_small }
+		#P:A TODO No EU5 equivalent: +10 political influence (EU5 has no political influence)
+		scope:randomized_country_province = {
+			add_location_modifier = {
+				modifier = warchief_improved_province
+				days = 1825
+			}
+		}
+	}
+}
+
+# Disloyal Warchief causing issues
+tribal_pol.14 = {
+	type = country_event
+	title = tribal_pol.14.t
+	desc = tribal_pol.14.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_14_cooldown }
+		# any_character = { has_office = office_warchief loyalty < 30 }
+		any_cabinet_character = { #P:A TODO Approximate: Imperator required a warchief office holder; EU5 has no offices, a cabinet member stands in
+			is_ruler = no
+			# loyalty < 30 #P:A TODO No EU5 equivalent: the warchief had to be less than 30 loyal (EU5 characters have no loyalty)
+		}
+		NOR = {
+			any_owned_location = {
+				has_location_modifier = warchief_improved_province
+			}
+			any_owned_location = {
+				has_location_modifier = warchief_diminished_province
+			}
+		}
+		num_locations >= 1 # Imperator num_of_cities
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_14_cooldown
+			years = 15
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_cabinet_character = { #P:A TODO Approximate: Imperator office_warchief holder; a cabinet member stands in
+			limit = {
+				is_ruler = no
+			}
+			save_scope_as = warchief_official
+		}
+		random_owned_location = {
+			save_scope_as = randomized_country_province
+		}
+	}
+
+	option = { # Use treasury and military power to stop this dissenters
+		name = tribal_pol.14.a
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+			min = -6000
+		}
+	}
+
+	option = { # Let them run wild
+		name = tribal_pol.14.b
+		scope:randomized_country_province = {
+			add_location_modifier = {
+				modifier = warchief_diminished_province
+				days = 1825
+			}
+		}
+	}
+}
+
+# Arbitrator asks for more funding
+tribal_pol.15 = {
+	type = country_event
+	title = tribal_pol.15.t
+	desc = tribal_pol.15.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_15_cooldown }
+		# any_character = { has_office = office_arbitrator }
+		any_cabinet_character = { #P:A TODO Approximate: Imperator required an arbitrator office holder; EU5 has no offices, a cabinet member stands in
+			is_ruler = no
+		}
+		NOT = {
+			has_country_modifier = funded_arbitrator_office
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_15_cooldown
+			years = 15
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_cabinet_character = { #P:A TODO Approximate: Imperator office_arbitrator holder; a cabinet member stands in
+			limit = {
+				is_ruler = no
+			}
+			save_scope_as = arbitrator_official
+		}
+	}
+
+	option = {
+		name = tribal_pol.15.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -4
+			min = -6000
+		}
+		add_country_modifier = {
+			modifier = funded_arbitrator_office
+			days = 1825
+		}
+		# add_political_influence = influence_small #P:A TODO No EU5 equivalent: +10 political influence (EU5 has no political influence)
+	}
+
+	option = {
+		name = tribal_pol.15.b
+		# scope:arbitrator_official = { add_loyalty = loyalty_office_not_funded } #P:A TODO No EU5 equivalent: -loyalty for the refused arbitrator (EU5 characters have no loyalty)
+		add_country_modifier = {
+			modifier = underfunded_arbitrator_office
+			days = 1825
+		}
+	}
+}
+
+# Arbitrator "found" some extra treasury
+tribal_pol.16 = {
+	type = country_event
+	title = tribal_pol.16.t
+	desc = tribal_pol.16.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		# any_character = { has_office = office_arbitrator loyalty > 70 }
+		any_cabinet_character = { #P:A TODO Approximate: Imperator required an arbitrator office holder; EU5 has no offices, a cabinet member stands in
+			is_ruler = no
+			# loyalty > 70 #P:A TODO No EU5 equivalent: the arbitrator had to be more than 70 loyal (EU5 characters have no loyalty)
+		}
+		NOT = {
+			has_variable = tribal_pol_16_cooldown
+		}
+	}
+
+	immediate = {
+		random_cabinet_character = { #P:A TODO Approximate: Imperator office_arbitrator holder; a cabinet member stands in
+			limit = {
+				is_ruler = no
+			}
+			save_scope_as = arbitrator_official
+			# hidden_effect = { add_corruption = corruption_large } #P:A TODO No EU5 equivalent: +10 corruption for the arbitrator (EU5 characters have no corruption)
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_16_cooldown
+				years = 15
+			}
+		}
+	}
+
+	option = {
+		name = tribal_pol.16.a
+		if = {
+			limit = {
+				scope:arbitrator_official = {
+					pa_imp_char_is_clever_trigger = yes
+				}
+			}
+			add_gold = {
+				value = monthly_income_total # Imperator has_monthly_income
+				multiply = 14
+				max = 5000
+			}
+		}
+		else = {
+			add_gold = {
+				value = monthly_income_total # Imperator has_monthly_income
+				multiply = 7
+				max = 5000
+			}
+		}
+		# ruler = { add_corruption = corruption_medium } #P:A TODO No EU5 equivalent: +5 corruption for the ruler (EU5 characters have no corruption)
+		# scope:arbitrator_official = { add_corruption = corruption_medium } #P:A TODO No EU5 equivalent: +5 corruption for the arbitrator (EU5 characters have no corruption)
+	}
+
+	option = {
+		name = tribal_pol.16.b
+		# if = { limit = { scope:arbitrator_official = { char_is_civic_trigger = yes } } add_political_influence = influence_medium } else = { add_political_influence = influence_small }
+		#P:A TODO No EU5 equivalent: +15 political influence (+10 if the arbitrator is not civic-minded) (EU5 has no political influence)
+		# ruler = { add_corruption = corruption_medium } #P:A TODO No EU5 equivalent: +5 corruption for the ruler (EU5 characters have no corruption)
+		# scope:arbitrator_official = { add_corruption = corruption_medium } #P:A TODO No EU5 equivalent: +5 corruption for the arbitrator (EU5 characters have no corruption)
+	}
+
+	option = {
+		name = tribal_pol.16.c
+		# ruler = { add_corruption = subtract_corruption_medium } #P:A TODO No EU5 equivalent: -5 corruption for the ruler (EU5 characters have no corruption)
+		# scope:arbitrator_official = { add_loyalty = loyalty_refused_corruption } #P:A TODO No EU5 equivalent: -loyalty for the arbitrator (EU5 characters have no loyalty)
+	}
+}
+
+# Duel among Clan Chiefs
+tribal_pol.17 = {
+	type = country_event
+	title = tribal_pol.17.t
+	desc = tribal_pol.17.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_17_cooldown }
+		any_character = {
+			count >= 2
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_17_cooldown
+			years = 30
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = { # The one who demands a duel
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+			}
+			save_scope_as = clan_chief_duel_victim
+		}
+		random_character = { # The one who did the misdeed
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				NOT = { this = scope:clan_chief_duel_victim }
+			}
+			save_scope_as = clan_chief_duel_perpetrator
+		}
+		hidden_effect = {
+			random_list = {
+				1 = { # Victim wins the duel
+					modifier = {
+						add = scope:clan_chief_duel_victim.mil # Imperator martial (EU5 skills are x5, base weight 1 matters less)
+					}
+					modifier = {
+						factor = 3
+						scope:clan_chief_duel_victim = {
+							pa_imp_char_is_general_trigger = yes
+						}
+					}
+					scope:clan_chief_duel_victim = {
+						save_scope_as = clan_chief_duel_winner
+					}
+					scope:clan_chief_duel_perpetrator = {
+						save_scope_as = clan_chief_duel_loser
+					}
+				}
+				1 = { # Perpetrator wins the duel
+					modifier = {
+						add = scope:clan_chief_duel_perpetrator.mil # Imperator martial (EU5 skills are x5, base weight 1 matters less)
+					}
+					modifier = {
+						factor = 3
+						scope:clan_chief_duel_victim = { # (sic) Imperator checked the victim here too
+							pa_imp_char_is_general_trigger = yes
+						}
+					}
+					scope:clan_chief_duel_perpetrator = {
+						save_scope_as = clan_chief_duel_winner
+					}
+					scope:clan_chief_duel_victim = {
+						save_scope_as = clan_chief_duel_loser
+					}
+				}
+			}
+		}
+	}
+
+	option = { # A duel to the death
+		name = tribal_pol.17.a
+		custom_tooltip = tribal_pol.17.a.custom
+		# scope:clan_chief_duel_victim = { add_loyalty = loyalty_approved_duel } #P:A TODO No EU5 equivalent: +loyalty for the challenger (EU5 characters have no loyalty)
+		# scope:clan_chief_duel_perpetrator = { add_loyalty = loyalty_approved_duel } #P:A TODO No EU5 equivalent: +loyalty for the challenged chief (EU5 characters have no loyalty)
+		hidden_effect = {
+			random_list = {
+				10 = { # One of them dies
+					trigger_event_non_silently = { id = tribal_pol.18 }
+				}
+				2 = { # Both dies
+					trigger_event_non_silently = { id = tribal_pol.19 }
+				}
+			}
+		}
+	}
+
+	option = { # A duel of honor
+		name = tribal_pol.17.b
+		custom_tooltip = tribal_pol.17.b.custom
+		# scope:clan_chief_duel_victim = { add_loyalty = loyalty_disapproved_duel_1 } #P:A TODO No EU5 equivalent: -loyalty for the challenger (EU5 characters have no loyalty)
+		# scope:clan_chief_duel_perpetrator = { add_loyalty = loyalty_approved_duel } #P:A TODO No EU5 equivalent: +loyalty for the challenged chief (EU5 characters have no loyalty)
+		hidden_effect = {
+			random_list = {
+				20 = { # Neither dies
+					trigger_event_non_silently = { id = tribal_pol.20 }
+				}
+				3 = { # One of them dies
+					trigger_event_non_silently = { id = tribal_pol.21 }
+				}
+				1 = { # Both of them dies
+					trigger_event_non_silently = { id = tribal_pol.19 }
+				}
+			}
+		}
+	}
+
+	option = { # No duels allowed
+		name = tribal_pol.17.c
+		# scope:clan_chief_duel_victim = { add_loyalty = loyalty_disapproved_duel_2 } #P:A TODO No EU5 equivalent: -loyalty for the challenger (EU5 characters have no loyalty)
+		# scope:clan_chief_duel_perpetrator = { add_loyalty = loyalty_disapproved_duel_1 } #P:A TODO No EU5 equivalent: -loyalty for the challenged chief (EU5 characters have no loyalty)
+	}
+}
+
+# One of the two duelists died from the duel (fired by tribal_pol.17; scopes saved there)
+tribal_pol.18 = {
+	type = country_event
+	title = tribal_pol.18.t
+	desc = tribal_pol.18.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		scope:clan_chief_duel_winner = {
+			is_alive = yes
+		}
+		scope:clan_chief_duel_loser = {
+			is_alive = yes
+		}
+	}
+
+	option = {
+		name = tribal_pol.18.a
+		# scope:clan_chief_duel_winner = { add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +10 prominence for the winner (EU5 characters have no prominence)
+		kill_character = {
+			target = scope:clan_chief_duel_loser
+			killer = scope:clan_chief_duel_winner
+			reason = combat # Imperator death_battle
+		}
+	}
+}
+
+# Both the duelists died from the duel (fired by tribal_pol.17; scopes saved there)
+tribal_pol.19 = {
+	type = country_event
+	title = tribal_pol.19.t
+	desc = tribal_pol.19.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		scope:clan_chief_duel_winner = {
+			is_alive = yes
+		}
+		scope:clan_chief_duel_loser = {
+			is_alive = yes
+		}
+	}
+
+	option = {
+		name = tribal_pol.19.a
+		kill_character = {
+			target = scope:clan_chief_duel_loser
+			killer = scope:clan_chief_duel_winner
+			reason = combat # Imperator death_battle
+		}
+		kill_character = {
+			target = scope:clan_chief_duel_winner
+			killer = scope:clan_chief_duel_loser
+			reason = combat # Imperator death_battle
+		}
+	}
+}
+
+# Neither duelist died in honor duel (fired by tribal_pol.17; scopes saved there)
+tribal_pol.20 = {
+	type = country_event
+	title = tribal_pol.20.t
+	desc = tribal_pol.20.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		scope:clan_chief_duel_winner = {
+			is_alive = yes
+		}
+		scope:clan_chief_duel_loser = {
+			is_alive = yes
+		}
+	}
+
+	option = {
+		name = tribal_pol.20.a
+		# scope:clan_chief_duel_winner = { add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +10 prominence for the winner (EU5 characters have no prominence)
+		# scope:clan_chief_duel_loser = { add_prominence = subtract_prominence_large } #P:A TODO No EU5 equivalent: -10 prominence for the loser (EU5 characters have no prominence)
+	}
+}
+
+# A duelist died from honor duel (fired by tribal_pol.17; scopes saved there)
+tribal_pol.21 = {
+	type = country_event
+	title = tribal_pol.21.t
+	desc = tribal_pol.21.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		scope:clan_chief_duel_winner = {
+			is_alive = yes
+		}
+		scope:clan_chief_duel_loser = {
+			is_alive = yes
+		}
+	}
+
+	option = {
+		name = tribal_pol.21.a
+		# scope:clan_chief_duel_winner = { add_prominence = prominence_medium } #P:A TODO No EU5 equivalent: +5 prominence for the winner (EU5 characters have no prominence)
+		kill_character = {
+			target = scope:clan_chief_duel_loser
+			killer = scope:clan_chief_duel_winner
+			reason = combat # Imperator death_battle
+		}
+	}
+}
+
+# Dispute between Clan Chiefs
+tribal_pol.22 = {
+	type = country_event
+	title = tribal_pol.22.t
+	desc = tribal_pol.22.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_22_cooldown }
+		any_character = {
+			count >= 2
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+		}
+		NOT = {
+			any_owned_location = {
+				OR = {
+					has_location_modifier = clan_martial_support
+					has_location_modifier = clan_treasury_support
+				}
+			}
+		}
+		num_locations >= 1 # Imperator num_of_cities
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_22_cooldown
+			years = 15
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_owned_location = {
+			save_scope_as = randomized_country_province
+		}
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+			}
+			save_scope_as = clan_chief_one
+		}
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				NOT = { this = scope:clan_chief_one }
+			}
+			save_scope_as = clan_chief_two
+		}
+	}
+
+	option = { # Offer Clan Chief support for military power/cohort recruitment speed
+		name = tribal_pol.22.a
+		# scope:clan_chief_one = { add_loyalty = loyalty_picked_side add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +loyalty and +10 prominence for the favoured chief (EU5 characters have neither)
+		# scope:clan_chief_two = { add_loyalty = loyalty_picked_other_side add_prominence = { value = subtract_prominence_large subtract = prominence_medium } } #P:A TODO No EU5 equivalent: -loyalty and -15 prominence for the spurned chief (EU5 characters have neither)
+		scope:randomized_country_province = {
+			add_location_modifier = {
+				modifier = clan_martial_support
+				days = 1825
+			}
+		}
+	}
+
+	option = { # Offer Clan Chief support for treasury boost
+		name = tribal_pol.22.b
+		# scope:clan_chief_two = { add_loyalty = loyalty_picked_side add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +loyalty and +10 prominence for the favoured chief (EU5 characters have neither)
+		# scope:clan_chief_one = { add_loyalty = loyalty_picked_other_side add_prominence = { value = subtract_prominence_large subtract = prominence_medium } } #P:A TODO No EU5 equivalent: -loyalty and -15 prominence for the spurned chief (EU5 characters have neither)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 4
+			max = 5000
+		}
+		scope:randomized_country_province = {
+			add_location_modifier = {
+				modifier = clan_treasury_support
+				days = 1825
+			}
+		}
+	}
+
+	option = { # Offer neither Clan Chief support, reducing loyalty with both
+		name = tribal_pol.22.c
+		# scope:clan_chief_one = { add_loyalty = loyalty_split_lands } #P:A TODO No EU5 equivalent: -loyalty for the first chief (EU5 characters have no loyalty)
+		# scope:clan_chief_two = { add_loyalty = loyalty_split_lands } #P:A TODO No EU5 equivalent: -loyalty for the second chief (EU5 characters have no loyalty)
+	}
+}
+
+# Clan Chief asks for backing to make himself/herself more prominent
+tribal_pol.23 = {
+	type = country_event
+	title = tribal_pol.23.t
+	desc = tribal_pol.23.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_23_cooldown }
+		any_character = {
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+			# prominence <= 40
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about restoring a clan chief's prominence (gate: prominence <= 40; options move prominence, loyalty and political influence); EU5 characters have no prominence or loyalty and EU5 has no political influence
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_23_cooldown
+			years = 15
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				# prominence <= 40
+			}
+			save_scope_as = clan_chief_one
+		}
+	}
+
+	option = { # Use Oratory Power to help out
+		name = tribal_pol.23.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 6
+			max = 5000
+		}
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		# scope:clan_chief_one = { add_loyalty = loyalty_pledged_support add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +loyalty and +10 prominence for the chief (EU5 characters have neither)
+	}
+
+	option = { # Do not help out
+		name = tribal_pol.23.b
+		# scope:clan_chief_one = { add_loyalty = loyalty_left_to_free_self add_prominence = { value = subtract_prominence_large subtract = prominence_medium } } #P:A TODO No EU5 equivalent: -loyalty and -15 prominence for the chief (EU5 characters have neither)
+	}
+}
+
+# Clan Chiefs character event describing their rule as a Clan Chief (not seen by player)
+# Imperator character event (fired by on_action character_story_events); the clan chief is scope:pa_character.
+tribal_pol.24 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				# is_clan_chief = yes
+				OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				NOR = {
+					has_character_modifier = clan_chief_prominence_great_leader
+					has_character_modifier = clan_chief_prominence_good_leader
+					has_character_modifier = clan_chief_prominence_bad_leader
+					has_character_modifier = clan_chief_prominence_terrible_leader
+					has_character_modifier = clan_chief_prominence_great_demagogue
+					has_character_modifier = clan_chief_prominence_good_demagogue
+					has_character_modifier = clan_chief_prominence_bad_demagogue
+					has_character_modifier = clan_chief_prominence_terrible_demagogue
+					has_character_modifier = clan_chief_prominence_very_reverent
+					has_character_modifier = clan_chief_prominence_somewhat_reverent
+					has_character_modifier = clan_chief_prominence_very_irreverent
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				# is_clan_chief = yes
+				OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				NOR = {
+					has_character_modifier = clan_chief_prominence_great_leader
+					has_character_modifier = clan_chief_prominence_good_leader
+					has_character_modifier = clan_chief_prominence_bad_leader
+					has_character_modifier = clan_chief_prominence_terrible_leader
+					has_character_modifier = clan_chief_prominence_great_demagogue
+					has_character_modifier = clan_chief_prominence_good_demagogue
+					has_character_modifier = clan_chief_prominence_bad_demagogue
+					has_character_modifier = clan_chief_prominence_terrible_demagogue
+					has_character_modifier = clan_chief_prominence_very_reverent
+					has_character_modifier = clan_chief_prominence_somewhat_reverent
+					has_character_modifier = clan_chief_prominence_very_irreverent
+				}
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event only gives the clan chief a monthly prominence modifier (EU5 characters have no prominence)
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					# is_clan_chief = yes
+					OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+						has_estate = estate_type:tribes_estate
+						has_estate = estate_type:nobles_estate
+					}
+					is_ruler = no
+					NOR = {
+						has_character_modifier = clan_chief_prominence_great_leader
+						has_character_modifier = clan_chief_prominence_good_leader
+						has_character_modifier = clan_chief_prominence_bad_leader
+						has_character_modifier = clan_chief_prominence_terrible_leader
+						has_character_modifier = clan_chief_prominence_great_demagogue
+						has_character_modifier = clan_chief_prominence_good_demagogue
+						has_character_modifier = clan_chief_prominence_bad_demagogue
+						has_character_modifier = clan_chief_prominence_terrible_demagogue
+						has_character_modifier = clan_chief_prominence_very_reverent
+						has_character_modifier = clan_chief_prominence_somewhat_reverent
+						has_character_modifier = clan_chief_prominence_very_irreverent
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			random_list = {
+				1 = { # Great leader
+					trigger = {
+						pa_imp_char_is_good_leader_trigger = yes
+					}
+					modifier = {
+						factor = 3
+						pa_imp_char_is_clever_trigger = yes
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_great_leader
+						days = 1825
+					}
+				}
+				3 = { # Good leader
+					trigger = {
+						NOT = { pa_imp_char_is_bad_leader_trigger = yes }
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_good_leader
+						days = 1825
+					}
+				}
+				3 = { # Bad leader
+					trigger = {
+						NOT = { pa_imp_char_is_good_leader_trigger = yes }
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_bad_leader
+						days = 1825
+					}
+				}
+				1 = { # Terrible leader
+					trigger = {
+						pa_imp_char_is_bad_leader_trigger = yes
+					}
+					modifier = {
+						factor = 3
+						pa_imp_char_is_paranoid_trigger = yes
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_terrible_leader
+						days = 1825
+					}
+				}
+				1 = { # Great demagogue
+					trigger = {
+						pa_imp_char_is_demagogue_trigger = yes
+					}
+					modifier = {
+						factor = 3
+						pa_imp_char_is_clever_trigger = yes
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_great_demagogue
+						days = 1825
+					}
+				}
+				3 = { # Good demagogue
+					trigger = {
+						NOT = { pa_imp_char_is_rude_trigger = yes }
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_good_demagogue
+						days = 1825
+					}
+				}
+				3 = { # Bad demagogue
+					trigger = {
+						NOT = { pa_imp_char_is_demagogue_trigger = yes }
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_bad_demagogue
+						days = 1825
+					}
+				}
+				1 = { # Terrible demagogue
+					trigger = {
+						pa_imp_char_is_rude_trigger = yes
+					}
+					modifier = {
+						factor = 3
+						pa_imp_char_is_paranoid_trigger = yes
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_terrible_demagogue
+						days = 1825
+					}
+				}
+				1 = { # Very reverent
+					trigger = {
+						pa_imp_char_is_religious_trigger = yes
+					}
+					modifier = {
+						factor = 3
+						pa_imp_char_is_clever_trigger = yes
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_very_reverent
+						days = 1825
+					}
+				}
+				3 = { # Somewhat reverent
+					trigger = {
+						NOT = { pa_imp_char_is_irreligious_trigger = yes }
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_somewhat_reverent
+						days = 1825
+					}
+				}
+				3 = { # Somewhat irreverent
+					trigger = {
+						NOT = { pa_imp_char_is_religious_trigger = yes }
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_somewhat_irreverent
+						days = 1825
+					}
+				}
+				1 = { # Very irreverent
+					trigger = {
+						pa_imp_char_is_irreligious_trigger = yes
+					}
+					modifier = {
+						factor = 3
+						pa_imp_char_is_paranoid_trigger = yes
+					}
+					add_character_modifier = {
+						modifier = clan_chief_prominence_very_irreverent
+						days = 1825
+					}
+				}
+			}
+		}
+	}
+}
+
+# Help Clan Chief remove their reputation as a bad/terrible leader
+# Only a clan chief carrying a reputation modifier from tribal_pol.24 qualifies (tribal_pol.24 is disabled in EU5).
+tribal_pol.25 = {
+	type = country_event
+	title = tribal_pol.25.t
+	desc = tribal_pol.25.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		NOT = { has_variable = tribal_pol_25_cooldown }
+		any_character = {
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+			OR = {
+				has_character_modifier = clan_chief_prominence_bad_leader
+				has_character_modifier = clan_chief_prominence_terrible_leader
+				has_character_modifier = clan_chief_prominence_bad_demagogue
+				has_character_modifier = clan_chief_prominence_terrible_demagogue
+				has_character_modifier = clan_chief_prominence_somewhat_irreverent
+				has_character_modifier = clan_chief_prominence_very_irreverent
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event buys back a clan chief's prominence and loyalty by removing a tribal_pol.24 reputation modifier (EU5 characters have no prominence or loyalty; tribal_pol.24 is disabled)
+	}
+
+	immediate = {
+		set_variable = {
+			name = tribal_pol_25_cooldown
+			years = 15
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				OR = {
+					has_character_modifier = clan_chief_prominence_bad_leader
+					has_character_modifier = clan_chief_prominence_terrible_leader
+					has_character_modifier = clan_chief_prominence_bad_demagogue
+					has_character_modifier = clan_chief_prominence_terrible_demagogue
+					has_character_modifier = clan_chief_prominence_somewhat_irreverent
+					has_character_modifier = clan_chief_prominence_very_irreverent
+				}
+			}
+			save_scope_as = clan_chief_one
+		}
+	}
+
+	option = { # Choose to help out
+		name = tribal_pol.25.a
+		scope:clan_chief_one = {
+			if = {
+				limit = {
+					has_character_modifier = clan_chief_prominence_bad_leader
+				}
+				# ROOT = { add_political_influence = subtract_influence_small } #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+				remove_character_modifier = clan_chief_prominence_bad_leader
+				# add_prominence = prominence_large add_loyalty = loyalty_restored_reputation_1 #P:A TODO No EU5 equivalent: +10 prominence and +loyalty for the chief (EU5 characters have neither)
+			}
+			else_if = {
+				limit = {
+					has_character_modifier = clan_chief_prominence_terrible_leader
+				}
+				# ROOT = { add_political_influence = subtract_influence_medium } #P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+				# add_prominence = prominence_large add_loyalty = loyalty_restored_reputation_2 #P:A TODO No EU5 equivalent: +10 prominence and +loyalty for the chief (EU5 characters have neither)
+				remove_character_modifier = clan_chief_prominence_terrible_leader
+			}
+			else_if = {
+				limit = {
+					has_character_modifier = clan_chief_prominence_bad_demagogue
+				}
+				# ROOT = { add_political_influence = subtract_influence_small } #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+				remove_character_modifier = clan_chief_prominence_bad_demagogue
+				# add_prominence = prominence_large add_loyalty = loyalty_restored_reputation_1 #P:A TODO No EU5 equivalent: +10 prominence and +loyalty for the chief (EU5 characters have neither)
+			}
+			else_if = {
+				limit = {
+					has_character_modifier = clan_chief_prominence_terrible_demagogue
+				}
+				# ROOT = { add_political_influence = subtract_influence_medium } #P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+				# add_prominence = prominence_large add_loyalty = loyalty_restored_reputation_2 #P:A TODO No EU5 equivalent: +10 prominence and +loyalty for the chief (EU5 characters have neither)
+				remove_character_modifier = clan_chief_prominence_terrible_demagogue
+			}
+			else_if = {
+				limit = {
+					has_character_modifier = clan_chief_prominence_somewhat_irreverent
+				}
+				ROOT = {
+					pa_imp_remove_stability_effect_small = yes
+				}
+				remove_character_modifier = clan_chief_prominence_somewhat_irreverent
+				# add_prominence = prominence_large add_loyalty = loyalty_restored_reputation_1 #P:A TODO No EU5 equivalent: +10 prominence and +loyalty for the chief (EU5 characters have neither)
+			}
+			else_if = {
+				limit = {
+					has_character_modifier = clan_chief_prominence_very_irreverent
+				}
+				ROOT = {
+					pa_imp_remove_stability_effect = yes
+				}
+				# add_prominence = prominence_large add_loyalty = loyalty_restored_reputation_2 #P:A TODO No EU5 equivalent: +10 prominence and +loyalty for the chief (EU5 characters have neither)
+				remove_character_modifier = clan_chief_prominence_very_irreverent
+			}
+		}
+	}
+
+	option = { # Refrain from helping out
+		name = tribal_pol.25.b
+		# scope:clan_chief_one = { add_loyalty = loyalty_refused_to_assist } #P:A TODO No EU5 equivalent: -loyalty for the chief (EU5 characters have no loyalty)
+	}
+}
+
+# Champion of the Tribe
+tribal_pol.26 = {
+	type = country_event
+	title = tribal_pol.26.t
+	desc = tribal_pol.26.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		any_character = {
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+			mil >= 40 # Imperator martial >= 8 (x5)
+		}
+		NOR = {
+			any_character = {
+				has_character_modifier = clan_chief_prominence_champion
+			}
+			has_variable = tribal_pol_26_cooldown
+		}
+		always = no #P:A TODO No EU5 equivalent: the event only makes a clan chief Champion (+prominence, monthly prominence modifier, loyalty) for political influence (EU5 characters have no prominence or loyalty, EU5 has no political influence)
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				mil >= 40 # Imperator martial >= 8 (x5)
+			}
+			save_scope_as = clan_chief_one
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_26_cooldown
+				years = 5
+			}
+		}
+	}
+
+	option = { # Make the Clan Chief a Champion of the nation with Oratory Power
+		name = tribal_pol.26.a
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		scope:clan_chief_one = {
+			# add_loyalty = loyalty_made_champion add_prominence = prominence_large #P:A TODO No EU5 equivalent: +loyalty and +10 prominence for the champion (EU5 characters have neither)
+			add_character_modifier = {
+				modifier = clan_chief_prominence_champion
+				days = 3650
+			}
+		}
+	}
+
+	option = { # Refrain from doing so
+		name = tribal_pol.26.b
+		# scope:clan_chief_one = { add_loyalty = loyalty_refused_champion add_prominence = subtract_prominence_medium } #P:A TODO No EU5 equivalent: -loyalty and -5 prominence for the chief (EU5 characters have neither)
+	}
+}
+
+# Disloyal Clan Chief
+tribal_pol.27 = {
+	type = country_event
+	title = tribal_pol.27.t
+	desc = tribal_pol.27.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		any_character = {
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+			# loyalty < 40
+		}
+		NOT = {
+			has_variable = tribal_pol_27_cooldown
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about a clan chief with less than 40 loyalty, and its options only move tyranny, prominence and loyalty (EU5 has none of these)
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				# loyalty < 40
+			}
+			save_scope_as = clan_chief_one
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_27_cooldown
+				years = 5
+			}
+		}
+	}
+
+	option = { # Use Military Power to stop them
+		name = tribal_pol.27.a
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny (EU5 has no tyranny)
+		# scope:clan_chief_one = { add_prominence = subtract_prominence_huge } #P:A TODO No EU5 equivalent: -20 prominence for the chief (EU5 characters have no prominence)
+	}
+
+	option = { # Refrain from stopping them
+		name = tribal_pol.27.b
+		# scope:clan_chief_one = { add_loyalty = loyalty_tribal_autonomy add_prominence = prominence_huge } #P:A TODO No EU5 equivalent: +loyalty and +20 prominence for the chief (EU5 characters have neither)
+	}
+}
+
+# Loyal Clan Chief suggesting to improve prominence for ruler and himself/herself
+tribal_pol.28 = {
+	type = country_event
+	title = tribal_pol.28.t
+	desc = tribal_pol.28.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		any_character = {
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+			# loyalty >= 75
+		}
+		NOT = {
+			has_variable = tribal_pol_28_cooldown
+		}
+		always = no #P:A TODO No EU5 equivalent: the event trades gold and political influence for ruler and chief prominence, gated on a 75-loyal chief (EU5 has no prominence, loyalty or political influence)
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				# loyalty >= 75
+			}
+			save_scope_as = clan_chief_one
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_28_cooldown
+				years = 10
+			}
+		}
+	}
+
+	option = { # Agree to the deal at the cost of gold and oratory power
+		name = tribal_pol.28.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -8
+			min = -6000
+		}
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		# ruler = { add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +10 prominence for the ruler (EU5 characters have no prominence)
+		# scope:clan_chief_one = { add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +10 prominence for the chief (EU5 characters have no prominence)
+	}
+
+	option = { # Disagree to the deal
+		name = tribal_pol.28.b
+		# scope:clan_chief_one = { add_loyalty = loyalty_saddle_up_consort_refused add_prominence = subtract_prominence_medium } #P:A TODO No EU5 equivalent: -loyalty and -5 prominence for the chief (EU5 characters have neither)
+	}
+}
+
+# Clan Chief suggests moving another clan more centrally, at the cost of the other Chief
+tribal_pol.29 = {
+	type = country_event
+	title = tribal_pol.29.t
+	desc = tribal_pol.29.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		any_character = {
+			count >= 2
+			is_alive = yes
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+		}
+		NOT = {
+			has_variable = tribal_pol_29_cooldown
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				is_alive = yes
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+			}
+			save_scope_as = clan_chief_one
+		}
+		random_character = {
+			limit = {
+				is_alive = yes
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				NOT = { this = scope:clan_chief_one }
+			}
+			save_scope_as = clan_chief_two
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_29_cooldown
+				years = 10
+			}
+		}
+	}
+
+	option = { # Go through with it
+		name = tribal_pol.29.a
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 1 (centralization_large); EU5 societal value moved towards centralization
+			type = centralization_vs_decentralization
+			value = -1
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+			min = -6000
+		}
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		# scope:clan_chief_one = { add_loyalty = loyalty_approved_migration add_prominence = 10 } #P:A TODO No EU5 equivalent: +loyalty and +10 prominence for the first chief (EU5 characters have neither)
+		# scope:clan_chief_two = { add_loyalty = loyalty_approved_migration_bad add_prominence = -10 } #P:A TODO No EU5 equivalent: -loyalty and -10 prominence for the second chief (EU5 characters have neither)
+	}
+
+	option = { # Don't go through with
+		name = tribal_pol.29.b
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = -1 (subtract_centralization_large); EU5 societal value moved towards decentralization
+			type = centralization_vs_decentralization
+			value = 1
+		}
+		# scope:clan_chief_two = { add_loyalty = loyalty_disapproved_migration } #P:A TODO No EU5 equivalent: +loyalty for the second chief (EU5 characters have no loyalty)
+		# scope:clan_chief_one = { add_loyalty = loyalty_disapproved_migration_bad add_prominence = -10 } #P:A TODO No EU5 equivalent: -loyalty and -10 prominence for the first chief (EU5 characters have neither)
+	}
+}
+
+# Clan Chiefs wants different Council Laws
+tribal_pol.30 = {
+	type = country_event
+	title = tribal_pol.30.t
+	desc = tribal_pol.30.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		any_character = {
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+			OR = {
+				AND = {
+					OR = {
+						pa_imp_char_is_paranoid_trigger = yes
+						# loyalty < 40
+					}
+					root = {
+						# NOT = { has_law = tribal_decentralized_laws_3 }
+						societal_value:centralization_vs_decentralization >= 50 #P:A TODO Approximate: Imperator centralization <= -50; EU5 decentralization is the right side of the centralization/decentralization societal value
+					}
+				}
+				AND = {
+					OR = {
+						pa_imp_char_is_demagogue_trigger = yes
+						# loyalty > 90
+					}
+					NOT = { # Imperator NOR = { char_is_paranoid_trigger = yes loyalty <= 40 }
+						pa_imp_char_is_paranoid_trigger = yes
+					}
+					root = {
+						# NOT = { has_law = local_hierarchs }
+						societal_value:centralization_vs_decentralization >= 30 #P:A TODO Approximate: Imperator centralization <= -30
+					}
+				}
+			}
+		}
+		NOT = {
+			has_variable = tribal_pol_30_cooldown
+		}
+		always = no #P:A TODO No EU5 equivalent: the event exists to change the tribal council law (tribal_decentralized_laws_3 "Closed Society" or local_hierarchs "Local Dynasties"); EU5 has no Imperator laws, and the other effects are political influence, prominence and loyalty
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				OR = {
+					AND = {
+						OR = {
+							pa_imp_char_is_paranoid_trigger = yes
+							# loyalty < 40
+						}
+						root = {
+							# NOT = { has_law = tribal_decentralized_laws_3 }
+							societal_value:centralization_vs_decentralization >= 50 #P:A TODO Approximate: Imperator centralization <= -50
+						}
+					}
+					AND = {
+						OR = {
+							pa_imp_char_is_demagogue_trigger = yes
+							# loyalty > 90
+						}
+						NOT = {
+							pa_imp_char_is_paranoid_trigger = yes
+						}
+						root = {
+							# NOT = { has_law = local_hierarchs }
+							societal_value:centralization_vs_decentralization >= 30 #P:A TODO Approximate: Imperator centralization <= -30
+						}
+					}
+				}
+			}
+			save_scope_as = clan_chief_one
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_30_cooldown
+				years = 20
+			}
+		}
+	}
+
+	option = { # Closed Society
+		name = tribal_pol.30.a
+		trigger = {
+			# NOT = { has_law = tribal_decentralized_laws_3 }
+			societal_value:centralization_vs_decentralization >= 50 #P:A TODO Approximate: Imperator centralization <= -50
+			scope:clan_chief_one = {
+				OR = {
+					pa_imp_char_is_paranoid_trigger = yes
+					# loyalty <= 40
+				}
+			}
+		}
+		# change_law = tribal_decentralized_laws_3 #P:A TODO No EU5 equivalent: switches the tribal council law to Closed Society (EU5 has no Imperator laws)
+		# add_political_influence = subtract_influence_large #P:A TODO No EU5 equivalent: -25 political influence (EU5 has no political influence)
+		# root.current_ruler = { add_prominence = subtract_prominence_medium } #P:A TODO No EU5 equivalent: -5 prominence for the ruler (EU5 characters have no prominence)
+		# scope:clan_chief_one = { add_loyalty = loyalty_feudatory_settlers_advisor_success add_prominence = prominence_small } #P:A TODO No EU5 equivalent: +loyalty and +2 prominence for the chief (EU5 characters have neither)
+
+		# The law gives happiness to country culture and shares the group with assimilation speed law
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0
+				pa_imp_has_large_amount_of_unintegrated_pops = yes
+			}
+		}
+	}
+
+	option = { # Local Dynasties
+		name = tribal_pol.30.b
+		trigger = {
+			# NOT = { has_law = local_hierarchs }
+			societal_value:centralization_vs_decentralization >= 30 #P:A TODO Approximate: Imperator centralization <= -30
+			scope:clan_chief_one = {
+				OR = {
+					pa_imp_char_is_demagogue_trigger = yes
+					# loyalty >= 90
+				}
+				NOT = { # Imperator NOR = { char_is_paranoid_trigger = yes loyalty <= 40 }
+					pa_imp_char_is_paranoid_trigger = yes
+				}
+			}
+		}
+		# change_law = local_hierarchs #P:A TODO No EU5 equivalent: switches the tribal council law to Local Dynasties (EU5 has no Imperator laws)
+		# add_political_influence = subtract_influence_large #P:A TODO No EU5 equivalent: -25 political influence (EU5 has no political influence)
+		# root.current_ruler = { add_prominence = prominence_medium } #P:A TODO No EU5 equivalent: +5 prominence for the ruler (EU5 characters have no prominence)
+		# scope:clan_chief_one = { add_loyalty = loyalty_feudatory_settlers_advisor_success add_prominence = prominence_small } #P:A TODO No EU5 equivalent: +loyalty and +2 prominence for the chief (EU5 characters have neither)
+
+		# Good law
+		ai_chance = {
+			base = 1000
+		}
+	}
+
+	option = {
+		name = tribal_pol.30.c
+		# scope:clan_chief_one = { add_loyalty = loyalty_feudatory_settlers_ignored_advisor add_prominence = subtract_prominence_medium } #P:A TODO No EU5 equivalent: -loyalty and -5 prominence for the chief (EU5 characters have neither)
+	}
+}
+
+# Centralizing Authority at the cost of a Clan Chief
+tribal_pol.31 = {
+	type = country_event
+	title = tribal_pol.31.t
+	desc = tribal_pol.31.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		any_character = {
+			count >= 2
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+			# prominence >= 50 #P:A TODO No EU5 equivalent: the chiefs had to have at least 50 prominence (EU5 characters have no prominence)
+		}
+		any_owned_location = {
+			is_capital = yes
+		}
+		any_owned_location = {
+			is_capital = no
+		}
+		NOT = {
+			has_variable = tribal_pol_31_cooldown
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				# prominence >= 50
+			}
+			save_scope_as = clan_chief_one
+		}
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				# prominence >= 50
+				NOT = { this = scope:clan_chief_one }
+			}
+			save_scope_as = clan_chief_two
+		}
+		random_owned_location = {
+			limit = {
+				is_capital = yes
+			}
+			save_scope_as = randomized_capital_province
+		}
+		random_owned_location = {
+			limit = {
+				is_capital = no
+			}
+			save_scope_as = randomized_non_capital_province
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_31_cooldown
+				years = 5
+			}
+		}
+	}
+
+	option = { # Move a lot of people
+		name = tribal_pol.31.a
+		# add_political_influence = subtract_influence_large #P:A TODO No EU5 equivalent: -25 political influence (EU5 has no political influence)
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 1 (centralization_large); EU5 societal value moved towards centralization
+			type = centralization_vs_decentralization
+			value = -1
+		}
+		# root.current_ruler = { add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +10 prominence for the ruler (EU5 characters have no prominence)
+		# scope:clan_chief_one = { add_loyalty = loyalty_approved_centralization add_prominence = subtract_prominence_huge } #P:A TODO No EU5 equivalent: +loyalty and -20 prominence for the chief (EU5 characters have neither)
+		scope:randomized_non_capital_province = {
+			random_pop = { #P:A TODO Approximate: Imperator move_pop moved one whole pop to the capital; EU5 splits off size 1 (one Imperator pop converted 1:1 to EU5 size)
+				split_pop = {
+					size = 1
+					location = scope:randomized_capital_province
+				}
+			}
+		}
+		scope:randomized_non_capital_province = {
+			add_location_modifier = {
+				modifier = tribal_movements
+				days = 3650
+			}
+		}
+	}
+
+	option = { # Move some people
+		name = tribal_pol.31.b
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 0.5 (centralization_medium); EU5 societal value moved towards centralization
+			type = centralization_vs_decentralization
+			value = -0.5
+		}
+		# root.current_ruler = { add_prominence = prominence_medium } #P:A TODO No EU5 equivalent: +5 prominence for the ruler (EU5 characters have no prominence)
+		# scope:clan_chief_one = { add_loyalty = loyalty_approved_centralization add_prominence = subtract_prominence_large } #P:A TODO No EU5 equivalent: +loyalty and -10 prominence for the chief (EU5 characters have neither)
+		scope:randomized_non_capital_province = {
+			random_pop = { #P:A TODO Approximate: Imperator move_pop moved one whole pop to the capital; EU5 splits off size 1 (one Imperator pop converted 1:1 to EU5 size)
+				split_pop = {
+					size = 1
+					location = scope:randomized_capital_province
+				}
+			}
+		}
+		scope:randomized_non_capital_province = {
+			add_location_modifier = {
+				modifier = tribal_movements
+				days = 1825
+			}
+		}
+	}
+
+	option = { # No Steal
+		name = tribal_pol.31.c
+		# scope:clan_chief_one = { add_loyalty = loyalty_disapproved_centralization_1 add_prominence = prominence_small } #P:A TODO No EU5 equivalent: -loyalty and +2 prominence for the first chief (EU5 characters have neither)
+		# scope:clan_chief_two = { add_loyalty = loyalty_disapproved_centralization_2 } #P:A TODO No EU5 equivalent: -loyalty for the second chief (EU5 characters have no loyalty)
+	}
+}
+
+# Clan Chiefs demands decentralizing authority
+tribal_pol.32 = {
+	type = country_event
+	title = tribal_pol.32.t
+	desc = tribal_pol.32.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		any_character = {
+			count >= 2
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+		}
+		any_character = {
+			OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+			# prominence <= 50 #P:A TODO No EU5 equivalent: one chief had to have at most 50 prominence (EU5 characters have no prominence)
+		}
+		societal_value:centralization_vs_decentralization <= -20 #P:A TODO Approximate: Imperator centralization >= 20; EU5 centralization is the left side of the centralization/decentralization societal value
+		NOT = { has_country_modifier = decentralizing_realm }
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				# prominence <= 50
+			}
+			save_scope_as = clan_chief_one
+		}
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				NOT = { this = scope:clan_chief_one }
+			}
+			save_scope_as = clan_chief_two
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # Agree to their demands, decentralize the realm
+		name = tribal_pol.32.a
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = -2 (subtract_centralization_huge); EU5 societal value moved towards decentralization
+			type = centralization_vs_decentralization
+			value = 2
+		}
+		add_country_modifier = {
+			modifier = decentralizing_realm
+			days = 3650
+		}
+		# scope:clan_chief_one = { add_loyalty = loyalty_approved_decentralization add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +loyalty and +10 prominence for the first chief (EU5 characters have neither)
+		# scope:clan_chief_two = { add_loyalty = loyalty_approved_decentralization add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +loyalty and +10 prominence for the second chief (EU5 characters have neither)
+	}
+
+	option = { # Decline their demands
+		name = tribal_pol.32.b
+		# scope:clan_chief_one = { add_loyalty = loyalty_disapproved_decentralization add_prominence = subtract_prominence_medium } #P:A TODO No EU5 equivalent: -loyalty and -5 prominence for the first chief (EU5 characters have neither)
+		# scope:clan_chief_two = { add_loyalty = loyalty_disapproved_decentralization add_prominence = subtract_prominence_medium } #P:A TODO No EU5 equivalent: -loyalty and -5 prominence for the second chief (EU5 characters have neither)
+	}
+}
+
+# Highly prominent Clan Chief challenging rule
+tribal_pol.33 = {
+	type = country_event
+	title = tribal_pol.33.t
+	desc = tribal_pol.33.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		any_character = {
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+			OR = {
+				# prominence >= 80 #P:A TODO No EU5 equivalent: 80 prominence (EU5 characters have no prominence); only the prominent trait is checked
+				has_trait = prominent
+			}
+		}
+		any_character = {
+			OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+			count = 4
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				OR = {
+					# prominence >= 80
+					has_trait = prominent
+				}
+			}
+			save_scope_as = clan_chief_one
+		}
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				NOT = { this = scope:clan_chief_one }
+			}
+			save_scope_as = clan_chief_two
+		}
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				NOR = {
+					this = scope:clan_chief_one
+					this = scope:clan_chief_two
+				}
+			}
+			save_scope_as = clan_chief_three
+		}
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+				NOR = {
+					this = scope:clan_chief_one
+					this = scope:clan_chief_two
+					this = scope:clan_chief_three
+				}
+			}
+			save_scope_as = clan_chief_four
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = tribal_pol.33.a
+		# root.current_ruler = { add_prominence = subtract_prominence_huge } #P:A TODO No EU5 equivalent: -20 prominence for the ruler (EU5 characters have no prominence)
+		# scope:clan_chief_one = { add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +10 prominence for the challenger (EU5 characters have no prominence)
+		# scope:clan_chief_two = { add_loyalty = loyalty_authority_questioned } #P:A TODO No EU5 equivalent: -loyalty for the other three chiefs (EU5 characters have no loyalty)
+		# scope:clan_chief_three = { add_loyalty = loyalty_authority_questioned }
+		# scope:clan_chief_four = { add_loyalty = loyalty_authority_questioned }
+		pa_imp_remove_stability_effect = yes
+	}
+
+	option = {
+		name = tribal_pol.33.b
+		# add_political_influence = subtract_influence_large #P:A TODO No EU5 equivalent: -25 political influence (EU5 has no political influence)
+		# root.current_ruler = { add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +10 prominence for the ruler (EU5 characters have no prominence)
+		# scope:clan_chief_one = { add_prominence = subtract_prominence_huge add_loyalty = loyalty_disloyalty_punish } #P:A TODO No EU5 equivalent: -20 prominence and -loyalty for the challenger (EU5 characters have neither)
+		# scope:clan_chief_two = { add_loyalty = loyalty_authority_regained } #P:A TODO No EU5 equivalent: +loyalty for the other three chiefs (EU5 characters have no loyalty)
+		# scope:clan_chief_three = { add_loyalty = loyalty_authority_regained }
+		# scope:clan_chief_four = { add_loyalty = loyalty_authority_regained }
+	}
+
+	option = {
+		name = tribal_pol.33.c
+		trigger = {
+			ruler ?= {
+				NOT = {
+					pa_imp_char_is_good_leader_trigger = yes
+				}
+			}
+		}
+		# add_tyranny = tyranny_large #P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		# root.current_ruler = { add_corruption = corruption_large add_prominence = subtract_prominence_large } #P:A TODO No EU5 equivalent: +10 corruption and -10 prominence for the ruler (EU5 characters have neither)
+		# scope:clan_chief_two = { add_loyalty = loyalty_authority_tyrannical } #P:A TODO No EU5 equivalent: -loyalty for the other three chiefs (EU5 characters have no loyalty)
+		# scope:clan_chief_three = { add_loyalty = loyalty_authority_tyrannical }
+		# scope:clan_chief_four = { add_loyalty = loyalty_authority_tyrannical }
+		kill_character = {
+			target = scope:clan_chief_one
+			killer = scope:pa_ruler
+			reason = assassination # Imperator death_murder
+		}
+	}
+}
+
+# Relationship with non-tribal neighbor
+tribal_pol.34 = {
+	type = country_event
+	title = tribal_pol.34.t
+	desc = tribal_pol.34.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = tribal_pol_34_cooldown
+		}
+		government_type = government_type:tribe
+		NOT = { has_country_modifier = civilized_neighbor }
+		any_neighbor_country = {
+			NOT = { government_type = government_type:tribe }
+			opinion = {
+				target = root
+				value >= 0
+			}
+			NOT = {
+				is_at_war_with = root
+			}
+			any_owned_location = {
+				any_neighbor_location = {
+					exists = owner
+					owner = root
+				}
+			}
+		}
+	}
+
+	immediate = {
+		root = {
+			save_scope_as = tribal_proposition_country
+		}
+		random_neighbor_country = {
+			limit = {
+				NOT = { government_type = government_type:tribe }
+				opinion = {
+					target = root
+					value >= 0
+				}
+				NOT = {
+					is_at_war_with = root
+				}
+			}
+			save_scope_as = randomized_non_tribal_neighbor
+			ruler ?= {
+				save_scope_as = pa_neighbor_ruler
+			}
+			random_owned_location = {
+				limit = {
+					any_neighbor_location = {
+						exists = owner
+						owner = root
+					}
+				}
+				random_neighbor_location = {
+					limit = {
+						exists = owner
+						owner = root
+					}
+					save_scope_as = randomized_country_province
+				}
+			}
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_34_cooldown
+				years = 10
+			}
+		}
+	}
+
+	option = { # We will learn from our neighbors
+		name = tribal_pol.34.a
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 1 (centralization_large); EU5 societal value moved towards centralization
+			type = centralization_vs_decentralization
+			value = -1
+		}
+		add_country_modifier = {
+			modifier = civilized_neighbor
+			days = 1825
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -8
+			min = -6000
+		}
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+
+		scope:randomized_non_tribal_neighbor = {
+			add_opinion = {
+				modifier = border_friends
+				target = root
+			}
+		}
+
+		scope:randomized_country_province ?= {
+			add_location_modifier = {
+				modifier = tribal_movements
+				days = 1825
+			}
+		}
+
+		hidden_effect = {
+			scope:randomized_non_tribal_neighbor = {
+				trigger_event_non_silently = { id = tribal_pol.35 }
+			}
+		}
+	}
+
+	option = { # We will stick to our ways
+		name = tribal_pol.34.b
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = -0.5 (subtract_centralization_medium); EU5 societal value moved towards decentralization
+			type = centralization_vs_decentralization
+			value = 0.5
+		}
+
+		scope:randomized_country_province ?= {
+			add_location_modifier = {
+				modifier = tribal_tradition
+				days = 1825
+			}
+		}
+	}
+}
+
+# Receive proposition from tribal ruler (fired by tribal_pol.34 for the non-tribal neighbor; scope:tribal_proposition_country saved there)
+tribal_pol.35 = {
+	type = country_event
+	title = tribal_pol.35.t
+	desc = tribal_pol.35.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		any_owned_location = {
+			any_neighbor_location = {
+				exists = owner
+				owner = scope:tribal_proposition_country
+			}
+		}
+	}
+
+	immediate = {
+		random_owned_location = {
+			limit = {
+				any_neighbor_location = {
+					exists = owner
+					owner = scope:tribal_proposition_country
+				}
+			}
+			save_scope_as = randomized_country_province
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:tribal_proposition_country = {
+			ruler ?= {
+				save_scope_as = pa_proposer_ruler
+			}
+		}
+	}
+
+	option = {
+		name = tribal_pol.35.a
+
+		add_gold = {
+			value = scope:tribal_proposition_country.monthly_income_total # Imperator has_monthly_income
+			multiply = 3
+			max = 5000
+		}
+		scope:tribal_proposition_country = {
+			add_opinion = {
+				modifier = border_friends
+				target = root
+			}
+		}
+		scope:randomized_country_province = {
+			if = {
+				limit = {
+					NOT = { has_location_modifier = tribal_influx }
+				}
+				add_location_modifier = {
+					modifier = tribal_influx
+					days = 3650
+				}
+			}
+		}
+	}
+}
+
+# Receive pop from non-tribal neighbor
+tribal_pol.36 = {
+	type = country_event
+	title = tribal_pol.36.t
+	desc = tribal_pol.36.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = tribal_pol_36_cooldown
+		}
+		government_type = government_type:tribe
+		any_neighbor_country = {
+			NOT = { government_type = government_type:tribe }
+			opinion = {
+				target = root
+				value >= 0
+			}
+			NOT = {
+				is_at_war_with = root
+			}
+			any_owned_location = {
+				any_neighbor_location = {
+					exists = owner
+					owner = root
+				}
+			}
+		}
+	}
+
+	immediate = {
+		random_neighbor_country = {
+			limit = {
+				NOT = { government_type = government_type:tribe }
+				opinion = {
+					target = root
+					value >= 0
+				}
+				NOT = {
+					is_at_war_with = root
+				}
+			}
+			save_scope_as = randomized_non_tribal_neighbor
+			ruler ?= {
+				save_scope_as = pa_neighbor_ruler
+			}
+		}
+		random_owned_location = {
+			limit = {
+				any_neighbor_location = {
+					exists = owner
+					owner = scope:randomized_non_tribal_neighbor
+				}
+			}
+			save_scope_as = randomized_country_province
+			random_neighbor_location = {
+				limit = {
+					exists = owner
+					owner = scope:randomized_non_tribal_neighbor
+				}
+				save_scope_as = randomized_non_tribal_neighbor_province
+			}
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_36_cooldown
+				years = 15
+			}
+		}
+	}
+
+	option = {
+		name = tribal_pol.36.a
+		scope:randomized_country_province ?= {
+			add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (1 citizen pop -> size 1 burghers)
+				type = pop_type:burghers
+				size = 1
+				religion = scope:randomized_non_tribal_neighbor.religion
+				culture = scope:randomized_non_tribal_neighbor.culture
+			}
+		}
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		# root.current_ruler = { add_prominence = subtract_prominence_medium } #P:A TODO No EU5 equivalent: -5 prominence for the ruler (EU5 characters have no prominence)
+	}
+
+	option = {
+		name = tribal_pol.36.b
+		# root.current_ruler = { add_prominence = prominence_medium } #P:A TODO No EU5 equivalent: +5 prominence for the ruler (EU5 characters have no prominence)
+	}
+}
+
+# Inspirational non-tribal neighbor
+tribal_pol.37 = {
+	type = country_event
+	title = tribal_pol.37.t
+	desc = tribal_pol.37.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = tribal_pol_37_cooldown
+		}
+		government_type = government_type:tribe
+		any_owned_location = {
+			any_neighbor_location = {
+				exists = owner
+				owner = {
+					NOT = { government_type = government_type:tribe }
+					NOT = {
+						is_at_war_with = root
+					}
+				}
+			}
+		}
+		any_character = {
+			# is_clan_chief = yes
+			OR = { #P:A TODO Approximate: Imperator clan chief; EU5 has no clan chiefs, a tribes- or nobles-estate character stands in
+				has_estate = estate_type:tribes_estate
+				has_estate = estate_type:nobles_estate
+			}
+			is_ruler = no
+		}
+		NOT = { has_country_modifier = civilized_neighbor }
+	}
+
+	immediate = {
+		random_owned_location = {
+			limit = {
+				any_neighbor_location = {
+					exists = owner
+					owner = {
+						NOT = { government_type = government_type:tribe }
+						NOT = {
+							is_at_war_with = root
+						}
+					}
+				}
+			}
+			save_scope_as = randomized_country_province
+			random_neighbor_location = {
+				limit = {
+					exists = owner
+					owner = {
+						NOT = { government_type = government_type:tribe }
+						NOT = {
+							is_at_war_with = root
+						}
+					}
+				}
+				owner = {
+					save_scope_as = randomized_non_tribal_neighbor
+					ruler ?= {
+						save_scope_as = pa_neighbor_ruler
+					}
+				}
+			}
+		}
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator clan chief; a tribes- or nobles-estate character stands in
+					has_estate = estate_type:tribes_estate
+					has_estate = estate_type:nobles_estate
+				}
+				is_ruler = no
+			}
+			weight = {
+				factor = 1
+				modifier = {
+					factor = 5
+					pa_imp_char_is_paranoid_trigger = yes
+				}
+			}
+			save_scope_as = clan_chief_one
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_37_cooldown
+				years = 15
+			}
+		}
+	}
+
+	option = {
+		name = tribal_pol.37.a
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = 0.5 (centralization_medium); EU5 societal value moved towards centralization
+			type = centralization_vs_decentralization
+			value = -0.5
+		}
+		add_country_modifier = {
+			modifier = civilized_neighbor
+			days = 1825
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+			min = -6000
+		}
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+		# scope:clan_chief_one = { add_prominence = subtract_prominence_medium add_loyalty = loyalty_approved_reform } #P:A TODO No EU5 equivalent: -5 prominence and +loyalty for the chief (EU5 characters have neither)
+	}
+
+	option = {
+		name = tribal_pol.37.b
+		change_societal_value = { #P:A TODO Approximate: Imperator add_centralization = -0.5 (subtract_centralization_medium); EU5 societal value moved towards decentralization
+			type = centralization_vs_decentralization
+			value = 0.5
+		}
+		# scope:clan_chief_one = { add_prominence = prominence_medium add_loyalty = loyalty_disapproved_reform } #P:A TODO No EU5 equivalent: +5 prominence and -loyalty for the chief (EU5 characters have neither)
+	}
+}
+
+# Tribesmen moving between tribal countries
+tribal_pol.38 = {
+	type = country_event
+	title = tribal_pol.38.t
+	desc = tribal_pol.38.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+		any_neighbor_country = {
+			government_type = government_type:tribe
+			any_owned_location = {
+				any_neighbor_location = {
+					exists = owner
+					owner = root
+				}
+				any_pop = {
+					pop_type = pop_type:tribesmen
+				}
+			}
+		}
+		NOT = {
+			has_variable = tribal_pol_38_cooldown
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 0.25
+			is_ai = yes
+		}
+	}
+
+	immediate = {
+		root = {
+			save_scope_as = original_country
+		}
+		random_neighbor_country = {
+			limit = {
+				government_type = government_type:tribe
+				any_owned_location = {
+					any_neighbor_location = {
+						exists = owner
+						owner = root
+					}
+					any_pop = {
+						pop_type = pop_type:tribesmen
+					}
+				}
+			}
+			weight = {
+				factor = 1
+				modifier = {
+					factor = 2
+					is_ai = yes
+				}
+			}
+			save_scope_as = randomized_tribal_neighbor
+			ruler ?= {
+				save_scope_as = pa_neighbor_ruler
+			}
+			random_owned_location = {
+				limit = {
+					any_neighbor_location = {
+						exists = owner
+						owner = root
+					}
+					any_pop = { pop_type = pop_type:tribesmen }
+				}
+				save_scope_as = randomized_tribal_neighbor_province
+			}
+		}
+		random_owned_location = {
+			limit = {
+				any_neighbor_location = { this = scope:randomized_tribal_neighbor_province }
+			}
+			save_scope_as = randomized_country_province
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			set_variable = {
+				name = tribal_pol_38_cooldown
+				years = 10
+			}
+		}
+	}
+
+	option = {
+		name = tribal_pol.38.a
+		custom_tooltip = tribal_pol.38.a.tooltip
+		scope:randomized_tribal_neighbor_province = {
+			random_pop = { #P:A TODO Approximate: Imperator move_pop moved one whole tribesmen pop across the border; EU5 splits off size 1 (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					pop_type = pop_type:tribesmen
+				}
+				split_pop = {
+					size = 1
+					location = scope:randomized_country_province
+				}
+			}
+		}
+		hidden_effect = {
+			scope:randomized_tribal_neighbor = {
+				trigger_event_non_silently = { id = tribal_pol.39 days = 15 }
+			}
+		}
+	}
+
+	option = {
+		name = tribal_pol.38.b
+		trigger = {
+			is_ai = no
+		}
+		# current_ruler = { add_popularity = subtract_popularity_medium } #P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+	}
+}
+
+# Response to tribe stealing tribesmen from another tribe (fired by tribal_pol.38 for the neighbor that lost the pop; scopes saved there)
+tribal_pol.39 = {
+	type = country_event
+	title = tribal_pol.39.t
+	desc = tribal_pol.39.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:original_country = {
+			ruler ?= {
+				save_scope_as = pa_original_ruler
+			}
+		}
+	}
+
+	option = {
+		name = tribal_pol.39.a
+		scope:original_country = {
+			add_opinion = {
+				modifier = unfriendly_neighbors
+				target = root
+			}
+		}
+		root = {
+			add_opinion = {
+				modifier = unfriendly_neighbors
+				target = scope:original_country
+			}
+		}
+		hidden_effect = {
+			scope:original_country = {
+				trigger_event_non_silently = { id = tribal_pol.40 days = 15 }
+			}
+		}
+	}
+
+	option = {
+		name = tribal_pol.39.b
+		trigger = {
+			is_ai = no
+		}
+		# root.current_ruler = { add_popularity = subtract_prominence_huge } #P:A TODO No EU5 equivalent: -20 popularity for the ruler (EU5 characters have no popularity)
+	}
+}
+
+# War has declared vengeance upon you, after you took their tribesmen (fired by tribal_pol.39 for the country that took the pop; scopes saved in tribal_pol.38)
+tribal_pol.40 = {
+	type = country_event
+	title = tribal_pol.40.t
+	desc = tribal_pol.40.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:randomized_tribal_neighbor ?= { # Imperator portrayed scope:randomized_country_province.current_ruler, which does not exist; the angry neighbor's ruler is shown instead
+			ruler ?= {
+				save_scope_as = pa_neighbor_ruler
+			}
+		}
+	}
+
+	option = {
+		name = tribal_pol.40.a
+	}
+}

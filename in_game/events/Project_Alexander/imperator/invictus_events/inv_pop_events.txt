@@ -1,3 +1,666 @@
 ﻿#P:A Imported from Invictus: events/invictus_events/inv_pop_events.txt
 #P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
 namespace = inv_pop_events
+
+# Riots among the freemen of a province; a local man brings the news to the capital.
+inv_pop_events.1 = {
+	type = country_event
+	title = inv_pop_events.1.t
+	desc = inv_pop_events.1.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_freemen >= 10 (freemen pops); EU5 checks 10 (thousand) peasants, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:peasants }
+				value >= 10
+			}
+		}
+		NOT = { has_variable = freemen_event_cooldown }
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:peasants }
+					value >= 10
+				}
+			}
+			save_scope_as = pop_province
+		}
+		set_variable = {
+			name = freemen_event_cooldown
+			days = 1825 # medium_cooldown
+		}
+		# Imperator: the province's holding owner if it had one (Invictus saved the province itself there), else a newly created man.
+		#P:A TODO No EU5 equivalent: holdings and holding owners; the new character is always created
+		hidden_effect = {
+			create_character = {
+				female = no
+				birth_location = scope:pop_province
+				save_scope_as = free_man
+			}
+			scope:free_man = {
+				pa_imp_good_finesse_trait_effect = yes
+			}
+		}
+	}
+
+	option = {
+		name = inv_pop_events.1.a
+		ruler ?= {
+			# add_popularity = -10
+			#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+			add_trait = trait:arrogant
+		}
+	}
+	option = {
+		name = inv_pop_events.1.b
+		scope:pop_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 3650
+			}
+		}
+	}
+}
+
+# Blood feuds among the tribesmen of a province; a local warrior brings the news to the capital.
+inv_pop_events.2 = {
+	type = country_event
+	title = inv_pop_events.2.t
+	desc = inv_pop_events.2.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_tribesmen >= 10 (tribesmen pops); EU5 checks 10 (thousand) tribesmen, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:tribesmen }
+				value >= 10
+			}
+		}
+		NOT = { has_variable = tribesmen_event_cooldown }
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:tribesmen }
+					value >= 10
+				}
+			}
+			save_scope_as = pop_province
+		}
+		set_variable = {
+			name = tribesmen_event_cooldown
+			days = 1825 # medium_cooldown
+		}
+		# Imperator: the province's holding owner if it had one (Invictus saved the province itself there), else a newly created man.
+		#P:A TODO No EU5 equivalent: holdings and holding owners; the new character is always created
+		hidden_effect = {
+			create_character = {
+				female = no
+				birth_location = scope:pop_province
+				save_scope_as = tribal_man
+			}
+			scope:tribal_man = {
+				pa_imp_positive_martial_trait_effect = yes
+			}
+		}
+	}
+
+	# Both options have no effect in Invictus either.
+	option = {
+		name = inv_pop_events.2.a
+	}
+	option = {
+		name = inv_pop_events.2.b
+	}
+}
+
+# Citizens and freemen of a province riot against each other.
+inv_pop_events.3 = {
+	type = country_event
+	title = inv_pop_events.3.t
+	desc = inv_pop_events.3.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_citizen >= 10 (citizen pops); EU5 checks 10 (thousand) burghers, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:burghers }
+				value >= 10
+			}
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_freemen >= 5 (freemen pops); EU5 checks 5 (thousand) peasants, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:peasants }
+				value >= 5
+			}
+		}
+		NOT = { has_variable = freemen_event_cooldown }
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:burghers }
+					value >= 10
+				}
+				population_with_traits = {
+					limit = { pop_type = pop_type:peasants }
+					value >= 5
+				}
+			}
+			save_scope_as = pop_province
+		}
+		set_variable = {
+			name = freemen_event_cooldown
+			days = 1825 # medium_cooldown
+		}
+		# Imperator: the province's holding owner if it had one, else a newly created man.
+		#P:A TODO No EU5 equivalent: holdings and holding owners; the new character is always created
+		hidden_effect = {
+			create_character = {
+				female = no
+				birth_location = scope:pop_province
+				save_scope_as = rude_citizen
+			}
+			scope:rude_citizen = {
+				pa_imp_good_popularity_trait_effect = yes
+			}
+		}
+	}
+
+	option = {
+		name = inv_pop_events.3.a
+		# current_ruler = { add_popularity = -10 }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+		scope:pop_province = {
+			add_location_modifier = {
+				modifier = local_unrest_heavy_unrest
+				days = 3650
+			}
+		}
+	}
+	option = {
+		name = inv_pop_events.3.b
+		add_gold = -100
+		# current_ruler = { add_popularity = 10 }
+		#P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+	}
+}
+
+# The nobles of a province demand silk.
+inv_pop_events.4 = {
+	type = country_event
+	title = inv_pop_events.4.t
+	desc = inv_pop_events.4.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_nobles >= 7 (noble pops); EU5 checks 7 (thousand) nobles, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:nobles }
+				value >= 7
+			}
+			NOT = { #P:A TODO Approximate: Imperator is_importing_trade_good = silk (a trade route into the province); EU5 checks for a silk import into the location's market
+				market ?= {
+					any_import = { goods = goods:silk }
+				}
+			}
+		}
+		NOT = { has_variable = nobles_event_cooldown }
+	}
+
+	immediate = {
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:nobles }
+					value >= 7
+				}
+				NOT = {
+					market ?= {
+						any_import = { goods = goods:silk }
+					}
+				}
+			}
+			save_scope_as = pop_province
+		}
+		set_variable = {
+			name = nobles_event_cooldown
+			days = 3650 # long_cooldown
+		}
+	}
+
+	option = {
+		name = inv_pop_events.4.a
+		add_gold = -300
+		scope:pop_province = {
+			add_location_modifier = {
+				modifier = silk_quarter_merchant_modifier
+				days = -1
+			}
+		}
+	}
+	option = {
+		name = inv_pop_events.4.b
+		# current_ruler = { add_popularity = -10 }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+		scope:pop_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 3650
+			}
+		}
+	}
+}
+
+# A nobleman is lured to a crossroads and murdered.
+inv_pop_events.5 = {
+	type = country_event
+	title = inv_pop_events.5.t
+	desc = inv_pop_events.5.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_nobles >= 2 (noble pops); EU5 checks 2 (thousand) nobles, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:nobles }
+				value >= 2
+			}
+		}
+		NOT = { has_variable = nobles_event_cooldown }
+	}
+
+	immediate = {
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:nobles }
+					value >= 2
+				}
+			}
+			save_scope_as = pop_province
+		}
+		set_variable = {
+			name = nobles_event_cooldown
+			days = 3650 # long_cooldown
+		}
+		scope:pop_province = {
+			random_pop = {
+				limit = { pop_type = pop_type:nobles }
+				add_pop_size = { #P:A TODO Approximate: Imperator kill_pop removed one whole noble pop; EU5 removes up to 1 (thousand) people from a noble pop
+					value = pop_size
+					multiply = -1
+					min = -1
+				}
+			}
+		}
+	}
+
+	option = {
+		name = inv_pop_events.5.a
+		# current_ruler = { add_popularity = -10 }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+	}
+	option = {
+		name = inv_pop_events.5.b
+		add_gold = -125
+		add_manpower = -2
+	}
+}
+
+# A cabal of nobles murders a landowner who would not sell to them.
+inv_pop_events.6 = {
+	type = country_event
+	title = inv_pop_events.6.t
+	desc = inv_pop_events.6.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_nobles >= 5 (noble pops); EU5 checks 5 (thousand) nobles, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:nobles }
+				value >= 5
+			}
+			average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2; EU5 has no location unrest value, low pop satisfaction used
+			# exists = holding_owner
+			# NOT = { holding_owner = root.current_ruler }
+		}
+		any_character = { #P:A TODO Approximate: Imperator required a holding owner (not the ruler) in that province; EU5 has no holdings, a noble-estate character of the country who is not the ruler stands in
+			has_estate = estate_type:nobles_estate
+			is_ruler = no
+		}
+		NOT = { has_variable = nobles_event_cooldown }
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:nobles }
+					value >= 5
+				}
+				average_satisfaction < 0.5 #P:A TODO Approximate: Imperator province_unrest > 2
+			}
+			save_scope_as = pop_province
+		}
+		set_variable = {
+			name = nobles_event_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_character = { #P:A TODO Approximate: Imperator killed the province's holding owner; a noble-estate character who is not the ruler stands in
+			limit = {
+				has_estate = estate_type:nobles_estate
+				is_ruler = no
+			}
+			save_scope_as = holder
+		}
+		kill_character = {
+			target = scope:holder
+			reason = assassination #P:A TODO Approximate: Imperator death_stabbing has no EU5 death reason; assassination used
+		}
+	}
+
+	option = {
+		name = inv_pop_events.6.a
+		# current_ruler = { add_popularity = -10 }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+		add_gold = 150
+	}
+	option = {
+		name = inv_pop_events.6.b
+		scope:pop_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 3650
+			}
+		}
+	}
+}
+
+# Educated nobles offer to do research if the state funds them.
+inv_pop_events.7 = {
+	type = country_event
+	title = inv_pop_events.7.t
+	#P:A TODO Approximate: Imperator picked the text by the tech office (civic, military, oratory, religious) of a random researcher (Invictus set the variable on the researcher but read it on the country, so desc.4 always showed); EU5 has no researchers or tech categories, so one of the four texts is picked at random
+	desc = {
+		random_valid = {
+			triggered_desc = {
+				desc = inv_pop_events.7.desc.1
+			}
+			triggered_desc = {
+				desc = inv_pop_events.7.desc.2
+			}
+			triggered_desc = {
+				desc = inv_pop_events.7.desc.3
+			}
+			triggered_desc = {
+				desc = inv_pop_events.7.desc.4
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = { has_variable = nobles_event_cooldown }
+		any_owned_location = {
+			market ?= { #P:A TODO Approximate: Imperator is_importing_trade_good = papyrus (a trade route into the province); EU5 checks for a paper import into the location's market
+				any_import = { goods = goods:paper }
+			}
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_nobles >= 10 (noble pops); EU5 checks 10 (thousand) nobles, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:nobles }
+				value >= 10
+			}
+		}
+		# any_researcher = { count >= 1 }
+		#P:A TODO No EU5 equivalent: required at least one researcher (tech office holder); EU5 has no research offices
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		random_owned_location = {
+			limit = {
+				market ?= {
+					any_import = { goods = goods:paper }
+				}
+				population_with_traits = {
+					limit = { pop_type = pop_type:nobles }
+					value >= 10
+				}
+			}
+			save_scope_as = pop_province
+		}
+		# random_researcher = { save_scope_as = researcher }
+		# scope:researcher = { set_variable = { name = tech_type value = flag:mil/civic/oratory/religious } } (by has_tech_office_of)
+		#P:A TODO No EU5 equivalent: picked a researcher and stored the tech category of their office (EU5 has no research offices or tech categories)
+		set_variable = {
+			name = nobles_event_cooldown
+			days = 9125 # very_long_cooldown
+		}
+	}
+
+	option = {
+		name = inv_pop_events.7.a
+		# current_ruler = { add_popularity = -10 }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+	}
+	option = {
+		name = inv_pop_events.7.b
+		add_gold = -300
+		scope:pop_province = {
+			add_location_modifier = {
+				modifier = local_noble_research_boost
+				days = 3650
+			}
+		}
+	}
+	# after = { remove_variable = tech_type } - the variable is never set in EU5
+}
+
+# Slaves are worked to death on the estates of a province.
+inv_pop_events.8 = {
+	type = country_event
+	title = inv_pop_events.8.t
+	desc = inv_pop_events.8.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		NOT = { has_variable = slaves_event_cooldown }
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_slaves >= 5 (slave pops); EU5 checks 5 (thousand) slaves, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:slaves }
+				value >= 5
+			}
+			has_building = building_type:latifundia
+			# exists = holding_owner
+			# NOT = { holding_owner = root.current_ruler }
+			#P:A TODO No EU5 equivalent: required a holding owner (not the ruler) in the province (EU5 has no holdings)
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = slaves_event_cooldown
+			days = 9125 # very_long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:slaves }
+					value >= 5
+				}
+				has_building = building_type:latifundia
+			}
+			save_scope_as = pop_province
+		}
+		# scope:pop_province = { holding_owner = { save_scope_as = holder } }
+		random_character = { #P:A TODO Approximate: Imperator portrayed the province's holding owner; a noble-estate character who is not the ruler stands in (EU5 has no holdings)
+			limit = {
+				has_estate = estate_type:nobles_estate
+				is_ruler = no
+			}
+			save_scope_as = holder
+		}
+	}
+
+	option = {
+		name = inv_pop_events.8.a
+		# current_ruler = { add_popularity = -10 }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+	}
+	option = {
+		name = inv_pop_events.8.b
+		scope:pop_province = {
+			add_location_modifier = {
+				modifier = local_unrest_heavy_unrest
+				days = 730
+			}
+		}
+	}
+}
+
+# The nobles of a province spread insults about the ruler.
+inv_pop_events.9 = {
+	type = country_event
+	title = inv_pop_events.9.t
+	desc = inv_pop_events.9.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = { has_variable = nobles_event_cooldown }
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_nobles >= 10 (noble pops); EU5 checks 10 (thousand) nobles, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:nobles }
+				value >= 10
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = nobles_event_cooldown
+			days = 3650 # long_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:nobles }
+					value >= 10
+				}
+			}
+			save_scope_as = pop_province
+		}
+	}
+
+	option = {
+		name = inv_pop_events.9.a
+		# current_ruler = { add_popularity = -10 }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+	}
+	option = {
+		name = inv_pop_events.9.b
+		scope:pop_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 3650
+			}
+		}
+	}
+}
+
+# The citizens of a province petition for more local freedoms.
+inv_pop_events.10 = {
+	type = country_event
+	title = inv_pop_events.10.t
+	desc = inv_pop_events.10.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = { has_variable = citizens_event_cooldown }
+		any_owned_location = {
+			population_with_traits = { #P:A TODO Approximate: Imperator num_of_citizen >= 10 (citizen pops); EU5 checks 10 (thousand) burghers, pop count converted 1:1 to size
+				limit = { pop_type = pop_type:burghers }
+				value >= 10
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		set_variable = {
+			name = citizens_event_cooldown
+			days = 1825 # medium_cooldown
+		}
+		random_owned_location = {
+			limit = {
+				population_with_traits = {
+					limit = { pop_type = pop_type:burghers }
+					value >= 10
+				}
+			}
+			save_scope_as = pop_province
+		}
+	}
+
+	option = {
+		name = inv_pop_events.10.a
+		scope:pop_province = {
+			add_location_modifier = {
+				modifier = local_unrest_generic_unrest
+				days = 3650
+			}
+		}
+		# current_ruler = { add_popularity = -10 }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+	}
+	option = {
+		name = inv_pop_events.10.b
+		add_manpower = -2
+	}
+}

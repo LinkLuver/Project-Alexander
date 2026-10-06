@@ -1,0 +1,118 @@
+﻿# Scripted effects imported from Imperator: Invictus / Terra Indomita for the event import, batch b09 (2026-10-06).
+
+#P:A Imported from Invictus: bloodline_on_born_effect (common/scripted_effects/00_bloodlines_inheritance_inv.txt)
+# Character scope (the newborn).
+pa_imp_bloodline_on_born_effect = {
+	# pass_down_bloodline_character_effect = { BLOODLINE = "achaemenid" } ... (one call per bloodline)
+	#P:A TODO No EU5 equivalent: passed every Imperator bloodline trait of the father or mother on to the newborn
+	# (achaemenid aeacidae agathocles agiad alcimachid antigonids antipatrid argeads arsaces atropates barca brennus
+	# claudii cornelii demosthenid diodotus fabii illyrius lagids maurya mithridates orontid seleucids sophytid spartocid
+	# superbus vercingetorix zadok aeetes blood_of_aratus attalid battiad chera chola dido eumenid kalinga magas ariovistid
+	# blood_of_menander magonid pandya pharnabazid blood_of_porus blood_of_vijaya blood_of_zipoetes blood_of_aretid
+	# blood_of_bharata blood_of_david hannonid blood_of_obodid blood_of_pharnavazid blood_of_shaushtatar blood_of_forcos
+	# blood_of_pandava blood_of_arhan arganthonios antenorid blood_of_midas saba ateas eurypontid blood_of_teres teucer
+	# blood_of_pylaemenes blood_of_albion_kings blood_of_germanic_kings balbid hecatomnid oxyartid).
+	# The mod has no bloodline traits; once they exist, call pa_imp_pass_down_bloodline_character_effect = { BLOODLINE = <trait> } for each.
+}
+
+#P:A Imported from Invictus: pass_down_bloodline_character_effect (common/scripted_effects/00_bloodlines_inheritance_inv.txt)
+# Character scope. $BLOODLINE$ = a bloodline trait key. Only call it with traits that exist in the mod (none do yet).
+pa_imp_pass_down_bloodline_character_effect = {
+	if = {
+		limit = {
+			exists = father
+			father = {
+				has_trait = $BLOODLINE$
+			}
+			NOT = {
+				has_trait = $BLOODLINE$
+			}
+		}
+		add_trait = trait:$BLOODLINE$ # Imperator force_add_trait
+	}
+	if = {
+		limit = {
+			exists = mother
+			mother = {
+				has_trait = $BLOODLINE$
+			}
+			NOT = {
+				has_trait = $BLOODLINE$
+			}
+		}
+		add_trait = trait:$BLOODLINE$
+	}
+}
+
+#P:A Imported from Imperator: clear_ambition_effect (common/scripted_effects/00_plots.txt)
+# Character scope.
+pa_imp_clear_ambition_effect = {
+	pa_imp_remove_scheme_variables_effect = yes
+	# clear_ambition = yes #P:A TODO No EU5 equivalent: removes the character's ambition (EU5 has no ambitions)
+	# if = { limit = { is_ruler = yes exists = employer employer = { has_country_modifier = influence_mod } } employer = { remove_country_modifier = influence_mod } }
+	#P:A TODO No EU5 equivalent: a ruler loses the influence_mod country modifier of the Imperator "gain influence" ambition (EU5 has no ambitions; influence_mod is not imported)
+}
+
+#P:A Imported from Imperator: remove_scheme_variables_effect (common/scripted_effects/00_plots.txt)
+# Character scope. Imperator root (the character) is saved as scope:pa_imp_scheme_owner, since EU5 event roots are countries.
+pa_imp_remove_scheme_variables_effect = {
+	save_scope_as = pa_imp_scheme_owner
+	hidden_effect = {
+		if = {
+			limit = {
+				has_variable = roll
+			}
+			remove_variable = roll
+		}
+		if = {
+			limit = {
+				exists = var:ongoing_scheme_target
+				var:ongoing_scheme_target = {
+					has_variable_list = targeted_by
+					is_target_in_variable_list = {
+						name = targeted_by
+						target = scope:pa_imp_scheme_owner
+					}
+				}
+			}
+			var:ongoing_scheme_target = {
+				remove_list_variable = {
+					name = targeted_by
+					target = scope:pa_imp_scheme_owner
+				}
+			}
+		}
+		if = {
+			limit = {
+				has_variable = ongoing_scheme_target
+			}
+			remove_variable = ongoing_scheme_target
+		}
+		if = {
+			limit = {
+				has_variable = scheme_adjustment
+			}
+			remove_variable = scheme_adjustment
+		}
+		# if = { limit = { has_character_modifier = ongoing_scheme } remove_character_modifier = ongoing_scheme }
+		# if = { limit = { has_character_modifier = courting_ruler } remove_character_modifier = courting_ruler }
+		# if = { limit = { has_character_modifier = seeking_a_spouse } remove_character_modifier = seeking_a_spouse }
+		#P:A TODO No EU5 equivalent: removes the scheme modifiers ongoing_scheme, courting_ruler and seeking_a_spouse (Imperator scheme modifiers, not imported; EU5 has no schemes)
+		if = {
+			limit = {
+				has_variable = seeking_treatment
+			}
+			remove_variable = seeking_treatment
+		}
+		if = {
+			limit = {
+				has_variable = seeking_spouse_ci
+			}
+			remove_variable = seeking_spouse_ci
+		}
+		# if = { limit = { has_loyalty = scheme_disloyalty_self } remove_loyalty = scheme_disloyalty_self }
+		#P:A TODO No EU5 equivalent: removes the scheme's self-disloyalty loyalty entry (EU5 characters have no loyalty)
+		# if = { limit = { exists = scope:province_target scope:province_target = { has_province_modifier = being_extorted } } scope:province_target = { remove_province_modifier = being_extorted } }
+		#P:A TODO No EU5 equivalent: removes the being_extorted modifier from an extortion scheme's target province (Imperator scheme modifier, not imported)
+	}
+}

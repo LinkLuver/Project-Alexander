@@ -1,0 +1,296 @@
+﻿#P:A Imported from Invictus: events/child_sacrifice_inv_event1.txt
+namespace = child_sacrifice_inv
+
+# The priests propose sacrificing a child of the court to regain the gods' favour.
+# Imperator fired this from the Invictus decision child_sacrifice (Carthaginian religion, invention child_sacrifice_inv, stability <= 30
+# or a losing war, 10-year cooldown variable child_sacrifice_cooldown, ruler +5 popularity).
+#P:A TODO No EU5 equivalent: the decision is not imported (it needs the Imperator invention child_sacrifice_inv); a caller must set child_sacrifice_cooldown (3650 days) and fire this event
+child_sacrifice_inv.1 = {
+	type = country_event
+	title = child_sacrifice_inv.1.t
+	desc = child_sacrifice_inv.1.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		religion = religion:punic_pantheon # Imperator carthaginian_pantheon
+		any_character = { # guard added: every option needs scope:sacrifice_1 (Imperator assumed a child exists)
+			age_in_years < 12
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				age_in_years < 12
+			}
+			save_scope_as = sacrifice_1
+		}
+		random_character = {
+			limit = {
+				age_in_years < 12
+				NOT = { this = scope:sacrifice_1 }
+				trigger_if = { # Imperator: NOT = { has_same_family = scope:sacrifice_1 }
+					limit = {
+						exists = dynasty
+						exists = scope:sacrifice_1.dynasty
+					}
+					NOT = { dynasty = scope:sacrifice_1.dynasty }
+				}
+			}
+			save_scope_as = sacrifice_2
+		}
+		random_character = {
+			limit = {
+				age_in_years < 12
+				NOT = { this = scope:sacrifice_1 }
+				NOT = { this = scope:sacrifice_2 }
+				trigger_if = { # Imperator: NOR = { has_same_family = scope:sacrifice_1 has_same_family = scope:sacrifice_2 }
+					limit = {
+						exists = dynasty
+					}
+					NOT = { dynasty ?= scope:sacrifice_1.dynasty }
+					NOT = { dynasty ?= scope:sacrifice_2.dynasty }
+				}
+			}
+			save_scope_as = sacrifice_3
+		}
+		random_character = { #P:A TODO Approximate: Imperator picked the high priest / pontifex office holder; EU5 has no offices, a clergy-estate character stands in
+			limit = {
+				has_estate = estate_type:clergy_estate
+			}
+			save_scope_as = murder_priest
+		}
+	}
+
+	option = { # choice 1
+		name = child_sacrifice_inv.1.a
+		if = {
+			limit = { exists = scope:murder_priest }
+			kill_character = {
+				target = scope:sacrifice_1
+				killer = scope:murder_priest
+				reason = sacrifice # Imperator death_child_sacrifice
+			}
+		}
+		else = {
+			kill_character = {
+				target = scope:sacrifice_1
+				reason = sacrifice
+			}
+		}
+		scope:sacrifice_2 ?= {
+			add_character_modifier = {
+				modifier = not_sacrificed
+				days = 3650
+			}
+		}
+		scope:sacrifice_3 ?= {
+			add_character_modifier = {
+				modifier = not_sacrificed
+				days = 3650
+			}
+		}
+		random_list = {
+			10 = { trigger_event_non_silently = { id = child_sacrifice_inv.2 days = { 1 14 } } }
+			50 = { trigger_event_non_silently = { id = child_sacrifice_inv.3 days = { 1 14 } } }
+			35 = { trigger_event_non_silently = { id = child_sacrifice_inv.4 days = { 1 14 } } }
+			5 = { trigger_event_non_silently = { id = child_sacrifice_inv.5 days = { 1 14 } } }
+		}
+	}
+
+	option = { # choice 2
+		name = child_sacrifice_inv.1.b
+		trigger = {
+			exists = scope:sacrifice_2
+		}
+		if = {
+			limit = { exists = scope:murder_priest }
+			kill_character = {
+				target = scope:sacrifice_2
+				killer = scope:murder_priest
+				reason = sacrifice
+			}
+		}
+		else = {
+			kill_character = {
+				target = scope:sacrifice_2
+				reason = sacrifice
+			}
+		}
+		scope:sacrifice_1 = {
+			add_character_modifier = {
+				modifier = not_sacrificed
+				days = 3650
+			}
+		}
+		scope:sacrifice_3 ?= {
+			add_character_modifier = {
+				modifier = not_sacrificed
+				days = 3650
+			}
+		}
+		random_list = {
+			10 = { trigger_event_non_silently = { id = child_sacrifice_inv.2 days = { 1 14 } } }
+			50 = { trigger_event_non_silently = { id = child_sacrifice_inv.3 days = { 1 14 } } }
+			35 = { trigger_event_non_silently = { id = child_sacrifice_inv.4 days = { 1 14 } } }
+			5 = { trigger_event_non_silently = { id = child_sacrifice_inv.5 days = { 1 14 } } }
+		}
+	}
+
+	option = { # choice 3
+		name = child_sacrifice_inv.1.c
+		trigger = {
+			exists = scope:sacrifice_3
+		}
+		if = {
+			limit = { exists = scope:murder_priest }
+			kill_character = {
+				target = scope:sacrifice_3
+				killer = scope:murder_priest
+				reason = sacrifice
+			}
+		}
+		else = {
+			kill_character = {
+				target = scope:sacrifice_3
+				reason = sacrifice
+			}
+		}
+		scope:sacrifice_1 = {
+			add_character_modifier = {
+				modifier = not_sacrificed
+				days = 3650
+			}
+		}
+		scope:sacrifice_2 = {
+			add_character_modifier = {
+				modifier = not_sacrificed
+				days = 3650
+			}
+		}
+		random_list = {
+			10 = { trigger_event_non_silently = { id = child_sacrifice_inv.2 days = { 1 14 } } }
+			50 = { trigger_event_non_silently = { id = child_sacrifice_inv.3 days = { 1 14 } } }
+			35 = { trigger_event_non_silently = { id = child_sacrifice_inv.4 days = { 1 14 } } }
+			5 = { trigger_event_non_silently = { id = child_sacrifice_inv.5 days = { 1 14 } } }
+		}
+	}
+
+	option = { # all 3
+		name = child_sacrifice_inv.1.d
+		trigger = {
+			ruler = {
+				OR = {
+					has_trait = cruel
+					has_trait = zealot # Imperator zealous
+					has_trait = pious # Imperator devout and pious
+					# has_trait = lunatic #P:A TODO No EU5 equivalent: lunatic trait
+					# has_trait = rash #P:A TODO No EU5 equivalent: rash trait
+					# zeal > 10 #P:A TODO No EU5 equivalent: zeal above 10 (EU5 characters have no zeal skill)
+				}
+			}
+		}
+		# highlight = yes (no EU5 option field; it only highlighted the option)
+		custom_tooltip = child_sacrifice_inv.1.d.tt
+		exclusive = yes
+		if = {
+			limit = { exists = scope:murder_priest }
+			kill_character = {
+				target = scope:sacrifice_1
+				killer = scope:murder_priest
+				reason = sacrifice
+			}
+			scope:sacrifice_2 ?= {
+				save_scope_as = pa_sacrifice_victim
+				kill_character = {
+					target = scope:pa_sacrifice_victim
+					killer = scope:murder_priest
+					reason = sacrifice
+				}
+			}
+			scope:sacrifice_3 ?= {
+				save_scope_as = pa_sacrifice_victim
+				kill_character = {
+					target = scope:pa_sacrifice_victim
+					killer = scope:murder_priest
+					reason = sacrifice
+				}
+			}
+		}
+		else = {
+			kill_character = {
+				target = scope:sacrifice_1
+				reason = sacrifice
+			}
+			scope:sacrifice_2 ?= {
+				save_scope_as = pa_sacrifice_victim
+				kill_character = {
+					target = scope:pa_sacrifice_victim
+					reason = sacrifice
+				}
+			}
+			scope:sacrifice_3 ?= {
+				save_scope_as = pa_sacrifice_victim
+				kill_character = {
+					target = scope:pa_sacrifice_victim
+					reason = sacrifice
+				}
+			}
+		}
+		random_list = {
+			10 = { trigger_event_non_silently = { id = child_sacrifice_inv.2 days = { 1 14 } } }
+			50 = { trigger_event_non_silently = { id = child_sacrifice_inv.3 days = { 1 14 } } }
+			35 = { trigger_event_non_silently = { id = child_sacrifice_inv.4 days = { 1 14 } } }
+			5 = { trigger_event_non_silently = { id = child_sacrifice_inv.5 days = { 1 14 } } }
+		}
+		# add_tyranny = 5 #P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		# ruler = { add_popularity = -10 } #P:A TODO No EU5 equivalent: the ruler loses 10 popularity (EU5 characters have no popularity)
+	}
+
+	option = { # none
+		name = child_sacrifice_inv.1.e
+		trigger = {
+			ruler = {
+				OR = {
+					has_trait = kind_hearted # Imperator kindly and merciful
+					has_trait = righteous
+					# has_trait = sceptical #P:A TODO No EU5 equivalent: sceptical trait
+					# has_trait = loving #P:A TODO No EU5 equivalent: loving trait
+					# has_trait = easygoing #P:A TODO No EU5 equivalent: easygoing trait
+				}
+			}
+		}
+		# highlight = yes (no EU5 option field; it only highlighted the option)
+		custom_tooltip = child_sacrifice_inv.1.e.tt
+		exclusive = yes
+		trigger_event_non_silently = {
+			id = child_sacrifice_inv.6
+			days = { 1 14 }
+		}
+		scope:sacrifice_1 ?= {
+			add_character_modifier = {
+				modifier = not_sacrificed
+				days = 3650
+			}
+		}
+		scope:sacrifice_2 ?= {
+			add_character_modifier = {
+				modifier = not_sacrificed
+				days = 3650
+			}
+		}
+		scope:sacrifice_3 ?= {
+			add_character_modifier = {
+				modifier = not_sacrificed
+				days = 3650
+			}
+		}
+		remove_variable = child_sacrifice_cooldown
+	}
+}

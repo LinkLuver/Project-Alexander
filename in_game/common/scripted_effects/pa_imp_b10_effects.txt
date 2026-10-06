@@ -1,0 +1,104 @@
+﻿# Imperator scripted effects for batch b10 of the Invictus/Indomita event import (2026-10-06).
+
+#P:A Imported from Imperator (common/scripted_effects/00_medical.txt)
+# Character scope: cures one illness (weighted by how curable it is) and ends any treatment in progress.
+pa_imp_recover_from_affliction_effect = {
+	random_list = {
+		# 30 = { trigger = { has_trait = mentagra } remove_trait = mentagra } #P:A TODO No EU5 equivalent: trait mentagra
+		# 20 = { trigger = { has_trait = dysentery } remove_trait = dysentery } #P:A TODO No EU5 equivalent: trait dysentery
+		# 20 = { trigger = { has_trait = infection } remove_trait = infection } #P:A TODO No EU5 equivalent: trait infection
+		# 10 = { trigger = { has_trait = inflammation } remove_trait = inflammation } #P:A TODO No EU5 equivalent: trait inflammation
+		# 10 = { trigger = { has_trait = pneumonia } remove_trait = pneumonia } #P:A TODO No EU5 equivalent: trait pneumonia
+		# 10 = { trigger = { has_trait = gangrene } remove_trait = gangrene } #P:A TODO No EU5 equivalent: trait gangrene
+		20 = {
+			trigger = {
+				has_trait = smallpox_trait # Imperator pox
+			}
+			remove_trait = trait:smallpox_trait
+		}
+		# 5 = { trigger = { has_trait = hemorrhagic_fever } remove_trait = hemorrhagic_fever } #P:A TODO No EU5 equivalent: trait hemorrhagic_fever
+		5 = {
+			trigger = {
+				has_trait = bubonic_plague_trait # Imperator plague
+			}
+			remove_trait = trait:bubonic_plague_trait
+		}
+	}
+	if = {
+		limit = {
+			has_variable = seeking_treatment
+		}
+		remove_variable = seeking_treatment
+	}
+	if = {
+		limit = {
+			has_variable = manually_sought_treatment
+		}
+		remove_variable = manually_sought_treatment
+	}
+}
+
+#P:A Imported from Invictus (common/scripted_effects/00_event_effects_inv_1_0.txt)
+# Country scope: rolls the outcome of a royal hunt into var:hunting_variable (< 0 death, 0 wounded, > 0 success).
+# $ANIMAL_VALUE$: difficulty of the hunted animal (negative = more dangerous).
+pa_imp_hunt_calc_effect = {
+	hidden_effect = {
+		set_variable = {
+			name = hunting_variable
+			value = {
+				value = 0
+				if = {
+					limit = {
+						exists = ruler
+					}
+					add = ruler.mil
+				}
+				divide = 5 # Imperator current_ruler.martial; EU5 skills are 5x Imperator's
+				round = yes # Imperator skills are whole numbers, so the 'wounded' outcome (exactly 0) stays reachable
+			}
+			days = 30 # variable expires after 30 days, no need to remove
+		}
+		change_variable = {
+			name = hunting_variable
+			add = $ANIMAL_VALUE$
+		}
+		random_list = {
+			1 = { # really bad hunt
+				change_variable = {
+					name = hunting_variable
+					add = -5
+				}
+			}
+			1 = { # bad hunt
+				change_variable = {
+					name = hunting_variable
+					add = -3
+				}
+			}
+			1 = { #unlucky hunt
+				change_variable = {
+					name = hunting_variable
+					add = -1
+				}
+			}
+			1 = { #lucky hunt
+				change_variable = {
+					name = hunting_variable
+					add = 1
+				}
+			}
+			1 = { #good hunt
+				change_variable = {
+					name = hunting_variable
+					add = 3
+				}
+			}
+			1 = { #really successful hunt
+				change_variable = {
+					name = hunting_variable
+					add = 5
+				}
+			}
+		}
+	}
+}

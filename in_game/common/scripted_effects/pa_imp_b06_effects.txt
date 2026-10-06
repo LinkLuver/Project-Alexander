@@ -71,3 +71,342 @@ pa_imp_good_popularity_trait_effect = {
 		}
 	}
 }
+
+#P:A Imported from Invictus: bad_popularity_trait_effect (common/scripted_effects/00_character_traits_effects.txt). Character scope.
+# Imperator: picks one random unpopular trait the character lacks, else -popularity.
+# (Invictus checks number_of_personality_traits < max here, i.e. only characters with 4+ personality traits get a trait; kept as written.)
+pa_imp_bad_popularity_trait_effect = {
+	random_list = {
+		# 100 = { trigger = { NOR = { number_of_personality_traits < max_number_of_traits_svalue has_trait = harsh } } add_trait = harsh }
+		# 100 = { trigger = { NOR = { number_of_personality_traits < max_number_of_traits_svalue has_trait = selfish } } add_trait = selfish }
+		# 100 = { trigger = { NOR = { number_of_personality_traits < max_number_of_traits_svalue has_trait = two_faced } } add_trait = two_faced }
+		# 100 = { trigger = { NOR = { number_of_personality_traits < max_number_of_traits_svalue has_trait = impatient } } add_trait = impatient }
+		#P:A TODO No EU5 equivalent: Imperator traits harsh, selfish, two_faced, impatient do not exist in EU5; only stubborn and well_connected remain, so the odds changed
+		100 = {
+			trigger = {
+				NOR = {
+					num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4); EU5 counts ruler traits
+					has_trait = stubborn
+				}
+			}
+			add_trait = trait:stubborn
+		}
+		100 = {
+			trigger = {
+				NOR = {
+					num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4); EU5 counts ruler traits
+					has_trait = well_connected
+				}
+			}
+			add_trait = trait:well_connected
+		}
+		1 = {
+			trigger = {
+				num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4)
+			}
+			# add_popularity = subtract_popularity_small
+			#P:A TODO No EU5 equivalent: -5 popularity (EU5 characters have no popularity)
+		}
+	}
+}
+
+#P:A Imported from Invictus: random_death (common/scripted_effects/00_event_effects_inv_1_0.txt). Character scope.
+# Imperator: kills the character, decapitated or pulled limb by limb (even odds).
+pa_imp_random_death = {
+	random_list = {
+		1 = {
+			kill_character = {
+				target = this
+				reason = beheading # Imperator death_decapitated
+			}
+		}
+		1 = {
+			kill_character = {
+				target = this
+				reason = hanged_by_mob #P:A TODO Approximate: Imperator death_pulled_limb_by_limb has no EU5 death reason; hanged by a mob used
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: switch_government_type_event_clearup_effect (common/scripted_effects/00_decision_effects_inv.txt). Country scope.
+# Imperator: silent cleanup after a government change (dictatorship flags, electoral extension, tribal vassal status, succession refresh).
+pa_imp_switch_government_type_event_clearup_effect = { # If we need to clear anything silently on gov switch - put it here!
+	hidden_effect = {
+		if = {
+			limit = {
+				has_variable = dictatorship_enabled
+			}
+			remove_variable = dictatorship_enabled
+			# set_ignore_senate_approval = no
+			#P:A TODO No EU5 equivalent: restored the need for senate approval after a dictatorship (EU5 has no senate)
+		}
+		if = {
+			limit = {
+				ruler ?= {
+					has_variable = dictator_holding_power
+				}
+			}
+			ruler = {
+				remove_variable = dictator_holding_power
+			}
+		}
+		if = {
+			limit = {
+				has_country_modifier = electoral_extension_mod
+			}
+			remove_country_modifier = electoral_extension_mod
+		}
+		# if = {
+		# 	limit = {
+		# 		is_subject_type = vassal_tribe
+		# 		is_tribal = no
+		# 	}
+		# 	trigger_event = { id = country_diplomacy.38 } #We will now be tributary
+		# }
+		#P:A TODO No EU5 equivalent: fired country_diplomacy.38 (vanilla Imperator, not imported), in which the overlord of a vassal_tribe that stopped being tribal re-made it a tributary
+		# Copied from fix_new_countries.3 - calculate succession for new monarchies
+		# if = {
+		# 	limit = {
+		# 		is_monarchy = yes
+		# 		exists = current_ruler
+		# 	}
+		# 	trigger_event = { ##put traits on kids of ruler if they have any
+		# 		id = firstborn_traits.1
+		# 		days = 1
+		# 	}
+		# 	trigger_event = {
+		# 		id = fix_new_countries.4
+		# 		days = 3
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: fired firstborn_traits.1 and fix_new_countries.4 (Imperator plumbing, not imported) to give the ruler's children firstborn traits and recalculate succession for a new monarchy; EU5 handles succession itself
+	}
+}
+
+#P:A Imported from Imperator: mithridates_arrival_pontus_effect (common/scripted_effects/00_event_effects.txt).
+# Imperator: informs every player near Pontus (some named tags, Hellenic countries, Anatolia/Black Sea/Greece capitals) of Mithridates' arrival via dhe_mithridates.10.
+#P:A TODO No EU5 equivalent: belongs to the Mithridates chain (dhe_mithridates.*), which was skipped as tag/character-bound; it only fired dhe_mithridates.10, which does not exist in the mod
+pa_imp_mithridates_arrival_pontus_effect = {
+	# every_country = {
+	# 	limit = {
+	# 		is_ai = no
+	# 		trigger_if = {
+	# 			limit = { exists = scope:mithridates_overlord }
+	# 			NOT = { THIS = scope:mithridates_overlord }
+	# 		}
+	# 		trigger_if = {
+	# 			limit = { exists = scope:mithridates_refuge }
+	# 			NOT = { THIS = scope:mithridates_refuge }
+	# 		}
+	# 		NOT = { THIS = ROOT }
+	# 		OR = {
+	# 			tag = TRE
+	# 			tag = SEL
+	# 			tag = EGY
+	# 			tag = MAC
+	# 			tag = PRY
+	# 			country_culture_group = hellenic
+	# 			capital_scope = {
+	# 				OR = {
+	# 					is_in_region = bithynia_region
+	# 					is_in_region = asia_region
+	# 					is_in_region = cappadocia_region
+	# 					is_in_region = galatia_region
+	# 					is_in_region = cappadocia_pontica_region
+	# 					is_in_region = thrace_region
+	# 					is_in_region = macedonia_region
+	# 					is_in_region = greece_region
+	# 					is_in_region = taurica_region
+	# 					is_in_region = sarmatia_europea_region
+	# 					is_in_region = cilicia_region
+	# 					is_in_region = colchis_region
+	# 				}
+	# 			}
+	# 		}
+	# 	}
+	# 	trigger_event = {
+	# 		id = dhe_mithridates.10
+	# 		days = 30
+	# 	}
+	# }
+}
+
+#P:A Imported from Imperator: formable_region_province_effect (common/scripted_effects/00_decision_effects.txt). Region scope.
+# Imperator: root gains a claim on every province of the region it does not own.
+pa_imp_formable_region_province_effect = {
+	# every_region_province = {
+	# 	limit = {
+	# 		NOT = { owner = root }
+	# 	}
+	# 	add_claim = root
+	# }
+	#P:A TODO No EU5 equivalent: claims on every unowned province of a region (EU5 has no location claims)
+}
+
+#P:A Imported from Imperator: move_country_with_entire_family_effect (common/scripted_effects/00_event_effects.txt). Character scope.
+# Imperator: moves the character, the members of their family at the same court, their spouse and their children to $COUNTRY$.
+pa_imp_move_country_with_entire_family_effect = {
+	$COUNTRY$ = { save_scope_as = move_country_with_entire_family_employer }
+	save_scope_as = move_country_with_entire_family_character
+	hidden_effect = {
+		if = {
+			limit = {
+				exists = dynasty #P:A TODO Approximate: Imperator is_minor_character = no (minor characters have no family); EU5 checks that the character has a dynasty
+			}
+			dynasty = {
+				save_scope_as = move_country_with_entire_family_family
+				# move_family = $COUNTRY$
+				#P:A TODO No EU5 equivalent: moved the family itself to the new country (EU5 dynasties belong to no country)
+			}
+			scope:move_country_with_entire_family_family = {
+				every_character_in_dynasty = {
+					limit = {
+						is_ruler = no
+						#P:A Removed: prisoner = no is always true in EU5
+						employer = scope:move_country_with_entire_family_character.employer
+					}
+					move_country = $COUNTRY$
+				}
+			}
+		}
+		pa_imp_remove_all_positions = yes
+		move_country = $COUNTRY$
+		remove_character_modifier = foreign_citizen
+		# set_as_minor_character = THIS
+		#P:A TODO No EU5 equivalent: made the character a minor character (EU5 has no minor characters)
+		if = {
+			limit = {
+				exists = scope:move_country_with_entire_family_family
+				NOT = { dynasty = scope:move_country_with_entire_family_family }
+			}
+			change_dynasty = scope:move_country_with_entire_family_family
+		}
+		every_spouse = { #P:A TODO Approximate: Imperator moved the single spouse link; EU5 characters can have several spouses, each is checked
+			limit = {
+				is_ruler = no
+				#P:A Removed: prisoner = no is always true in EU5
+				employer = scope:move_country_with_entire_family_character.employer # Imperator PREV.employer: the character, already moved
+			}
+			pa_imp_remove_all_positions = yes
+			move_country = $COUNTRY$
+			remove_character_modifier = foreign_citizen
+			# set_as_minor_character = THIS
+			#P:A TODO No EU5 equivalent: made the spouse a minor character (EU5 has no minor characters)
+			if = {
+				limit = {
+					exists = scope:move_country_with_entire_family_family
+					NOT = { dynasty = scope:move_country_with_entire_family_family }
+				}
+				change_dynasty = scope:move_country_with_entire_family_family
+			}
+		}
+		if = {
+			limit = { num_of_children >= 1 }
+			every_child = {
+				limit = {
+					is_ruler = no
+					#P:A Removed: prisoner = no is always true in EU5
+					employer = scope:move_country_with_entire_family_character.employer # Imperator PREV.employer: the character, already moved
+				}
+				pa_imp_remove_all_positions = yes
+				move_country = $COUNTRY$
+				remove_character_modifier = foreign_citizen
+				# set_as_minor_character = THIS
+				#P:A TODO No EU5 equivalent: made the child a minor character (EU5 has no minor characters)
+				if = {
+					limit = {
+						exists = scope:move_country_with_entire_family_family
+						NOT = { dynasty = scope:move_country_with_entire_family_family }
+					}
+					change_dynasty = scope:move_country_with_entire_family_family
+				}
+			}
+		}
+	}
+	custom_tooltip = move_country_with_entire_family_effect_tt
+}
+
+#P:A Imported from Imperator: mithridates_kimiata_effect (common/scripted_effects/00_event_effects.txt).
+# Imperator: Mithridates seizes Kimiata and the surrounding list of provinces for c:KIO, which becomes Pontus (tag MIT).
+#P:A TODO No EU5 equivalent: belongs to the Mithridates chain (dhe_mithridates.*), which was skipped as tag/character-bound; it is hard-wired to c:KIO, fires dhe_mithridates.13 and uses change_country_tag (no EU5 equivalent)
+pa_imp_mithridates_kimiata_effect = {
+	# every_navy = { add_to_list = kius_army_list }
+	# scope:mithridates_target = { set_owned_by = c:KIO }
+	# every_in_list = {
+	# 	list = kimiata_list
+	# 	if = {
+	# 		limit = {
+	# 			NAND = {
+	# 				is_coastal = yes
+	# 				has_owner = yes
+	# 				owner.culture_group = culture_group:hellenic
+	# 			}
+	# 			NAND = {
+	# 				has_owner = yes
+	# 				owner = c:KIO
+	# 			}
+	# 		}
+	# 		owner = {
+	# 			trigger_event = { id = dhe_mithridates.13 }
+	# 		}
+	# 		set_owned_by = c:KIO
+	# 	}
+	# }
+	# set_capital = scope:mithridates_target
+	# change_country_name = MITH_NAME
+	# change_country_adjective = MITH_ADJ
+	# change_country_tag = MIT
+	# change_country_color = ck2_purple
+	# change_country_flag = MIT_FLAG
+	# set_primary_culture = paphlagonian
+	# add_manpower = 10
+}
+
+#P:A Imported from Imperator: mithridates_arrival_ping_effect (common/scripted_effects/00_event_effects.txt).
+# Imperator: informs every player near Pontus (some named tags, Hellenic countries, Anatolia/Black Sea/Greece capitals) of Mithridates' flight via dhe_mithridates.3.
+#P:A TODO No EU5 equivalent: belongs to the Mithridates chain (dhe_mithridates.*), which was skipped as tag/character-bound; it only fired dhe_mithridates.3, which does not exist in the mod
+pa_imp_mithridates_arrival_ping_effect = {
+	# every_country = {
+	# 	limit = {
+	# 		is_ai = no
+	# 		trigger_if = {
+	# 			limit = { exists = scope:mithridates_overlord }
+	# 			NOT = { THIS = scope:mithridates_overlord }
+	# 		}
+	# 		trigger_if = {
+	# 			limit = { exists = scope:mithridates_refuge }
+	# 			NOT = { THIS = scope:mithridates_refuge }
+	# 		}
+	# 		NOT = { THIS = ROOT }
+	# 		OR = {
+	# 			tag = TRE
+	# 			tag = SEL
+	# 			tag = EGY
+	# 			tag = MAC
+	# 			tag = PRY
+	# 			country_culture_group = hellenic
+	# 			capital_scope = {
+	# 				OR = {
+	# 					is_in_region = bithynia_region
+	# 					is_in_region = asia_region
+	# 					is_in_region = cappadocia_region
+	# 					is_in_region = galatia_region
+	# 					is_in_region = cappadocia_pontica_region
+	# 					is_in_region = thrace_region
+	# 					is_in_region = macedonia_region
+	# 					is_in_region = greece_region
+	# 					is_in_region = taurica_region
+	# 					is_in_region = sarmatia_europea_region
+	# 					is_in_region = cilicia_region
+	# 					is_in_region = colchis_region
+	# 				}
+	# 			}
+	# 		}
+	# 	}
+	# 	trigger_event = {
+	# 		id = dhe_mithridates.3
+	# 		days = 30
+	# 	}
+	# }
+}

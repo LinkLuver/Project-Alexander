@@ -1,0 +1,2485 @@
+﻿#P:A Imported from Indomita: events/CFT_FMO_lifestyle_event_chain.txt
+# Ruler lifestyle event chains of Indomita's character focus tree (CFT). EU5 has no focus trees:
+# - "<focus>_focus_tree_enabled" (the ruler picked that focus; Indomita gives AI rulers the focus of their best skill)
+#   is approximated by the ruler's best EU5 skill (civic/finesse -> ADM, martial -> MIL, oratory/charisma -> DIP).
+# - focus experience and focus perks (add_focus_experience / add_focus_perk) have no EU5 equivalent.
+# - character health has no EU5 equivalent.
+namespace = lifestyle_event_chains
+
+##############################################################################################################################################################
+# Finesse - Mint Event Chain
+##############################################################################################################################################################
+
+# A New Hobby: the ruler considers taking charge of the mints
+lifestyle_event_chains.1 = {
+	type = country_event
+	title = lifestyle_event_chains.1.t
+	desc = lifestyle_event_chains.1.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_variable = civic_focus_tree_enabled
+			adm >= { value = mil } #P:A TODO Approximate: Indomita civic focus tree enabled; EU5 has no focus trees, the ruler's best skill must be ADM
+			adm >= { value = dip }
+			# character_experience > 60 #P:A TODO No EU5 equivalent: more than 60 focus-tree experience (Indomita character focus system)
+			# health > 40 #P:A TODO No EU5 equivalent: character health above 40
+			NOR = {
+				has_character_modifier = master_minter_mod
+				has_character_modifier = good_minter_mod
+				has_character_modifier = learning_to_mint
+			}
+		}
+		OR = {
+			government_type = government_type:monarchy
+			government_type = government_type:tribe
+			# has_law = princeps_civitatis #P:A TODO No EU5 equivalent: Imperator republic laws (princeps civitatis, dictatorial elections) also allowed the chain
+			# has_law = republican_election_4
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.1.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.2
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.1.b
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# The ruler summons a master minter
+lifestyle_event_chains.2 = {
+	type = country_event
+	title = lifestyle_event_chains.2.t
+	desc = lifestyle_event_chains.2.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			create_character = {
+				culture = root.culture
+				religion = root.religion
+				age = 35
+				save_scope_as = master_minter
+			}
+			scope:master_minter = {
+				pa_imp_bad_martial_effect = yes
+				pa_imp_bad_charisma_effect = yes
+				pa_imp_good_finesse_effect = yes
+				pa_imp_bad_zeal_effect = yes
+				add_character_modifier = {
+					modifier = master_minter_mod
+					days = -1
+				}
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.2.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+		}
+		ruler ?= {
+			add_character_modifier = {
+				modifier = learning_to_mint
+				days = -1
+			}
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.3
+				days = { 60 80 }
+			}
+		}
+	}
+}
+
+# First solo attempt at minting
+lifestyle_event_chains.3 = {
+	type = country_event
+	title = lifestyle_event_chains.3.t
+	desc = lifestyle_event_chains.3.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_character_modifier = master_minter_mod
+				employer = root
+			}
+			save_scope_as = master_minter
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.3.a
+		# current_ruler = { add_focus_experience = { text = "add_10_focus_xp" amount = 10 } } #P:A TODO No EU5 equivalent: +10 focus-tree experience for the ruler (Indomita character focus system)
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.4
+				days = { 30 45 }
+			}
+		}
+	}
+}
+
+# Design dilemma: the ruler's face or a state symbol on the coins
+lifestyle_event_chains.4 = {
+	type = country_event
+	title = lifestyle_event_chains.4.t
+	desc = lifestyle_event_chains.4.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_character_modifier = master_minter_mod
+				employer = root
+			}
+			save_scope_as = master_minter
+		}
+	}
+
+	option = { #coins with ruler
+		name = lifestyle_event_chains.4.a
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.5
+				days = { 30 45 }
+			}
+			set_variable = {
+				name = coins_with_ruler_face
+				days = 3650
+			}
+		}
+		# if = { limit = { is_republic = yes current_ruler = { charisma < 5 } } add_tyranny = 3 } #P:A TODO No EU5 equivalent: +3 tyranny for a republic whose ruler has less than 5 charisma (EU5 has no tyranny)
+	}
+
+	option = { #coins with state symbol
+		name = lifestyle_event_chains.4.b
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.5
+				days = { 30 45 }
+			}
+		}
+	}
+}
+
+# The master minter improves the ruler's designs
+lifestyle_event_chains.5 = {
+	type = country_event
+	title = lifestyle_event_chains.5.t
+	desc = lifestyle_event_chains.5.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_character_modifier = master_minter_mod
+				employer = root
+			}
+			save_scope_as = master_minter
+		}
+	}
+
+	option = { #master minter comments on drawing and improves them
+		name = lifestyle_event_chains.5.a
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.6
+				days = { 30 45 }
+			}
+		}
+	}
+}
+
+# Material matters: copper, silver or gold coins
+lifestyle_event_chains.6 = {
+	type = country_event
+	title = lifestyle_event_chains.6.t
+	desc = lifestyle_event_chains.6.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_character_modifier = master_minter_mod
+				employer = root
+			}
+			save_scope_as = master_minter
+		}
+	}
+
+	option = { #copper coins
+		name = lifestyle_event_chains.6.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -4
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					has_variable = coins_with_ruler_face
+				}
+				trigger_event_non_silently = {
+					id = lifestyle_event_chains.7
+					days = { 30 45 }
+				}
+				remove_variable = coins_with_ruler_face
+			}
+			else = {
+				trigger_event_non_silently = {
+					id = lifestyle_event_chains.8
+					days = { 30 45 }
+				}
+			}
+		}
+	}
+
+	option = { #silver coins
+		name = lifestyle_event_chains.6.b
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -10
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					has_variable = coins_with_ruler_face
+				}
+				trigger_event_non_silently = {
+					id = lifestyle_event_chains.9
+					days = { 30 45 }
+				}
+				remove_variable = coins_with_ruler_face
+			}
+			else = {
+				trigger_event_non_silently = {
+					id = lifestyle_event_chains.10
+					days = { 30 45 }
+				}
+			}
+		}
+	}
+
+	option = { #gold coins
+		name = lifestyle_event_chains.6.c
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -18
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					has_variable = coins_with_ruler_face
+				}
+				trigger_event_non_silently = {
+					id = lifestyle_event_chains.11
+					days = { 30 45 }
+				}
+				remove_variable = coins_with_ruler_face
+			}
+			else = {
+				trigger_event_non_silently = {
+					id = lifestyle_event_chains.12
+					days = { 30 45 }
+				}
+			}
+		}
+	}
+}
+
+# Minter's praise: copper coins with the ruler's face
+lifestyle_event_chains.7 = {
+	type = country_event
+	title = lifestyle_event_chains.7.t
+	desc = lifestyle_event_chains.7.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_character_modifier = master_minter_mod
+				employer = root
+			}
+			save_scope_as = master_minter
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.7.a
+		ruler ?= {
+			remove_character_modifier = learning_to_mint
+			add_character_modifier = {
+				modifier = good_minter_mod
+				days = -1
+			}
+			# add_popularity = 5 #P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+			# add_focus_perk = { text = "add_1_char_perk" amount = 1 } #P:A TODO No EU5 equivalent: +1 focus-tree perk for the ruler (Indomita character focus system)
+			add_trait = trait:prominent
+		}
+		random_list = {
+			50 = {
+				ruler ?= { add_trait = trait:arrogant }
+			}
+			50 = {
+			}
+		}
+	}
+}
+
+# Gifts of prosperity: copper coins with a state seal
+lifestyle_event_chains.8 = {
+	type = country_event
+	title = lifestyle_event_chains.8.t
+	desc = lifestyle_event_chains.8.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_character_modifier = master_minter_mod
+				employer = root
+			}
+			save_scope_as = master_minter
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.8.a
+		ruler ?= {
+			remove_character_modifier = learning_to_mint
+			add_character_modifier = {
+				modifier = good_minter_mod
+				days = -1
+			}
+			# add_focus_experience = { text = "add_50_focus_xp" amount = 50 } #P:A TODO No EU5 equivalent: +50 focus-tree experience for the ruler (Indomita character focus system)
+		}
+		# add_tyranny = -2 #P:A TODO No EU5 equivalent: -2 tyranny (EU5 has no tyranny)
+		random_list = {
+			20 = {
+				# current_ruler = { add_trait = modest } #P:A TODO No EU5 equivalent: Imperator trait modest (EU5 humble is an artist trait)
+			}
+			20 = {
+				ruler ?= { add_trait = trait:careful } #P:A TODO Approximate: Imperator trait cautious mapped to EU5 careful
+			}
+			60 = {
+			}
+		}
+	}
+}
+
+# Master of the mint: silver coins with the ruler's face
+lifestyle_event_chains.9 = {
+	type = country_event
+	title = lifestyle_event_chains.9.t
+	desc = lifestyle_event_chains.9.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_character_modifier = master_minter_mod
+				employer = root
+			}
+			save_scope_as = master_minter
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.9.a
+		ruler ?= {
+			remove_character_modifier = learning_to_mint
+			add_character_modifier = {
+				modifier = master_minter_mod
+				days = -1
+			}
+			# add_popularity = 15 #P:A TODO No EU5 equivalent: +15 popularity for the ruler (EU5 characters have no popularity)
+			# add_focus_perk = { text = "add_1_char_perk" amount = 1 } #P:A TODO No EU5 equivalent: +1 focus-tree perk for the ruler (Indomita character focus system)
+			# add_focus_experience = { text = "add_25_focus_xp" amount = 25 } #P:A TODO No EU5 equivalent: +25 focus-tree experience for the ruler (Indomita character focus system)
+			add_trait = trait:prominent
+		}
+		random_list = {
+			30 = {
+				ruler ?= { add_trait = trait:arrogant }
+			}
+			70 = {
+			}
+		}
+	}
+}
+
+# The sacred mint: silver coins with a sacred image
+lifestyle_event_chains.10 = {
+	type = country_event
+	title = lifestyle_event_chains.10.t
+	desc = lifestyle_event_chains.10.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_character_modifier = master_minter_mod
+				employer = root
+			}
+			save_scope_as = master_minter
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.10.a
+		ruler ?= {
+			remove_character_modifier = learning_to_mint
+			add_character_modifier = {
+				modifier = good_minter_mod
+				days = -1
+			}
+			# add_focus_perk = { text = "add_1_char_perk" amount = 1 } #P:A TODO No EU5 equivalent: +1 focus-tree perk for the ruler (Indomita character focus system)
+		}
+		# add_tyranny = -3 #P:A TODO No EU5 equivalent: -3 tyranny (EU5 has no tyranny)
+		random_list = {
+			40 = {
+				# current_ruler = { add_trait = modest } #P:A TODO No EU5 equivalent: Imperator trait modest (EU5 humble is an artist trait)
+			}
+			60 = {
+			}
+		}
+	}
+}
+
+# Golden emissary: gold coins with the ruler's face
+lifestyle_event_chains.11 = {
+	type = country_event
+	title = lifestyle_event_chains.11.t
+	desc = lifestyle_event_chains.11.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_character_modifier = master_minter_mod
+				employer = root
+			}
+			save_scope_as = master_minter
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.11.a
+		ruler ?= {
+			remove_character_modifier = learning_to_mint
+			add_character_modifier = {
+				modifier = master_minter_mod
+				days = -1
+			}
+			# add_focus_perk = { text = "add_2_char_perk" amount = 2 } #P:A TODO No EU5 equivalent: +2 focus-tree perks for the ruler (Indomita character focus system)
+			# add_popularity = 40 #P:A TODO No EU5 equivalent: +40 popularity for the ruler (EU5 characters have no popularity)
+			add_trait = trait:prominent
+		}
+		random_list = {
+			10 = {
+				ruler ?= { add_trait = trait:arrogant }
+			}
+			40 = {
+				# current_ruler = { add_trait = founder } #P:A TODO No EU5 equivalent: Imperator trait founder
+			}
+			50 = {
+			}
+		}
+	}
+}
+
+# State emblem: gold coins with a state symbol
+lifestyle_event_chains.12 = {
+	type = country_event
+	title = lifestyle_event_chains.12.t
+	desc = lifestyle_event_chains.12.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_character_modifier = master_minter_mod
+				employer = root
+			}
+			save_scope_as = master_minter
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.12.a
+		ruler ?= {
+			remove_character_modifier = learning_to_mint
+			add_character_modifier = {
+				modifier = master_minter_mod
+				days = -1
+			}
+			# add_focus_perk = { text = "add_2_char_perk" amount = 2 } #P:A TODO No EU5 equivalent: +2 focus-tree perks for the ruler (Indomita character focus system)
+		}
+		# add_tyranny = -4 #P:A TODO No EU5 equivalent: -4 tyranny (EU5 has no tyranny)
+		random_list = {
+			60 = {
+				# current_ruler = { add_trait = modest } #P:A TODO No EU5 equivalent: Imperator trait modest (EU5 humble is an artist trait)
+			}
+			40 = {
+			}
+		}
+	}
+}
+
+##############################################################################################################################################################
+# Zeal - Observing Stars Event Chain
+##############################################################################################################################################################
+
+# Celestial inquiry: the ruler considers studying the stars
+lifestyle_event_chains.13 = {
+	type = country_event
+	title = lifestyle_event_chains.13.t
+	desc = lifestyle_event_chains.13.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_variable = zeal_focus_tree_enabled
+			pa_imp_char_is_religious_trigger = yes #P:A TODO Approximate: Indomita zeal focus tree enabled; EU5 has no focus trees or zeal skill, a pious or zealous ruler stands in
+			# character_experience > 60 #P:A TODO No EU5 equivalent: more than 60 focus-tree experience (Indomita character focus system)
+			# health > 40 #P:A TODO No EU5 equivalent: character health above 40
+			NOR = {
+				has_character_modifier = observing_the_stars_mod_movement
+				has_character_modifier = observing_the_stars_mod_divinity
+			}
+		}
+		OR = {
+			government_type = government_type:monarchy
+			government_type = government_type:tribe
+			# has_law = princeps_civitatis #P:A TODO No EU5 equivalent: Imperator republic laws (princeps civitatis, dictatorial elections) also allowed the chain
+			# has_law = republican_election_4
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.13.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -6
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.14
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.13.b
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Celestial interpretation: science or divinity in the stars
+lifestyle_event_chains.14 = {
+	type = country_event
+	title = lifestyle_event_chains.14.t
+	desc = lifestyle_event_chains.14.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.14.a
+		ruler ?= {
+			add_character_modifier = {
+				modifier = observing_the_stars_mod_movement
+				days = -1
+			}
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.15
+				days = { 60 80 }
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.14.b
+		ruler ?= {
+			add_character_modifier = {
+				modifier = observing_the_stars_mod_divinity
+				days = -1
+			}
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.20
+				days = { 60 80 }
+			}
+		}
+	}
+}
+
+# Competing hypotheses: heliocentrism or geocentrism
+lifestyle_event_chains.15 = {
+	type = country_event
+	title = lifestyle_event_chains.15.t
+	desc = lifestyle_event_chains.15.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		# Imperator picked research-office holders (has_tech_office) by their best finesse, zeal and charisma, falling back to any
+		# non-ruler character (alternative_limit). EU5 has no offices, no zeal skill and no alternative_limit.
+		ordered_character = { #P:A TODO Approximate: Imperator research-office holder with the highest finesse (else any non-ruler); EU5 non-ruler character with the highest ADM
+			limit = {
+				is_ruler = no
+			}
+			order_by = adm
+			save_scope_as = finesse_thinker
+		}
+		random_character = { #P:A TODO Approximate: Imperator research-office holder with the highest zeal (else any non-ruler); EU5 has no zeal, a non-ruler character is picked, preferring clergy-estate and pious or zealous characters
+			limit = {
+				is_ruler = no
+				NOT = { this = scope:finesse_thinker }
+			}
+			weight = {
+				factor = 1
+				modifier = {
+					factor = 10
+					OR = {
+						has_estate = estate_type:clergy_estate
+						pa_imp_char_is_religious_trigger = yes
+					}
+				}
+			}
+			save_scope_as = zeal_thinker
+		}
+		ordered_character = { #P:A TODO Approximate: Imperator research-office holder with the highest charisma (else any non-ruler); EU5 non-ruler character with the highest DIP
+			limit = {
+				is_ruler = no
+				NOT = { this = scope:finesse_thinker }
+				NOT = { this = scope:zeal_thinker }
+			}
+			order_by = dip
+			save_scope_as = charisma_thinker
+		}
+	}
+
+	option = { #heliocentric
+		name = lifestyle_event_chains.15.a
+		# add_research = { technology = religious_tech value = 15 } #P:A TODO No EU5 equivalent: +15 research in Imperator's religious technology track
+		random_list = {
+			50 = {
+				ruler ?= { remove_trait = trait:zealot } # Imperator zealous
+			}
+			20 = {
+				ruler ?= { add_trait = trait:obsessive_perfectionist } #P:A TODO Approximate: Imperator trait obsessive mapped to EU5 obsessive_perfectionist
+			}
+			30 = {
+				# current_ruler = { add_popularity = -10 } #P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+			}
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.16
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = { #geocentric
+		name = lifestyle_event_chains.15.b
+		random_list = {
+			50 = {
+				ruler ?= { add_trait = trait:calm } #P:A TODO Approximate: Imperator trait content mapped to EU5 calm
+			}
+			50 = {
+				# current_ruler = { add_trait = narrowminded } #P:A TODO No EU5 equivalent: Imperator trait narrowminded
+			}
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.16
+				days = { 30 45 }
+			}
+		}
+	}
+}
+
+# New equipment for the ruler's astronomy
+lifestyle_event_chains.16 = {
+	type = country_event
+	title = lifestyle_event_chains.16.t
+	desc = lifestyle_event_chains.16.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = { # Imperator re-picked the same deterministic character; EU5 keeps the one saved by lifestyle_event_chains.15
+			limit = {
+				NOT = { exists = scope:zeal_thinker }
+			}
+			random_character = { #P:A TODO Approximate: Imperator research-office holder with the highest zeal (else any non-ruler); EU5 has no zeal, a non-ruler character is picked, preferring clergy-estate and pious or zealous characters
+				limit = {
+					is_ruler = no
+				}
+				weight = {
+					factor = 1
+					modifier = {
+						factor = 10
+						OR = {
+							has_estate = estate_type:clergy_estate
+							pa_imp_char_is_religious_trigger = yes
+						}
+					}
+				}
+				save_scope_as = zeal_thinker
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.16.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -6
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.17
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.16.b
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Between the stars and the throne
+lifestyle_event_chains.17 = {
+	type = country_event
+	title = lifestyle_event_chains.17.t
+	desc = lifestyle_event_chains.17.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = { # Imperator re-picked the same deterministic character; EU5 keeps the one saved earlier in the chain
+			limit = {
+				NOT = { exists = scope:zeal_thinker }
+			}
+			random_character = { #P:A TODO Approximate: Imperator research-office holder with the highest zeal (else any non-ruler); EU5 has no zeal, a non-ruler character is picked, preferring clergy-estate and pious or zealous characters
+				limit = {
+					is_ruler = no
+				}
+				weight = {
+					factor = 1
+					modifier = {
+						factor = 10
+						OR = {
+							has_estate = estate_type:clergy_estate
+							pa_imp_char_is_religious_trigger = yes
+						}
+					}
+				}
+				save_scope_as = zeal_thinker
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.17.a
+		random_list = {
+			40 = {
+				ruler ?= { add_trait = trait:industrious } #P:A TODO Approximate: Imperator trait energetic mapped to EU5 industrious
+			}
+			10 = {
+				# current_ruler = { add_trait = stressed } #P:A TODO No EU5 equivalent: Imperator trait stressed
+			}
+			50 = {
+			}
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.18
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.17.b
+		random_list = {
+			50 = {
+				ruler ?= { add_trait = trait:lazy }
+			}
+			50 = {
+				ruler ?= { add_trait = trait:calm } #P:A TODO Approximate: Imperator trait content mapped to EU5 calm
+			}
+		}
+		# current_ruler = { add_focus_experience = { text = "add_25_focus_xp" amount = 25 } } #P:A TODO No EU5 equivalent: +25 focus-tree experience for the ruler (Indomita character focus system)
+	}
+}
+
+# Laws of planetary motion
+lifestyle_event_chains.18 = {
+	type = country_event
+	title = lifestyle_event_chains.18.t
+	desc = lifestyle_event_chains.18.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.18.a
+		# add_research = { technology = religious_tech value = 35 } #P:A TODO No EU5 equivalent: +35 research in Imperator's religious technology track
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.19
+				days = { 30 45 }
+			}
+		}
+	}
+}
+
+# The ruler's treatise: publish, keep secret or burn
+lifestyle_event_chains.19 = {
+	type = country_event
+	title = lifestyle_event_chains.19.t
+	desc = lifestyle_event_chains.19.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #publish findings
+		name = lifestyle_event_chains.19.a
+		# add_innovation = 1 #P:A TODO No EU5 equivalent: +1 innovation (Imperator invention points)
+		ruler ?= {
+			add_trait = trait:scholar
+			# add_zeal = -2 #P:A TODO No EU5 equivalent: -2 zeal (EU5 characters have no zeal skill)
+			# add_popularity = -20 #P:A TODO No EU5 equivalent: -20 popularity for the ruler (EU5 characters have no popularity)
+			# add_focus_perk = { text = "add_1_char_perk" amount = 1 } #P:A TODO No EU5 equivalent: +1 focus-tree perk for the ruler (Indomita character focus system)
+		}
+	}
+
+	option = { #keep secret
+		name = lifestyle_event_chains.19.b
+		ruler ?= {
+			add_trait = trait:scholar
+			# add_focus_perk = { text = "add_1_char_perk" amount = 1 } #P:A TODO No EU5 equivalent: +1 focus-tree perk for the ruler (Indomita character focus system)
+		}
+	}
+
+	option = { #burn research
+		name = lifestyle_event_chains.19.c
+		add_stability = 5
+		ruler ?= {
+			add_trait = trait:zealot # Imperator zealous
+			# add_zeal = 2 #P:A TODO No EU5 equivalent: +2 zeal (EU5 characters have no zeal skill)
+			# add_focus_experience = { text = "add_50_focus_xp" amount = 50 } #P:A TODO No EU5 equivalent: +50 focus-tree experience for the ruler (Indomita character focus system)
+		}
+	}
+}
+
+# Consumed by the cosmic
+lifestyle_event_chains.20 = {
+	type = country_event
+	title = lifestyle_event_chains.20.t
+	desc = lifestyle_event_chains.20.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.20.a
+		random_list = {
+			50 = {
+				# current_ruler = { add_trait = paranoid } #P:A TODO No EU5 equivalent: Imperator trait paranoid
+			}
+			20 = {
+				ruler ?= { add_trait = trait:obsessive_perfectionist } #P:A TODO Approximate: Imperator trait obsessive mapped to EU5 obsessive_perfectionist
+			}
+			30 = {
+			}
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.21
+				days = { 30 45 }
+			}
+		}
+	}
+}
+
+# New equipment (divine branch)
+lifestyle_event_chains.21 = {
+	type = country_event
+	title = lifestyle_event_chains.21.t
+	desc = lifestyle_event_chains.21.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = { # Imperator re-picked the same deterministic character; EU5 keeps one saved earlier in the chain
+			limit = {
+				NOT = { exists = scope:zeal_thinker }
+			}
+			random_character = { #P:A TODO Approximate: Imperator research-office holder with the highest zeal (else any non-ruler); EU5 has no zeal, a non-ruler character is picked, preferring clergy-estate and pious or zealous characters
+				limit = {
+					is_ruler = no
+				}
+				weight = {
+					factor = 1
+					modifier = {
+						factor = 10
+						OR = {
+							has_estate = estate_type:clergy_estate
+							pa_imp_char_is_religious_trigger = yes
+						}
+					}
+				}
+				save_scope_as = zeal_thinker
+			}
+		}
+	}
+
+	option = { #Need new equipment
+		name = lifestyle_event_chains.21.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -6
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.22
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = { #stop
+		name = lifestyle_event_chains.21.b
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Stellar sojourn: travel away from the capital to observe the stars
+lifestyle_event_chains.22 = {
+	type = country_event
+	title = lifestyle_event_chains.22.t
+	desc = lifestyle_event_chains.22.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = { # Imperator re-picked the same deterministic character; EU5 keeps one saved earlier in the chain
+			limit = {
+				NOT = { exists = scope:zeal_thinker }
+			}
+			random_character = { #P:A TODO Approximate: Imperator research-office holder with the highest zeal (else any non-ruler); EU5 has no zeal, a non-ruler character is picked, preferring clergy-estate and pious or zealous characters
+				limit = {
+					is_ruler = no
+				}
+				weight = {
+					factor = 1
+					modifier = {
+						factor = 10
+						OR = {
+							has_estate = estate_type:clergy_estate
+							pa_imp_char_is_religious_trigger = yes
+						}
+					}
+				}
+				save_scope_as = zeal_thinker
+			}
+		}
+	}
+
+	option = { #Travel to better places to observe stars
+		name = lifestyle_event_chains.22.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+		}
+		# current_ruler = { add_trait = pilgrim_status } #P:A TODO No EU5 equivalent: Indomita trait pilgrim_status (ruler away on a pilgrimage; EU5 has no such trait)
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.23
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = { #stop
+		name = lifestyle_event_chains.22.b
+		random_list = {
+			50 = {
+				ruler ?= { add_trait = trait:lazy }
+			}
+			50 = {
+				ruler ?= { add_trait = trait:calm } #P:A TODO Approximate: Imperator trait content mapped to EU5 calm
+			}
+		}
+	}
+}
+
+# Celestial epiphany under a dark sky
+lifestyle_event_chains.23 = {
+	type = country_event
+	title = lifestyle_event_chains.23.t
+	desc = lifestyle_event_chains.23.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #Persist
+		name = lifestyle_event_chains.23.a
+		random_list = {
+			40 = {
+				ruler ?= { add_trait = trait:industrious } #P:A TODO Approximate: Imperator trait energetic mapped to EU5 industrious
+			}
+			10 = {
+				# current_ruler = { add_trait = stressed } #P:A TODO No EU5 equivalent: Imperator trait stressed
+			}
+			50 = {
+			}
+		}
+		# add_research = { technology = religious_tech value = 25 } #P:A TODO No EU5 equivalent: +25 research in Imperator's religious technology track
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.24
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = { #stop
+		name = lifestyle_event_chains.23.b
+		random_list = {
+			50 = {
+				ruler ?= { add_trait = trait:lazy }
+			}
+			50 = {
+				ruler ?= { add_trait = trait:calm } #P:A TODO Approximate: Imperator trait content mapped to EU5 calm
+			}
+		}
+		# current_ruler = { add_focus_experience = { text = "add_25_focus_xp" amount = 25 } } #P:A TODO No EU5 equivalent: +25 focus-tree experience for the ruler (Indomita character focus system)
+		# current_ruler = { remove_trait = pilgrim_status } #P:A TODO No EU5 equivalent: Indomita trait pilgrim_status (ruler away on a pilgrimage; EU5 has no such trait)
+	}
+}
+
+# Return from the sojourn: study the celestial message further or leave it be
+lifestyle_event_chains.24 = {
+	type = country_event
+	title = lifestyle_event_chains.24.t
+	desc = lifestyle_event_chains.24.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+			# remove_trait = pilgrim_status #P:A TODO No EU5 equivalent: Indomita trait pilgrim_status (ruler away on a pilgrimage; EU5 has no such trait)
+		}
+	}
+
+	option = { #study further
+		name = lifestyle_event_chains.24.a
+		random_list = {
+			40 = {
+				# current_ruler = { add_trait = paranoid } #P:A TODO No EU5 equivalent: Imperator trait paranoid
+			}
+			10 = {
+				# current_ruler = { add_trait = lunatic } #P:A TODO No EU5 equivalent: Imperator trait lunatic
+			}
+			50 = {
+			}
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.25
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = { #leave it be
+		name = lifestyle_event_chains.24.b
+		# current_ruler = { add_focus_experience = { text = "add_25_focus_xp" amount = 25 } } #P:A TODO No EU5 equivalent: +25 focus-tree experience for the ruler (Indomita character focus system)
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# The ruler grows wiser in divine matters
+lifestyle_event_chains.25 = {
+	type = country_event
+	title = lifestyle_event_chains.25.t
+	desc = lifestyle_event_chains.25.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # Feeling wiser
+		name = lifestyle_event_chains.25.a
+		# add_research = { technology = religious_tech value = 35 } #P:A TODO No EU5 equivalent: +35 research in Imperator's religious technology track
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.26
+				days = { 30 45 }
+			}
+		}
+	}
+}
+
+# The ruler's mystical insight: share it as a mystic or keep it secret
+lifestyle_event_chains.26 = {
+	type = country_event
+	title = lifestyle_event_chains.26.t
+	desc = lifestyle_event_chains.26.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #mystic
+		name = lifestyle_event_chains.26.a
+		# add_innovation = 1 #P:A TODO No EU5 equivalent: +1 innovation (Imperator invention points)
+		# current_ruler = { add_trait = wise } #P:A TODO No EU5 equivalent: Imperator trait wise
+		# current_ruler = { add_focus_perk = { text = "add_1_char_perk" amount = 1 } } #P:A TODO No EU5 equivalent: +1 focus-tree perk for the ruler (Indomita character focus system)
+		custom_tooltip = no_effect_tooltip
+	}
+
+	option = { #keep secret
+		name = lifestyle_event_chains.26.b
+		add_stability = 10
+		ruler ?= {
+			add_trait = trait:humble
+			# add_zeal = 3 #P:A TODO No EU5 equivalent: +3 zeal (EU5 characters have no zeal skill)
+			# add_focus_perk = { text = "add_2_char_perk" amount = 2 } #P:A TODO No EU5 equivalent: +2 focus-tree perks for the ruler (Indomita character focus system)
+		}
+	}
+}
+
+##############################################################################################################################################################
+# Oratory - Cluedo Event Chain
+##############################################################################################################################################################
+
+# An exquisite necklace: buy a gift for the ruler's spouse
+lifestyle_event_chains.27 = {
+	type = country_event
+	title = lifestyle_event_chains.27.t
+	desc = lifestyle_event_chains.27.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_variable = oratory_focus_tree_enabled
+			dip >= { value = adm } #P:A TODO Approximate: Indomita oratory focus tree enabled; EU5 has no focus trees, the ruler's best skill must be DIP
+			dip >= { value = mil }
+			# character_experience > 60 #P:A TODO No EU5 equivalent: more than 60 focus-tree experience (Indomita character focus system)
+			# health > 40 #P:A TODO No EU5 equivalent: character health above 40
+			NOT = {
+				has_character_modifier = caring_partner
+			}
+			NOT = { has_variable = bought_gift_for_spouse }
+			is_married = yes
+		}
+		OR = {
+			government_type = government_type:monarchy
+			government_type = government_type:tribe
+			# has_law = princeps_civitatis #P:A TODO No EU5 equivalent: Imperator republic laws (princeps civitatis, dictatorial elections) also allowed the chain
+			# has_law = republican_election_4
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+			random_spouse = {
+				save_scope_as = pa_spouse
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.27.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -12
+		}
+		ruler ?= {
+			add_character_modifier = {
+				modifier = caring_partner
+				days = -1
+			}
+		}
+		# current_ruler.spouse = { add_loyalty = loyalty_consort_bought_off } #P:A TODO No EU5 equivalent: +loyalty for the ruler's spouse (EU5 characters have no loyalty)
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.28
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.27.b
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# The spouse is acting strangely: investigate or let it be
+lifestyle_event_chains.28 = {
+	type = country_event
+	title = lifestyle_event_chains.28.t
+	desc = lifestyle_event_chains.28.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+			if = {
+				limit = {
+					NOT = { exists = scope:pa_spouse }
+				}
+				random_spouse = {
+					save_scope_as = pa_spouse
+				}
+			}
+		}
+	}
+
+	option = { #start investigation
+		name = lifestyle_event_chains.28.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.29
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = { #stop
+		name = lifestyle_event_chains.28.b
+		random_list = {
+			50 = {
+				ruler ?= { add_trait = trait:lazy }
+			}
+			50 = {
+			}
+		}
+		ruler ?= {
+			remove_character_modifier = caring_partner
+			set_variable = bought_gift_for_spouse
+		}
+	}
+}
+
+# No clues: the investigation into the stolen necklace stalls
+lifestyle_event_chains.29 = {
+	type = country_event
+	title = lifestyle_event_chains.29.t
+	desc = lifestyle_event_chains.29.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+			if = {
+				limit = {
+					NOT = { exists = scope:pa_spouse }
+				}
+				random_spouse = {
+					save_scope_as = pa_spouse
+				}
+			}
+		}
+		ordered_character = { #P:A TODO Approximate: Imperator picked the holder of a guard office (master of the guard, bodyguard, tribune of the soldiers); EU5 has no offices, the non-ruler character with the highest MIL leads the investigation
+			limit = {
+				is_ruler = no
+				NOT = { is_spouse_of = scope:pa_ruler }
+			}
+			order_by = mil
+			save_scope_as = guard_of_ruler
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.29.a
+		hidden_effect = {
+			random_list = {
+				50 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.30 #servant = thief, cook's wife = only suspicious (stole something from the kitchen)
+						days = { 30 45 }
+					}
+				}
+				50 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.31 #cook's wife = thief, servant = only suspicious (stole some coins)
+						days = { 30 45 }
+					}
+				}
+			}
+		}
+	}
+}
+
+# Two suspects (the servant is the thief): arrest the servant or the cook's wife
+lifestyle_event_chains.30 = {
+	type = country_event
+	title = lifestyle_event_chains.30.t
+	desc = lifestyle_event_chains.30.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+			if = {
+				limit = {
+					NOT = { exists = scope:pa_spouse }
+				}
+				random_spouse = {
+					save_scope_as = pa_spouse
+				}
+			}
+		}
+		if = { # Imperator re-picked a random guard-office holder; EU5 keeps the one saved by lifestyle_event_chains.29
+			limit = {
+				NOT = { exists = scope:guard_of_ruler }
+			}
+			ordered_character = { #P:A TODO Approximate: Imperator picked the holder of a guard office (master of the guard, bodyguard, tribune of the soldiers); EU5 has no offices, the non-ruler character with the highest MIL leads the investigation
+				limit = {
+					is_ruler = no
+					NOT = { is_spouse_of = scope:pa_ruler }
+				}
+				order_by = mil
+				save_scope_as = guard_of_ruler
+			}
+		}
+		hidden_effect = {
+			create_character = {
+				culture = root.culture
+				religion = root.religion
+				age = 40
+				save_scope_as = cooks_wife
+				female = yes
+			}
+			create_character = {
+				culture = root.culture
+				religion = root.religion
+				age = 55
+				save_scope_as = servant
+			}
+		}
+	}
+
+	option = { #arrest servant
+		name = lifestyle_event_chains.30.a
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.32
+				days = { 30 45 }
+			}
+		}
+		# imprison = { target = scope:servant } #P:A TODO No EU5 equivalent: the servant is imprisoned (EU5 has no imprisoned characters)
+	}
+
+	option = { #arrest cook's wife
+		name = lifestyle_event_chains.30.b
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.33
+				days = { 30 45 }
+			}
+		}
+		# imprison = { target = scope:cooks_wife } #P:A TODO No EU5 equivalent: the cook's wife is imprisoned (EU5 has no imprisoned characters)
+	}
+}
+
+# Two suspects (the cook's wife is the thief): arrest the servant or the cook's wife
+lifestyle_event_chains.31 = {
+	type = country_event
+	title = lifestyle_event_chains.31.t
+	desc = lifestyle_event_chains.31.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+			if = {
+				limit = {
+					NOT = { exists = scope:pa_spouse }
+				}
+				random_spouse = {
+					save_scope_as = pa_spouse
+				}
+			}
+		}
+		if = { # Imperator re-picked a random guard-office holder; EU5 keeps the one saved by lifestyle_event_chains.29
+			limit = {
+				NOT = { exists = scope:guard_of_ruler }
+			}
+			ordered_character = { #P:A TODO Approximate: Imperator picked the holder of a guard office (master of the guard, bodyguard, tribune of the soldiers); EU5 has no offices, the non-ruler character with the highest MIL leads the investigation
+				limit = {
+					is_ruler = no
+					NOT = { is_spouse_of = scope:pa_ruler }
+				}
+				order_by = mil
+				save_scope_as = guard_of_ruler
+			}
+		}
+		hidden_effect = {
+			create_character = {
+				culture = root.culture
+				religion = root.religion
+				age = 40
+				save_scope_as = cooks_wife
+				female = yes
+			}
+			create_character = {
+				culture = root.culture
+				religion = root.religion
+				age = 55
+				save_scope_as = servant
+				# add_gold = 5 #P:A TODO No EU5 equivalent: the servant starts with 5 personal gold (EU5 characters have no personal wealth)
+			}
+		}
+	}
+
+	option = { #arrest servant
+		name = lifestyle_event_chains.31.a
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.34
+				days = { 30 45 }
+			}
+		}
+		# imprison = { target = scope:servant } #P:A TODO No EU5 equivalent: the servant is imprisoned (EU5 has no imprisoned characters)
+	}
+
+	option = { #arrest cook's wife
+		name = lifestyle_event_chains.31.b
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.35
+				days = { 30 45 }
+			}
+		}
+		# imprison = { target = scope:cooks_wife } #P:A TODO No EU5 equivalent: the cook's wife is imprisoned (EU5 has no imprisoned characters)
+	}
+}
+
+# The arrested servant confesses (correct arrest)
+lifestyle_event_chains.32 = { #arrested servant - correct
+	type = country_event
+	title = lifestyle_event_chains.32.t
+	desc = lifestyle_event_chains.32.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+			if = {
+				limit = {
+					NOT = { exists = scope:pa_spouse }
+				}
+				random_spouse = {
+					save_scope_as = pa_spouse
+				}
+			}
+		}
+		if = { # Imperator re-picked a random guard-office holder; EU5 keeps the one saved earlier in the chain
+			limit = {
+				NOT = { exists = scope:guard_of_ruler }
+			}
+			ordered_character = { #P:A TODO Approximate: Imperator picked the holder of a guard office (master of the guard, bodyguard, tribune of the soldiers); EU5 has no offices, the non-ruler character with the highest MIL leads the investigation
+				limit = {
+					is_ruler = no
+					NOT = { is_spouse_of = scope:pa_ruler }
+				}
+				order_by = mil
+				save_scope_as = guard_of_ruler
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.32.a
+		ruler ?= {
+			# add_focus_perk = { text = "add_1_char_perk" amount = 1 } #P:A TODO No EU5 equivalent: +1 focus-tree perk for the ruler (Indomita character focus system)
+			add_trait = trait:just
+		}
+		# current_ruler.spouse = { add_loyalty = loyalty_consort_bought_off } #P:A TODO No EU5 equivalent: +loyalty for the ruler's spouse (EU5 characters have no loyalty)
+		scope:guard_of_ruler ?= {
+			add_mil = 10 # Imperator add_martial = 2 (x5)
+		}
+	}
+}
+
+# The cook's wife was wrongfully imprisoned
+lifestyle_event_chains.33 = { #wrongfully imprisoned cooks wife
+	type = country_event
+	title = lifestyle_event_chains.33.t
+	desc = lifestyle_event_chains.33.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+			if = {
+				limit = {
+					NOT = { exists = scope:pa_spouse }
+				}
+				random_spouse = {
+					save_scope_as = pa_spouse
+				}
+			}
+		}
+		if = { # Imperator re-picked a random guard-office holder; EU5 keeps the one saved earlier in the chain
+			limit = {
+				NOT = { exists = scope:guard_of_ruler }
+			}
+			ordered_character = { #P:A TODO Approximate: Imperator picked the holder of a guard office (master of the guard, bodyguard, tribune of the soldiers); EU5 has no offices, the non-ruler character with the highest MIL leads the investigation
+				limit = {
+					is_ruler = no
+					NOT = { is_spouse_of = scope:pa_ruler }
+				}
+				order_by = mil
+				save_scope_as = guard_of_ruler
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.33.a
+		# current_ruler = { add_focus_experience = { text = "add_50_focus_xp" amount = 50 } } #P:A TODO No EU5 equivalent: +50 focus-tree experience for the ruler (Indomita character focus system)
+		# current_ruler = { add_trait = arbitrary } #P:A TODO No EU5 equivalent: Imperator trait arbitrary
+		# add_tyranny = 5 #P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# The servant was wrongfully imprisoned
+lifestyle_event_chains.34 = { #slave wrongfully imprisoned
+	type = country_event
+	title = lifestyle_event_chains.34.t
+	desc = lifestyle_event_chains.34.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+			if = {
+				limit = {
+					NOT = { exists = scope:pa_spouse }
+				}
+				random_spouse = {
+					save_scope_as = pa_spouse
+				}
+			}
+		}
+		if = { # Imperator re-picked a random guard-office holder; EU5 keeps the one saved earlier in the chain
+			limit = {
+				NOT = { exists = scope:guard_of_ruler }
+			}
+			ordered_character = { #P:A TODO Approximate: Imperator picked the holder of a guard office (master of the guard, bodyguard, tribune of the soldiers); EU5 has no offices, the non-ruler character with the highest MIL leads the investigation
+				limit = {
+					is_ruler = no
+					NOT = { is_spouse_of = scope:pa_ruler }
+				}
+				order_by = mil
+				save_scope_as = guard_of_ruler
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.34.a
+		# current_ruler = { add_focus_experience = { text = "add_50_focus_xp" amount = 50 } } #P:A TODO No EU5 equivalent: +50 focus-tree experience for the ruler (Indomita character focus system)
+		# current_ruler = { add_trait = arbitrary } #P:A TODO No EU5 equivalent: Imperator trait arbitrary
+		# add_tyranny = 5 #P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# The arrested cook's wife confesses (correct arrest)
+lifestyle_event_chains.35 = { #cooks wife confessed
+	type = country_event
+	title = lifestyle_event_chains.35.t
+	desc = lifestyle_event_chains.35.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+			if = {
+				limit = {
+					NOT = { exists = scope:pa_spouse }
+				}
+				random_spouse = {
+					save_scope_as = pa_spouse
+				}
+			}
+		}
+		if = { # Imperator re-picked a random guard-office holder; EU5 keeps the one saved earlier in the chain
+			limit = {
+				NOT = { exists = scope:guard_of_ruler }
+			}
+			ordered_character = { #P:A TODO Approximate: Imperator picked the holder of a guard office (master of the guard, bodyguard, tribune of the soldiers); EU5 has no offices, the non-ruler character with the highest MIL leads the investigation
+				limit = {
+					is_ruler = no
+					NOT = { is_spouse_of = scope:pa_ruler }
+				}
+				order_by = mil
+				save_scope_as = guard_of_ruler
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.35.a
+		ruler ?= {
+			# add_focus_perk = { text = "add_1_char_perk" amount = 1 } #P:A TODO No EU5 equivalent: +1 focus-tree perk for the ruler (Indomita character focus system)
+			add_trait = trait:just
+		}
+		# current_ruler.spouse = { add_loyalty = loyalty_consort_bought_off } #P:A TODO No EU5 equivalent: +loyalty for the ruler's spouse (EU5 characters have no loyalty)
+		scope:guard_of_ruler ?= {
+			add_mil = 10 # Imperator add_martial = 2 (x5)
+		}
+	}
+}
+
+##############################################################################################################################################################
+# Military - Raiders of the Lost Ark
+##############################################################################################################################################################
+
+# Ancient treasure: a fisherman's tale of a hidden cave
+lifestyle_event_chains.36 = {
+	type = country_event
+	title = lifestyle_event_chains.36.t
+	desc = lifestyle_event_chains.36.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_variable = martial_focus_tree_enabled
+			mil >= { value = adm } #P:A TODO Approximate: Indomita martial focus tree enabled; EU5 has no focus trees, the ruler's best skill must be MIL
+			mil >= { value = dip }
+			# character_experience > 70 #P:A TODO No EU5 equivalent: more than 70 focus-tree experience (Indomita character focus system)
+			# health > 60 #P:A TODO No EU5 equivalent: character health above 60
+		}
+		OR = {
+			government_type = government_type:monarchy
+			government_type = government_type:tribe
+			# has_law = princeps_civitatis #P:A TODO No EU5 equivalent: Imperator republic laws (princeps civitatis, dictatorial elections) also allowed the chain
+			# has_law = republican_election_4
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #send investigator
+		name = lifestyle_event_chains.36.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -6
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.40
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = { #send investigator and train in the meantime
+		name = lifestyle_event_chains.36.b
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -6
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.37
+				days = { 15 20 }
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.36.c
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Ancient treasure: choose a trainer
+lifestyle_event_chains.37 = {
+	type = country_event
+	title = lifestyle_event_chains.37.t
+	desc = lifestyle_event_chains.37.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		ordered_character = { #P:A TODO Approximate: Imperator research-office holder with the highest martial; EU5 has no offices, the non-ruler character with the highest MIL
+			limit = {
+				is_ruler = no
+			}
+			order_by = mil
+			save_scope_as = martial_thinker
+		}
+		ordered_character = { #P:A TODO Approximate: Imperator research-office holder with the highest finesse (else any non-ruler); EU5 non-ruler character with the highest ADM
+			limit = {
+				is_ruler = no
+			}
+			order_by = adm
+			save_scope_as = finesse_thinker
+		}
+	}
+
+	option = { #train with someone
+		name = lifestyle_event_chains.37.a
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3
+		}
+		ruler ?= {
+			remove_trait = trait:sickly # Imperator frail
+		}
+		hidden_effect = {
+			random_list = {
+				75 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.38
+						days = { 15 20 }
+					}
+				}
+				25 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.39
+						days = { 15 20 }
+					}
+				}
+			}
+		}
+	}
+
+	option = { #train with the best
+		name = lifestyle_event_chains.37.b
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -6
+		}
+		hidden_effect = {
+			random_list = {
+				10 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.38
+						days = { 15 20 }
+					}
+				}
+				90 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.39
+						days = { 15 20 }
+					}
+				}
+			}
+		}
+	}
+}
+
+# Ancient treasure: training under the chosen trainer
+lifestyle_event_chains.38 = {
+	type = country_event
+	title = lifestyle_event_chains.38.t
+	desc = lifestyle_event_chains.38.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = { # Imperator re-picked the same deterministic character; EU5 keeps the one saved by lifestyle_event_chains.37
+			limit = {
+				NOT = { exists = scope:finesse_thinker }
+			}
+			ordered_character = { #P:A TODO Approximate: Imperator research-office holder with the highest finesse (else any non-ruler); EU5 non-ruler character with the highest ADM
+				limit = {
+					is_ruler = no
+				}
+				order_by = adm
+				save_scope_as = finesse_thinker
+			}
+		}
+	}
+
+	option = { #train with someone
+		name = lifestyle_event_chains.38.a
+		ruler ?= {
+			add_mil = 5 # Imperator add_martial = 1 (x5)
+			# add_focus_experience = { text = "add_10_focus_xp" amount = 10 } #P:A TODO No EU5 equivalent: +10 focus-tree experience for the ruler (Indomita character focus system)
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.40
+				days = { 15 20 }
+			}
+		}
+	}
+}
+
+# Ancient treasure: training under the greatest warrior
+lifestyle_event_chains.39 = {
+	type = country_event
+	title = lifestyle_event_chains.39.t
+	desc = lifestyle_event_chains.39.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = { # Imperator re-picked the same deterministic character; EU5 keeps the one saved by lifestyle_event_chains.37
+			limit = {
+				NOT = { exists = scope:martial_thinker }
+			}
+			ordered_character = { #P:A TODO Approximate: Imperator research-office holder with the highest martial; EU5 has no offices, the non-ruler character with the highest MIL
+				limit = {
+					is_ruler = no
+				}
+				order_by = mil
+				save_scope_as = martial_thinker
+			}
+		}
+	}
+
+	option = { #train with the best
+		name = lifestyle_event_chains.39.a
+		ruler ?= {
+			add_mil = 15 # Imperator add_martial = 3 (x5)
+			# add_focus_experience = { text = "add_25_focus_xp" amount = 25 } #P:A TODO No EU5 equivalent: +25 focus-tree experience for the ruler (Indomita character focus system)
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.40
+				days = { 15 20 }
+			}
+		}
+	}
+}
+
+# Ancient treasure: a map to the cave arrives
+lifestyle_event_chains.40 = {
+	type = country_event
+	title = lifestyle_event_chains.40.t
+	desc = lifestyle_event_chains.40.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #follow to cave
+		name = lifestyle_event_chains.40.a
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.41
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.40.b
+		custom_tooltip = no_effect_tooltip
+		random_list = {
+			75 = {
+				ruler ?= { add_trait = trait:lazy }
+			}
+			25 = {
+			}
+		}
+	}
+}
+
+# Ancient treasure: at the mouth of the hidden cave
+lifestyle_event_chains.41 = {
+	type = country_event
+	title = lifestyle_event_chains.41.t
+	desc = lifestyle_event_chains.41.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #go to cave
+		name = lifestyle_event_chains.41.a
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.42
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.41.b
+		random_list = {
+			25 = {
+				ruler ?= { add_trait = trait:lazy }
+			}
+			75 = {
+				ruler ?= { add_trait = trait:craven } # Imperator coward
+			}
+		}
+	}
+}
+
+# Ancient treasure: the yawning maw of the cave
+lifestyle_event_chains.42 = {
+	type = country_event
+	title = lifestyle_event_chains.42.t
+	desc = lifestyle_event_chains.42.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #go into cave
+		name = lifestyle_event_chains.42.a
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = lifestyle_event_chains.43
+				days = { 30 45 }
+			}
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.42.b
+		random_list = {
+			10 = {
+				# current_ruler = { add_trait = mil_indecisive } #P:A TODO No EU5 equivalent: Imperator military trait indecisive
+			}
+			90 = {
+			}
+		}
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Ancient treasure: a crossroads inside the cave
+lifestyle_event_chains.43 = {
+	type = country_event
+	title = lifestyle_event_chains.43.t
+	desc = lifestyle_event_chains.43.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #go left
+		name = lifestyle_event_chains.43.a
+		hidden_effect = {
+			random_list = {
+				50 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.44
+						days = { 30 45 }
+					}
+				}
+				50 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.45
+						days = { 30 45 }
+					}
+				}
+			}
+		}
+	}
+
+	option = { #go right
+		name = lifestyle_event_chains.43.b
+		hidden_effect = {
+			random_list = {
+				50 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.44
+						days = { 30 45 }
+					}
+				}
+				50 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.45
+						days = { 30 45 }
+					}
+				}
+			}
+		}
+	}
+}
+
+# Ancient treasure: the cave collapses and the ruler is wounded
+lifestyle_event_chains.44 = {
+	type = country_event
+	title = lifestyle_event_chains.44.t
+	desc = lifestyle_event_chains.44.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #path led to outside and got wounded
+		name = lifestyle_event_chains.44.a
+		ruler ?= {
+			add_trait = trait:scarred #P:A TODO Approximate: Imperator added the temporary "wounded" trait; EU5 has no wounded trait, scarred used
+			# add_focus_experience = { text = "add_50_focus_xp" amount = 50 } #P:A TODO No EU5 equivalent: +50 focus-tree experience for the ruler (Indomita character focus system)
+		}
+	}
+}
+
+# Ancient treasure: the stone chest
+lifestyle_event_chains.45 = {
+	type = country_event
+	title = lifestyle_event_chains.45.t
+	desc = lifestyle_event_chains.45.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #open the chest
+		name = lifestyle_event_chains.45.a
+		# current_ruler = { add_focus_experience = { text = "add_25_focus_xp" amount = 25 } } #P:A TODO No EU5 equivalent: +25 focus-tree experience for the ruler (Indomita character focus system)
+		hidden_effect = {
+			random_list = {
+				35 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.46
+						days = { 5 15 }
+					}
+				}
+				15 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.47
+						days = { 5 15 }
+					}
+				}
+				50 = {
+					trigger_event_non_silently = {
+						id = lifestyle_event_chains.48
+						days = { 5 15 }
+					}
+				}
+			}
+		}
+	}
+
+	option = { #leave the chest alone and return home
+		name = lifestyle_event_chains.45.b
+		# current_ruler = { add_focus_experience = { text = "add_25_focus_xp" amount = 25 } } #P:A TODO No EU5 equivalent: +25 focus-tree experience for the ruler (Indomita character focus system)
+		random_list = {
+			25 = {
+				# current_ruler = { add_trait = mil_indecisive } #P:A TODO No EU5 equivalent: Imperator military trait indecisive
+			}
+			75 = {
+				# current_ruler = { add_trait = wise } #P:A TODO No EU5 equivalent: Imperator trait wise
+			}
+		}
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Ancient treasure: the chest is trapped and the ruler is maimed
+lifestyle_event_chains.46 = {
+	type = country_event
+	title = lifestyle_event_chains.46.t
+	desc = lifestyle_event_chains.46.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { #chest opened, see treasure but stone rolls and hurts you
+		name = lifestyle_event_chains.46.a
+		ruler ?= {
+			add_mil = 5 # Imperator add_martial = 1 (x5)
+			add_trait = trait:maimed
+			# add_focus_experience = { text = "add_50_focus_xp" amount = 50 } #P:A TODO No EU5 equivalent: +50 and +25 focus-tree experience for the ruler (Indomita character focus system)
+			# add_focus_experience = { text = "add_25_focus_xp" amount = 25 }
+		}
+	}
+}
+
+# Ancient treasure: the orichalcum map of the Isle of Atlas
+lifestyle_event_chains.47 = {
+	type = country_event
+	title = lifestyle_event_chains.47.t
+	desc = lifestyle_event_chains.47.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.47.a
+		# create_country_treasure = { key = "orichalcian_map_of_atlantis" icon = "treasure_architecture" modifier = { local_research_points_modifier = 0.25 local_happiness_for_same_religion_modifier = 0.1 } } #P:A TODO No EU5 equivalent: creates the country treasure "Orichalcian Map of Atlantis" (+25% local research, +10% same-religion happiness where it is kept); EU5 has no treasures
+		ruler ?= {
+			add_mil = 5 # Imperator add_martial = 1 (x5)
+			# add_focus_perk = { text = "add_2_char_perk" amount = 2 } #P:A TODO No EU5 equivalent: +2 focus-tree perks for the ruler (Indomita character focus system)
+		}
+	}
+}
+
+# Ancient treasure: a prehistoric bronze sword
+lifestyle_event_chains.48 = {
+	type = country_event
+	title = lifestyle_event_chains.48.t
+	desc = lifestyle_event_chains.48.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = lifestyle_event_chains.48.a
+		# create_country_treasure = { key = "bronze_age_sword" icon = "treasure_sword" modifier = { local_manpower_modifier = 0.25 local_freemen_happyness = 0.1 } } #P:A TODO No EU5 equivalent: creates the country treasure "Bronze Age Sword" (+25% local manpower, +10% freemen happiness where it is kept); EU5 has no treasures
+		ruler ?= {
+			add_mil = 5 # Imperator add_martial = 1 (x5)
+			# add_focus_perk = { text = "add_1_char_perk" amount = 1 } #P:A TODO No EU5 equivalent: +1 focus-tree perk and +50 focus-tree experience for the ruler (Indomita character focus system)
+			# add_focus_experience = { text = "add_50_focus_xp" amount = 50 }
+		}
+	}
+}

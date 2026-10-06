@@ -1,0 +1,301 @@
+﻿# Imperator scripted effects for batch b07 of the Invictus/Indomita event import (2026-10-06).
+
+#P:A Imported from Imperator: ip_mon_42_end_plot_effect (common/scripted_effects/00_event_effects.txt). Country scope.
+pa_imp_ip_mon_42_end_plot_effect = {
+	custom_tooltip = end_plot_chain_tooltip
+	if = {
+		limit = {
+			has_variable = ongoing_plot
+		}
+		remove_variable = ongoing_plot
+	}
+	if = {
+		limit = {
+			has_variable = ip_mon_42_investigation
+		}
+		remove_variable = ip_mon_42_investigation
+	}
+	if = {
+		limit = {
+			has_variable = ip_mon_42_doubled_guard
+		}
+		remove_variable = ip_mon_42_doubled_guard
+	}
+	if = {
+		limit = {
+			has_variable = ip_mon_42_red_handed
+		}
+		remove_variable = ip_mon_42_red_handed
+	}
+	if = {
+		limit = {
+			has_variable = ip_mon_42_elevated_pretender
+		}
+		remove_variable = ip_mon_42_elevated_pretender
+	}
+}
+
+#P:A Imported from Imperator: remove_regent_modifier_effect (common/scripted_effects/00_event_effects.txt). Character scope.
+pa_imp_remove_regent_modifier_effect = {
+	if = {
+		limit = {
+			has_character_modifier = martial_regent_1_charmod
+		}
+		remove_character_modifier = martial_regent_1_charmod
+	}
+	else_if = {
+		limit = {
+			has_character_modifier = martial_regent_2_charmod
+		}
+		remove_character_modifier = martial_regent_2_charmod
+	}
+	else_if = {
+		limit = {
+			has_character_modifier = finesse_regent_1_charmod
+		}
+		remove_character_modifier = finesse_regent_1_charmod
+	}
+	else_if = {
+		limit = {
+			has_character_modifier = finesse_regent_2_charmod
+		}
+		remove_character_modifier = finesse_regent_2_charmod
+	}
+	else_if = {
+		limit = {
+			has_character_modifier = charisma_regent_1_charmod
+		}
+		remove_character_modifier = charisma_regent_1_charmod
+	}
+	else_if = {
+		limit = {
+			has_character_modifier = charisma_regent_2_charmod
+		}
+		remove_character_modifier = charisma_regent_2_charmod
+	}
+	else_if = {
+		limit = {
+			has_character_modifier = zeal_regent_1_charmod
+		}
+		remove_character_modifier = zeal_regent_1_charmod
+	}
+	else_if = {
+		limit = {
+			has_character_modifier = zeal_regent_2_charmod
+		}
+		remove_character_modifier = zeal_regent_2_charmod
+	}
+}
+
+#P:A Imported from Imperator: ip_mon_54_end_plot_effect (common/scripted_effects/00_event_effects.txt). Country scope.
+pa_imp_ip_mon_54_end_plot_effect = {
+	custom_tooltip = end_plot_chain_tooltip
+	if = {
+		limit = {
+			has_variable = ongoing_plot
+		}
+		remove_variable = ongoing_plot
+	}
+	if = {
+		limit = {
+			has_variable = ip_mon_54_investigation
+		}
+		remove_variable = ip_mon_54_investigation
+	}
+	if = {
+		limit = {
+			has_variable = ip_mon_54_ensure
+		}
+		remove_variable = ip_mon_54_ensure
+	}
+	if = {
+		limit = {
+			has_variable = ip_mon_54_ruler_resolution_ruler
+		}
+		remove_variable = ip_mon_54_ruler_resolution_ruler
+	}
+	if = {
+		limit = {
+			has_variable = ip_mon_54_ruler_resolution_consort
+		}
+		remove_variable = ip_mon_54_ruler_resolution_consort
+	}
+}
+
+#P:A Imported from Imperator: new_family_generation_effect (vanilla common/scripted_effects/00_event_effects.txt). Country scope; $FAMILY_CANDIDATE$ is the name of a saved character scope that founds the new family.
+#P:A Imperator families are EU5 dynasties; Imperator "minor characters" (no family) are EU5 characters without a dynasty.
+pa_imp_new_family_generation_effect = {
+	scope:$FAMILY_CANDIDATE$ = {
+		if = {
+			limit = { has_dynasty = no }
+			found_dynasty = random #P:A TODO Approximate: Imperator create_family founded a family named after the candidate's family name; EU5 found_dynasty = random picks the name. A candidate that already has a dynasty keeps it
+		}
+		custom_tooltip = family_acceptance_custom_tooltip
+	}
+	hidden_effect = {
+		# To determine starting prestige we look at the least prestigious other family:
+		# ordered_family = { order_by = prestige limit = { NOT = { THIS = scope:$FAMILY_CANDIDATE$.family } } position = end save_scope_as = poor_family }
+		# scope:$FAMILY_CANDIDATE$.family = { add_prestige = { value = scope:poor_family.prestige subtract = 50 min = 200 } }
+		#P:A TODO No EU5 equivalent: the new family got the prestige of the least prestigious other family minus 50 (at least 200); EU5 dynasties have no prestige
+		# Now to populate the new Family:
+		if = { # Our ambitious young candidate needs a father
+			limit = {
+				scope:$FAMILY_CANDIDATE$ = {
+					age_in_years < 60
+					NOT = { exists = father }
+				}
+			}
+			create_character = {
+				age = 75
+				female = no
+				dynasty = scope:$FAMILY_CANDIDATE$.dynasty
+				religion = scope:$FAMILY_CANDIDATE$.religion
+				culture = scope:$FAMILY_CANDIDATE$.culture
+				save_scope_as = pater_familias
+			}
+			scope:pater_familias = {
+				adopt_character = scope:$FAMILY_CANDIDATE$
+			}
+		}
+		else = {
+			scope:$FAMILY_CANDIDATE$ = { save_scope_as = pater_familias }
+		}
+		if = { # Does this character have children? If not let us make some.
+			limit = {
+				scope:$FAMILY_CANDIDATE$ = {
+					age_in_years > 16
+					is_female = no
+					NOT = { any_child = { is_female = no } }
+				}
+			}
+			create_character = {
+				age = 6
+				female = no
+				dynasty = scope:$FAMILY_CANDIDATE$.dynasty
+				religion = scope:$FAMILY_CANDIDATE$.religion
+				culture = scope:$FAMILY_CANDIDATE$.culture
+				father = scope:$FAMILY_CANDIDATE$
+			}
+		}
+		if = { # Does this character have children? If not let us make some.
+			limit = {
+				scope:$FAMILY_CANDIDATE$ = {
+					age_in_years > 16
+					is_female = yes
+					NOT = { any_child = { is_female = no } }
+				}
+			}
+			create_character = {
+				age = 6
+				female = no
+				dynasty = scope:$FAMILY_CANDIDATE$.dynasty
+				religion = scope:$FAMILY_CANDIDATE$.religion
+				culture = scope:$FAMILY_CANDIDATE$.culture
+				mother = scope:$FAMILY_CANDIDATE$
+			}
+		}
+		if = { # Does this character have children? If not let us make some.
+			limit = {
+				scope:$FAMILY_CANDIDATE$ = {
+					age_in_years > 16
+					is_female = no
+					NOT = { any_child = { is_female = yes } }
+				}
+			}
+			create_character = {
+				age = 4
+				female = yes
+				dynasty = scope:$FAMILY_CANDIDATE$.dynasty
+				religion = scope:$FAMILY_CANDIDATE$.religion
+				culture = scope:$FAMILY_CANDIDATE$.culture
+				father = scope:$FAMILY_CANDIDATE$
+			}
+		}
+		if = {
+			limit = {
+				scope:$FAMILY_CANDIDATE$ = {
+					age_in_years > 16
+					is_female = yes
+					NOT = { any_child = { is_female = yes } }
+				}
+			}
+			create_character = {
+				age = 4
+				female = yes
+				dynasty = scope:$FAMILY_CANDIDATE$.dynasty
+				religion = scope:$FAMILY_CANDIDATE$.religion
+				culture = scope:$FAMILY_CANDIDATE$.culture
+				mother = scope:$FAMILY_CANDIDATE$
+			}
+		}
+		every_character = { # Any existing close relatives need to be joined to the family.
+			limit = {
+				has_dynasty = no # Imperator is_minor_character = yes
+				is_close_relative = scope:$FAMILY_CANDIDATE$
+			}
+			change_dynasty = scope:$FAMILY_CANDIDATE$.dynasty # Imperator set_family
+			if = {
+				limit = { has_character_modifier = foreign_citizen }
+				remove_character_modifier = foreign_citizen
+			}
+			# if = { limit = { prisoner = yes } ROOT = { release_prisoner = { target = PREV } } } #P:A TODO No EU5 equivalent: imprisoned relatives were released (EU5 has no prisoners)
+			# set_home_country = ROOT #P:A TODO No EU5 equivalent: home country of a character
+		}
+		ordered_character = { # Clients are now added.
+			check_range_bounds = no
+			max = 7
+			order_by = total_abilities #P:A TODO Approximate: Imperator ordered by power_base (character influence); EU5 orders by total skill
+			limit = {
+				#P:A Removed: prisoner = no is always true in EU5
+				# is_mercenary = no #P:A TODO No EU5 equivalent: mercenary characters
+				NOT = { has_variable = olympic_attendee }
+				NOT = { has_variable = pyrrhus_travelling }
+				has_dynasty = no # Imperator is_minor_character = yes
+				trigger_if = {
+					limit = { exists = scope:family_candidate_1 }
+					NOT = { this = scope:family_candidate_1 }
+				}
+				trigger_if = {
+					limit = { exists = scope:family_candidate_2 }
+					NOT = { this = scope:family_candidate_2 }
+				}
+				trigger_if = {
+					limit = { exists = scope:family_candidate_3 }
+					NOT = { this = scope:family_candidate_3 }
+				}
+				trigger_if = {
+					limit = { exists = scope:family_candidate_4 }
+					NOT = { this = scope:family_candidate_4 }
+				}
+				NOT = { this = scope:$FAMILY_CANDIDATE$ }
+				age_in_years <= scope:$FAMILY_CANDIDATE$.age_in_years # Sorry, no seniors.
+				is_ruler = no # Never the ruler.
+				pa_imp_citizenship_restrictions_trigger = yes
+			}
+			change_dynasty = scope:$FAMILY_CANDIDATE$.dynasty # Imperator set_family
+			# adapt_family_name = yes # EU5 names come from the dynasty
+			# set_home_country = ROOT #P:A TODO No EU5 equivalent: home country of a character
+			add_character_modifier = {
+				modifier = adopted_into_great_family
+				days = -1
+			}
+			if = {
+				limit = { has_character_modifier = foreign_citizen }
+				remove_character_modifier = foreign_citizen
+			}
+		}
+		while = { # Imperator: while the family has 8 or fewer members
+			limit = {
+				scope:$FAMILY_CANDIDATE$ = { has_dynasty = yes }
+				scope:$FAMILY_CANDIDATE$.dynasty = {
+					NOT = { any_character_in_dynasty = { count >= 9 } }
+				}
+			}
+			create_character = {
+				dynasty = scope:$FAMILY_CANDIDATE$.dynasty
+				religion = scope:$FAMILY_CANDIDATE$.religion
+				culture = scope:$FAMILY_CANDIDATE$.culture
+			}
+		}
+	}
+}

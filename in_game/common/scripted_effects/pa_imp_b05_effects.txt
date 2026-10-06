@@ -1,0 +1,214 @@
+﻿# Imperator scripted effects for batch b05 of the Invictus/Indomita event import (2026-09-30).
+# Imperator states are EU5 provinces: scope:fe_city.state -> scope:fe_city.province.
+
+#P:A Imported from Imperator: famine_relocation_immediate_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope (root), needs scope:fe_city (the starving location). If an owned neighbouring province can take
+# refugees, sets var:famine_relocation_number (a tenth of the starving province's population) and saves
+# scope:relocation_state_city, a location of that neighbouring province.
+pa_imp_famine_relocation_immediate_effect = {
+	if = {
+		limit = {
+			scope:fe_city.province = {
+				any_location_in_province = {
+					any_neighbor_location = {
+						NOT = { province = scope:fe_city.province }
+						owner = root
+						province = {
+							NOR = {
+								any_location_in_province = { has_variable = food_event_cooldown_state }
+								has_province_modifier = mild_famine_smod
+								has_province_modifier = severe_famine_smod
+								has_province_modifier = severe_famine_relief_smod
+							}
+							any_location_in_province = {
+								count >= 3
+								owner = root
+								# total_population < population_cap #P:A TODO No EU5 equivalent: location population capacity (EU5 has no population cap trigger)
+							}
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = { has_variable = famine_relocation_number }
+			remove_variable = famine_relocation_number
+		}
+		set_variable = {
+			name = famine_relocation_number
+			value = {
+				value = 0
+				# Imperator counted the pops of the owned territories of the state
+				scope:fe_city.province = {
+					every_location_in_province = {
+						limit = {
+							owner = root
+						}
+						add = population #P:A TODO Approximate: Imperator counted pops; EU5 population is in thousands (1 pop = 1 thousand)
+					}
+				}
+				divide = 10
+				round = yes
+			}
+		}
+		scope:fe_city.province = {
+			random_location_in_province = {
+				limit = {
+					any_neighbor_location = {
+						NOT = { province = scope:fe_city.province }
+						owner = root
+						province = {
+							any_location_in_province = {
+								count >= 3
+								owner = root
+							}
+						}
+					}
+				}
+				random_neighbor_location = {
+					limit = {
+						NOT = { province = scope:fe_city.province }
+						owner = root
+						province = {
+							any_location_in_province = {
+								count >= 3
+								owner = root
+							}
+						}
+					}
+					weight = {
+						base = 1
+						modifier = {
+							factor = 5
+							province = { province_food >= 400 }
+						}
+						modifier = {
+							factor = 10
+							province = { province_food >= 800 }
+						}
+						modifier = {
+							factor = 15
+							province = { province_food >= 1000 }
+						}
+						modifier = {
+							factor = 20
+							province = { province_food >= 1200 }
+						}
+					}
+					save_scope_as = relocation_state_city
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: famine_relocation_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope, needs scope:fe_city, scope:relocation_state_city and var:famine_relocation_number (set by
+# pa_imp_famine_relocation_immediate_effect). Moves people, one Imperator pop at a time, from the starving province
+# to the neighbouring one, preferring non-slave, non-tribal pops.
+pa_imp_famine_relocation_effect = {
+	while = {
+		limit = {
+			var:famine_relocation_number > 0
+		}
+		scope:fe_city.province = {
+			random_location_in_province = {
+				limit = {
+					owner = scope:fe_city.owner
+					population > 1 #P:A TODO Approximate: Imperator total_population > 1 counted pops; EU5 population is in thousands
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 5
+						location_rank = location_rank:rural_settlement
+					}
+					modifier = {
+						factor = 5
+						any_pop = {
+							NOT = { pop_type = pop_type:slaves }
+						}
+					}
+					modifier = {
+						factor = 5
+						any_pop = {
+							NOT = { pop_type = pop_type:tribesmen }
+						}
+					}
+					# modifier = { factor = 5 total_population >= population_cap } #P:A TODO No EU5 equivalent: location population capacity
+				}
+				save_scope_as = relocating_city
+			}
+		}
+		scope:relocation_state_city.province = {
+			random_location_in_province = {
+				limit = {
+					owner = scope:fe_city.owner
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 5
+						NOT = { location_rank = location_rank:rural_settlement }
+					}
+					modifier = {
+						factor = 5
+						population >= 10 #P:A TODO Approximate: Imperator 10 pops -> EU5 10 thousand people
+					}
+					# modifier = { factor = 20 NOT = { total_population >= population_cap } } #P:A TODO No EU5 equivalent: location population capacity
+				}
+				save_scope_as = relocation_city
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:relocating_city
+				exists = scope:relocation_city
+			}
+			scope:relocating_city = {
+				random_pop = {
+					weight = {
+						base = 1
+						modifier = {
+							factor = 10
+							NOT = { pop_type = pop_type:slaves }
+						}
+						modifier = {
+							factor = 5
+							NOT = { pop_type = pop_type:tribesmen }
+						}
+					}
+					# move_pop = scope:relocation_city
+					split_pop = { #P:A TODO Approximate: Imperator moved one whole pop; EU5 splits 1 thousand people off a pop group into the target location
+						size = 1
+						location = scope:relocation_city
+					}
+				}
+			}
+		}
+		change_variable = {
+			name = famine_relocation_number
+			subtract = 1
+		}
+	}
+	remove_variable = famine_relocation_number
+}
+
+#P:A Imported from Imperator: fe_66_percent_food_var_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope (root), needs scope:fe_city. Sets var:fe_66_percent_food_var to two thirds of the food of
+# scope:fe_city's province (at least 200: a third of it, at least 100, doubled).
+pa_imp_fe_66_percent_food_var_effect = {
+	set_variable = {
+		name = fe_66_percent_food_var
+		value = scope:fe_city.province.province_food #P:A TODO Approximate: Imperator state food stockpile -> EU5 province food (scales may differ)
+	}
+	change_variable = {
+		name = fe_66_percent_food_var
+		divide = 3
+		min = 100
+	}
+	change_variable = {
+		name = fe_66_percent_food_var
+		multiply = 2
+	}
+}

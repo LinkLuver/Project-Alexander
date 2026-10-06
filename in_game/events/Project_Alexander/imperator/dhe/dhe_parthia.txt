@@ -1,0 +1,382 @@
+﻿#P:A Imported from Invictus: events/dhe/dhe_parthia.txt (batch b07)
+#P:A The Dahae Belligerency chain: diadochi_flavor.100 (batch b17, events/dhe/dhe_diadochi.txt) starts it for a Derbiccan (EU5 dahae culture) country, dhe_parthians.2 then pulses on Imperator province 3435 (Parthia) until the Dahae invade (dhe_parthians.3/4) or the threat is handled (dhe_parthians.5/6).
+namespace = dhe_parthians
+
+# Rise of Arsaces
+#P:A TODO Nothing fires this event in Invictus (vanilla Imperator fired it 30 days after the Dahae formation decision unite_the_dahae; the Invictus decision dropped the call). The orchestrator must decide whether and how to fire it
+dhe_parthians.1 = {
+	type = country_event
+	title = dhe_parthians.1.t
+	desc = dhe_parthians.1.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		NOT = { has_global_variable = arsaces_is_here }
+	}
+
+	immediate = {
+		set_global_variable = arsaces_is_here
+		ruler ?= { save_scope_as = dhe_parthians_1_ruler } # Imperator left_portrait = current_ruler
+		hidden_effect = {
+			if = {
+				limit = {
+					NOT = { dynasty_exists = arsacid_dynasty }
+				}
+				create_named_dynasty = arsacid_dynasty
+			}
+			create_character = {
+				first_name = Arsaces
+				dynasty = dynasty:arsacid_dynasty # Imperator family_name = "Arsacid"
+				culture = culture:dahae # Imperator derbiccan
+				religion = religion:alan_paganism #P:A TODO Approximate: Imperator indo_iranian_religion has no mapped mod religion; alan_paganism is the religion of the mod's Dahae pops
+				age = 25
+				female = no
+				save_scope_as = arsaces_character
+			}
+			scope:arsaces_character = {
+				# force_add_trait = tactician
+				# force_add_trait = disciplined
+				# force_add_trait = arsaces
+				#P:A TODO No EU5 equivalent: the Imperator traits tactician, disciplined and the Invictus bloodline trait arsaces do not exist in the mod
+				if = {
+					limit = {
+						mil < 20 # Imperator martial < 4
+					}
+					add_mil = 30 # add_martial = 6
+				}
+				else_if = {
+					limit = {
+						mil < 40 # Imperator martial < 8
+					}
+					add_mil = 15 # add_martial = 3
+				}
+				else = {
+					add_mil = 5 # add_martial = 1
+				}
+				add_dip = 5 # add_charisma = 1
+			}
+			# trigger_event = { id = bloodlines_setup_completion.1 } ##Give Offsprings Traits
+			#P:A TODO No EU5 equivalent: Invictus bloodlines (bloodlines_setup_completion.1 passes the arsaces bloodline trait on to the offspring)
+			pa_imp_new_family_generation_effect = { FAMILY_CANDIDATE = arsaces_character } #Scripted Effect that passes on the saved scope.
+		}
+	}
+
+	option = {
+		name = dhe_parthians.1.a
+		set_new_ruler = scope:arsaces_character
+		# hidden_effect = { scope:arsaces_character = { add_gold = 900 } } #P:A TODO No EU5 equivalent: 900 gold for Arsaces' personal wealth (EU5 characters have no wealth)
+		add_country_modifier = {
+			modifier = rise_of_arsaces_cmod
+			days = 9125 # 25 years
+		}
+	}
+}
+
+# The Dahae Belligerency begins: news for the other countries of the Iranian plateau and the steppe.
+dhe_parthians.2001 = { #mirrored dhe_diadochi.100 for other countries
+	type = country_event
+	title = dhe_parthians.2000.t
+	desc = dhe_parthians.2000.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	fire_only_once = yes
+
+	immediate = {
+		set_global_variable = triggered_parthian_horde
+		ruler ?= { save_scope_as = dhe_parthians_2001_ruler } # Imperator left_portrait = root.current_ruler
+		if = { # Imperator right_portrait = p:1595.owner.current_ruler (Ecbatana)
+			limit = { exists = location:hamadan.owner }
+			location:hamadan.owner = {
+				ruler ?= { save_scope_as = dhe_parthians_2001_ecbatana_ruler }
+			}
+		}
+	}
+
+	option = {
+		name = dhe_parthians.2000.a
+		trigger = {
+			NOR = {
+				owns = location:hamadan # Imperator p:1595 Ecbatana
+				owns = location:astarabad #P:A TODO Approximate location: Imperator Zadrakarta (p:3435) mapped to astarabad
+			}
+		}
+		custom_tooltip = dhe_parthians.2000.tt
+	}
+	option = {
+		name = dhe_parthians.2000.b
+		trigger = {
+			OR = {
+				owns = location:hamadan # Imperator p:1595 Ecbatana
+				owns = location:astarabad # Imperator p:3435 Zadrakarta
+			}
+		}
+		custom_tooltip = dhe_parthians.2000.tt
+	}
+}
+
+# Hidden monthly pulse of the Dahae Belligerency; at 10000 the Dahae unite and dhe_parthians.3 fires for them.
+#P:A Was an Imperator province event on p:3435 (Zadrakarta). Root is location:astarabad: diadochi_flavor.100 (batch b17) fires it there after setting var:dahae_belligerency_var = 500, then it re-fires itself every 30 days.
+#P:A TODO Approximate location: Imperator Zadrakarta (p:3435) mapped to astarabad (all uses in this file)
+dhe_parthians.2 = {
+	type = location_event
+	hidden = yes
+
+	immediate = {
+		location:astarabad = {
+			set_variable = {
+				name = dahae_belligerency_var2
+				value = pa_imp_dahae_belligerency_svalue3
+			}
+		}
+		location:astarabad = {
+			set_variable = {
+				name = dahae_belligerency_var3
+				value = pa_imp_dahae_belligerency_svalue4
+			}
+		}
+		if = {
+			limit = {
+				var:dahae_belligerency_var < 10000
+				NOT = { has_global_variable = triggered_parthian_horde2 }
+			}
+			change_variable = {
+				name = dahae_belligerency_var
+				add = 15
+			}
+			change_variable = {
+				name = dahae_belligerency_var
+				add = var:dahae_belligerency_var2
+			}
+			change_variable = {
+				name = dahae_belligerency_var
+				add = var:dahae_belligerency_var3
+			}
+			if = {
+				limit = {
+					exists = c:PAR
+					c:PAR = {
+						exists = capital # Imperator has_land = yes
+						is_subject = no
+					}
+				}
+				change_variable = {
+					name = dahae_belligerency_var
+					add = 100
+				}
+			}
+			clamp_variable = {
+				name = dahae_belligerency_var
+				min = 0
+				max = 10000
+			}
+		}
+		if = {
+			limit = {
+				var:dahae_belligerency_var < 10000
+				NOT = { has_global_variable = triggered_parthian_horde2 }
+			}
+			trigger_event_silently = {
+				id = dhe_parthians.2
+				days = 30
+			}
+		}
+		if = {
+			limit = { var:dahae_belligerency_var >= 10000 }
+			#P:A TODO Imperator also took the tags SCA (Derbicia), SA4 (Attasia), DHE (Dahae) and PTH (Parthia) as the Dahae invaders; the mod has no such countries, so only PRN (Parnia), ZNT (Zanthia) and PSS (Pissuria) are checked
+			if = {
+				limit = {
+					any_country = {
+						OR = {
+							# tag = SCA
+							tag = PRN
+							tag = ZNT
+							tag = PSS
+							# tag = DHE
+							# tag = SA4
+							# tag = PTH
+						}
+					}
+				}
+				random_country = {
+					limit = {
+						OR = {
+							# tag = SCA
+							tag = PRN
+							tag = ZNT
+							tag = PSS
+							# tag = DHE
+							# tag = SA4
+							# tag = PTH
+						}
+					}
+					weight = {
+						base = 1
+						modifier = {
+							factor = 4000
+							is_ai = no
+						}
+					}
+					save_scope_as = target
+					hidden_effect = {
+						if = {
+							limit = { is_ai = yes }
+							every_location_in_the_world = { # Imperator region:sakia_region and region:parthia_region = { every_region_province = { ... } }
+								limit = {
+									OR = {
+										pa_imp_in_region_sakia_region = yes
+										pa_imp_in_region_parthia_region = yes
+									}
+									exists = owner
+									owner = {
+										is_ai = yes
+										culture = culture:dahae # Imperator primary_culture = derbiccan
+										NOT = {
+											this = scope:target
+										}
+									}
+								}
+								change_location_owner = scope:target # Imperator set_owned_by
+							}
+						}
+					}
+				}
+			}
+			else = {
+				location:anew = { #P:A TODO Approximate location: Imperator Nisaia (p:6657) mapped to anew
+					create_country_from_location = {
+						save_scope_as = target
+						change_government_type = government_type:tribe #P:A TODO Approximate: Imperator tribal_chiefdom (EU5 has no government sub-forms)
+						hidden_effect = {
+							change_country_name = DAHAE_NAME
+							change_country_adjective = DAHAE_ADJECTIVE
+							# change_country_color = "dahae_color"
+							# change_country_tag = DHE
+							# change_country_flag = DAHAE_FLAG
+							#P:A TODO No EU5 equivalent: Imperator made the new country the DHE tag with the dahae_color map colour and the DAHAE_FLAG flag; the mod has none of these
+							if = {
+								limit = {
+									NOT = {
+										culture = culture:dahae # Imperator primary_culture = derbiccan
+									}
+								}
+								pa_imp_set_primary_culture_cleanup_effect = {
+									NEW_PRIMARY_CULTURE = dahae
+									MAKE_OLD_CULTURE_INTEGRATED = no
+								}
+							}
+						}
+					}
+				}
+				if = {
+					limit = { exists = scope:target }
+					every_ownable_location = {
+						limit = {
+							has_owner = yes
+							OR = {
+								dominant_culture = culture:dahae # Imperator dominant_province_culture = derbiccan
+								pa_imp_in_area_dahaea_area = yes
+								pa_imp_in_area_parnia_area = yes
+								pa_imp_in_area_derbicca_area = yes
+								this = location:abiward #P:A TODO Approximate location: Imperator Bandiyan (p:6660) mapped to abiward
+								this = location:sarlawuk #P:A TODO Approximate location: Imperator Dihistan (p:6776) mapped to sarlawuk
+								this = location:etrek #P:A TODO Approximate location: Imperator Akhur (p:6725) mapped to etrek
+							}
+							NOT = {
+								owner = scope:target
+							}
+						}
+						change_location_owner = scope:target # Imperator set_owned_by
+					}
+				}
+			}
+			if = {
+				limit = { exists = location:astarabad.owner }
+				location:astarabad.owner = {
+					if = { # if a diadochi owns Zadrakarta (so after they annex satrapy Parthia), set them as target of Dahae invasion
+						limit = {
+							OR = {
+								tag = TRE
+								tag = PRY
+								tag = MAC
+								tag = EGY
+								tag = SEL
+							}
+						}
+						save_scope_as = origin
+					}
+					else_if = { # otherwise if owner Zadrakarta is different (so that should be satrapy Parthia), target diadochi neighbouring that owner with preference on SEL
+						limit = {
+							any_neighbor_country = {
+								culture = culture:macedonian # Imperator primary_culture = macedonian
+								OR = {
+									tag = TRE
+									tag = PRY
+									tag = MAC
+									tag = EGY
+									tag = SEL
+								}
+							}
+						}
+						random_neighbor_country = {
+							limit = {
+								culture = culture:macedonian
+								OR = {
+									tag = TRE
+									tag = PRY
+									tag = MAC
+									tag = EGY
+									tag = SEL
+								}
+							}
+							weight = {
+								base = 1
+								modifier = {
+									factor = 4000
+									tag = SEL
+								}
+							}
+							save_scope_as = origin
+						}
+					}
+					else_if = { # all above fails (so no diadochi owns Zadrakarta or borders owner of Zadrakarta - satrapy Parthia) - dahae invasion targets owner of Ecbatana (Media)
+						limit = { exists = location:hamadan.owner } # Imperator p:1595 Ecbatana
+						location:hamadan.owner = {
+							save_scope_as = origin
+						}
+					}
+					if = {
+						limit = { exists = scope:target }
+						scope:target = {
+							trigger_event_non_silently = {
+								id = dhe_parthians.3
+								days = 1
+							}
+						}
+					}
+				}
+			}
+			if = {
+				limit = { exists = scope:origin }
+				scope:origin = {
+					ruler ?= {
+						save_scope_as = sel_rul
+					}
+					if = {
+						limit = {
+							NOT = { has_variable = war_of_the_diadochs }
+							is_ai = yes
+							NOT = { character:sel_seleucus_nicator ?= { is_alive = yes } } # Imperator char:24 = { is_alive = no }: Seleukos I, the mod setup character sel_seleucus_nicator
+						}
+						set_variable = war_of_the_diadochs
+					}
+				}
+			}
+		}
+	}
+}
