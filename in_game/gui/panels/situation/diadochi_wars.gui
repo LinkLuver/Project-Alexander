@@ -1,6 +1,5 @@
-
-types ItalianWarsTypes {
-	type tension_threshold_icon = widget  {
+types DiadochiWarsTypes {
+	type tension_threshold_icon = widget {
 		ignore_layout = yes
 		block "tension_threshold_icon_position" { position = { 385 4 } }
 		size = { 34 38 }
@@ -21,250 +20,42 @@ types ItalianWarsTypes {
 			}
 		}
 	}
-
-	type italian_wars_member_country_row = situation_member_country_row {
-
-		blockoverride "situation_member_leader_bg" {
-			background = {
-				visible = "[GetUniqueInternationalOrganization(ItalianWarsCountryItem.GetLeagueTypeKey).IsIOLeaderCountry(ItalianWarsCountryItem.GetCountry)]"
-				using = color_purple_texture
-				margin = { 1 1 }
-				margin_bottom = 2
-				alpha = 0.4
-			}
-		}
-
-		blockoverride "situation_member_country_row_rank" {
-			button = {
-				size = { 26 26 }
-				texture = "[ItalianWarsCountryItem.GetLeagueIcon]"
-				texture_density = 2
-				datacontext = "[GetUniqueInternationalOrganization(ItalianWarsCountryItem.GetLeagueTypeKey)]"
-				action_tooltip = {
-					title = "OPEN_IO"
-					on_action = "[OpenInternationalOrganizationView(InternationalOrganization.Self)]"
-				}
-				tooltipwidget = { BasicFunctionalTooltip = {} }
-			}
-			divider_flavor_01 = { size = {8 -1} }
-		}
-
-		blockoverride "situation_member_country_datacontext" {
-			datacontext = "[ItalianWarsCountryItem.GetCountry]"
-		}
-		blockoverride "situation_member_gp" {}
-		blockoverride "situation_member_opinion" {}
-		blockoverride "situation_member_extra_columns" {
-			divider_flavor_01 = { size = { 8 -1 } }
-			action_button_regular = {
-				visible = yes
-				size = { 60 25 }
-				fontsize = 13
-				text = "bribe_voter_short"
-				actor = "[SituationView.GetPlayer]"
-				parameter = {
-					parameter_name = "recipient"
-					parameter_value = "[ItalianWarsCountryItem.GetCountry]"
-				}
-				left_click_and_hold_action = { action_name = "italian_wars_bribe_country" }
-				enabled = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, And(Not(ItalianWarsCountryItem.IsInSameLeagueAsPlayer), UIAction.IsEnabled))]"
-				tooltipwidget = {
-					ContextualTooltipType = {
-						blockoverride "title_text" { text = "italian_wars_bribe_country" }
-						blockoverride "concept_link" { text = "[action|E]" }
-						blockoverride "tooltip_content" {
-							TooltipFlavorTextBlock = {
-								visible = "[Not(ItalianWarsCountryItem.IsInSameLeagueAsPlayer)]"
-								blockoverride "text" { text = "italian_wars_bribe_country_desc" }
-							}
-							TooltipRowList = {
-								visible = "[Not(StringIsEmpty(UIAction.GetEffects))]"
-								textcontext = "[UIAction.GetEffects]"
-							}
-							TooltipRowList = {
-								visible = "[Not(StringIsEmpty(UIAction.GetConditions))]"
-								textcontext = "[UIAction.GetConditions]"
-							}
-							TooltipTextBlock = {
-								visible = "[ItalianWarsCountryItem.IsInSameLeagueAsPlayer]"
-								blockoverride "text" { text = "IW_INVITE_TARGET_IN_LEAGUE_TT" }
-							}
-							TooltipTextBlock = {
-								visible = "[And(Not(SituationView.IsPlayerItalianWarsLeagueLeader), And(Not(ItalianWarsCountryItem.IsInSameLeagueAsPlayer), StringIsEmpty(UIAction.GetConditions)))]"
-								blockoverride "text" { text = "IW_BRIBE_NOT_LEAGUE_LEADER_TT" }
-							}
-						}
-					}
-				}
-			}
-			divider_flavor_01 = { size = { 8 -1 } }
-			action_button_regular = {
-				visible = "[Not(ObjectsEqual(Country.Self, SituationView.GetPlayer))]"
-				size = { 60 25 }
-				fontsize = 13
-				text = "IW_INVITE_SHORT"
-				actor = "[SituationView.GetPlayer]"
-				left_action = {
-					action_name = "invite_to_international_organization"
-					action_direction = "offer"
-					parameter = {
-						parameter_name = "international_organization"
-						parameter_value = "[SituationView.GetItalianWarsPlayerLeagueIO]"
-					}
-					parameter = {
-						parameter_name = "recipient"
-						parameter_value = "[ItalianWarsCountryItem.GetCountry]"
-					}
-				}
-				enabled = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, UIAction.IsEnabled)]"
-				tooltipwidget = {
-					ContextualTooltipType = {
-						blockoverride "title_text" { text = "IW_INVITE_TO_LEAGUE_TITLE" }
-						blockoverride "concept_link" { text = "[action|E]" }
-						blockoverride "title_icon_texture" {
-							texture = "gfx/interface/icons/location_icons/diplomacy.dds"
-						}
-						blockoverride "tooltip_content" {
-							# Cases 1 & 2: leader, target not in league (action is valid regardless of other requirements)
-							TooltipFlavorTextBlock = {
-								visible = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, UIAction.IsVisible)]"
-								blockoverride "text" { text = "[UIAction.GetDescription]" }
-							}
-							TooltipRowList = {
-								visible = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, And(UIAction.IsVisible, Not(StringIsEmpty(UIAction.GetEffects))))]"
-								textcontext = "[UIAction.GetEffects]"
-							}
-							TooltipRowList = {
-								visible = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, And(UIAction.IsVisible, Not(StringIsEmpty(UIAction.GetConditions))))]"
-								textcontext = "[UIAction.GetConditions]"
-							}
-							# Case 4: leader, but target is already a member of our league
-							TooltipTextBlock = {
-								visible = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, Not(UIAction.IsVisible))]"
-								blockoverride "text" { text = "IW_INVITE_TARGET_IN_LEAGUE_TT" }
-							}
-							# Case 3: member but not the leader
-							TooltipTextBlock = {
-								visible = "[And(SituationView.IsPlayerInItalianWarsLeague, Not(SituationView.IsPlayerItalianWarsLeagueLeader))]"
-								blockoverride "text" { text = "IW_INVITE_NOT_LEAGUE_LEADER_TT" }
-							}
-							# Case 5: not in any Italian Wars league
-							TooltipTextBlock = {
-								visible = "[Not(SituationView.IsPlayerInItalianWarsLeague)]"
-								blockoverride "text" { text = "IW_INVITE_NOT_IN_LEAGUE_TT" }
-							}
-						}
-					}
-				}
-			}
-
-			divider_flavor_01 = { size = { 8 -1 } }
-			hbox = {
-				minimumsize = { 55 -1 }
-				maximumsize = { 55 -1 }
-				tooltipwidget = {
-					ContextualTooltipType = {
-						blockoverride "title_text" { text = "IW_INVITE_ACCEPTANCE_TITLE" }
-						blockoverride "title_icon_texture" {
-							texture = "gfx/interface/icons/location_icons/diplomacy.dds"
-						}
-						blockoverride "tooltip_content" {
-							TooltipTextBlock = {
-								visible = "[ItalianWarsCountryItem.IsInSameLeagueAsPlayer]"
-								blockoverride "text" { text = "IW_INVITE_TARGET_IN_LEAGUE_TT" }
-							}
-							TooltipTextBlock = {
-								visible = "[And(SituationView.IsPlayerInItalianWarsLeague, Not(SituationView.IsPlayerItalianWarsLeagueLeader))]"
-								blockoverride "text" { text = "IW_INVITE_NOT_LEAGUE_LEADER_TT" }
-							}
-							TooltipTextBlock = {
-								visible = "[Not(SituationView.IsPlayerInItalianWarsLeague)]"
-								blockoverride "text" { text = "IW_INVITE_NOT_IN_LEAGUE_TT" }
-							}
-							TooltipScrolledStringPairList = {
-								ontextcontextchanged = "[SetStringPairListWithTitleFromTextContext(PdxGuiWidget.AccessSelf)]"
-								visible = "[Not(StringIsEmpty(ItalianWarsCountryItem.GetInviteAcceptanceTooltip))]"
-								blockoverride "block_scrollarea" { maximumsize = { -1 200 } }
-								textcontext = "[ItalianWarsCountryItem.GetInviteAcceptanceTooltip]"
-							}
-						}
-					}
-				}
-				text_single = {
-					visible = "[And(SituationView.IsPlayerItalianWarsLeagueLeader, Not(ItalianWarsCountryItem.IsInSameLeagueAsPlayer))]"
-					align = center
-					text = "[ItalianWarsCountryItem.GetInviteAcceptanceScore|+=2]"
-				}
-				text_single = {
-					visible = "[Not(And(SituationView.IsPlayerItalianWarsLeagueLeader, Not(ItalianWarsCountryItem.IsInSameLeagueAsPlayer)))]"
-					align = center
-					text = "-"
-				}
-			}
-
-			divider_flavor_01 = { size = { 8 -1 } }
-			text_single = {
-				minimumsize = { 30 -1 }
-				maximumsize = { 30 -1 }
-				align = center
-				text = "[ItalianWarsCountryItem.GetItalyLocationCount]"
-				tooltipwidget = {
-					ContextualTooltipType = {
-						blockoverride "title_text" { text = "IW_ITALY_LOCATION_COUNT_TITLE" }
-						blockoverride "title_icon_texture" {
-							texture = "gfx/interface/icons/diplomatic_status/war.dds"
-						}
-						blockoverride "tooltip_content" {
-							TooltipTextBlock = {
-								blockoverride "text" {
-									text = "IW_ITALY_LOCATION_COUNT_TT"
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
-
 situation_panel = {
-
-	##################################### TOP HEADER #####################################
 	blockoverride "situation_top_subheader_content" {
 		hbox = {
 			layoutpolicy_horizontal = expanding
 			background = {
 				texture = "gfx/interface/progressbars/tension_header_bg.dds"
 			}
-			
+
 			hbox = {
-				size = { 60 28 }
+				size = { 110 28 }
 				margin = { 6 5 }
 				icon = {
 					size = { 26 26 }
-					texture = "gfx/interface/icons/situations/italian_wars_icon.dds"
+					texture = "[SituationView.GetActiveSituation.GetIcon]"
 				}
 				text_single = {
 					autoresize = yes
-					minimumsize = { 24 -1 }
-					maximumsize = { 24 -1 }
+					minimumsize = { 42 -1 }
+					maximumsize = { 42 -1 }
 					fontsize = 13
 					raw_text = "[FixedPointToInt(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('dw_tension').GetValue)]%"
 				}
 				tooltipwidget = {
 					ContextualTooltipType = {
 						blockoverride "title_icon_texture" {
-							texture = "gfx/interface/icons/situations/tension.dds"
+							texture = "[SituationView.GetActiveSituation.GetIcon]"
 						}
 						blockoverride "title_text" {
-							text = "IW_TENSION_LABEL"
+							text = "diadochi_tension_label"
 						}
 						blockoverride "tooltip_content" {
 							TooltipTextBlock = {
 								blockoverride "text" {
-									text = "iw_tension_explain_tt"
+									text = "diadochi_tension_explain_tt"
 								}
 							}
 						}
@@ -283,16 +74,20 @@ situation_panel = {
 					min = 0
 					max = 25
 				}
-				blockoverride "progress_bar_progresstexture_low" { progresstexture = "gfx/interface/progressbars/progress_bar_yellow.dds" }
+				blockoverride "progress_bar_progresstexture_low" {
+					progresstexture = "gfx/interface/progressbars/progress_bar_yellow.dds"
+				}
 				blockoverride "progress_bar_value_low" {
-					value = "[Min_float(FixedPointToFloat(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue), '(float)25')]"
-				}	
+					value = "[Min_float(FixedPointToFloat(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('dw_tension').GetValue), '(float)25')]"
+				}
 
 				blockoverride "progress_bar_size_mid" {
 					position = { 25% 0 }
 					size = { 30% 100% }
 				}
-				blockoverride "progress_bar_progresstexture_mid" { progresstexture = "gfx/interface/progressbars/progress_bar_yellange.dds" }
+				blockoverride "progress_bar_progresstexture_mid" {
+					progresstexture = "gfx/interface/progressbars/progress_bar_yellange.dds"
+				}
 				blockoverride "progress_bar_value_mid" {
 					value = "[Max_float(Subtract_float(Min_float(FixedPointToFloat(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('dw_tension').GetValue), '(float)50'), '(float)25'), '(float)0')]"
 				}
@@ -301,7 +96,9 @@ situation_panel = {
 					position = { 50% 0 }
 					size = { 30% 100% }
 				}
-				blockoverride "progress_bar_progresstexture_high" { progresstexture = "gfx/interface/progressbars/progress_bar_orange.dds" }
+				blockoverride "progress_bar_progresstexture_high" {
+					progresstexture = "gfx/interface/progressbars/progress_bar_orange.dds"
+				}
 				blockoverride "progress_bar_value_high" {
 					value = "[Max_float(Subtract_float(Min_float(FixedPointToFloat(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('dw_tension').GetValue), '(float)75'), '(float)50'), '(float)0')]"
 				}
@@ -331,118 +128,70 @@ situation_panel = {
 
 		tension_threshold_icon = {
 			blockoverride "tension_threshold_icon_position" { position = { 162 4 } }
-			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue, '(CFixedPoint)25')]"
-			blockoverride "tension_threshold_text" { text = "iw_first_tension_threshold" }
+			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('dw_tension').GetValue, '(CFixedPoint)25')]"
+			blockoverride "tension_threshold_text" { text = "diadochi_tension_25" }
 			tooltipwidget = {
 				SimpleContextualStringPairTooltipType = {
 					blockoverride "title_icon" {
 						icon = {
 							using = tooltip_title_icon_size
-							texture = "gfx/interface/icons/situations/italian_wars_icon.dds"
+							texture = "[SituationView.GetActiveSituation.GetIcon]"
 						}
 					}
-					lowpriotextcontext = iw_tension_25_tt
+					lowpriotextcontext = diadochi_tension_25_tt
 				}
 			}
 		}
 		tension_threshold_icon = {
 			blockoverride "tension_threshold_icon_position" { position = { 276 4 } }
-			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue, '(CFixedPoint)50')]"
+			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('dw_tension').GetValue, '(CFixedPoint)50')]"
 			blockoverride "tension_threshold_texture" { texture = "gfx/interface/progressbars/orange_circle_bg.dds" }
-			blockoverride "tension_threshold_text" { text = "iw_second_tension_threshold" }
+			blockoverride "tension_threshold_text" { text = "diadochi_tension_50" }
 			tooltipwidget = {
 				SimpleContextualStringPairTooltipType = {
 					blockoverride "title_icon" {
 						icon = {
 							using = tooltip_title_icon_size
-							texture = "gfx/interface/icons/situations/italian_wars_icon.dds"
+							texture = "[SituationView.GetActiveSituation.GetIcon]"
 						}
 					}
-					lowpriotextcontext = iw_tension_50_tt
+					lowpriotextcontext = diadochi_tension_50_tt
 				}
 			}
 		}
 		tension_threshold_icon = {
 			blockoverride "tension_threshold_icon_position" { position = { 388 4 } }
-			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue, '(CFixedPoint)75')]"
+			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('dw_tension').GetValue, '(CFixedPoint)75')]"
 			blockoverride "tension_threshold_texture" { texture = "gfx/interface/progressbars/red_circle_bg.dds" }
-			blockoverride "tension_threshold_text" { text = "iw_third_tension_threshold" }
+			blockoverride "tension_threshold_text" { text = "diadochi_tension_75" }
 			tooltipwidget = {
 				SimpleContextualStringPairTooltipType = {
 					blockoverride "title_icon" {
 						icon = {
 							using = tooltip_title_icon_size
-							texture = "gfx/interface/icons/situations/italian_wars_icon.dds"
+							texture = "[SituationView.GetActiveSituation.GetIcon]"
 						}
 					}
-					lowpriotextcontext = iw_tension_75_tt
+					lowpriotextcontext = diadochi_tension_75_tt
 				}
 			}
 		}
 		tension_threshold_icon = {
 			blockoverride "tension_threshold_icon_position" { position = { 502 4 } }
-			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('iw_tension').GetValue, '(CFixedPoint)100')]"
+			enabled = "[GreaterThanOrEqualTo_CFixedPoint(SituationView.GetActiveSituation.GetSituation.MakeScope.GetVariable('dw_tension').GetValue, '(CFixedPoint)100')]"
 			blockoverride "tension_threshold_texture" { texture = "gfx/interface/progressbars/empty_circle_bg.dds" }
-			blockoverride "tension_threshold_text" { text = "iw_fourth_tension_threshold" }
+			blockoverride "tension_threshold_text" { text = "diadochi_tension_100" }
 			tooltipwidget = {
 				SimpleContextualStringPairTooltipType = {
 					blockoverride "title_icon" {
 						icon = {
 							using = tooltip_title_icon_size
-							texture = "gfx/interface/icons/situations/italian_wars_icon.dds"
+							texture = "[SituationView.GetActiveSituation.GetIcon]"
 						}
 					}
-					lowpriotextcontext = iw_tension_100_tt
+					lowpriotextcontext = diadochi_tension_100_tt
 				}
 			}
 		}
 	}
-
 }
-
-
-#template biggest_country_from_biggest_foreign_io {
-#	# this gives us the biggest IO
-#	datacontext_from_model = {
-#		datamodel = "[GetGlobalList('iw_foreign_leagues_list')]"
-#		index = 0
-#	}
-#	# this gives us the first member country
-#	datacontext_from_model = {
-#		datamodel = "[Scope.GetInternationalOrganization.GetMembers]"
-#		index = 0
-#	}
-#}
-
-#template biggest_country_from_biggest_italian_io {
-#	# this gives us the biggest IO
-#	datacontext_from_model = {
-#		datamodel = "[GetGlobalList('iw_italian_leagues_list')]"
-#		index = 0
-#	}
-#	# this gives us the first member country
-#	datacontext_from_model = {
-#		datamodel = "[Scope.GetInternationalOrganization.GetMembers]"
-#		index = 0
-#	}
-#}
-
-#template dw_league_entry_tooltip {
-#	ContextualTooltipType = {
-#		blockoverride "title_text" { raw_text = "[ItalianWarsLeaguePieSlice.GetTitle]" }
-#		blockoverride "title_icon_texture" { texture = "[ItalianWarsLeaguePieSlice.GetIcon]" }
-#		blockoverride "tooltip_content" {
-#			TooltipTextBlock = {
-#				blockoverride "text" { text = "[SelectLocalization(ItalianWarsLeaguePieSlice.HasIO, 'IW_PIE_SLICE_TT', 'IW_PIE_SLICE_NOT_OWNED_TT')]" }
-#			}
-#			TooltipTextBlock = {
-#				visible = "[ItalianWarsLeaguePieSlice.HasIO]"
-#				blockoverride "text" { text = "[ItalianWarsLeaguePieSlice.GetVictoryTooltipKey]" }
-#			}
-#			TooltipTextBlock = {
-#				visible = "[ItalianWarsLeaguePieSlice.HasIO]"
-#				blockoverride "text" { text = "[ItalianWarsLeaguePieSlice.GetStalemateTooltipKey]" }
-#			}
-#		}
-#	}
-#}

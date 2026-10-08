@@ -8,8 +8,9 @@ join_a_league = {
 	automation_tick_frequency = 12
 
 	potential = {
+		situation:diadochi_wars = { situation_is_active = yes }
 		scope:actor ?= {
-			is_in_scripted_geography = scripted_geography:alexanders_empire = yes
+			is_in_scripted_geography = scripted_geography:alexanders_empire
 		}
 	}
 
@@ -53,10 +54,9 @@ join_a_league = {
 		interaction_source_list = {
 			international_organization:diadochi_league_m ?= { add_to_list = source }
 			international_organization:diadochi_league_t ?= { add_to_list = source }
-			international_organization:diadochi_league_e ?= { add_to_list = source } #TODO OTHERS
-			
-			#international_organization:diadochi_league_a ?= { add_to_list = source }
-			#international_organization:diadochi_league_s ?= { add_to_list = source } #TODO OTHERS
+			international_organization:diadochi_league_e ?= { add_to_list = source }
+			international_organization:diadochi_league_a ?= { add_to_list = source }
+			international_organization:diadochi_league_s ?= { add_to_list = source }
 
 		}
 		name = "join_league_choose_text"
@@ -70,7 +70,7 @@ join_a_league = {
 			}
 		}
 		enabled = {
-			scope:actor = { 
+			scope:actor = {
 				NOT = { is_member_of_international_organization = scope:target }
 			}
 		}
@@ -91,127 +91,26 @@ join_a_league = {
 
 
 
- claim_diadochi = {
- 	type = situation
-
- 	price = 100
-	potential = {
-		exists = situation:diadochi_wars
-		scope:actor = { is_member_of_international_organization = international_organization:achaemenid_argead }
-	}
-	allow = {
-		scope:actor = {
-			is_member_of_international_organization = international_organization:achaemenid_argead
-			at_war = no
-		}
-	}
-	
- 	select_trigger = {
- 		looking_for_a = country
- 		target_flag = target
- 		name = "claim_diadochi"
- 		none_available_msg_key = "test fail"
- 		column = {
- 			data = name
- 		}
- 		column = {
- 			data = expected_army_size
- 		}
- 		visible = {
- 			NOT = { has_truce_with = scope:actor }
- 			NOT = { is_allied_with = { target = scope:actor } }
- 			NOT = { is_subject_of = scope:actor }
- 			is_member_of_international_organization = international_organization:achaemenid_argead
- 			within_diplomatic_range = scope:actor
- 			scope:actor = {
- 				NOT = { has_casus_belli_of_type_on = { type = casus_belli:cb_diadochi_conquest target = PREV } }
- 			}
- 		}
- 	}  
- 	effect = {
- 		scope:actor = {
- 			if = {
- 				limit = {
- 					exists = scope:target
- 				}
- 				add_casus_belli = {
- 					target = scope:target
- 					type = casus_belli:cb_diadochi_conquest
- 				}
- 				drop_antagonism_bomb = {
- 					target = scope:target.capital
- 					modifier = antagonism_planned_invasion
- 				}
- 			}
- 			else = {
- 				custom_tooltip = rot_plan_invasion_tt
- 			}
- 		}
- 	}
- }
-
-# aproach_diadochi = {
-# 	type = situation
-
-# 	price = 0
-# 	potential = {
-# 		is_member_of_international_organization = international_organization:achaemenid_argead
-# 	}
-# 	allow = {
-# 		scope:actor = {
-# 			at_war = no
-# 			# NOT = {is_member_of_international_organization = international_organization:achaemenid_argead}
-# 		}
-# 	}
-	
-# 	select_trigger = {
-# 		looking_for_a = country
-# 		target_flag = target
-# 		name = "aproach_diadochi"
-# 		none_available_msg_key = "none_msg"
-# 		column = {
-# 			data = name
-# 		}
-# 		column = {
-# 			data = expected_army_size
-# 		}
-# 		visible = {
-# 			NOT = { is_allied_with = { target = scope:actor } }
-# 			NOT = { is_subject_of = scope:actor }
-# 			is_member_of_international_organization = international_organization:achaemenid_argead
-# 			within_diplomatic_range = scope:actor
-# 			scope:actor = {
-# 			}
-# 		}
-# 	}  
-# 	effect = {
-# 		scope:actor = {
-# 			make_subject_of = {
-# 				target = scope:target
-# 				type = subject_type:vassal
-# 			}
-# 		}
-		
-# 	}
-# }
-imperial_reconquest_claim = {
+claim_diadochi = {
 	type = situation
 	price = 100
 	potential = {
 		exists = situation:diadochi_wars
-		scope:actor = { is_member_of_international_organization = international_organization:achaemenid_argead }
+		situation:diadochi_wars = { situation_is_active = yes }
+		scope:actor = { is_member_of_any_diadochi_wars_league = yes }
 	}
 	allow = {
 		scope:actor = {
-			is_member_of_international_organization = international_organization:achaemenid_argead
+			is_member_of_any_diadochi_wars_league = yes
 			at_war = no
 		}
 	}
+
 	select_trigger = {
 		looking_for_a = country
 		target_flag = target
-		name = "imperial_reconquest_claim"
-		none_available_msg_key = "none available"
+		name = "claim_diadochi"
+		none_available_msg_key = "claim_diadochi_no_targets"
 		column = {
 			data = name
 		}
@@ -219,82 +118,207 @@ imperial_reconquest_claim = {
 			data = expected_army_size
 		}
 		visible = {
+			NOT = { has_truce_with = scope:actor }
+			NOT = { is_allied_with = { target = scope:actor } }
+			NOT = { is_subject_of = scope:actor }
+			is_in_scripted_geography = scripted_geography:alexanders_empire
+			is_neighbor_of = scope:actor
 			NOT = {
-				has_truce_with = scope:actor
-			}
-			NOT = {
-				is_allied_with = {
-					target = scope:actor
+				any_international_organizations_member_of = {
+					has_member = scope:actor
 				}
 			}
-			NOT = {
-				is_subject_of = scope:actor
-			}
-			is_member_of_international_organization = international_organization:achaemenid_argead
 			within_diplomatic_range = scope:actor
-			total_population >= 200
 			scope:actor = {
-				NOT = {
-					has_casus_belli_of_type_on = {
-						type = casus_belli:take_country
-						target = PREV
-					}
-				}
+				NOT = { has_casus_belli_of_type_on = { type = casus_belli:cb_diadochi_conquest target = PREV } }
 			}
 		}
 	}
-
 	effect = {
 		scope:actor = {
 			if = {
 				limit = {
 					exists = scope:target
 				}
-				if = {
-					limit = {
-						scope:target = {
-							capital = {
-								OR = {
-									region = scope:actor.capital.region
-									AND = {
-										scope:recipient = { has_variable = rot_conquest_ambition }
-										region = scope:recipient.var:rot_conquest_ambition
-									}
-								}
-							}
-						}
-					}
-					drop_antagonism_bomb = {
-						target = scope:target.capital
-						modifier = antagonism_started_invasion
-					}
-					declare_war_with_cb = {
-						target = scope:target
-						type = casus_belli:cb_diadochi_conquest
-					}
+				add_casus_belli = {
+					target = scope:target
+					type = casus_belli:cb_diadochi_conquest
 				}
-				else = {
-					add_casus_belli = {
-						target = scope:target
-						type = casus_belli:cb_diadochi_conquest
+				drop_antagonism_bomb = {
+					target = scope:target.capital
+					modifier = antagonism_planned_invasion
+				}
+				situation:diadochi_wars = {
+					change_variable = {
+						name = dw_tension
+						add = 5
 					}
-					drop_antagonism_bomb = {
-						target = scope:target.capital
-						modifier = antagonism_planned_invasion
+					clamp_variable = {
+						name = dw_tension
+						min = 0
+						max = 100
 					}
 				}
 			}
 			else = {
 				custom_tooltip = rot_plan_invasion_tt
-				if = {
-					limit = {
-						scope:recipient = { has_variable = rot_conquest_ambition }
+			}
+		}
+	}
+}
+
+intervene_in_diadochi_war = {
+	type = situation
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	potential = {
+		situation:diadochi_wars = { situation_is_active = yes }
+	}
+
+	allow = {
+		situation:diadochi_wars = { var:dw_tension >= 75 }
+		scope:actor = {
+			at_war = no
+			OR = {
+				is_leader_of_any_diadochi_wars_league = yes
+				is_member_of_any_diadochi_wars_league = yes
+				is_regional_power = yes
+				is_great_power = yes
+			}
+		}
+	}
+
+	price = price:diadochi_intervene_in_war_price
+
+	select_trigger = {
+		looking_for_a = war
+		interaction_source_list = {
+			international_organization:diadochi_league_m ?= {
+				every_international_organization_member = {
+					every_current_war = {
+						limit = {
+							AND = {
+								attacker_leader = { is_member_of_any_diadochi_wars_league = yes }
+								defender_leader = { is_member_of_any_diadochi_wars_league = yes }
+							}
+						}
+						add_to_list = source
 					}
-					custom_tooltip = rot_plan_invasion_bt
 				}
-				else = {
-					custom_tooltip = rot_plan_invasion_at
+			}
+			international_organization:diadochi_league_t ?= {
+				every_international_organization_member = {
+					every_current_war = {
+						limit = {
+							AND = {
+								attacker_leader = { is_member_of_any_diadochi_wars_league = yes }
+								defender_leader = { is_member_of_any_diadochi_wars_league = yes }
+							}
+						}
+						add_to_list = source
+					}
 				}
+			}
+			international_organization:diadochi_league_e ?= {
+				every_international_organization_member = {
+					every_current_war = {
+						limit = {
+							AND = {
+								attacker_leader = { is_member_of_any_diadochi_wars_league = yes }
+								defender_leader = { is_member_of_any_diadochi_wars_league = yes }
+							}
+						}
+						add_to_list = source
+					}
+				}
+			}
+			international_organization:diadochi_league_a ?= {
+				every_international_organization_member = {
+					every_current_war = {
+						limit = {
+							AND = {
+								attacker_leader = { is_member_of_any_diadochi_wars_league = yes }
+								defender_leader = { is_member_of_any_diadochi_wars_league = yes }
+							}
+						}
+						add_to_list = source
+					}
+				}
+			}
+			international_organization:diadochi_league_s ?= {
+				every_international_organization_member = {
+					every_current_war = {
+						limit = {
+							AND = {
+								attacker_leader = { is_member_of_any_diadochi_wars_league = yes }
+								defender_leader = { is_member_of_any_diadochi_wars_league = yes }
+							}
+						}
+						add_to_list = source
+					}
+				}
+			}
+		}
+		target_flag = target_war
+		name = "intervene_in_diadochi_war_select_war"
+		none_available_msg_key = "intervene_in_diadochi_war_no_wars"
+		column = {
+			data = name
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:target_war = {
+				attacker_leader = { add_to_list = source }
+				defender_leader = { add_to_list = source }
+			}
+		}
+		target_flag = target_country
+		name = "intervene_in_diadochi_war_select_side"
+		none_available_msg_key = "intervene_in_diadochi_war_no_sides"
+		column = {
+			data = name
+		}
+		visible = {
+			is_war_leader_of = scope:target_war
+		}
+		enabled = {
+			NOT = { has_truce_with = scope:actor }
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target_country
+				exists = scope:target_war
+			}
+			scope:actor = {
+				join_war_with = {
+					target = scope:target_country
+					war = scope:target_war
+					call_in_subjects = yes
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = -50
+			desc = "BASE_VALUE"
+		}
+		if = {
+			limit = {
+				exists = scope:target_country
+				scope:target_country = { is_rival_of = scope:actor }
+			}
+			add = {
+				value = 25
+				desc = "RIVAL"
 			}
 		}
 	}

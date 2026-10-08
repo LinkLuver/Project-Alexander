@@ -3,29 +3,17 @@
 	
 	can_start = {
 		current_year >= 450
-	}
-	
-	can_end = {
-		# diadochi_wars_end_trigger = yes
-		current_date > 460 
-		OR = {
-			current_date > 500  
-			not = {
-				exists = international_organization:achaemenid_argead	
-
-			}
-			### all diadochi died?
-			#any_in_global_list = {
-			#	variable = eligible_diadochi_ruler_list
-			#	limit = {
-			#		is_alive = no
-			#	}
-			#}
+		any_country = {
+			has_reform = government_reform:diadochi_gov
 		}
 	}
 	
+	can_end = {
+		current_year > 500
+	}
+	
 	visible = {
-		is_in_scripted_geography = scripted_geography:alexanders_empire = yes
+		is_in_scripted_geography = scripted_geography:alexanders_empire
 	}
 	
 
@@ -34,9 +22,6 @@
 			limit = {
 			 	has_reform = government_reform:diadochi_gov   #Diadochi gov
 			}
-			trigger_event_non_silently = {
-				id = diadochi_wars.1
-			}	
 			add_to_global_variable_list = { name = eligible_diadochi_list target = this }
 			ruler = {
 				add_to_global_variable_list = { name = eligible_diadochi_ruler_list target = this }
@@ -58,21 +43,21 @@
 			add_country_to_international_organization = c:TRE
 			set_leader_country = c:TRE
 		}
-		#create_international_organization = {
-		#	type = international_organization_type:diadochi_league_a
-		#	add_country_to_international_organization = c:PRY
-		#	set_leader_country = c:PRY
-		#}
+		create_international_organization = {
+			type = international_organization_type:diadochi_league_a
+			add_country_to_international_organization = c:PRY
+			set_leader_country = c:PRY
+		}
 		create_international_organization = {
 			type = international_organization_type:diadochi_league_e
 			add_country_to_international_organization = c:EGY
 			set_leader_country = c:EGY
 		}
-		#create_international_organization = {
-		#	type = international_organization_type:diadochi_league_s
-		#	add_country_to_international_organization = c:SEL
-		#	set_leader_country = c:SEL
-		#}
+		create_international_organization = {
+			type = international_organization_type:diadochi_league_s
+			add_country_to_international_organization = c:SEL
+			set_leader_country = c:SEL
+		}
 
 		ordered_in_global_list = {  
 			variable = eligible_diadochi_list
@@ -203,7 +188,7 @@
 	}
 
 	map_color = {
-		# macadon League 1
+		# Macedonian League
 		if = {
 			limit = {
 				owner ?= {
@@ -218,7 +203,7 @@
 			}
 			value = map_iw_italian_1
 		}
-		# thrace League 2
+		# Thracian League
 		else_if = {
 			limit = {
 				owner ?= {
@@ -233,7 +218,7 @@
 			}
 			value = map_iw_italian_2
 		}
-		# egypt League 3
+		# Ptolemaic League
 		else_if = {
 			limit = {
 				owner ?= {
@@ -248,5 +233,51 @@
 			}
 			value = map_iw_italian_3
 		}
-	}	
+		else_if = {
+			limit = {
+				owner ?= {
+					OR = {
+						AND = {
+							overlord ?= { is_member_of_international_organization = international_organization:diadochi_league_a }
+							is_disloyal_subject = no
+						}
+						is_member_of_international_organization = international_organization:diadochi_league_a
+					}
+				}
+			}
+			value = map_diadochi_antigonid
+		}
+		else_if = {
+			limit = {
+				owner ?= {
+					OR = {
+						AND = {
+							overlord ?= { is_member_of_international_organization = international_organization:diadochi_league_s }
+							is_disloyal_subject = no
+						}
+						is_member_of_international_organization = international_organization:diadochi_league_s
+					}
+				}
+			}
+			value = map_diadochi_seleucid
+		}
+	}
+
+	secondary_map_color = {
+		if = {
+			limit = {
+				is_in_scripted_geography = scripted_geography:alexanders_empire
+			}
+			value = map_diadochi_empire_outline
+		}
+	}
+
+	legend_key = {
+		limit = {
+			is_in_scripted_geography = scripted_geography:alexanders_empire
+		}
+		desc = "DIADOCHI_EMPIRE_OUTLINE_LEGEND"
+		color = map_diadochi_empire_outline
+		require_color_on_map = yes
+	}
 }
