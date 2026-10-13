@@ -54,9 +54,9 @@ pa_imp_clear_ambition_effect = {
 }
 
 #P:A Imported from Imperator: remove_scheme_variables_effect (common/scripted_effects/00_plots.txt)
-# Character scope. Imperator root (the character) is saved as scope:pa_imp_scheme_owner, since EU5 event roots are countries.
+# Character scope. Imperator root (the character) is saved as scope:pa_scheme_owner, since EU5 event roots are countries.
 pa_imp_remove_scheme_variables_effect = {
-	save_scope_as = pa_imp_scheme_owner
+	save_scope_as = pa_scheme_owner
 	hidden_effect = {
 		if = {
 			limit = {
@@ -71,14 +71,14 @@ pa_imp_remove_scheme_variables_effect = {
 					has_variable_list = targeted_by
 					is_target_in_variable_list = {
 						name = targeted_by
-						target = scope:pa_imp_scheme_owner
+						target = scope:pa_scheme_owner
 					}
 				}
 			}
 			var:ongoing_scheme_target = {
 				remove_list_variable = {
 					name = targeted_by
-					target = scope:pa_imp_scheme_owner
+					target = scope:pa_scheme_owner
 				}
 			}
 		}
@@ -115,4 +115,95 @@ pa_imp_remove_scheme_variables_effect = {
 		# if = { limit = { exists = scope:province_target scope:province_target = { has_province_modifier = being_extorted } } scope:province_target = { remove_province_modifier = being_extorted } }
 		#P:A TODO No EU5 equivalent: removes the being_extorted modifier from an extortion scheme's target province (Imperator scheme modifier, not imported)
 	}
+}
+
+#P:A Imported from Imperator: approval_with_custom_tooltip_effect (common/scripted_effects/00_republic_effects.txt)
+# Country scope. Parameters: PARTY (oligarchic_party | democratic_party | traditionalist_party), CUSTOM_TOOLTIP (loc key), VALUE (Imperator party approval change).
+# Imperator: in a republic that has the party, show the tooltip and change that party's approval by VALUE.
+# Party approval follows the b02 estate mapping (oligarchic -> nobles, democratic -> burghers, traditionalist -> clergy; VALUE / 100 as satisfaction):
+# the call goes to pa_b09_<PARTY>_approval_effect below, which hands over to the b02 effects.
+pa_imp_approval_with_custom_tooltip_effect = {
+	if = {
+		limit = {
+			government_type = government_type:republic # Imperator is_republic = yes
+			# has_party_type = $PARTY$ #P:A TODO Approximate: EU5 has no parties; the b02 approval effect checks for the matching estate instead
+		}
+		custom_tooltip = $CUSTOM_TOOLTIP$
+		pa_b09_$PARTY$_approval_effect = { VALUE = $VALUE$ } #P:A TODO Approximate: Imperator add_party_approval; EU5 has no parties, estate satisfaction stands in (b02 mapping)
+	}
+}
+
+# Private helpers of pa_imp_approval_with_custom_tooltip_effect: one per Imperator party type it is called with.
+pa_b09_oligarchic_party_approval_effect = {
+	pa_imp_oligarchic_approval_effect = { VALUE = $VALUE$ }
+}
+
+pa_b09_democratic_party_approval_effect = {
+	pa_imp_democratic_approval_effect = { VALUE = $VALUE$ }
+}
+
+pa_b09_traditionalist_party_approval_effect = {
+	pa_imp_traditionalist_approval_effect = { VALUE = $VALUE$ }
+}
+
+#P:A Imported from Imperator: appointment_office_skill_effect (common/scripted_effects/00_political_objective_effects.txt)
+# Any scope; needs scope:appointment_target (a character). Stores the target's best skill in its variable appointment_office_skill:
+# 1 = martial (EU5 mil), 2 = finesse (EU5 adm), 3 = charisma (EU5 dip), 4 = zeal (no EU5 equivalent, never set).
+pa_imp_appointment_office_skill_effect = {
+	if = {
+		limit = {
+			scope:appointment_target.mil >= scope:appointment_target.adm
+			scope:appointment_target.mil >= scope:appointment_target.dip
+			# scope:appointment_target.martial >= scope:appointment_target.zeal #P:A TODO No EU5 equivalent: zeal skill (EU5 characters have no zeal)
+		}
+		scope:appointment_target = {
+			set_variable = {
+				name = appointment_office_skill
+				value = 1
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:appointment_target.adm >= scope:appointment_target.mil
+			scope:appointment_target.adm >= scope:appointment_target.dip
+			# scope:appointment_target.finesse >= scope:appointment_target.zeal #P:A TODO No EU5 equivalent: zeal skill
+		}
+		scope:appointment_target = {
+			set_variable = {
+				name = appointment_office_skill
+				value = 2
+			}
+		}
+	}
+	else = {
+		# Imperator: else_if charisma is the highest skill -> 3, else (zeal highest) -> 4
+		#P:A TODO No EU5 equivalent: the zeal branch (value 4); without zeal, dip is the best skill whenever mil and adm are not
+		scope:appointment_target = {
+			set_variable = {
+				name = appointment_office_skill
+				value = 3
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: senate_objective_appoint_member_generic_effect (common/scripted_effects/00_political_objective_effects.txt)
+# Any scope; needs scope:appointment_target and its variable appointment_office_skill (see pa_imp_appointment_office_skill_effect).
+pa_imp_senate_objective_appoint_member_generic_effect = {
+	#P:A TODO No EU5 equivalent: gave scope:appointment_target the Roman republic office matching its best skill
+	# (martial: tribune of the treasury / tribune of the soldiers; finesse: plebeian aedile / republic physician; charisma: praetor / censor;
+	# zeal: augur / pontifex). If a holder of one of those offices had a lower skill (or the offices were all taken) it was saved as
+	# scope:replaced_appointment_target, lost loyalty (loyalty_appointment_revoked_agenda) and all its positions (remove_all_positions),
+	# and scope:appointment_target took its office; otherwise the target got the first free office.
+	# EU5 has no offices (has_office, give_office) and characters have no loyalty.
+}
+
+#P:A Imported from Imperator: add_party_approval_roman_completion_effect (common/scripted_effects/00_political_objective_effects.txt)
+# Party scope (Imperator); needs scope:party_obj_complete_scope.
+pa_imp_add_party_approval_roman_completion_effect = {
+	#P:A TODO No EU5 equivalent: when a Roman senate agenda was completed, the party that proposed it (matched against the agenda's
+	# saved party scopes) gained party approval: pa_imp_senate_agenda_passed_large_svalue (20) for the grant/revoke holding,
+	# imprison head and build buildings agendas, pa_imp_senate_agenda_passed_medium_svalue (10) for every other agenda.
+	# EU5 has no senate, parties, party agendas or party approval.
 }

@@ -1,0 +1,351 @@
+﻿#P:A Imported from Invictus: events/dhe/dhe_slave.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+# Imperator fired dhe_slave.1-.8 from the country main event pulse (root = country); .9-.11 continue the .8 chain.
+namespace = dhe_slave
+
+dhe_slave.1 = { # Incendiary Slave Speaks in X
+	type = country_event
+	title = dhe_slave.1.t
+	desc = dhe_slave.1.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			num_pop_type:slaves >= 5 #P:A TODO Approximate: Imperator num_of_slaves >= 5 counted slave pops; EU5 counts slaves in thousands (1 pop = 1 thousand)
+			NOR = {
+				is_capital = yes
+				area = root.capital.area
+				area = {
+					any_location_in_area = {
+						NOT = {
+							owner = root
+						}
+					}
+				}
+			}
+		}
+		NOT = {
+			has_variable = dhe_slave_incendiary_cooldown
+		}
+	}
+
+	immediate = {
+		random_owned_location = {
+			limit = {
+				num_pop_type:slaves >= 5 #P:A TODO Approximate: Imperator num_of_slaves >= 5 counted slave pops; EU5 counts slaves in thousands
+				NOR = {
+					is_capital = yes
+					area = {
+						any_location_in_area = {
+							NOT = {
+								owner = root
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = incendiary_slave_city_scope
+		}
+		set_variable = {
+			name = dhe_slave_incendiary_cooldown
+			days = 3650 # 10 years
+		}
+		ruler = {
+			save_scope_as = incendiary_slave_ruler
+		}
+		hidden_effect = {
+			create_character = {
+				female = no
+				culture = root.culture
+				religion = root.religion
+				estate = estate_type:peasants_estate #P:A TODO Approximate: Imperator created a plain character; EU5 characters need an estate and slaves have none, so the ex-slave agitator joins the peasants
+				add_trait = trait:silver_tongue
+				save_scope_as = incendiary_slave_scope
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					government_type = government_type:republic
+				}
+				scope:incendiary_slave_scope = {
+					pa_imp_character_democratic_party_conviction_effect = {
+						VALUE = 30
+					}
+				}
+			}
+			scope:incendiary_slave_scope = {
+				add_character_modifier = {
+					modifier = ex_slave_cmod
+					days = -1
+				}
+			}
+		}
+	}
+
+	option = { # Crucify the troublemaker and his supporters
+		name = dhe_slave.1.a
+		# current_ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+		# if = {
+		# 	limit = { scope:incendiary_slave_city_scope = { NOT = { is_in_region = root.capital_scope } } }
+		# 	scope:incendiary_slave_city_scope.governor = { add_loyalty = loyalty_crucified_slave_leader }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty for the governor of the location's province when it lies outside the capital region (EU5 has no governors or character loyalty)
+		scope:incendiary_slave_city_scope = {
+			random_pop = {
+				limit = {
+					pop_type = pop_type:slaves
+				}
+				add_pop_size = { #P:A TODO Approximate: Imperator kill_pop removed 1 whole slave pop; EU5 removes up to 1 (thousand) people from a slave pop
+					value = pop_size
+					multiply = -1
+					min = -1
+				}
+			}
+		}
+		scope:incendiary_slave_city_scope = {
+			province = {
+				add_province_modifier = {
+					modifier = dhe_slave_incendiary_killed_sm
+					days = 3650 # 10 years
+				}
+			}
+		}
+		hidden_effect = {
+			kill_character = { #P:A TODO Approximate: Imperator death reason "crucified"; EU5 execution used
+				target = scope:incendiary_slave_scope
+				killer = root.ruler
+				reason = execution
+			}
+		}
+		# add_tyranny = tyranny_medium
+		#P:A TODO No EU5 equivalent: +3 tyranny (EU5 has no tyranny)
+
+		ai_chance = {
+			base = 0
+		}
+	}
+
+	option = { # Divide the group and deal with the leader
+		name = dhe_slave.1.b
+		# current_ruler = { add_popularity = popularity_small }
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+		# if = {
+		# 	limit = {
+		# 		scope:incendiary_slave_city_scope = { NOT = { is_in_region = root.capital_scope } }
+		# 		any_character = { is_governor = yes any_governor_state = { this = scope:incendiary_slave_city_scope.state } }
+		# 	}
+		# 	scope:incendiary_slave_city_scope.governor = { add_loyalty = loyalty_crucified_slave_leader }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty for the governor of the location's province when it lies outside the capital region (EU5 has no governors or character loyalty)
+		scope:incendiary_slave_city_scope = {
+			province = {
+				add_province_modifier = {
+					modifier = dhe_slave_incendiary_divided_sm
+					days = 3650 # 10 years
+				}
+			}
+		}
+		hidden_effect = {
+			kill_character = { #P:A TODO Approximate: Imperator death reason "obscurity"; EU5 vanished used
+				target = scope:incendiary_slave_scope
+				killer = root.ruler
+				reason = vanished
+			}
+		}
+		# add_political_influence = subtract_influence_medium
+		#P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+
+		ai_chance = {
+			base = 0
+		}
+	}
+
+	option = { # Recruit the slave
+		name = dhe_slave.1.c
+		# current_ruler = { add_popularity = subtract_popularity_medium }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+		# if = {
+		# 	limit = { scope:incendiary_slave_city_scope = { NOT = { is_in_region = root.capital_scope } } }
+		# 	scope:incendiary_slave_city_scope.governor = { add_loyalty = loyalty_recruited_slave }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty for the governor of the location's province when it lies outside the capital region (EU5 has no governors or character loyalty)
+		scope:incendiary_slave_city_scope = {
+			province = {
+				add_province_modifier = {
+					modifier = dhe_slave_incendiary_promoted_sm
+					days = 3650 # 10 years
+				}
+			}
+		}
+		custom_tooltip = dhe_slave.1.ct
+		# add_political_influence = subtract_influence_small
+		#P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+	}
+
+	option = { # Ignore him
+		name = dhe_slave.1.d
+		# current_ruler = { add_popularity = subtract_popularity_large }
+		#P:A TODO No EU5 equivalent: -15 popularity for the ruler (EU5 characters have no popularity)
+		# if = {
+		# 	limit = { scope:incendiary_slave_city_scope = { NOT = { is_in_region = root.capital_scope } } }
+		# 	scope:incendiary_slave_city_scope.governor = { add_loyalty = loyalty_ignored_slave_leader }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty for the governor of the location's province when it lies outside the capital region (EU5 has no governors or character loyalty)
+		scope:incendiary_slave_city_scope = {
+			province = {
+				add_province_modifier = {
+					modifier = dhe_slave_incendiary_unchecked_sm
+					days = 3650 # 10 years
+				}
+			}
+		}
+		pa_imp_remove_stability_effect = yes
+
+		ai_chance = {
+			base = 0
+		}
+	}
+}
+
+dhe_slave.2 = { # Excellent Conditions in X
+	type = country_event
+	title = dhe_slave.2.t
+	desc = dhe_slave.2.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		any_owned_location = {
+			is_capital = no
+			num_pop_type:slaves >= 5 #P:A TODO Approximate: Imperator num_of_slaves >= 5 counted slave pops; EU5 counts slaves in thousands (1 pop = 1 thousand)
+			save_temporary_scope_as = excellent_conditions_city_temp_scope
+		}
+		NOR = {
+			scope:excellent_conditions_city_temp_scope.area = {
+				any_location_in_area = {
+					NOT = {
+						owner = root
+					}
+				}
+			}
+			has_variable = dhe_slave_excellent_cooldown
+			any_owned_location = {
+				OR = {
+					province = { has_province_modifier = dhe_slave_conditions_lessons_sm } # Invictus tested this state modifier on the province itself (never true); tested on the EU5 province here
+					has_location_modifier = dhe_slave_conditions_autonomy_pm
+				}
+			}
+		}
+	}
+
+	immediate = {
+		# Imperator picked a random area that ROOT owns entirely and then a qualifying province in it; EU5 picks the location directly.
+		random_owned_location = {
+			limit = {
+				is_capital = no
+				num_pop_type:slaves >= 5 #P:A TODO Approximate: Imperator num_of_slaves >= 5 counted slave pops; EU5 counts slaves in thousands
+				area = {
+					NOT = {
+						any_location_in_area = {
+							NOT = {
+								owner = root
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = excellent_conditions_city_scope
+		}
+		set_variable = {
+			name = dhe_slave_excellent_cooldown
+			days = 3650 # 10 years
+		}
+	}
+
+	option = { # Make the most of it
+		name = dhe_slave.2.a
+		# if = {
+		# 	limit = { scope:excellent_conditions_city_scope = { NOT = { is_in_region = root.capital_scope } } }
+		# 	scope:excellent_conditions_city_scope.governor = { add_loyalty = loyalty_appropriated_profits }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty for the governor of the location's province when it lies outside the capital region (EU5 has no governors or character loyalty)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 2.5
+			max = 5000
+		}
+	}
+
+	option = { # Apply the lessons across the province
+		name = dhe_slave.2.b
+		# if = {
+		# 	limit = { scope:excellent_conditions_city_scope = { NOT = { is_in_region = root.capital_scope } } }
+		# 	scope:excellent_conditions_city_scope.governor = { add_prominence = prominence_large }
+		# }
+		#P:A TODO No EU5 equivalent: +10 prominence for the governor of the location's province when it lies outside the capital region (EU5 has no governors or prominence)
+		scope:excellent_conditions_city_scope = {
+			province = {
+				add_province_modifier = {
+					modifier = dhe_slave_conditions_lessons_sm
+					days = 3650 # 10 years
+				}
+			}
+		}
+		# add_political_influence = subtract_influence_medium
+		#P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+	}
+
+	option = { # They have it under control
+		name = dhe_slave.2.c
+		# if = {
+		# 	limit = { scope:excellent_conditions_city_scope = { NOT = { is_in_region = root.capital_scope } } }
+		# 	scope:excellent_conditions_city_scope.governor = {
+		# 		add_loyalty = loyalty_food_benign_neglect
+		# 		add_gold = { value = scope:excellent_conditions_city_scope.owner.has_monthly_income multiply = 1.0 }
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: loyalty and one month of the country's income as personal gold for the governor of the location's province when it lies outside the capital region (EU5 has no governors, character loyalty or personal wealth)
+		scope:excellent_conditions_city_scope = {
+			add_location_modifier = {
+				modifier = dhe_slave_conditions_autonomy_pm
+				days = 3650 # 10 years
+			}
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 1.0
+			max = 5000
+		}
+	}
+
+	option = { # The ruler oversees it personally (corrupt rulers only)
+		name = dhe_slave.2.d
+		# highlight = yes (no EU5 option field; it only highlighted the option)
+		exclusive = yes
+		trigger = {
+			ruler ?= {
+				has_trait = trait:corrupt
+			}
+		}
+		# if = {
+		# 	limit = { scope:excellent_conditions_city_scope = { NOT = { is_in_region = root.capital_scope } } }
+		# 	scope:excellent_conditions_city_scope.governor = { add_loyalty = loyalty_corrupt_ruler }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty for the governor of the location's province when it lies outside the capital region (EU5 has no governors or character loyalty)
+		# current_ruler = {
+		# 	add_gold = { value = root.has_monthly_income multiply = 2.5 }
+		# 	add_corruption = corruption_medium
+		# }
+		#P:A TODO No EU5 equivalent: the ruler pockets 2.5 months of income as personal gold and gains +5 corruption (EU5 characters have no personal wealth or corruption)
+		custom_tooltip = corrupt_bad_tooltip
+	}
+}

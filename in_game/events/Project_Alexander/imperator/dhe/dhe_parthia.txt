@@ -380,3 +380,1078 @@ dhe_parthians.2 = {
 		}
 	}
 }
+
+# A Chance to Strike: the united Dahae decide whether to fall on the satrapy of Parthia. Root is the Dahae country saved as scope:target by dhe_parthians.2, scope:origin the country they attack (also saved there).
+dhe_parthians.3 = { #NS
+	type = country_event
+	title = diadochi_flavor.100.t
+	desc = diadochi_flavor.100.desc
+	illustration_tags = {
+		10 = interior
+		10 = armed
+	}
+
+	immediate = {
+		set_global_variable = triggered_parthian_horde2
+		ruler ?= { save_scope_as = dhe_parthians_3_ruler } # Imperator left_portrait = root.current_ruler
+		if = { # Imperator right_portrait = scope:origin.current_ruler
+			limit = { exists = scope:origin }
+			scope:origin = {
+				ruler ?= { save_scope_as = dhe_parthians_3_origin_ruler }
+			}
+		}
+	}
+
+	option = {
+		name = diadochi_flavor.100.a
+#		add_manpower = 20
+		hidden_effect = {
+			if = {
+				limit = {
+					exists = scope:origin
+					has_truce_with = scope:origin
+				}
+				remove_truce_with = scope:origin # Imperator end_truce
+			}
+		}
+		if = {
+			limit = {
+				is_ai = yes
+			}
+			trigger_event_silently = dhe_parthians.9
+			set_variable = war_of_the_diadochs
+			set_variable = pth_to_clear_var
+			every_ownable_location = { # Imperator every_ownable_province
+				limit = {
+					has_owner = yes
+					owner = {
+						OR = {
+							this = scope:origin
+							is_subject_of = scope:origin
+						}
+						NOR = {
+							tag = PAR # Imperator THIS = c:PAR
+							this = root
+						}
+					}
+					OR = {
+						pa_imp_in_area_parthia_area = yes
+						#P:A TODO Approximate location: the Imperator provinces below are mapped to their nearest EU5 locations (only Gurgan p:3438 -> gorgan is exact; several Imperator provinces share one EU5 location)
+						this = location:kusk # Imperator Serakhis (p:6664)
+						this = location:pushang # Imperator Kotake (p:7222) and Godana (p:6556)
+						this = location:mashhad_rizeh # Imperator Guriana (p:6545)
+						this = location:salehabad # Imperator Ragau (p:6663)
+						this = location:torbat_e_jam # Imperator Suphtha (p:6543)
+						this = location:khargerd # Imperator Aktene (p:6542)
+						this = location:roshtkhar # Imperator Dirma (p:6544) and Taua (p:3464)
+						this = location:azghand # Imperator Rivash (p:3466)
+						this = location:mahvelat # Imperator Siphare (p:3465)
+						this = location:turaythith # Imperator Sarmagana (p:3462) and Oscanidati (p:3467)
+						this = location:fadisheh # Imperator Sathis (p:3451)
+						this = location:haresabad # Imperator Vishpauzatis (p:3444) and Deraza (p:3468)
+						this = location:sabzevar # Imperator Parvand (p:3469)
+						this = location:bam_esfarayen # Imperator Sapham (p:3449)
+						this = location:azadvar # Imperator Deshrae (p:3455)
+						this = location:jajarm # Imperator Taga (p:3440)
+						this = location:gorgan # Imperator Gurgan (p:3438)
+						this = location:aliabad_katul # Imperator Sirynx (p:3437)
+						this = location:mubarakabad # Imperator Asbana (p:3436)
+						this = location:astarabad # Imperator Zadrakarta (p:3435)
+					}
+				}
+				change_location_owner = root # Imperator set_owned_by = ROOT
+			}
+			if = {
+				limit = {
+					NOT = { c:PAR ?= { exists = capital } } # Imperator c:PAR = { exists = no has_land = no }
+				}
+				hidden_effect = {
+					change_country_name = PARTHIA_NAME
+					# change_country_flag = PARTHIA_FORMABLE_FLAG_INV		#new flag
+					#P:A TODO No EU5 equivalent: the Invictus flag PARTHIA_FORMABLE_FLAG_INV does not exist in the mod (the mod's PAR coat of arms in zz_terra_indomita_flags.txt could serve; change_country_flag's parameter form is unverified)
+					every_character = {
+						limit = {
+							#P:A TODO Approximate: Imperator from_ruler_family = yes; EU5 checks the ruler's dynasty
+							has_dynasty = yes
+							root.ruler ?= { has_dynasty = yes }
+							dynasty = root.ruler.dynasty
+						}
+						change_character_culture = culture:parthian # Imperator set_culture = parthian
+					}
+				}
+				if = {
+					limit = {
+						NOT = {
+							culture = culture:parthian # Imperator primary_culture = parthian
+						}
+					}
+					pa_imp_set_primary_culture_cleanup_effect = {
+						NEW_PRIMARY_CULTURE = parthian
+						MAKE_OLD_CULTURE_INTEGRATED = yes
+					}
+				}
+				if = {
+					limit = {
+						NOT = {
+							capital ?= { this = location:anew } # Imperator capital_scope = { province_id = 6657 }
+						}
+					}
+					set_capital = location:anew #P:A TODO Approximate location: Imperator Nisaia (p:6657) mapped to anew (all uses in this event)
+					hidden_effect = {
+						location:anew.province = { # Imperator p:6657.state = { set_state_capital = 6657 }
+							set_province_capital = location:anew
+						}
+					}
+					capital = {
+						add_location_modifier = {
+							modifier = founding_city_in_progress
+							days = 730
+						}
+						# trigger_event = { id = state_improvement.6 days = 730 }
+						#P:A TODO No EU5 equivalent: state_improvement.6 (gives the new capital city status after 2 years) is not part of the import; the construction modifier simply expires
+					}
+				}
+				capital = {
+					pa_imp_formable_capital_modifier_normal_effect = yes
+				}
+				hidden_effect = {
+					change_country_adjective = PARTHIA_ADJECTIVE
+					# change_country_color =  "parthia_color"
+					# change_country_tag = PTH
+					#P:A TODO No EU5 equivalent: Imperator gave the country the parthia_color map colour and made it the PTH tag; the mod has neither (EU5 cannot change a country's tag)
+					set_variable = scythian_traditions
+				}
+				# add_research = { technology = military_tech value = 100 }
+				# add_research = { technology = civic_tech value = 100 }
+				# add_research = { technology = oratory_tech value = 100 }
+				# add_research = { technology = religious_tech value = 100 }
+				#P:A TODO No EU5 equivalent: +100 research in each of Imperator's four technology tracks
+				if = {
+					limit = { government_type = government_type:tribe } # Imperator is_tribal = yes
+					change_government_type = government_type:monarchy #P:A TODO Approximate: Imperator despotic_monarchy (EU5 has no government sub-forms)
+					pa_imp_switch_government_type_event_clearup_effect = yes
+				}
+				# change_law = recruit_from_nobles
+				#P:A TODO No EU5 equivalent: switches the tribal military law to Recruit from Nobles (EU5 has no Imperator laws)
+				pa_imp_add_3_free_province_investments = yes
+				# if = { limit = { is_antagonist = no } set_antagonist = yes }
+				#P:A TODO No EU5 equivalent: marks the country as an AI antagonist (EU5 has no antagonist system)
+				add_country_modifier = {
+					modifier = parthian_death_lasers
+					days = 3650
+				}
+				add_gold = 750 # Imperator add_treasury
+				add_manpower = 20
+				location:haresabad = { #P:A TODO Approximate location: Imperator Vishpauzatis (p:3444) mapped to haresabad
+					# create_unit = { navy = no location = p:3444 6 light_infantry, 15 horse_archers, 5 light_cavalry add_food = 100 add_morale = 2 }
+					#P:A TODO Approximate: Imperator created one army of 6 light infantry, 15 horse archer and 5 light cavalry cohorts; EU5 raises the same number of sub-units in the location (horse archers as light cavalry, as separate units), its +100 food and +2 morale have no EU5 equivalent
+					create_num_sub_unit_of_category = {
+						count = 6
+						category = sub_unit_category:army_light_infantry
+					}
+					create_num_sub_unit_of_category = {
+						count = 20 # 15 horse archers + 5 light cavalry
+						category = sub_unit_category:army_light_cavalry
+					}
+				}
+				location:pushang = { #P:A TODO Approximate location: Imperator Kotake (p:7222) mapped to pushang
+					# create_unit = { navy = no location = p:7222 6 light_infantry, 10 horse_archers, 3 light_cavalry add_food = 100 add_morale = 2 }
+					#P:A TODO Approximate: Imperator created one army of 6 light infantry, 10 horse archer and 3 light cavalry cohorts; EU5 raises the same number of sub-units in the location (horse archers as light cavalry, as separate units), its +100 food and +2 morale have no EU5 equivalent
+					create_num_sub_unit_of_category = {
+						count = 6
+						category = sub_unit_category:army_light_infantry
+					}
+					create_num_sub_unit_of_category = {
+						count = 13 # 10 horse archers + 3 light cavalry
+						category = sub_unit_category:army_light_cavalry
+					}
+				}
+				trigger_event_silently = dhe_parthians.8
+				# trigger_event = me_parthia.7
+				#P:A TODO No EU5 equivalent: me_parthia.7 (Invictus Parthian mission event, tag-bound) is not part of the import
+#				set_variable = had_7_pth_var
+				declare_war_with_cb = { # Imperator declare_war_with_wargoal = { war_goal = horde_conquest target = scope:origin }
+					target = scope:origin
+					type = casus_belli:cb_horde_vs_civ #P:A TODO Approximate: Imperator wargoal horde_conquest; EU5 cb_horde_vs_civ (horde superiority) normally needs a steppe_horde government to declare, which the new Parthia (monarchy) lacks - verify the effect ignores declare_enabled
+				}
+			}
+			scope:origin = {
+				if = {
+					limit = {
+						is_ai = yes
+					}
+#					add_manpower = -15
+#					add_stability = -10
+					add_country_modifier = {
+						modifier = parthian_attack_lasers
+						days = 3650
+					}
+					every_subject = {
+						limit = { is_ai = yes }
+						add_stability = -10
+						add_manpower = -10
+						add_country_modifier = {
+							modifier = parthian_attack_lasers
+							days = 3650
+						}
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				c:PAR ?= { exists = capital } # Imperator c:PAR = { exists = yes has_land = yes }
+			}
+			c:PAR = {
+				trigger_event_non_silently = dhe_parthians.4
+			}
+		}
+		# every_country = {
+		# 	limit = {
+		# 		NOT = {
+		# 			this = root
+		# 			this = c:PAR
+		# 		}
+		# 	}
+		# 	trigger_event = {
+		# 		id = dhe_parthians.300
+		# 	}
+		# }
+	}
+
+	option = {
+		name = diadochi_flavor.100.b
+		# current_ruler = { add_popularity = -25 }
+		#P:A TODO No EU5 equivalent: -25 popularity for the ruler (EU5 characters have no popularity)
+
+		ai_chance = {
+			base = 0
+		}
+	}
+	after = {
+		if = {
+			limit = { exists = scope:origin }
+			scope:origin = {
+				save_scope_as = target
+			}
+		}
+		# if = { limit = { exists = c:BAC c:BAC = { has_land = yes has_subject_loyalty <= 33 } } c:BAC = { trigger_event = { id = me_parthia.11 days = { 7 14 } } } }
+		# if = { limit = { exists = c:PRM c:PRM = { has_land = yes has_subject_loyalty <= 33 } } c:PRM = { trigger_event = { id = me_parthia.14 days = { 7 14 } } } }
+		#P:A TODO No EU5 equivalent: me_parthia.11 (for Bactria, BAC) and me_parthia.14 (for Paropamisadae, Imperator PRM = mod PRP), fired when their subject loyalty was 33 or less, are Invictus Parthian mission events (tag-bound) and not part of the import
+	}
+}
+
+# Dahae Belligerency - Invasion!: the Dahae fall on Parthia. Root is Parthia (PAR), fired by dhe_parthians.3; scope:target is the Dahae country, scope:origin the country they attacked (both saved by dhe_parthians.2).
+# A human Parthia takes over the Dahae (their ruler, nobles and lands) and becomes post-nomadic Parthia; an AI Parthia is absorbed by the Dahae, who become Parthia instead.
+dhe_parthians.4 = {
+	type = country_event
+	title = dhe_parthians.4.t
+	desc = dhe_parthians.4.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = dhe_parthians_4_ruler } # Imperator left_portrait = current_ruler
+#		right_portrait = scope:target.current_ruler
+	}
+
+	option = {
+		name = dhe_parthians.4.a
+		trigger = {
+			is_ai = no
+		}
+		custom_tooltip = dhe_parthians.4.tt1
+		# set_country_heritage = arsacid_dahae_heritage
+		#P:A TODO No EU5 equivalent: gave the country the Invictus Arsacid Dahae heritage (EU5 has no country heritages)
+		add_country_modifier = {
+			modifier = par_to_pth_cmod
+			days = 1825
+		}
+		add_manpower = 40
+		hidden_effect = {
+			if = {
+				limit = { exists = scope:target }
+				scope:target = {
+					ruler ?= {
+						save_scope_as = new_ruler
+					}
+				}
+			}
+			add_stability = 15
+			if = {
+				limit = {
+					has_country_modifier = par_satrapy_cmod
+				}
+				remove_country_modifier = par_satrapy_cmod
+			}
+			if = {
+				limit = {
+					has_country_modifier = hegemon_of_iran
+				}
+				remove_country_modifier = hegemon_of_iran
+			}
+			if = {
+				limit = {
+					has_country_modifier = par_prof_army_offset_cmod
+				}
+				remove_country_modifier = par_prof_army_offset_cmod
+			}
+			if = {
+				limit = {
+					has_country_modifier = par_prof_army2_cmod
+				}
+				remove_country_modifier = par_prof_army2_cmod
+			}
+			if = {
+				limit = {
+					has_country_modifier = par_appeasing_stance
+				}
+				remove_country_modifier = par_appeasing_stance
+			}
+			if = {
+				limit = { exists = scope:new_ruler }
+				scope:new_ruler = {
+					pa_imp_move_country_with_entire_family_effect = { COUNTRY = root }
+				}
+				set_new_ruler = scope:new_ruler # Imperator set_as_ruler
+				every_character = {
+					limit = {
+						#P:A TODO Approximate: Imperator killed every non-minor character of the court (is_minor_character = no; move_country_with_entire_family_effect had made the new ruler a minor character); EU5 has no minor characters, so it spares the new ruler and his dynasty instead
+						NOT = { this = scope:new_ruler }
+						trigger_if = {
+							limit = { scope:new_ruler = { has_dynasty = yes } }
+							NOT = { dynasty ?= scope:new_ruler.dynasty }
+						}
+					}
+					kill_character = {
+						target = this
+						reason = vanished #P:A TODO Approximate: Imperator death_reason death_obscurity
+					}
+				}
+#				set_variable = pth_from_situation_var
+				scope:target = {
+					every_character = { # Imperator every_family = { limit = { NOT = { THIS = current_ruler.family } } move_family = ROOT head_of_family = { move_country_with_entire_family_effect = { COUNTRY = ROOT } } }
+						limit = {
+							#P:A TODO Approximate: Imperator moved every other noble family of the Dahae (the family itself and its head with all members); EU5 moves every remaining Dahae court character with a dynasty other than the new ruler's, with their dynasty members
+							employer ?= scope:target
+							has_dynasty = yes
+							trigger_if = {
+								limit = { scope:new_ruler = { has_dynasty = yes } }
+								NOT = { dynasty ?= scope:new_ruler.dynasty }
+							}
+						}
+						pa_imp_move_country_with_entire_family_effect = { COUNTRY = root }
+					}
+				}
+			}
+			if = {
+				limit = { exists = scope:target }
+				every_ownable_location = { # Imperator every_ownable_province
+					limit = {
+						has_owner = yes
+						owner = scope:target
+					}
+					change_location_owner = root # Imperator set_owned_by = ROOT
+				}
+			}
+			change_country_name = PARTHIA_NAME
+			# change_country_flag = PARTHIA_FORMABLE_FLAG_INV		#new flag
+			#P:A TODO No EU5 equivalent: the Invictus flag PARTHIA_FORMABLE_FLAG_INV does not exist in the mod (the mod's PAR coat of arms in zz_terra_indomita_flags.txt could serve; change_country_flag's parameter form is unverified)
+			change_religion = religion:alan_paganism #P:A TODO Approximate: Imperator set_country_religion = indo_iranian_religion, which has no mapped mod religion; alan_paganism is the religion of the mod's Dahae pops
+			every_character = {
+				limit = {
+					#P:A TODO Approximate: Imperator from_ruler_family = yes; EU5 checks the ruler's dynasty
+					has_dynasty = yes
+					root.ruler ?= { has_dynasty = yes }
+					dynasty = root.ruler.dynasty
+				}
+				change_character_culture = culture:parthian # Imperator set_culture = parthian
+			}
+			if = {
+				limit = {
+					NOT = {
+						culture = culture:parthian # Imperator primary_culture = parthian
+					}
+				}
+				pa_imp_set_primary_culture_cleanup_effect = {
+					NEW_PRIMARY_CULTURE = parthian
+					MAKE_OLD_CULTURE_INTEGRATED = no
+				}
+			}
+			# random_country_culture = { limit = { THIS.culture = culture:derbiccan } ROOT = { integrate_country_culture = PREV } }
+			add_accepted_culture = culture:dahae #P:A TODO Approximate: Imperator integrated the Derbiccan country culture if the country had one (EU5 has no culture integration; dahae becomes an accepted culture instead)
+			if = {
+				limit = {
+					NOT = {
+						capital ?= { this = location:anew } # Imperator capital_scope = { province_id = 6657 }
+					}
+				}
+				set_capital = location:anew #P:A TODO Approximate location: Imperator Nisaia (p:6657) mapped to anew (all uses in this event)
+				location:anew.province = { # Imperator p:6657.state = { set_state_capital = 6657 }
+					set_province_capital = location:anew
+				}
+				capital = {
+					add_location_modifier = {
+						modifier = founding_city_in_progress
+						days = 730
+					}
+					# trigger_event = { id = state_improvement.6 days = 730 }
+					#P:A TODO No EU5 equivalent: state_improvement.6 (gives the new capital city status after 2 years) is not part of the import; the construction modifier simply expires
+				}
+			}
+			capital = {
+				pa_imp_formable_capital_modifier_normal_effect = yes
+			}
+			change_country_adjective = PARTHIA_ADJECTIVE
+			# change_country_color =  "parthia_color"
+			# change_country_tag = PTH
+			#P:A TODO No EU5 equivalent: Imperator gave the country the parthia_color map colour and made it the PTH tag; the mod has neither (EU5 cannot change a country's tag)
+			set_variable = scythian_traditions
+			# change_law = recruit_from_nobles
+			#P:A TODO No EU5 equivalent: switches the military law to Recruit from Nobles (EU5 has no Imperator laws)
+			pa_imp_add_3_free_province_investments = yes
+			every_army = {
+				limit = {
+					#P:A TODO Approximate: Imperator kept the armies led by a mercenary commander; EU5 keeps the armies that contain mercenary sub-units
+					NOT = { any_sub_unit = { is_mercenary = yes } }
+				}
+				destroy_unit = yes # Imperator every_sub_unit = { destroy_subunit = yes } destroy_unit = yes
+			}
+			trigger_event_silently = dhe_parthians.8
+			if = {
+				limit = {
+					at_war = yes
+				}
+				trigger_event_silently = dhe_parthians.10
+			}
+			# trigger_event = me_parthia.7
+			# trigger_event = me_parthia.9
+			#P:A TODO No EU5 equivalent: me_parthia.7 and me_parthia.9 (Invictus Parthian mission events, tag-bound) are not part of the import
+			# reset_scoring = ROOT
+			#P:A TODO No EU5 equivalent: reset the country's Imperator score
+		}
+	}
+
+	option = {
+		name = dhe_parthians.4.b
+		custom_tooltip = dhe_parthians.4.tt2
+		trigger = {
+			is_ai = no
+			has_variable = par_not_pth_var #P:A TODO par_not_pth_var is set only by the Invictus Parthia satrapy mission tree (not imported), so this option is never available
+		}
+		add_stability = 25
+		hidden_effect = {
+			scope:target = {
+				trigger_event_silently = dhe_parthians.8
+				if = {
+					limit = {
+						has_variable = war_of_the_diadochs
+					}
+					remove_variable = war_of_the_diadochs
+				}
+			}
+		}
+		if = {
+			limit = {
+				is_subject = no
+			}
+			scope:target = {
+				declare_war_with_cb = { # Imperator declare_war_with_wargoal = { war_goal = horde_conquest target = ROOT }
+					target = root
+					type = casus_belli:cb_horde_vs_civ #P:A TODO Approximate: Imperator wargoal horde_conquest; EU5 cb_horde_vs_civ (horde superiority) normally needs a steppe_horde government to declare - verify the effect ignores declare_enabled
+				}
+			}
+		}
+		else = {
+			scope:target = {
+				declare_war_with_cb = { # Imperator declare_war_with_wargoal = { war_goal = horde_conquest target = scope:origin }
+					target = scope:origin
+					type = casus_belli:cb_horde_vs_civ #P:A TODO Approximate: as above
+				}
+			}
+		}
+	}
+
+	option = {
+		name = dhe_parthians.4.a
+		trigger = {
+			is_ai = yes
+		}
+		if = {
+			limit = {
+				scope:origin = {
+					is_ai = yes
+				}
+			}
+			scope:origin = {
+				set_variable = pth_sel_clearing_var
+			}
+		}
+		scope:target = {
+			# set_country_heritage = arsacid_dahae_heritage
+			#P:A TODO No EU5 equivalent: gave the country the Invictus Arsacid Dahae heritage (EU5 has no country heritages)
+			add_country_modifier = {
+				modifier = par_to_pth_cmod
+				days = 1825
+			}
+			add_manpower = 40
+			add_stability = 15
+			hidden_effect = {
+				every_army = {
+					limit = {
+						pa_imp_is_legion_unit = no
+					}
+					destroy_unit = yes
+				}
+				every_ownable_location = { # Imperator every_ownable_province
+					limit = {
+						has_owner = yes
+						owner = root # Imperator owner = c:PAR (the root of this event)
+						NOT = {
+							owner = scope:target
+						}
+					}
+					change_location_owner = scope:target # Imperator set_owned_by
+				}
+				change_country_name = PARTHIA_NAME
+				# change_country_flag = PARTHIA_FORMABLE_FLAG_INV		#new flag
+				#P:A TODO No EU5 equivalent: the Invictus flag PARTHIA_FORMABLE_FLAG_INV does not exist in the mod (see the first option)
+				every_character = {
+					limit = {
+						#P:A TODO Approximate: Imperator from_ruler_family = yes; EU5 checks the ruler's dynasty
+						has_dynasty = yes
+						scope:target.ruler ?= { has_dynasty = yes }
+						dynasty = scope:target.ruler.dynasty
+					}
+					change_character_culture = culture:parthian # Imperator set_culture = parthian
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						culture = culture:parthian # Imperator primary_culture = parthian
+					}
+				}
+				pa_imp_set_primary_culture_cleanup_effect = {
+					NEW_PRIMARY_CULTURE = parthian
+					MAKE_OLD_CULTURE_INTEGRATED = yes
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						capital ?= { this = location:anew } # Imperator capital_scope = { province_id = 6657 }
+					}
+				}
+				set_capital = location:anew # Imperator set_capital = 6657 (Nisaia, approximate, see above)
+				hidden_effect = {
+					location:anew.province = { # Imperator p:6657.state = { set_state_capital = 6657 }
+						set_province_capital = location:anew
+					}
+				}
+				capital = {
+					add_location_modifier = {
+						modifier = founding_city_in_progress
+						days = 730
+					}
+					# trigger_event = { id = state_improvement.6 days = 730 }
+					#P:A TODO No EU5 equivalent: state_improvement.6 is not part of the import (see the first option)
+				}
+			}
+			capital = {
+				pa_imp_formable_capital_modifier_normal_effect = yes
+			}
+			hidden_effect = {
+				change_country_adjective = PARTHIA_ADJECTIVE
+				# change_country_color =  "parthia_color"
+				# change_country_tag = PTH
+				#P:A TODO No EU5 equivalent: Imperator gave the country the parthia_color map colour and made it the PTH tag; the mod has neither (EU5 cannot change a country's tag)
+				set_variable = scythian_traditions
+			}
+			# add_research = { technology = military_tech value = 100 }
+			# add_research = { technology = civic_tech value = 100 }
+			# add_research = { technology = oratory_tech value = 100 }
+			# add_research = { technology = religious_tech value = 100 }
+			#P:A TODO No EU5 equivalent: +100 research in each of Imperator's four technology tracks
+			if = {
+				limit = { government_type = government_type:tribe } # Imperator is_tribal = yes
+				change_government_type = government_type:monarchy #P:A TODO Approximate: Imperator despotic_monarchy (EU5 has no government sub-forms)
+				pa_imp_switch_government_type_event_clearup_effect = yes
+			}
+			# change_law = recruit_from_nobles
+			#P:A TODO No EU5 equivalent: switches the military law to Recruit from Nobles (EU5 has no Imperator laws)
+			pa_imp_add_3_free_province_investments = yes
+			trigger_event_silently = dhe_parthians.8
+			# if = { limit = { is_ai = no } trigger_event = me_parthia.7 trigger_event = me_parthia.9 }
+			#P:A TODO No EU5 equivalent: me_parthia.7 and me_parthia.9 (Invictus Parthian mission events, tag-bound) are not part of the import
+			# if = { limit = { is_antagonist = no is_ai = yes } set_antagonist = yes }
+			#P:A TODO No EU5 equivalent: marks the country as an AI antagonist (EU5 has no antagonist system)
+			if = {
+				limit = {
+					is_ai = yes
+				}
+				set_variable = pth_to_clear_var
+				change_religion = religion:mithra_religion # Imperator set_country_religion
+				#P:A TODO Approximate: Imperator added a level of fortress_building in each of these provinces (its free_building_slots check had an empty if and did nothing); EU5 adds a level of castle
+				location:pushang = { #P:A TODO Approximate location: Imperator Kotake (p:7222) mapped to pushang
+					change_building_level_in_location = {
+						building = building_type:castle
+						value = 1
+					}
+				}
+				location:turaythith = { #P:A TODO Approximate location: Imperator Sarmagana (p:3462) mapped to turaythith
+					change_building_level_in_location = {
+						building = building_type:castle
+						value = 1
+					}
+				}
+				location:jajarm = { #P:A TODO Approximate location: Imperator Taga (p:3440) mapped to jajarm
+					change_building_level_in_location = {
+						building = building_type:castle
+						value = 1
+					}
+				}
+				location:astarabad = { # Imperator Zadrakarta (p:3435), approximate, see dhe_parthians.2
+					# create_unit = { navy = no location = p:3435 6 light_infantry, 15 horse_archers, 5 light_cavalry add_food = 100 add_morale = 2 }
+					#P:A TODO Approximate: Imperator created one army of 6 light infantry, 15 horse archer and 5 light cavalry cohorts; EU5 raises the same number of sub-units in the location (horse archers as light cavalry, as separate units), its +100 food and +2 morale have no EU5 equivalent
+					create_num_sub_unit_of_category = {
+						count = 6
+						category = sub_unit_category:army_light_infantry
+					}
+					create_num_sub_unit_of_category = {
+						count = 20 # 15 horse archers + 5 light cavalry
+						category = sub_unit_category:army_light_cavalry
+					}
+				}
+				location:dargaz = { #P:A TODO Approximate location: Imperator Gathar (p:6658) mapped to dargaz
+					# create_unit = { navy = no location = p:6658 6 light_infantry, 10 horse_archers, 3 light_cavalry add_food = 100 add_morale = 2 }
+					#P:A TODO Approximate: Imperator created one army of 6 light infantry, 10 horse archer and 3 light cavalry cohorts; EU5 raises the same number of sub-units in the location (horse archers as light cavalry, as separate units), its +100 food and +2 morale have no EU5 equivalent
+					create_num_sub_unit_of_category = {
+						count = 6
+						category = sub_unit_category:army_light_infantry
+					}
+					create_num_sub_unit_of_category = {
+						count = 13 # 10 horse archers + 3 light cavalry
+						category = sub_unit_category:army_light_cavalry
+					}
+				}
+				add_country_modifier = {
+					modifier = parthian_death_lasers
+					days = 3650
+				}
+				add_gold = 750 # Imperator add_treasury
+				add_manpower = 20
+				declare_war_with_cb = { # Imperator declare_war_with_wargoal = { war_goal = horde_conquest target = scope:origin }
+					target = scope:origin
+					type = casus_belli:cb_horde_vs_civ #P:A TODO Approximate: Imperator wargoal horde_conquest; EU5 cb_horde_vs_civ (horde superiority) normally needs a steppe_horde government to declare, which the new Parthia (monarchy) lacks - verify the effect ignores declare_enabled
+				}
+				# trigger_event = me_parthia.7
+				#P:A TODO No EU5 equivalent: me_parthia.7 (Invictus Parthian mission event, tag-bound) is not part of the import
+			}
+		}
+	}
+}
+
+# Dahae Belligerency - Situation Handled: the country that dealt with the Dahae threat ends the belligerency chain and tells its Iranian neighbours (dhe_parthians.6).
+#P:A TODO Fired only by the Invictus decision aaa_pth_dahae_belligerency, which is not part of the event import; the orchestrator must port the decision or fire this event otherwise
+dhe_parthians.5 = { #avoided dahae invasion
+	type = country_event
+	title = dhe_parthians.5.t
+	desc = dhe_parthians.5.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	option = {
+		name = dhe_parthians.5.a
+		custom_tooltip = dhe_parthians.5.tt
+		set_global_variable = triggered_parthian_horde2
+		if = {
+			limit = {
+				any_owned_location = { # Imperator any_owned_province
+					OR = {
+						pa_imp_in_region_parthia_region = yes
+						pa_imp_in_region_mesopotamia_region = yes
+						pa_imp_in_region_media_region = yes
+						pa_imp_in_region_persis_region = yes
+						pa_imp_in_region_ariana_region = yes
+						pa_imp_in_region_bactriana_region = yes
+						pa_imp_in_region_sakia_region = yes
+					}
+				}
+			}
+			add_stability = 5
+		}
+	}
+
+	after = {
+		location:astarabad = { # Imperator p:3435 Zadrakarta (approximate, see dhe_parthians.2)
+			remove_variable = dahae_belligerency_var
+		}
+		every_country = {
+			limit = {
+				NOT = { this = root }
+				any_owned_location = { # Imperator any_owned_province
+					OR = {
+						pa_imp_in_region_parthia_region = yes
+						pa_imp_in_region_mesopotamia_region = yes
+						pa_imp_in_region_media_region = yes
+						pa_imp_in_region_persis_region = yes
+						pa_imp_in_region_ariana_region = yes
+						pa_imp_in_region_bactriana_region = yes
+					}
+				}
+			}
+			trigger_event_non_silently = {
+				id = dhe_parthians.6
+				days = 1
+			}
+		}
+	}
+}
+
+# Dahae Belligerency - Situation Handled: news for the other countries holding land on the Iranian plateau and in Mesopotamia (fired by dhe_parthians.5).
+dhe_parthians.6 = { #avoided dahae invasion - event for other countries
+	type = country_event
+	title = dhe_parthians.5.t
+	desc = dhe_parthians.5.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	option = {
+		name = dhe_parthians.5.a
+		custom_tooltip = dhe_parthians.5.tt
+		add_stability = 5
+	}
+}
+
+# Hidden border clean-up after the war between the new Parthia and the country it attacked (scope:origin).
+#P:A Invictus fired this from on_ending_war (common/on_action/on_ending_war_inv.txt) for the ending country when it was an AI PTH with pth_to_clear_var; the trigger below repeats that condition, so it can be fired for every country whose war ends (root = that country)
+dhe_parthians.7 = { #fix borders post Parthia-SEL war
+	type = country_event
+	hidden = yes
+	fire_only_once = yes
+
+	trigger = {
+		#P:A TODO Approximate: Imperator required tag = PTH (the tag dhe_parthians.3/.4 gave the new Parthia); EU5 cannot change tags, so pth_to_clear_var (set only on that Parthia by those events) identifies it, and root stands in for random_country = { limit = { tag = PTH } }
+		is_ai = yes
+		has_variable = pth_to_clear_var
+	}
+
+	immediate = {
+		save_scope_as = target # Imperator random_country = { limit = { tag = PTH } save_scope_as = target ... }
+		add_stability = 30
+		if = {
+			limit = {
+				has_variable = war_of_the_diadochs
+			}
+			remove_variable = war_of_the_diadochs
+		}
+		random_country = {
+			limit = {
+				has_variable = pth_sel_clearing_var
+				is_ai = yes
+			}
+			save_scope_as = origin
+			if = {
+				limit = {
+					has_variable = war_of_the_diadochs
+					NOT = { character:sel_seleucus_nicator ?= { is_alive = yes } } # Imperator char:24 = { is_alive = no }: Seleukos I, the mod setup character sel_seleucus_nicator
+				}
+				remove_variable = war_of_the_diadochs
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:origin
+				scope:origin = {
+					any_owned_location = { # Imperator any_owned_province
+						OR = {
+							pa_imp_in_region_syria_region = yes
+							pa_imp_in_region_assyria_region = yes
+						}
+					}
+				}
+			}
+			scope:target = {
+				every_owned_location = { # Imperator every_owned_province
+					limit = {
+						OR = {
+							pa_imp_in_region_syria_region = yes
+							pa_imp_in_region_assyria_region = yes
+						}
+						NOT = {
+							owner = scope:origin
+						}
+					}
+					change_location_owner = scope:origin # Imperator set_owned_by
+				}
+			}
+		}
+		every_country = {
+			limit = {
+				OR = {
+					has_variable = pth_to_clear_var
+					has_variable = pth_sel_clearing_var
+				}
+			}
+			if = {
+				limit = { has_variable = pth_to_clear_var }
+				remove_variable = pth_to_clear_var
+			}
+			if = {
+				limit = { has_variable = pth_sel_clearing_var }
+				remove_variable = pth_sel_clearing_var
+			}
+		}
+		scope:target = {
+			hidden_effect = {
+				every_army = {
+					limit = {
+						#P:A TODO Approximate: Imperator kept the armies led by a mercenary commander; EU5 keeps the armies that contain mercenary sub-units
+						NOT = { any_sub_unit = { is_mercenary = yes } }
+					}
+					destroy_unit = yes # Imperator every_sub_unit = { destroy_subunit = yes } destroy_unit = yes
+				}
+			}
+		}
+		if = {
+			limit = { exists = scope:origin }
+			scope:target = {
+				every_area_with_owned_province = { # Imperator every_area with provinces of both scope:target and scope:origin
+					#P:A TODO Approximate: EU5 areas are not the Imperator areas this border fix was written for
+					limit = {
+						any_location_in_area = {
+							owner ?= scope:origin
+						}
+					}
+					every_location_in_area = { # Imperator every_area_province
+						limit = {
+							owner ?= scope:origin
+						}
+						change_location_owner = scope:target # Imperator set_owned_by
+					}
+				}
+			}
+		}
+	}
+}
+
+# Hidden set-up of the new Parthia (fired by dhe_parthians.3 and dhe_parthians.4): fortified steppe capital at Nisaia, new citizens, and the ruler becomes Arsaces.
+dhe_parthians.8 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		location:anew = { #P:A TODO Approximate location: Imperator Nisaia (p:6657) mapped to anew
+			add_location_modifier = {
+				modifier = dahae_capital_else
+				days = -1
+			}
+			change_building_level_in_location = { #P:A TODO Approximate: Imperator add_building_level = fortress_building; EU5 castle
+				building = building_type:castle
+				value = 1
+			}
+		}
+		hidden_effect = {
+			capital ?= {
+				add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (3 citizen pops -> size 3 burghers); culture/religion from the location's dominant culture and religion
+					type = pop_type:burghers
+					size = 3
+					culture = dominant_culture
+					religion = dominant_religion
+				}
+			}
+		}
+		# trigger_event = { #rename to arsaces
+		# 	id = me_dahae.26
+		# }
+		#P:A TODO No EU5 equivalent: me_dahae.26 (Invictus Dahae mission event that renames the country after Arsaces, tag-bound) is not part of the import
+		hidden_effect = {
+			ruler ?= {
+				set_first_name = Arsaces # Imperator set_firstname = "Arsaces"
+				# force_add_trait = tactician
+				# force_add_trait = disciplined
+				#P:A TODO No EU5 equivalent: the Imperator traits tactician and disciplined do not exist in the mod
+				pa_imp_grant_bloodline_to_descendants_effect = { BLOODLINE = arsaces }
+				if = {
+					limit = {
+						mil < 20 # Imperator martial < 4
+					}
+					add_mil = 30 # add_martial = 6
+				}
+				else_if = {
+					limit = {
+						mil < 40 # Imperator martial < 8
+					}
+					add_mil = 15 # add_martial = 3
+				}
+				else = {
+					add_mil = 5 # add_martial = 1
+				}
+				add_dip = 5 # add_charisma = 1
+			}
+		}
+		# trigger_event = { ##Give Offsprings Traits
+		# 	id = bloodlines_setup_completion.1
+		# }
+		#P:A TODO No EU5 equivalent: Invictus bloodlines (bloodlines_setup_completion.1 passes the bloodline traits on to the offspring)
+		if = {
+			limit = { exists = ruler }
+			set_variable = {
+				name = arsacid_man_c_var
+				value = root.ruler # Imperator root.current_ruler
+			}
+			ruler = {
+				set_variable = {
+					name = arsacid_man
+					value = this
+				}
+				if = {
+					limit = { has_variable = arsacid_man }
+					if = {
+						limit = {
+							var:arsacid_man = {
+								is_alive = yes
+							}
+						}
+						var:arsacid_man = {
+							save_scope_as = arsacid_man
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Hidden: an AI Dahae country that is fighting a civil war when it invades (dhe_parthians.3) absorbs the rebels and leaves all its wars.
+dhe_parthians.9 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		if = {
+			limit = {
+				in_civil_war = yes # Imperator has_civil_war
+			}
+			random_country_at_war_with = { # Imperator random_countries_at_war_with
+				limit = {
+					in_civil_war = yes # Imperator has_civil_war
+				}
+				every_owned_location = { # Imperator every_owned_province
+					limit = {
+						NOT = {
+							owner = root
+						}
+					}
+					change_location_owner = root # Imperator set_owned_by
+				}
+				every_character = {
+					kill_character = {
+						target = this
+						reason = vanished #P:A TODO Approximate: Imperator death_reason death_obscurity
+					}
+				}
+				# every_country_treasure = { transfer_treasure_to_country = ROOT }
+				#P:A TODO No EU5 equivalent: the rebels' treasures went to root (EU5 has no treasures)
+			}
+			every_current_war = { # Imperator remove_from_war = root
+				#P:A TODO Approximate: Imperator removed root from every war; EU5 makes it leave the wars it does not lead and forces a white peace in those it leads
+				save_scope_as = pa_dhe_parthians_war
+				if = {
+					limit = {
+						OR = {
+							attacker_leader ?= root
+							defender_leader ?= root
+						}
+					}
+					white_peace = scope:pa_dhe_parthians_war
+				}
+				else = {
+					root = {
+						leave_war = {
+							war = scope:pa_dhe_parthians_war
+							actor = root
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Hidden: a human Parthia that took over the Dahae while at war (dhe_parthians.4) is taken out of all its wars and its truce with scope:origin ends.
+dhe_parthians.10 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		every_current_war = { # Imperator remove_from_war = root
+#			limit = {
+#				any_war_participant = { THIS = scope:origin }
+#			}
+			#P:A TODO Approximate: Imperator removed root from every war; EU5 makes it leave the wars it does not lead and forces a white peace in those it leads
+			save_scope_as = pa_dhe_parthians_war
+			if = {
+				limit = {
+					OR = {
+						attacker_leader ?= root
+						defender_leader ?= root
+					}
+				}
+				white_peace = scope:pa_dhe_parthians_war
+			}
+			else = {
+				root = {
+					leave_war = {
+						war = scope:pa_dhe_parthians_war
+						actor = root
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:origin
+				has_truce_with = scope:origin
+			}
+			remove_truce_with = scope:origin # Imperator end_truce
+		}
+		# random_owned_province = {
+		# 	create_country = {
+		# 		save_scope_as = spawn_scope
+		# 		declare_war_with_wargoal = {
+		# 			war_goal = conquer_wargoal
+		# 			province = ROOT.capital_scope
+		# 			target = ROOT
+		# 		}
+		# 		every_owned_province = {
+		# 			limit = {
+		# 				NOT = {
+		# 					owner = root
+		# 				}
+		# 			}
+		# 			set_owned_by = ROOT
+		# 		}
+		# 		every_character = {
+		# 			death = {
+		# 				death_reason = death_obscurity
+		# 			}
+		# 		}
+		# 		every_country_treasure = { transfer_treasure_to_country = ROOT }
+		# 	}
+		# }
+		# every_current_war = {
+		# 	remove_from_war = root
+		# }
+		#P:A TODO No EU5 equivalent: Imperator workaround - it spawned a throwaway country in one of root's provinces that declared war on root, handed the province straight back and died, then removed root from every war again (apparently to reset Imperator's war state). Not carried over: EU5 has already ended the wars above, and a spawned country would leave a new tag behind
+	}
+}

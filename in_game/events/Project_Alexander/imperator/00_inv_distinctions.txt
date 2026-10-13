@@ -1,0 +1,54 @@
+﻿#P:A Imported from Invictus: events/00_inv_distinctions.txt (batch b07)
+#P:A Fired by Invictus from on_great_battle_won_country (EU5: root = country, scope:actor = own unit, scope:target = enemy unit), like the events of distinctions.txt.
+#P:A TODO No EU5 equivalent: the event exists to add an Imperator legion distinction (and legion history). EU5 has no legions or distinctions, so it is kept disabled with always = no and the legion code is commented out for a later port (e.g. to unit modifiers).
+namespace = inv_distinction
+
+inv_distinction.1 = { # Hetairoi
+	type = country_event
+	title = inv_distinction.1.t
+	desc = inv_distinction.1.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: grants the legion distinction Sarissa (distinction_sarissa); EU5 has no legions or distinctions
+		scope:actor = {
+			# has_legion_trigger = yes
+			# legion = {
+			# 	NOT = { has_distinction = distinction_sarissa }
+			# }
+			#P:A TODO No EU5 equivalent: the unit must belong to a legion without the distinction
+			any_sub_unit = {
+				count >= 16
+				sub_unit_category = sub_unit_category:army_spearmen #P:A TODO Approximate: Imperator spearmen cohorts -> EU5 spearmen subunits (count kept at 16)
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		scope:actor.leader ?= {
+			save_scope_as = pa_commander # Imperator right_portrait = scope:actor.commander
+		}
+	}
+
+	option = {
+		name = inv_distinction.1.a
+		# scope:actor.legion = {
+		# 	add_distinction = distinction_sarissa
+		# 	hidden_effect = {
+		# 		add_legion_history = {
+		# 			key = legion_history_sarissa
+		# 			commander = scope:actor.commander
+		# 			province = scope:actor.unit_location
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: adds the distinction Sarissa and a legion history entry (EU5 has no legions)
+	}
+}

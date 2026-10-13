@@ -5,3 +5,2429 @@
 # In EU5 they are meant for on_military_annex / on_diplomatic_annex (fired before the annexation happens;
 # root = annexing country, scope:target = annexed country); each event saves its own annexer/annexee scopes.
 namespace = annexation
+
+# Fugitives from a conquered country reach us (first banishment destination of annexation.3, option b).
+# Fired by annexation.3 on the receiving country; scope:annexer, scope:annexee and scope:banish_first/second/third
+# travel with it.
+annexation.1 = {
+	type = country_event
+	title = annexation.1.t
+	desc = annexation.1.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = current_ruler # left_portrait = current_ruler
+		}
+	}
+
+	option = {
+		name = annexation.1.a
+		# scope:banish_first = { add_loyalty = loyalty_offered_refuge set_home_country = ROOT set_as_minor_character = THIS }
+		# scope:banish_second = { add_loyalty = loyalty_offered_refuge set_home_country = ROOT set_as_minor_character = THIS }
+		# scope:banish_third = { add_loyalty = loyalty_offered_refuge set_home_country = ROOT set_as_minor_character = THIS }
+		#P:A TODO No EU5 equivalent: the refugees gained loyalty (loyalty_offered_refuge), had their home country set to us and became minor characters (EU5 has no character loyalty, home country or minor characters); annexation.3 already moved them to our country
+		ai_chance = {
+			base = 20
+		}
+	}
+
+	option = {
+		name = annexation.1.b
+		trigger = {
+			NAND = {
+				scope:banish_first ?= {
+					dynasty ?= root.ruler.dynasty # has_same_family = root.current_ruler
+				}
+				scope:banish_second ?= {
+					dynasty ?= root.ruler.dynasty
+				}
+				scope:banish_third ?= {
+					dynasty ?= root.ruler.dynasty
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:banish_first ?= {
+					is_alive = yes
+					NOT = { dynasty ?= root.ruler.dynasty }
+				}
+			}
+			kill_character = { #P:A TODO Approximate: Imperator death reason "crucified"; EU5 execution used
+				target = scope:banish_first
+				reason = execution
+			}
+		}
+		if = {
+			limit = {
+				scope:banish_second ?= {
+					is_alive = yes
+					NOT = { dynasty ?= root.ruler.dynasty }
+				}
+			}
+			kill_character = { #P:A TODO Approximate: Imperator death reason "crucified"; EU5 execution used
+				target = scope:banish_second
+				reason = execution
+			}
+		}
+		if = {
+			limit = {
+				scope:banish_third ?= {
+					is_alive = yes
+					NOT = { dynasty ?= root.ruler.dynasty }
+				}
+			}
+			kill_character = { #P:A TODO Approximate: Imperator death reason "crucified"; EU5 execution used
+				target = scope:banish_third
+				reason = execution
+			}
+		}
+		scope:annexer ?= {
+			add_opinion = {
+				modifier = killed_fugitives
+				target = root
+			}
+		}
+		ai_chance = {
+			base = 80
+		}
+	}
+}
+
+# Fugitives from a conquered country reach us (second banishment destination of annexation.3, option b).
+# Fired by annexation.3 on the receiving country; scope:annexer, scope:annexee and scope:banish_2_first/second/third
+# travel with it.
+annexation.2 = {
+	type = country_event
+	title = annexation.2.t
+	desc = annexation.2.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = current_ruler # left_portrait = current_ruler
+		}
+	}
+
+	option = {
+		name = annexation.2.a
+		# scope:banish_2_first = { add_loyalty = loyalty_offered_refuge }
+		# scope:banish_2_second = { add_loyalty = loyalty_offered_refuge }
+		# scope:banish_2_third = { add_loyalty = loyalty_offered_refuge }
+		#P:A TODO No EU5 equivalent: the refugees gained loyalty (loyalty_offered_refuge); EU5 characters have no loyalty. annexation.3 already moved them to our country
+		ai_chance = {
+			base = 20
+		}
+	}
+
+	option = {
+		name = annexation.2.b
+		trigger = {
+			NAND = {
+				scope:banish_2_first ?= {
+					dynasty ?= root.ruler.dynasty # has_same_family = root.current_ruler
+				}
+				scope:banish_2_second ?= {
+					dynasty ?= root.ruler.dynasty
+				}
+				scope:banish_2_third ?= {
+					dynasty ?= root.ruler.dynasty
+				}
+			}
+		}
+		if = {
+			limit = {
+				scope:banish_2_first ?= {
+					is_alive = yes # added: kill_character needs a living character
+					NOT = { dynasty ?= root.ruler.dynasty }
+				}
+			}
+			kill_character = { #P:A TODO Approximate: Imperator death reason "crucified"; EU5 execution used
+				target = scope:banish_2_first
+				reason = execution
+			}
+		}
+		if = {
+			limit = {
+				scope:banish_2_second ?= {
+					is_alive = yes
+					NOT = { dynasty ?= root.ruler.dynasty }
+				}
+			}
+			kill_character = { #P:A TODO Approximate: Imperator death reason "crucified"; EU5 execution used
+				target = scope:banish_2_second
+				reason = execution
+			}
+		}
+		if = {
+			limit = {
+				scope:banish_2_third ?= {
+					is_alive = yes
+					NOT = { dynasty ?= root.ruler.dynasty }
+				}
+			}
+			kill_character = { #P:A TODO Approximate: Imperator death reason "crucified"; EU5 execution used
+				target = scope:banish_2_third
+				reason = execution
+			}
+		}
+		scope:annexer ?= {
+			add_opinion = {
+				modifier = killed_fugitives
+				target = root
+			}
+		}
+		ai_chance = {
+			base = 80
+		}
+	}
+}
+
+# The elite of a country we conquered awaits our judgment.
+# Imperator fired it from on_annexation_event_effect (annexation by conquest, i.e. the annexee was not our subject).
+# Meant for on_military_annex: root = annexing country, scope:target = annexed country (fired before the annexation).
+#P:A TODO Approximate: Imperator death reasons are mapped in this event as slaughtered_during_conquest -> country_annexed, obscurity / mysteriously_retired -> vanished, sacrifice -> sacrifice; EU5 kill_character has no silent mode (the kills sit in hidden_effect)
+annexation.3 = {
+	type = country_event
+	title = annexation.3.t
+	desc = annexation.3.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		OR = {
+			exists = scope:annexee
+			exists = scope:target
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:annexer } }
+			save_scope_as = annexer
+		}
+		if = {
+			limit = { NOT = { exists = scope:annexee } }
+			scope:target = {
+				save_scope_as = annexee
+			}
+		}
+		# scope:annexee = { every_country_treasure = { add_to_list = annexed_treasures } }
+		#P:A TODO No EU5 equivalent: the annexed country's treasures were listed here and handed to the annexer at the end of immediate (EU5 has no treasures)
+		hidden_effect = {
+			# scope:annexer = {
+			# 	every_character = {
+			# 		limit = { prisoner = yes has_variable = came_from var:came_from = scope:annexee }
+			# 		set_as_minor_character = THIS
+			# 		add_to_list = imprisonment_list
+			# 	}
+			# }
+			#P:A TODO No EU5 equivalent: prisoners from the annexed country held by the annexer joined the imprisonment list (EU5 has no prisoners)
+			# every_living_character = { limit = { has_variable = came_from var:came_from = scope:annexee } set_as_minor_character = THIS }
+			#P:A TODO No EU5 equivalent: characters who came from the annexed country became minor characters (EU5 has no minor characters)
+
+			scope:annexee = {
+
+				#Much of this logic is replicated in the on_diplo_annexation_event_effect on_action, please don't change this without also changing that.
+				#Comments should also be kept similar.
+
+				#This is where we send foreigners home:
+				# if = {
+				# 	limit = { any_character = { has_variable = came_from var:came_from = scope:annexer prisoner = yes } }
+				# 	every_character = {
+				# 		limit = { has_variable = came_from var:came_from = scope:annexer prisoner = yes }
+				# 		scope:annexee = { release_prisoner = { target = prev } }
+				# 		remove_all_positions = yes
+				# 		move_country_with_message = scope:annexer
+				# 		if = { limit = { has_character_modifier = foreign_citizen } remove_character_modifier = foreign_citizen }
+				# 	}
+				# }
+				#P:A TODO No EU5 equivalent: our citizens held prisoner by the annexed country were released and sent home (EU5 has no prisoners)
+
+				#Mercenaries also go Home:
+				# if = {
+				# 	limit = { any_character = { is_mercenary = yes OR = { is_general = yes is_admiral = yes } } }
+				# 	every_character = { limit = { is_mercenary = yes OR = { is_general = yes is_admiral = yes } } move_country = c:MER }
+				# }
+				#P:A TODO No EU5 equivalent: mercenary commanders returned to the Imperator mercenary country MER (EU5 mercenaries are companies, not characters of a country)
+
+				#This is finding where banished people go:
+				if = {
+					limit = {
+						scope:annexer = {
+							any_country_in_diplomatic_range = { # in_diplomatic_range
+								NOR = {
+									this = scope:annexer
+									this = scope:annexee
+								}
+							}
+						}
+					}
+					scope:annexer = {
+						random_country_in_diplomatic_range = {
+							limit = {
+								NOR = {
+									this = scope:annexer
+									this = scope:annexee
+								}
+							}
+							weight = {
+								base = 1
+								modifier = {
+									factor = 50
+									has_mutual_scripted_relation = { # alliance_with = scope:annexee
+										type = relation_type:alliance
+										target = scope:annexee
+									}
+								}
+								modifier = {
+									factor = 100
+									opinion = {
+										target = scope:annexee
+										value > 80
+									}
+								}
+							}
+							save_scope_as = banishment_country
+						}
+					}
+				}
+
+				#This is finding the second country for banished people to go:
+				if = {
+					limit = {
+						exists = scope:banishment_country
+						scope:annexer = {
+							any_country_in_diplomatic_range = {
+								NOR = {
+									this = scope:banishment_country
+									this = scope:annexer
+									this = scope:annexee
+								}
+							}
+						}
+					}
+					scope:annexer = {
+						random_country_in_diplomatic_range = {
+							limit = {
+								NOR = {
+									this = scope:banishment_country
+									this = scope:annexer
+									this = scope:annexee
+								}
+							}
+							weight = {
+								base = 1
+								modifier = {
+									factor = 50
+									has_mutual_scripted_relation = {
+										type = relation_type:alliance
+										target = scope:annexee
+									}
+								}
+								modifier = {
+									factor = 100
+									opinion = {
+										target = scope:annexee
+										value > 80
+									}
+								}
+							}
+							save_scope_as = banishment_country_2
+						}
+					}
+				}
+
+				#Banishment Logic:
+				#First these characters are sent to the Annexer - Depending on choices they are later killed or Banished.
+
+				#First Destination:
+				if = {
+					limit = {
+						exists = scope:banishment_country #First Banishment Destination
+					}
+					ordered_character = { #Destined for the first Banishment Destination
+						limit = {
+							is_alive = yes
+							NOT = { is_in_list = banishment_list }
+						}
+						order_by = pa_imp_banishment_importance_1
+						check_range_bounds = no
+						max = 3
+						if = {
+							limit = { NOT = { exists = scope:banish_first } }
+							save_scope_as = banish_first
+						}
+						else_if = {
+							limit = { NOT = { exists = scope:banish_second } }
+							save_scope_as = banish_second
+						}
+						else_if = {
+							limit = { NOT = { exists = scope:banish_third } }
+							save_scope_as = banish_third
+						}
+						add_to_list = banishment_list
+					}
+				}
+
+				#Second Destination:
+				if = {
+					limit = {
+						exists = scope:banishment_country_2 #Second Banishment Destination
+					}
+					ordered_character = { #Destined for the second Banishment Destination
+						limit = {
+							is_alive = yes
+							NOT = { is_in_list = banishment_list }
+						}
+						order_by = pa_imp_banishment_importance_2
+						check_range_bounds = no
+						max = 3
+						if = {
+							limit = { NOT = { exists = scope:banish_2_first } }
+							save_scope_as = banish_2_first
+						}
+						else_if = {
+							limit = { NOT = { exists = scope:banish_2_second } }
+							save_scope_as = banish_2_second
+						}
+						else_if = {
+							limit = { NOT = { exists = scope:banish_2_third } }
+							save_scope_as = banish_2_third
+						}
+						add_to_list = banishment_list
+					}
+				}
+
+				#These are people we can imprison:
+				ordered_character = { #Prison Candidates
+					limit = {
+						is_alive = yes
+						is_ruler = no
+						NOT = { is_in_list = imprisonment_list }
+					}
+					check_range_bounds = no
+					order_by = pa_imp_importance_value
+					max = 2
+					add_to_list = imprisonment_list
+				}
+				if = { #Ruler also goes to Prison
+					limit = {
+						exists = ruler
+					}
+					ruler = {
+						save_scope_as = ruler_target_annex
+						if = {
+							limit = {
+								OR = {
+									is_general = yes
+									is_admiral = yes
+								}
+							}
+							remove_commander = scope:ruler_target_annex # remove_command = yes
+						}
+						# if = { limit = { scope:annexer = { exists = current_ruler } is_rival = scope:annexer.current_ruler } remove_rival = scope:annexer.current_ruler }
+						#P:A TODO No EU5 equivalent: ended a rivalry between the conquered ruler and our ruler (EU5 has no character rivals)
+						if = {
+							limit = {
+								is_alive = yes
+								NOT = { is_in_list = imprisonment_list }
+							}
+							add_to_list = imprisonment_list
+						}
+					}
+				}
+
+				#Families!
+
+				#This is where we find our candidate families to accept:
+				ordered_dynasty = {
+					limit = {
+						any_character_in_dynasty = {
+							is_alive = yes
+							employer = scope:annexee
+						}
+					}
+					order_by = total_dynastic_power #P:A TODO Approximate: Imperator ordered families by family prestige; EU5 dynasties have no prestige, total dynastic power used
+					max = 4
+					check_range_bounds = no
+					if = {
+						limit = { NOT = { exists = scope:first_family } }
+						save_scope_as = first_family
+					}
+					else_if = {
+						limit = { NOT = { exists = scope:second_family } }
+						save_scope_as = second_family
+					}
+					else_if = {
+						limit = { NOT = { exists = scope:third_family } }
+						save_scope_as = third_family
+					}
+					else_if = {
+						limit = { NOT = { exists = scope:fourth_family } }
+						save_scope_as = fourth_family
+					}
+				}
+
+				#These are members of the Annexed country's great families that we may be accepting:
+				# EU5 dynasties span countries (Imperator families belong to one country), so every pick below is limited to
+				# characters of the annexed country.
+				#P:A TODO Approximate: when the EU5 dynasty head serves another country, the dynasty's most important member in the annexed country stands in as the family head
+				#P:A TODO No EU5 equivalent: Imperator also required power_base > 1 for the two leading members and health >= 20 for the women picked (EU5 characters have neither)
+				#P:A TODO Approximate: EU5 iterators have no alternative_limit; Imperator's fallback limits for the women picked (unmarried, 13-34, bloodline first, then up to 40) are folded into order_by
+
+				#First Family:
+				if = {
+					limit = {
+						exists = scope:first_family
+					}
+					scope:first_family = {
+						if = {
+							limit = {
+								dynasty_head ?= {
+									is_alive = yes
+									employer = scope:annexee
+								}
+							}
+							dynasty_head = {
+								save_scope_as = first_family_head
+							}
+						}
+						else = {
+							ordered_character_in_dynasty = {
+								limit = { employer = scope:annexee }
+								order_by = pa_imp_importance_value
+								max = 1
+								check_range_bounds = no
+								save_scope_as = first_family_head
+							}
+						}
+						scope:first_family_head ?= {
+							add_to_list = first_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = first_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								NOT = { is_in_list = first_annex_family_list } # is_head_of_family = no (the head is already listed)
+							}
+							max = 2
+							check_range_bounds = no
+							order_by = { #P:A TODO Approximate: Imperator power_base; (adm + dip + mil) used
+								value = adm
+								add = dip
+								add = mil
+							}
+							add_to_list = first_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = first_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								is_female = yes
+								age_in_years < 40
+							}
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+								if = {
+									limit = {
+										age_in_years < 35
+										is_married = no
+									}
+									add = 1000
+								}
+								if = {
+									limit = { pa_imp_has_bloodline_trigger = yes }
+									add = 1000
+								}
+								if = {
+									limit = { age_in_years > 12 }
+									add = 500
+								}
+							}
+							check_range_bounds = no
+							max = 2
+							add_to_list = first_annex_family_list
+						}
+					}
+				}
+				#Second Family:
+				if = {
+					limit = {
+						exists = scope:second_family
+					}
+					scope:second_family = {
+						if = {
+							limit = {
+								dynasty_head ?= {
+									is_alive = yes
+									employer = scope:annexee
+								}
+							}
+							dynasty_head = {
+								save_scope_as = second_family_head
+							}
+						}
+						else = {
+							ordered_character_in_dynasty = {
+								limit = { employer = scope:annexee }
+								order_by = pa_imp_importance_value
+								max = 1
+								check_range_bounds = no
+								save_scope_as = second_family_head
+							}
+						}
+						scope:second_family_head ?= {
+							add_to_list = second_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = second_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								NOT = { is_in_list = second_annex_family_list }
+							}
+							max = 2
+							check_range_bounds = no
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+							}
+							pa_imp_remove_all_positions = yes
+							add_to_list = second_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = second_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								is_female = yes
+								age_in_years < 40
+							}
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+								if = {
+									limit = {
+										age_in_years < 35
+										is_married = no
+									}
+									add = 1000
+								}
+								if = {
+									limit = { pa_imp_has_bloodline_trigger = yes }
+									add = 1000
+								}
+								if = {
+									limit = { age_in_years > 12 }
+									add = 500
+								}
+							}
+							check_range_bounds = no
+							max = 2
+							add_to_list = second_annex_family_list
+						}
+					}
+				}
+				#Third Family:
+				if = {
+					limit = {
+						exists = scope:third_family
+					}
+					scope:third_family = {
+						if = {
+							limit = {
+								dynasty_head ?= {
+									is_alive = yes
+									employer = scope:annexee
+								}
+							}
+							dynasty_head = {
+								save_scope_as = third_family_head
+							}
+						}
+						else = {
+							ordered_character_in_dynasty = {
+								limit = { employer = scope:annexee }
+								order_by = pa_imp_importance_value
+								max = 1
+								check_range_bounds = no
+								save_scope_as = third_family_head
+							}
+						}
+						scope:third_family_head ?= {
+							add_to_list = third_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = third_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								NOT = { is_in_list = third_annex_family_list }
+							}
+							max = 2
+							check_range_bounds = no
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+							}
+							add_to_list = third_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = third_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								is_female = yes
+								age_in_years < 40
+							}
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+								if = {
+									limit = {
+										age_in_years < 35
+										is_married = no
+									}
+									add = 1000
+								}
+								if = {
+									limit = { pa_imp_has_bloodline_trigger = yes }
+									add = 1000
+								}
+								if = {
+									limit = { age_in_years > 12 }
+									add = 500
+								}
+							}
+							check_range_bounds = no
+							max = 2
+							add_to_list = third_annex_family_list
+						}
+					}
+				}
+				#Fourth Family:
+				if = {
+					limit = {
+						exists = scope:fourth_family
+					}
+					scope:fourth_family = {
+						if = {
+							limit = {
+								dynasty_head ?= {
+									is_alive = yes
+									employer = scope:annexee
+								}
+							}
+							dynasty_head = {
+								save_scope_as = fourth_family_head
+							}
+						}
+						else = {
+							ordered_character_in_dynasty = {
+								limit = { employer = scope:annexee }
+								order_by = pa_imp_importance_value
+								max = 1
+								check_range_bounds = no
+								save_scope_as = fourth_family_head
+							}
+						}
+						scope:fourth_family_head ?= {
+							add_to_list = fourth_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = fourth_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								NOT = { is_in_list = fourth_annex_family_list }
+							}
+							max = 2
+							check_range_bounds = no
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+							}
+							add_to_list = fourth_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = fourth_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								is_female = yes
+								age_in_years < 40
+							}
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+								if = {
+									limit = {
+										age_in_years < 35
+										is_married = no
+									}
+									add = 1000
+								}
+								if = {
+									limit = { pa_imp_has_bloodline_trigger = yes }
+									add = 1000
+								}
+								if = {
+									limit = { age_in_years > 12 }
+									add = 500
+								}
+							}
+							check_range_bounds = no
+							max = 2
+							add_to_list = fourth_annex_family_list
+						}
+						save_scope_as = family_4
+					}
+				}
+
+				#Now we move everyone of interest:
+				every_character = {
+					limit = {
+						OR = {
+							is_in_list = first_annex_family_list
+							is_in_list = second_annex_family_list
+							is_in_list = third_annex_family_list
+							is_in_list = fourth_annex_family_list
+							is_in_list = imprisonment_list
+							is_in_list = banishment_list
+						}
+					}
+					pa_imp_remove_all_positions = yes
+					move_country = scope:annexer
+					# set_as_minor_character = THIS
+					# set_home_country = scope:annexer
+					# add_loyalty = annexed_home_country
+					#P:A TODO No EU5 equivalent: the moved characters became minor characters with the annexer as home country and the "annexed home country" loyalty modifier (EU5 has no minor characters, home country or loyalty)
+				}
+
+				every_character = { #The rest die or vanish into obscurity.
+					if = {
+						limit = {
+							is_adult = yes
+							NOR = {
+								is_in_list = first_annex_family_list
+								is_in_list = second_annex_family_list
+								is_in_list = third_annex_family_list
+								is_in_list = fourth_annex_family_list
+								is_in_list = imprisonment_list
+								is_in_list = banishment_list
+							}
+						}
+						kill_character = {
+							target = this
+							reason = country_annexed # death_slaughtered_during_conquest
+						}
+						root = {
+							pa_imp_country_kill_counter_effect = yes
+						}
+					}
+					else_if = {
+						limit = {
+							NOR = {
+								is_in_list = first_annex_family_list
+								is_in_list = second_annex_family_list
+								is_in_list = third_annex_family_list
+								is_in_list = fourth_annex_family_list
+								is_in_list = imprisonment_list
+								is_in_list = banishment_list
+							}
+						}
+						kill_character = {
+							target = this
+							reason = vanished # death_obscurity
+						}
+					}
+				}
+				every_character = {
+					if = {
+						limit = { is_adult = yes }
+						kill_character = {
+							target = this
+							reason = country_annexed # death_slaughtered_during_conquest
+						}
+						root = {
+							pa_imp_country_kill_counter_effect = yes
+						}
+					}
+					else = {
+						kill_character = {
+							target = this
+							reason = vanished # death_obscurity
+						}
+					}
+				}
+			}
+		}
+		# every_in_list = { list = annexed_treasures transfer_treasure_to_country = scope:annexer }
+		#P:A TODO No EU5 equivalent: treasures of the annexed country go to the annexer (EU5 has no treasures)
+	}
+
+	option = {
+		name = annexation.3.a #Kill all.
+		trigger = {
+			NOT = { scope:annexer = { has_country_modifier = androphagia_cannibal_frenzy_mod } }
+		}
+		ai_chance = {
+			base = 30
+		}
+		custom_tooltip = everybody_gonna_die
+
+		hidden_effect = { #Here we handle everyone not yet killed.
+			#Those who could have lived:
+			every_character = { #Now we kill everyone of interest:
+				limit = {
+					OR = {
+						is_in_list = first_annex_family_list
+						is_in_list = second_annex_family_list
+						is_in_list = third_annex_family_list
+						is_in_list = fourth_annex_family_list
+						is_in_list = imprisonment_list
+						is_in_list = banishment_list
+					}
+				}
+				pa_imp_remove_all_positions = yes
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables.
+				if = {
+					limit = { is_adult = yes }
+					kill_character = {
+						target = this
+						reason = country_annexed # death_slaughtered_during_conquest
+					}
+				}
+				else = {
+					kill_character = {
+						target = this
+						reason = vanished # death_obscurity
+					}
+				}
+			}
+		}
+
+		# current_ruler = { add_popularity = 5 }
+		#P:A TODO No EU5 equivalent: +5 popularity for our ruler (EU5 characters have no popularity)
+		# scope:annexer = { random_country_culture = { limit = { this.culture = scope:annexee.culture } add_country_culture_modifier = { name = annexed_my_home_culture duration = 1825 } } }
+		#P:A TODO No EU5 equivalent: if the annexed country's culture is one of our non-primary country cultures, that culture got "Annexation: Massacred our Nobility" for 5 years (replacing the lenient version); EU5 has no per-country culture modifiers
+	}
+
+	option = {
+		name = annexation.3.b #Banish Important People
+		trigger = {
+			OR = {
+				exists = scope:banishment_country
+				exists = scope:banishment_country_2
+			}
+			NOT = { scope:annexer = { has_country_modifier = androphagia_cannibal_frenzy_mod } }
+		}
+		ai_chance = {
+			base = 20
+		}
+
+		custom_tooltip = important_people_banished
+		hidden_effect = {
+
+			#The first Banishment Destination:
+			# set_as_minor_character = THIS after each move_country below #P:A TODO No EU5 equivalent: banished characters became minor characters
+
+			#Char number 1
+			if = {
+				limit = {
+					exists = scope:banish_first
+					scope:banish_first = {
+						is_alive = yes
+					}
+					exists = scope:banishment_country
+				}
+				scope:banish_first = {
+					pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+					pa_imp_remove_all_positions = yes
+					move_country = scope:banishment_country
+				}
+			}
+			else_if = {
+				limit = {
+					exists = scope:banish_first
+					scope:banish_first = { is_alive = yes } # added: kill_character needs a living character
+				}
+				scope:banish_first = {
+					pa_imp_annexation_character_cleanup = yes
+					pa_imp_remove_all_positions = yes
+				}
+				kill_character = {
+					target = scope:banish_first
+					reason = vanished # death_mysteriously_retired
+				}
+			}
+
+			#Char Number 2
+			if = {
+				limit = {
+					exists = scope:banish_second
+					exists = scope:banishment_country
+					scope:banish_second = {
+						is_alive = yes
+					}
+				}
+				scope:banish_second = {
+					pa_imp_annexation_character_cleanup = yes
+					pa_imp_remove_all_positions = yes
+					move_country = scope:banishment_country
+				}
+			}
+			else_if = {
+				limit = {
+					exists = scope:banish_second
+					scope:banish_second = { is_alive = yes }
+				}
+				scope:banish_second = {
+					pa_imp_annexation_character_cleanup = yes
+					pa_imp_remove_all_positions = yes
+				}
+				kill_character = {
+					target = scope:banish_second
+					reason = vanished # death_mysteriously_retired
+				}
+			}
+
+			#Char number 3
+			if = {
+				limit = {
+					exists = scope:banish_third
+					exists = scope:banishment_country
+					scope:banish_third = {
+						is_alive = yes
+					}
+				}
+				scope:banish_third = {
+					pa_imp_annexation_character_cleanup = yes
+					pa_imp_remove_all_positions = yes
+					move_country = scope:banishment_country
+				}
+			}
+			else_if = {
+				limit = {
+					exists = scope:banish_third
+					scope:banish_third = { is_alive = yes }
+				}
+				scope:banish_third = {
+					pa_imp_annexation_character_cleanup = yes
+					pa_imp_remove_all_positions = yes
+				}
+				kill_character = {
+					target = scope:banish_third
+					reason = vanished # death_mysteriously_retired
+				}
+			}
+
+			#Now Recieving country gets an event if anyone arrived:
+			if = {
+				limit = {
+					exists = scope:banish_first
+					exists = scope:banish_second
+					exists = scope:banish_third
+					exists = scope:banishment_country
+				}
+				scope:banishment_country = {
+					trigger_event_non_silently = annexation.1
+				}
+			}
+
+			#The Second Banishment Destination:
+
+			#Char number 1
+			if = {
+				limit = {
+					exists = scope:banish_2_first
+					exists = scope:banishment_country_2
+				}
+				scope:banish_2_first = {
+					pa_imp_annexation_character_cleanup = yes
+					pa_imp_remove_all_positions = yes
+					move_country = scope:banishment_country_2
+				}
+			}
+			else_if = {
+				limit = {
+					exists = scope:banish_2_first
+					scope:banish_2_first = { is_alive = yes }
+				}
+				scope:banish_2_first = {
+					pa_imp_annexation_character_cleanup = yes
+					pa_imp_remove_all_positions = yes
+				}
+				kill_character = {
+					target = scope:banish_2_first
+					reason = vanished # death_mysteriously_retired
+				}
+			}
+
+			#Char Number 2
+			if = {
+				limit = {
+					exists = scope:banish_2_second
+					exists = scope:banishment_country_2
+				}
+				scope:banish_2_second = {
+					pa_imp_annexation_character_cleanup = yes
+					pa_imp_remove_all_positions = yes
+					move_country = scope:banishment_country_2
+				}
+			}
+			else_if = {
+				limit = {
+					exists = scope:banish_2_second
+					scope:banish_2_second = { is_alive = yes }
+				}
+				scope:banish_2_second = {
+					pa_imp_annexation_character_cleanup = yes
+					pa_imp_remove_all_positions = yes
+				}
+				kill_character = {
+					target = scope:banish_2_second
+					reason = vanished # death_mysteriously_retired
+				}
+			}
+
+			#Char number 3
+			if = {
+				limit = {
+					exists = scope:banish_2_third
+					exists = scope:banishment_country_2
+				}
+				scope:banish_2_third = {
+					pa_imp_annexation_character_cleanup = yes
+					pa_imp_remove_all_positions = yes
+					move_country = scope:banishment_country_2
+				}
+			}
+			else_if = {
+				limit = {
+					exists = scope:banish_2_third
+					scope:banish_2_third = { is_alive = yes }
+				}
+				scope:banish_2_third = {
+					pa_imp_annexation_character_cleanup = yes
+					pa_imp_remove_all_positions = yes
+				}
+				kill_character = {
+					target = scope:banish_2_third
+					reason = vanished # death_mysteriously_retired
+				}
+			}
+
+			#Now Recieving country gets an event if anyone arrived:
+			if = {
+				limit = {
+					exists = scope:banish_2_first
+					exists = scope:banish_2_second
+					exists = scope:banish_2_third
+					exists = scope:banishment_country_2
+				}
+				scope:banishment_country_2 = {
+					trigger_event_non_silently = annexation.2
+				}
+			}
+		}
+		# add_aggressive_expansion = -0.5
+		#P:A TODO No EU5 equivalent: -0.5 aggressive expansion (EU5 has no aggressive expansion)
+		hidden_effect = {
+			#Those who could have lived:
+			every_character = { #anyone still alive with any of these variables is now killed.
+				limit = {
+					OR = {
+						is_in_list = first_annex_family_list
+						is_in_list = second_annex_family_list
+						is_in_list = third_annex_family_list
+						is_in_list = fourth_annex_family_list
+						is_in_list = imprisonment_list
+						is_in_list = banishment_list
+					}
+				}
+				pa_imp_remove_all_positions = yes
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables.
+				if = {
+					limit = { is_adult = yes }
+					kill_character = {
+						target = this
+						reason = country_annexed # death_slaughtered_during_conquest
+					}
+				}
+				else = {
+					kill_character = {
+						target = this
+						reason = vanished # death_obscurity
+					}
+				}
+			}
+		}
+		# scope:annexer = { random_country_culture = { limit = { this.culture = scope:annexee.culture } add_country_culture_modifier = { name = annexed_my_home_culture_lenient duration = 1825 } } }
+		#P:A TODO No EU5 equivalent: if the annexed country's culture is one of our non-primary country cultures (and has neither annexation modifier), it got "Annexation: Conquest of our People" for 5 years; EU5 has no per-country culture modifiers
+	}
+
+	option = {
+		name = annexation.3.c #Imprison prisonworthy people.
+		trigger = {
+			NOT = { scope:annexer = { has_country_modifier = androphagia_cannibal_frenzy_mod } }
+		}
+		ai_chance = {
+			base = 10
+		}
+		custom_tooltip = important_prisoners_taken
+		# current_ruler = { add_popularity = -3.5 }
+		#P:A TODO No EU5 equivalent: -3.5 popularity for our ruler (EU5 characters have no popularity)
+		hidden_effect = {
+			every_character = { #This is where we imprison those that we took in.
+				limit = {
+					is_in_list = imprisonment_list
+				}
+				# save_scope_as = temp_prison
+				# if = { limit = { prisoner = no } scope:annexer = { imprison = { target = scope:temp_prison } } }
+				# clear_saved_scope = temp_prison
+				#P:A TODO No EU5 equivalent: the listed characters were imprisoned by the annexer (EU5 has no prisoners); they stay at our court as ordinary characters instead
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+			}
+			#Those who could have lived:
+			every_character = { #anyone still alive with any of these variables is now killed.
+				limit = {
+					OR = {
+						is_in_list = first_annex_family_list
+						is_in_list = second_annex_family_list
+						is_in_list = third_annex_family_list
+						is_in_list = fourth_annex_family_list
+						is_in_list = imprisonment_list
+						is_in_list = banishment_list
+					}
+				}
+				pa_imp_remove_all_positions = yes
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables.
+				if = {
+					limit = { is_adult = yes }
+					kill_character = {
+						target = this
+						reason = country_annexed # death_slaughtered_during_conquest
+					}
+				}
+				else = {
+					kill_character = {
+						target = this
+						reason = vanished # death_obscurity
+					}
+				}
+			}
+		}
+		# scope:annexer = { random_country_culture = { limit = { this.culture = scope:annexee.culture } add_country_culture_modifier = { name = annexed_my_home_culture_lenient duration = 1825 } } }
+		#P:A TODO No EU5 equivalent: "Annexation: Conquest of our People" on the annexed culture inside our country for 5 years (EU5 has no per-country culture modifiers)
+	}
+
+	option = {
+		name = annexation.3.d #Sell off assets
+		ai_chance = {
+			base = 30
+		}
+		trigger = {
+			NOT = { scope:annexer = { has_country_modifier = androphagia_cannibal_frenzy_mod } }
+		}
+		custom_tooltip = seize_all_assets_tt
+		add_gold = {
+			value = monthly_income_total # has_monthly_income
+			divide = 4
+			min = 10
+			max = 50
+		}
+		hidden_effect = { #Here we handle everyone not yet killed.
+			#Those who could have lived:
+			every_character = { #Now we kill everyone of interest:
+				limit = {
+					OR = {
+						is_in_list = first_annex_family_list
+						is_in_list = second_annex_family_list
+						is_in_list = third_annex_family_list
+						is_in_list = fourth_annex_family_list
+						is_in_list = imprisonment_list
+						is_in_list = banishment_list
+					}
+				}
+				pa_imp_remove_all_positions = yes
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables.
+				if = {
+					limit = { is_adult = yes }
+					kill_character = {
+						target = this
+						reason = country_annexed # death_slaughtered_during_conquest
+					}
+				}
+				else = {
+					kill_character = {
+						target = this
+						reason = vanished # death_obscurity
+					}
+				}
+			}
+		}
+		# scope:annexer = { random_country_culture = { limit = { this.culture = scope:annexee.culture } add_country_culture_modifier = { name = annexed_my_home_culture duration = 1825 } } }
+		#P:A TODO No EU5 equivalent: "Annexation: Massacred our Nobility" on the annexed culture inside our country for 5 years (EU5 has no per-country culture modifiers)
+	}
+
+	option = {
+		name = annexation.3.e
+		trigger = {
+			NOT = { scope:annexer = { has_country_modifier = androphagia_cannibal_frenzy_mod } }
+		}
+		ai_chance = {
+			base = 10
+		}
+		custom_tooltip = decide_for_each_important_family
+		hidden_effect = {
+			scope:annexer = {
+				trigger_event_non_silently = annexation.4
+			}
+		}
+		hidden_effect = {
+			#Those who could have lived:
+			every_character = { #anyone still alive with any of these variables is now killed - unless they are needed for the followup event.
+				limit = {
+					OR = {
+						is_in_list = imprisonment_list
+						is_in_list = banishment_list
+					}
+				}
+				if = { limit = { is_in_list = imprisonment_list } remove_from_list = imprisonment_list }
+				if = { limit = { is_in_list = banishment_list } remove_from_list = banishment_list }
+				#Now we kill off anyone who is not needed in the followup Event:
+				if = {
+					limit = {
+						NOR = {
+							is_in_list = first_annex_family_list
+							is_in_list = second_annex_family_list
+							is_in_list = third_annex_family_list
+							is_in_list = fourth_annex_family_list
+						}
+					}
+					pa_imp_remove_all_positions = yes
+					if = {
+						limit = { is_adult = yes }
+						kill_character = {
+							target = this
+							reason = country_annexed # death_slaughtered_during_conquest
+						}
+					}
+					else = {
+						kill_character = {
+							target = this
+							reason = vanished # death_obscurity
+						}
+					}
+				}
+			}
+		}
+		# scope:annexer = { random_country_culture = { limit = { this.culture = scope:annexee.culture } add_country_culture_modifier = { name = annexed_my_home_culture_lenient duration = 1825 } } }
+		#P:A TODO No EU5 equivalent: "Annexation: Conquest of our People" on the annexed culture inside our country for 5 years (EU5 has no per-country culture modifiers)
+	}
+
+	option = {
+		name = annexation.3.f #Kill all cannibal style.
+		ai_chance = {
+			base = 50
+		}
+		# highlight = yes #P:A TODO No EU5 equivalent: highlighted option
+		trigger = {
+			OR = {
+				# current_ruler = { has_trait = cannibal_trait } #P:A TODO No EU5 equivalent: Invictus cannibal trait
+				# scope:annexer = { has_law = adopt_human_sacrifice_law_tribal } #P:A TODO No EU5 equivalent: Imperator tribal law "Adopt Human Sacrifices"
+				scope:annexer = { has_country_modifier = androphagia_cannibal_frenzy_mod }
+			}
+		}
+		if = {
+			limit = { scope:annexer = { has_country_modifier = androphagia_cannibal_frenzy_mod } }
+			custom_tooltip = androphagia_always_eats
+		}
+		# else_if = { limit = { current_ruler = { has_trait = cannibal_trait } } custom_tooltip = cannibal_tooltip }
+		# else = { custom_tooltip = human_sacrifice_law_tooltip }
+		custom_tooltip = everybody_gonna_be_eaten
+		hidden_effect = { #Here we handle everyone not yet killed.
+			#Those who could have lived:
+			every_character = { #Now we kill everyone of interest:
+				limit = {
+					OR = {
+						is_in_list = first_annex_family_list
+						is_in_list = second_annex_family_list
+						is_in_list = third_annex_family_list
+						is_in_list = fourth_annex_family_list
+						is_in_list = imprisonment_list
+						is_in_list = banishment_list
+					}
+				}
+				pa_imp_remove_all_positions = yes
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables.
+				if = {
+					limit = { is_adult = yes }
+					kill_character = {
+						target = this
+						reason = sacrifice # death_sacrifice
+					}
+				}
+				else = {
+					kill_character = {
+						target = this
+						reason = vanished # death_obscurity
+					}
+				}
+			}
+		}
+		# current_ruler = { add_popularity = 5 hidden_effect = { random_list = { 1 = { add_nickname = cannnibal_nickname } 9 = { } } } }
+		#P:A TODO No EU5 equivalent: +5 popularity for our ruler (EU5 characters have no popularity) and a 10% chance of the nickname "the Cannibal" (no such nickname key in the mod)
+		scope:annexer = {
+			if = {
+				limit = {
+					culture = culture:androphagian # primary_culture = androphagian
+				}
+				add_country_modifier = {
+					modifier = ate_enemy_elite_proudly_mod
+					days = 92
+				}
+			}
+			else = {
+				add_country_modifier = {
+					modifier = ate_enemy_elite_secretly_mod
+					days = 360
+				}
+			}
+			# random_country_culture = { limit = { this.culture = scope:annexee.culture } add_country_culture_modifier = { name = annexed_my_home_culture duration = 1825 } }
+			#P:A TODO No EU5 equivalent: "Annexation: Massacred our Nobility" on the annexed culture inside our country for 5 years (EU5 has no per-country culture modifiers)
+		}
+	}
+}
+
+# Judgment on the great families of a conquered country, one family per pass.
+# Fired by annexation.3 (option e) and annexation.5 on the annexer; re-fires itself while families remain.
+# scope:annexer, scope:annexee, scope:<n>_family_head and the <n>_annex_family_list lists travel with it.
+#P:A TODO Approximate: Imperator death reason "crucified" is mapped to execution, "obscurity" to vanished
+annexation.4 = {
+	type = country_event
+	title = annexation.4.t
+	desc = annexation.4.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+	# left_portrait = scope:first_family_head / scope:third_family_head, right_portrait = scope:second_family_head / scope:fourth_family_head (saved scopes are shown)
+
+	trigger = {
+		OR = {
+			exists = scope:first_family_head
+			exists = scope:second_family_head
+			exists = scope:third_family_head
+			exists = scope:fourth_family_head
+		}
+	}
+
+	option = {
+		name = annexation.4.a
+		ai_chance = {
+			base = 30
+		}
+		trigger = {
+			any_character = { is_in_list = first_annex_family_list }
+		}
+		scope:first_family_head ?= {
+			custom_tooltip = first_family_moves_to
+		}
+		hidden_effect = {
+			every_character = {
+				limit = { is_in_list = first_annex_family_list }
+				remove_from_list = first_annex_family_list
+				if = {
+					limit = { has_character_modifier = foreign_citizen }
+					remove_character_modifier = foreign_citizen
+				}
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+			}
+		}
+		clear_saved_scope = first_family_head
+		if = {
+			limit = {
+				any_character = {
+					OR = {
+						is_in_list = second_annex_family_list
+						is_in_list = third_annex_family_list
+						is_in_list = fourth_annex_family_list
+					}
+				}
+			}
+			trigger_event_non_silently = annexation.4
+		}
+		else_if = {
+			limit = {
+				has_variable = integration_event_check
+			}
+			remove_variable = integration_event_check
+		}
+		# else_if = { limit = { NOT = { scope:annexee.culture = scope:annexer.culture } } <annexed_my_home_culture (if current_ruler crucifixion_efficiency_svalue > 3) or annexed_my_home_culture_lenient on the annexee's culture in our country, 1825 days> }
+		#P:A TODO No EU5 equivalent: when the last family is judged and the annexed culture differs from ours, that culture got "Annexation: Massacred our Nobility" (more than 3 families judged) or "...Conquest of our People" for 5 years (EU5 has no per-country culture modifiers)
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for our ruler (EU5 characters have no popularity)
+	}
+
+	option = {
+		name = annexation.4.b
+		ai_chance = {
+			base = 10
+		}
+		trigger = {
+			any_character = { is_in_list = second_annex_family_list }
+		}
+		scope:second_family_head ?= {
+			custom_tooltip = second_family_moves_to
+		}
+		hidden_effect = {
+			every_character = {
+				limit = { is_in_list = second_annex_family_list }
+				remove_from_list = second_annex_family_list
+				if = {
+					limit = { has_character_modifier = foreign_citizen }
+					remove_character_modifier = foreign_citizen
+				}
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+			}
+		}
+		clear_saved_scope = second_family_head
+		if = {
+			limit = {
+				any_character = {
+					OR = {
+						is_in_list = first_annex_family_list
+						is_in_list = third_annex_family_list
+						is_in_list = fourth_annex_family_list
+					}
+				}
+			}
+			trigger_event_non_silently = annexation.4
+		}
+		else_if = {
+			limit = {
+				has_variable = integration_event_check
+			}
+			remove_variable = integration_event_check
+		}
+		# else_if = { limit = { NOT = { scope:annexee.culture = scope:annexer.culture } } <annexed_my_home_culture (if current_ruler crucifixion_efficiency_svalue > 3) or annexed_my_home_culture_lenient on the annexee's culture in our country, 1825 days> }
+		#P:A TODO No EU5 equivalent: when the last family is judged and the annexed culture differs from ours, that culture got "Annexation: Massacred our Nobility" (more than 3 families judged) or "...Conquest of our People" for 5 years (EU5 has no per-country culture modifiers)
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for our ruler (EU5 characters have no popularity)
+	}
+
+	option = {
+		name = annexation.4.c
+		ai_chance = {
+			base = 0
+		}
+		trigger = {
+			any_character = { is_in_list = third_annex_family_list }
+		}
+		scope:third_family_head ?= {
+			custom_tooltip = third_family_moves_to
+		}
+		hidden_effect = {
+			every_character = {
+				limit = { is_in_list = third_annex_family_list }
+				remove_from_list = third_annex_family_list
+				if = {
+					limit = { has_character_modifier = foreign_citizen }
+					remove_character_modifier = foreign_citizen
+				}
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+			}
+		}
+		clear_saved_scope = third_family_head
+		if = {
+			limit = {
+				any_character = {
+					OR = {
+						is_in_list = first_annex_family_list
+						is_in_list = second_annex_family_list
+						is_in_list = fourth_annex_family_list
+					}
+				}
+			}
+			trigger_event_non_silently = annexation.4
+		}
+		else_if = {
+			limit = {
+				has_variable = integration_event_check
+			}
+			remove_variable = integration_event_check
+		}
+		# else_if = { limit = { NOT = { scope:annexee.culture = scope:annexer.culture } } <annexed_my_home_culture (if current_ruler crucifixion_efficiency_svalue > 3) or annexed_my_home_culture_lenient on the annexee's culture in our country, 1825 days> }
+		#P:A TODO No EU5 equivalent: when the last family is judged and the annexed culture differs from ours, that culture got "Annexation: Massacred our Nobility" (more than 3 families judged) or "...Conquest of our People" for 5 years (EU5 has no per-country culture modifiers)
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for our ruler (EU5 characters have no popularity)
+	}
+
+	option = {
+		name = annexation.4.d
+		ai_chance = {
+			base = 0
+		}
+		trigger = {
+			any_character = { is_in_list = fourth_annex_family_list }
+		}
+		scope:fourth_family_head ?= {
+			custom_tooltip = fourth_family_moves_to
+		}
+		hidden_effect = {
+			every_character = {
+				limit = { is_in_list = fourth_annex_family_list }
+				remove_from_list = fourth_annex_family_list
+				if = {
+					limit = { has_character_modifier = foreign_citizen }
+					remove_character_modifier = foreign_citizen
+				}
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+			}
+		}
+		clear_saved_scope = fourth_family_head
+		if = {
+			limit = {
+				any_character = {
+					OR = {
+						is_in_list = first_annex_family_list
+						is_in_list = second_annex_family_list
+						is_in_list = third_annex_family_list
+					}
+				}
+			}
+			trigger_event_non_silently = annexation.4
+		}
+		else_if = {
+			limit = {
+				has_variable = integration_event_check
+			}
+			remove_variable = integration_event_check
+		}
+		# else_if = { limit = { NOT = { scope:annexee.culture = scope:annexer.culture } } <annexed_my_home_culture (if current_ruler crucifixion_efficiency_svalue > 3) or annexed_my_home_culture_lenient on the annexee's culture in our country, 1825 days> }
+		#P:A TODO No EU5 equivalent: when the last family is judged and the annexed culture differs from ours, that culture got "Annexation: Massacred our Nobility" (more than 3 families judged) or "...Conquest of our People" for 5 years (EU5 has no per-country culture modifiers)
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for our ruler (EU5 characters have no popularity)
+	}
+
+	option = {
+		name = annexation.4.e
+		trigger = {
+			NOT = { has_variable = integration_event_check }
+		}
+		ai_chance = {
+			base = 30
+		}
+		# if = { limit = { NOT = { scope:annexee.culture = scope:annexer.culture } current_ruler = { crucifixion_efficiency_svalue > 3 } } custom_tooltip = annexation.4.e.tt <annexed_my_home_culture on the annexee's culture in our country, 1825 days> }
+		# else_if = { limit = { NOT = { scope:annexee.culture = scope:annexer.culture } } <annexed_my_home_culture_lenient, 1825 days> }
+		#P:A TODO No EU5 equivalent: the annexed culture in our country got "Annexation: Massacred our Nobility" (more than 3 families crucified) or "...Conquest of our People" for 5 years (EU5 has no per-country culture modifiers)
+		# custom_tooltip = per_family_crucified
+		# current_ruler = { add_popularity = pa_imp_crucifixion_efficiency_svalue }
+		#P:A TODO No EU5 equivalent: our ruler gained 1.25 popularity per family crucified (EU5 characters have no popularity)
+		if = {
+			limit = {
+				any_character = {
+					OR = {
+						is_in_list = first_annex_family_list
+						is_in_list = second_annex_family_list
+						is_in_list = third_annex_family_list
+						is_in_list = fourth_annex_family_list
+					}
+				}
+			}
+			hidden_effect = {
+				every_character = {
+					limit = {
+						OR = {
+							is_in_list = first_annex_family_list
+							is_in_list = second_annex_family_list
+							is_in_list = third_annex_family_list
+							is_in_list = fourth_annex_family_list
+						}
+					}
+					pa_imp_remove_all_positions = yes
+					pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+					kill_character = {
+						target = this
+						reason = execution # death_crucified
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = annexation.5.e
+		trigger = {
+			has_variable = integration_event_check
+		}
+		remove_variable = integration_event_check
+		if = {
+			limit = {
+				any_character = {
+					OR = {
+						is_in_list = first_annex_family_list
+						is_in_list = second_annex_family_list
+						is_in_list = third_annex_family_list
+						is_in_list = fourth_annex_family_list
+					}
+				}
+			}
+			hidden_effect = {
+				every_character = {
+					limit = {
+						OR = {
+							is_in_list = first_annex_family_list
+							is_in_list = second_annex_family_list
+							is_in_list = third_annex_family_list
+							is_in_list = fourth_annex_family_list
+						}
+					}
+					pa_imp_remove_all_positions = yes
+					pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+					kill_character = {
+						target = this
+						reason = vanished # death_obscurity
+					}
+				}
+			}
+
+			#Replace with loyalty drop among existing family heads?
+			# custom_tooltip = per_family_turned_away
+			# current_ruler = { add_popularity = pa_imp_crucifixion_efficiency_svalue }
+			#P:A TODO No EU5 equivalent: our ruler gained 1.25 popularity per family turned away (EU5 characters have no popularity)
+		}
+	}
+}
+
+# Diplomatic integration of a client: we decide which of its great families to take in.
+# Imperator fired it from on_diplo_annexation_event_effect, which first picked the families, moved them to the annexer
+# and quietly removed everyone else; that setup is now this event's immediate.
+# Meant for on_diplomatic_annex: root = annexing country, scope:target = annexed country (fired before the annexation).
+#P:A TODO Approximate: Imperator death reason "obscurity" is mapped to vanished; EU5 kill_character has no silent mode
+annexation.5 = { #Diplo Annex
+	type = country_event
+	title = annexation.5.t
+	desc = annexation.5.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+	# left_portrait = scope:first_family_head / scope:second_family_head, right_portrait = scope:third_family_head / scope:fourth_family_head (saved scopes are shown)
+
+	trigger = {
+		# Imperator: OR = { exists = scope:first_family_head ... exists = scope:fourth_family_head } (the heads were picked before the event fired; here they are picked in immediate)
+		trigger_if = {
+			limit = { exists = scope:annexee }
+			scope:annexee = {
+				any_dynasty = {
+					any_character_in_dynasty = {
+						is_alive = yes
+						employer = scope:annexee
+					}
+				}
+			}
+		}
+		trigger_else = {
+			exists = scope:target
+			scope:target = {
+				any_dynasty = {
+					any_character_in_dynasty = {
+						is_alive = yes
+						employer = scope:target
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:annexer } }
+			save_scope_as = annexer
+		}
+		if = {
+			limit = { NOT = { exists = scope:annexee } }
+			scope:target = {
+				save_scope_as = annexee
+			}
+		}
+		#On annexation diplomatically, move families, then murder everyone quietly (Imperator on_diplo_annexation_event_effect)
+		# every_country = { every_character = { limit = { has_variable = came_from var:came_from = scope:annexee prisoner = yes } move_country = scope:annexer set_as_minor_character = THIS set_home_country = scope:annexer remove_variable = came_from } }
+		#P:A TODO No EU5 equivalent: imprisoned characters who came from the annexed country, held anywhere, were moved to the annexer as minor characters (EU5 has no prisoners or minor characters)
+		hidden_effect = {
+			scope:annexee = {
+				#Much of this logic is replicated in the annexation.3 from the conquest annexation on_action, please don't change this without also changing that.
+				#Comments should also be kept similar.
+
+				#This is where we send foreigners home:
+				# every_character = { limit = { has_variable = came_from var:came_from = scope:annexer prisoner = yes } release_prisoner, remove_all_positions, move_country_with_message = scope:annexer, remove foreign_citizen }
+				#P:A TODO No EU5 equivalent: our citizens held prisoner by the annexed country were released and sent home (EU5 has no prisoners)
+
+				#Mercenaries also go Home:
+				# every_character = { limit = { is_mercenary = yes OR = { is_general = yes is_admiral = yes } } move_country = c:MER }
+				#P:A TODO No EU5 equivalent: mercenary commanders returned to the Imperator mercenary country MER (EU5 mercenaries are companies, not characters of a country)
+
+				#Families!
+
+				#This is where we find our candidate families to accept:
+				ordered_dynasty = {
+					limit = {
+						any_character_in_dynasty = {
+							is_alive = yes
+							employer = scope:annexee
+						}
+					}
+					order_by = total_dynastic_power #P:A TODO Approximate: Imperator ordered families by family prestige; EU5 dynasties have no prestige, total dynastic power used
+					max = 4
+					check_range_bounds = no
+					if = {
+						limit = { NOT = { exists = scope:first_family } }
+						save_scope_as = first_family
+					}
+					else_if = {
+						limit = { NOT = { exists = scope:second_family } }
+						save_scope_as = second_family
+					}
+					else_if = {
+						limit = { NOT = { exists = scope:third_family } }
+						save_scope_as = third_family
+					}
+					else_if = {
+						limit = { NOT = { exists = scope:fourth_family } }
+						save_scope_as = fourth_family
+					}
+				}
+
+				#These are members of the Annexed country's great families that we may be accepting:
+				# EU5 dynasties span countries (Imperator families belong to one country), so every pick below is limited to
+				# characters of the annexed country.
+				#P:A TODO Approximate: when the EU5 dynasty head serves another country, the dynasty's most important member in the annexed country stands in as the family head
+				#P:A TODO No EU5 equivalent: Imperator also required power_base > 1 for the two leading members and health >= 20 for the women picked (EU5 characters have neither)
+				#P:A TODO Approximate: EU5 iterators have no alternative_limit; Imperator's fallback limits for the women picked (unmarried, 13-34, bloodline first, then up to 40) are folded into order_by
+
+				#First Family:
+				if = {
+					limit = {
+						exists = scope:first_family
+					}
+					scope:first_family = {
+						if = {
+							limit = {
+								dynasty_head ?= {
+									is_alive = yes
+									employer = scope:annexee
+								}
+							}
+							dynasty_head = {
+								save_scope_as = first_family_head
+							}
+						}
+						else = {
+							ordered_character_in_dynasty = {
+								limit = { employer = scope:annexee }
+								order_by = pa_imp_importance_value
+								max = 1
+								check_range_bounds = no
+								save_scope_as = first_family_head
+							}
+						}
+						scope:first_family_head ?= {
+							add_to_list = first_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = first_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								NOT = { is_in_list = first_annex_family_list } # is_head_of_family = no (the head is already listed)
+							}
+							max = 2
+							check_range_bounds = no
+							order_by = { #P:A TODO Approximate: Imperator power_base; (adm + dip + mil) used
+								value = adm
+								add = dip
+								add = mil
+							}
+							add_to_list = first_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = first_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								is_female = yes
+								age_in_years < 40
+							}
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+								if = {
+									limit = {
+										age_in_years < 35
+										is_married = no
+									}
+									add = 1000
+								}
+								if = {
+									limit = { pa_imp_has_bloodline_trigger = yes }
+									add = 1000
+								}
+								if = {
+									limit = { age_in_years > 12 }
+									add = 500
+								}
+							}
+							check_range_bounds = no
+							max = 2
+							add_to_list = first_annex_family_list
+						}
+					}
+				}
+				#Second Family:
+				if = {
+					limit = {
+						exists = scope:second_family
+					}
+					scope:second_family = {
+						if = {
+							limit = {
+								dynasty_head ?= {
+									is_alive = yes
+									employer = scope:annexee
+								}
+							}
+							dynasty_head = {
+								save_scope_as = second_family_head
+							}
+						}
+						else = {
+							ordered_character_in_dynasty = {
+								limit = { employer = scope:annexee }
+								order_by = pa_imp_importance_value
+								max = 1
+								check_range_bounds = no
+								save_scope_as = second_family_head
+							}
+						}
+						scope:second_family_head ?= {
+							add_to_list = second_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = second_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								NOT = { is_in_list = second_annex_family_list }
+							}
+							max = 2
+							check_range_bounds = no
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+							}
+							pa_imp_remove_all_positions = yes
+							add_to_list = second_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = second_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								is_female = yes
+								age_in_years < 40
+							}
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+								if = {
+									limit = {
+										age_in_years < 35
+										is_married = no
+									}
+									add = 1000
+								}
+								if = {
+									limit = { pa_imp_has_bloodline_trigger = yes }
+									add = 1000
+								}
+								if = {
+									limit = { age_in_years > 12 }
+									add = 500
+								}
+							}
+							check_range_bounds = no
+							max = 2
+							add_to_list = second_annex_family_list
+						}
+					}
+				}
+				#Third Family:
+				if = {
+					limit = {
+						exists = scope:third_family
+					}
+					scope:third_family = {
+						if = {
+							limit = {
+								dynasty_head ?= {
+									is_alive = yes
+									employer = scope:annexee
+								}
+							}
+							dynasty_head = {
+								save_scope_as = third_family_head
+							}
+						}
+						else = {
+							ordered_character_in_dynasty = {
+								limit = { employer = scope:annexee }
+								order_by = pa_imp_importance_value
+								max = 1
+								check_range_bounds = no
+								save_scope_as = third_family_head
+							}
+						}
+						scope:third_family_head ?= {
+							add_to_list = third_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = third_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								NOT = { is_in_list = third_annex_family_list }
+							}
+							max = 2
+							check_range_bounds = no
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+							}
+							add_to_list = third_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = third_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								is_female = yes
+								age_in_years < 40
+							}
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+								if = {
+									limit = {
+										age_in_years < 35
+										is_married = no
+									}
+									add = 1000
+								}
+								if = {
+									limit = { pa_imp_has_bloodline_trigger = yes }
+									add = 1000
+								}
+								if = {
+									limit = { age_in_years > 12 }
+									add = 500
+								}
+							}
+							check_range_bounds = no
+							max = 2
+							add_to_list = third_annex_family_list
+						}
+					}
+				}
+				#Fourth Family:
+				if = {
+					limit = {
+						exists = scope:fourth_family
+					}
+					scope:fourth_family = {
+						if = {
+							limit = {
+								dynasty_head ?= {
+									is_alive = yes
+									employer = scope:annexee
+								}
+							}
+							dynasty_head = {
+								save_scope_as = fourth_family_head
+							}
+						}
+						else = {
+							ordered_character_in_dynasty = {
+								limit = { employer = scope:annexee }
+								order_by = pa_imp_importance_value
+								max = 1
+								check_range_bounds = no
+								save_scope_as = fourth_family_head
+							}
+						}
+						scope:fourth_family_head ?= {
+							add_to_list = fourth_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = fourth_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								NOT = { is_in_list = fourth_annex_family_list }
+							}
+							max = 2
+							check_range_bounds = no
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+							}
+							add_to_list = fourth_annex_family_list
+							every_spouse = {
+								limit = { employer = scope:annexee }
+								add_to_list = fourth_annex_family_list
+							}
+						}
+						ordered_character_in_dynasty = {
+							limit = {
+								employer = scope:annexee
+								is_female = yes
+								age_in_years < 40
+							}
+							order_by = {
+								value = adm
+								add = dip
+								add = mil
+								if = {
+									limit = {
+										age_in_years < 35
+										is_married = no
+									}
+									add = 1000
+								}
+								if = {
+									limit = { pa_imp_has_bloodline_trigger = yes }
+									add = 1000
+								}
+								if = {
+									limit = { age_in_years > 12 }
+									add = 500
+								}
+							}
+							check_range_bounds = no
+							max = 2
+							add_to_list = fourth_annex_family_list
+						}
+						save_scope_as = family_4
+					}
+				}
+
+				every_character = { #Now we move everyone of interest:
+					limit = {
+						OR = {
+							is_in_list = first_annex_family_list
+							is_in_list = second_annex_family_list
+							is_in_list = third_annex_family_list
+							is_in_list = fourth_annex_family_list
+						}
+					}
+					pa_imp_remove_all_positions = yes
+					move_country = scope:annexer
+					# set_as_minor_character = THIS
+					# set_home_country = scope:annexer
+					#P:A TODO No EU5 equivalent: the moved characters became minor characters with the annexer as home country (EU5 has no minor characters or home country)
+				}
+
+				every_character = { #The rest vanish into obscurity.
+					limit = {
+						NOR = {
+							is_in_list = first_annex_family_list
+							is_in_list = second_annex_family_list
+							is_in_list = third_annex_family_list
+							is_in_list = fourth_annex_family_list
+						}
+					}
+					kill_character = {
+						target = this
+						reason = vanished # death_obscurity
+					}
+				}
+				every_character = {
+					kill_character = {
+						target = this
+						reason = vanished # death_obscurity
+					}
+				}
+			}
+		}
+		# every_in_list = { list = annexed_treasures transfer_treasure_to_country = ROOT }
+		#P:A TODO No EU5 equivalent: treasures of the annexed country go to us (EU5 has no treasures)
+	}
+
+	option = {
+		name = annexation.5.a
+		ai_chance = {
+			base = 10
+		}
+		trigger = {
+			any_character = { is_in_list = first_annex_family_list }
+		}
+		scope:first_family_head ?= {
+			custom_tooltip = first_family_moves_to
+		}
+		hidden_effect = {
+			every_character = {
+				limit = { is_in_list = first_annex_family_list }
+				remove_from_list = first_annex_family_list
+				if = {
+					limit = { has_character_modifier = foreign_citizen }
+					remove_character_modifier = foreign_citizen
+				}
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+			}
+		}
+		clear_saved_scope = first_family_head
+		hidden_effect = {
+			if = {
+				limit = {
+					any_character = {
+						OR = {
+							is_in_list = second_annex_family_list
+							is_in_list = third_annex_family_list
+							is_in_list = fourth_annex_family_list
+						}
+					}
+				}
+				set_variable = integration_event_check
+				trigger_event_non_silently = annexation.4
+			}
+		}
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for our ruler (EU5 characters have no popularity)
+	}
+
+	option = {
+		name = annexation.5.b
+		ai_chance = {
+			base = 0
+		}
+		trigger = {
+			any_character = { is_in_list = second_annex_family_list }
+		}
+		scope:second_family_head ?= {
+			custom_tooltip = second_family_moves_to
+		}
+		hidden_effect = {
+			every_character = {
+				limit = { is_in_list = second_annex_family_list }
+				remove_from_list = second_annex_family_list
+				if = {
+					limit = { has_character_modifier = foreign_citizen }
+					remove_character_modifier = foreign_citizen
+				}
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+			}
+		}
+		clear_saved_scope = second_family_head
+		hidden_effect = {
+			if = {
+				limit = {
+					any_character = {
+						OR = {
+							is_in_list = first_annex_family_list
+							is_in_list = third_annex_family_list
+							is_in_list = fourth_annex_family_list
+						}
+					}
+				}
+				set_variable = integration_event_check
+				trigger_event_non_silently = annexation.4
+			}
+		}
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for our ruler (EU5 characters have no popularity)
+	}
+
+	option = {
+		name = annexation.5.c
+		ai_chance = {
+			base = 0
+		}
+		trigger = {
+			any_character = { is_in_list = third_annex_family_list }
+		}
+		scope:third_family_head ?= {
+			custom_tooltip = third_family_moves_to
+		}
+		hidden_effect = {
+			every_character = {
+				limit = { is_in_list = third_annex_family_list }
+				remove_from_list = third_annex_family_list
+				if = {
+					limit = { has_character_modifier = foreign_citizen }
+					remove_character_modifier = foreign_citizen
+				}
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+			}
+		}
+		clear_saved_scope = third_family_head
+		hidden_effect = {
+			if = {
+				limit = {
+					any_character = {
+						OR = {
+							is_in_list = first_annex_family_list
+							is_in_list = second_annex_family_list
+							is_in_list = fourth_annex_family_list
+						}
+					}
+				}
+				set_variable = integration_event_check
+				trigger_event_non_silently = annexation.4
+			}
+		}
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for our ruler (EU5 characters have no popularity)
+	}
+
+	option = {
+		name = annexation.5.d
+		ai_chance = {
+			base = 0
+		}
+		trigger = {
+			any_character = { is_in_list = fourth_annex_family_list }
+		}
+		scope:fourth_family_head ?= {
+			custom_tooltip = fourth_family_moves_to
+		}
+		hidden_effect = {
+			every_character = {
+				limit = { is_in_list = fourth_annex_family_list }
+				remove_from_list = fourth_annex_family_list
+				if = {
+					limit = { has_character_modifier = foreign_citizen }
+					remove_character_modifier = foreign_citizen
+				}
+				pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+			}
+		}
+		clear_saved_scope = fourth_family_head
+		hidden_effect = {
+			if = {
+				limit = {
+					any_character = {
+						OR = {
+							is_in_list = first_annex_family_list
+							is_in_list = second_annex_family_list
+							is_in_list = third_annex_family_list
+						}
+					}
+				}
+				set_variable = integration_event_check
+				trigger_event_non_silently = annexation.4
+			}
+		}
+		# current_ruler = { add_popularity = -5 }
+		#P:A TODO No EU5 equivalent: -5 popularity for our ruler (EU5 characters have no popularity)
+	}
+
+	option = {
+		name = annexation.5.e
+		#Replace with loyalty drop among existing family heads?
+		# custom_tooltip = per_family_turned_away
+		# current_ruler = { add_popularity = pa_imp_crucifixion_efficiency_svalue }
+		#P:A TODO No EU5 equivalent: our ruler gained 1.25 popularity per family turned away (EU5 characters have no popularity)
+		if = {
+			limit = {
+				any_character = {
+					OR = {
+						is_in_list = first_annex_family_list
+						is_in_list = second_annex_family_list
+						is_in_list = third_annex_family_list
+						is_in_list = fourth_annex_family_list
+					}
+				}
+			}
+			hidden_effect = {
+				every_character = {
+					limit = {
+						OR = {
+							is_in_list = first_annex_family_list
+							is_in_list = second_annex_family_list
+							is_in_list = third_annex_family_list
+							is_in_list = fourth_annex_family_list
+						}
+					}
+					pa_imp_remove_all_positions = yes
+					pa_imp_annexation_character_cleanup = yes #This cleans up all the variables so we don't track them down and kill them by mistake later.
+					kill_character = {
+						target = this
+						reason = vanished # death_obscurity
+					}
+				}
+			}
+		}
+
+		ai_chance = {
+			base = 90
+		}
+	}
+}

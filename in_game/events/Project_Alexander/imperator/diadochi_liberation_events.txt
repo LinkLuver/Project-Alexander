@@ -1,3 +1,828 @@
 ﻿#P:A Imported from Invictus: events/diadochi_liberation_events.txt
 #P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
 namespace = diadochi_liberation
+
+# Hidden: when Corinth changes hands during the War of the Diadochi, offer the liberation events (diadochi_liberation.1-5).
+# Imperator province event fired by on_ownership_change; written for EU5 on_location_changed_owner (root = location).
+diadochi_liberation.1001 = {##NOT USED
+	type = location_event
+	hidden = yes
+
+	trigger = {
+		always = no # disabled in the Invictus source
+		this = location:corinth # Imperator province_id = 418 (Korinthos)
+		exists = owner
+		owner = {
+			NOT = {
+				has_global_variable = corinth_has_been_created
+			}
+			culture = culture:macedonian # Imperator primary_culture = macedonian
+			has_variable = war_of_the_diadochs
+		}
+	}
+
+	immediate = {
+		# The whole immediate block is commented out in the Invictus source (kept as it was):
+#		if = {
+#			limit = {
+#				province_id = 418
+#				owner = {
+#					NOT = { tag = MAC }
+#				}
+#			}
+#			p:418.owner = {
+#			    trigger_event = {
+#			        id = diadochi_liberation.1 #Corinth
+#			        days = { 5 15 }
+#			    }
+#			}
+#		}
+#		if = {
+#			limit = {
+#				province_id = 407
+#				owner = {
+#					NOT = { tag = PRY }
+#				}
+#			}
+#			p:407.owner = {
+#			    trigger_event = {
+#			        id = diadochi_liberation.2 #Chalkis
+#			        days = { 5 15 }
+#			    }
+#			}
+#		}
+#		if = {
+#			limit = {
+#				province_id = 7902
+#				owner = {
+#					NOT = { tag = PRY }
+#				}
+#			}
+#			p:7902.owner = {
+#			    trigger_event = {
+#			        id = diadochi_liberation.3 #Salamis
+#			    }
+#			}
+#		}
+#		if = {
+#			limit = {
+#				province_id = 442
+#				owner = {
+#					NOT = { tag = PRY }
+#				}
+#			}
+#			p:442.owner = {
+#			    trigger_event = {
+#			        id = diadochi_liberation.4 #Aigina
+#			    }
+#			}
+#		}
+#		if = {
+#			limit = {
+#				province_id = 8003
+#				owner = {
+#					NOT = { tag = EGY }
+#				}
+#			}
+#			p:8003.owner = {
+#			    trigger_event = {
+#			        id = diadochi_liberation.5 #Sikyon
+#			        days = { 5 15 }
+#			    }
+#			}
+#		}
+	}
+}
+
+# Hidden: a Macedonian successor has occupied every key place of a feudatory/satrapy of another Macedonian successor;
+# the subject is offered a change of overlord (diadochi_liberation.2006).
+# Imperator province event (root = the occupied province) fired by on_province_occupied. Written for EU5 on_siege_won and
+# on_location_occupied (root = country, scope:target = the occupied location); the occupier is read from scope:target.controller.
+diadochi_liberation.2001 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:target
+		scope:target = {
+			exists = owner
+			controller = {
+				culture = culture:macedonian # Imperator primary_culture = macedonian
+				has_variable = war_of_the_diadochs
+			}
+			owner = {
+				is_subject = yes
+				OR = {
+					is_subject_type = feudatory
+					is_subject_type = satrapy
+				}
+				NOT = { # Imperator any_owned_province = { count = all controller = root.controller filter = { ... } }: every owned state capital, fortress and the capital is held by the occupier
+					any_owned_location = {
+						OR = {
+							is_province_capital = yes # Imperator is_state_capital
+							has_fort = yes # Imperator num_of_fortress_building >= 1
+							is_capital = yes
+						}
+						NOT = {
+							controller = scope:target.controller
+						}
+					}
+				}
+			}
+			owner.overlord = {
+				culture = culture:macedonian # Imperator primary_culture = macedonian
+				has_variable = war_of_the_diadochs
+			}
+		}
+	}
+
+	immediate = {
+		scope:target = {
+			controller = {
+				save_scope_as = subject_flipper
+			}
+			owner.overlord = {
+				save_scope_as = current_overlord
+				#trigger_event = {
+					#id = diadochi_liberation.2002#old
+				#}
+			}
+			owner = {
+				save_scope_as = flipping_subject
+				trigger_event_non_silently = {
+					id = diadochi_liberation.2006 #NEW
+				}
+			}
+		}
+	}
+}
+
+# The overlord learns that its subject is under occupation (old version of the chain; its call in diadochi_liberation.2001 is commented out in the Invictus source).
+diadochi_liberation.2002 = {
+	type = country_event
+	title = diadochi_liberation.2002.t
+	desc = diadochi_liberation.2002.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		scope:current_overlord.ruler ?= {
+			save_scope_as = pa_current_overlord_ruler
+		}
+		scope:subject_flipper.ruler ?= {
+			save_scope_as = pa_subject_flipper_ruler
+		}
+		scope:flipping_subject.ruler ?= {
+			save_scope_as = pa_flipping_subject_ruler
+		}
+	}
+
+	option = { # 10 - 20 days to relive it
+		name = diadochi_liberation.2002.a
+		scope:flipping_subject = {
+			trigger_event_non_silently = {
+				id = diadochi_liberation.2003
+				days = { 10 20 }
+			}
+		}
+	}
+}
+
+# The occupied subject decides whether to defect to the occupier (old version of the chain, fired by diadochi_liberation.2002).
+diadochi_liberation.2003 = {
+	type = country_event
+	title = diadochi_liberation.2003.t
+	desc = diadochi_liberation.2003.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		NOT = {
+			any_owned_location = {
+				controller = root
+				OR = {
+					is_province_capital = yes # Imperator is_state_capital
+					has_fort = yes # Imperator num_of_fortress_building >= 1
+				}
+			}
+		}
+		capital = {
+			controller = scope:subject_flipper
+		}
+		is_subject = yes
+		overlord = {
+			this = scope:current_overlord
+		}
+	}
+
+	immediate = {
+		scope:current_overlord.ruler ?= {
+			save_scope_as = pa_current_overlord_ruler
+		}
+		scope:subject_flipper.ruler ?= {
+			save_scope_as = pa_subject_flipper_ruler
+		}
+		scope:flipping_subject.ruler ?= {
+			save_scope_as = pa_flipping_subject_ruler
+		}
+	}
+
+	option = { # new overlord
+		name = diadochi_liberation.2003.a
+		custom_tooltip = diadochi_liberation.2003.at #joing war
+		scope:subject_flipper = {
+			if = {
+				limit = {
+					scope:flipping_subject = { is_subject_type = feudatory }
+				}
+				scope:current_overlord = {
+					cancel_subject = scope:flipping_subject # Imperator release_subject
+					remove_truce_with = scope:flipping_subject # Imperator end_truce
+				}
+				hidden_effect = {
+					every_current_war = {
+						limit = {
+							any_war_participant = { this = root }
+						}
+						root = {
+							leave_war = { # Imperator remove_from_war = root
+								war = prev
+								actor = scope:subject_flipper
+							}
+						}
+					}
+				}
+				scope:flipping_subject = {
+					remove_truce_with = scope:current_overlord # Imperator end_truce
+					remove_truce_with = scope:subject_flipper # Imperator end_truce
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:feudatory
+					}
+				}
+			}
+			else = {
+				scope:current_overlord = {
+					cancel_subject = scope:flipping_subject # Imperator release_subject
+					remove_truce_with = scope:flipping_subject # Imperator end_truce
+				}
+				hidden_effect = {
+					every_current_war = {
+						limit = {
+							any_war_participant = { this = root }
+						}
+						root = {
+							leave_war = { # Imperator remove_from_war = root
+								war = prev
+								actor = scope:subject_flipper
+							}
+						}
+					}
+				}
+				scope:flipping_subject = {
+					remove_truce_with = scope:current_overlord # Imperator end_truce
+					remove_truce_with = scope:subject_flipper # Imperator end_truce
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:satrapy
+					}
+				}
+			}
+			hidden_effect = {
+				every_current_war = {
+					limit = {
+						is_an_attacker = scope:subject_flipper # Imperator any_war_attacker
+					}
+					scope:flipping_subject = {
+						join_war_as_attacker = { # Imperator add_to_war (attacker, not leader)
+							war = prev
+						}
+					}
+				}
+				every_current_war = {
+					limit = {
+						is_a_defender = scope:subject_flipper # Imperator any_war_defender
+					}
+					scope:flipping_subject = {
+						join_war_as_defender = { # Imperator add_to_war (defender, not leader)
+							war = prev
+						}
+					}
+				}
+				# add_aggressive_expansion = {
+				# 	value = scope:flipping_subject.num_of_cities
+				# 	multiply = 0.375
+				# 	multiply = scope:subject_flipper.modifier:agressive_expansion_impact
+				# 	add = {
+				# 		value = scope:flipping_subject.num_of_cities
+				# 		multiply = 0.375
+				# 	}
+				# 	min = {
+				# 		value = scope:flipping_subject.num_of_cities
+				# 		multiply = 0.0375
+				# 	}
+				# }
+				#P:A TODO No EU5 equivalent: the new overlord gains aggressive expansion scaled by the subject's city count (EU5 antagonism is per country, not a global value)
+			}
+		}
+		ai_chance = { factor = 200 }
+	}
+
+	option = { # hold on a little longer
+		name = diadochi_liberation.2003.b
+		#custom_tooltip = diadochi_liberation.2003.bt
+		scope:flipping_subject = {
+			trigger_event_non_silently = {
+				id = diadochi_liberation.2003
+				days = { 60 180 }
+			}
+		}
+		add_manpower = -1
+		ai_chance = { factor = 0 }
+	}
+}
+
+diadochi_liberation.2004 = { #NEW OVERLORD
+	type = country_event
+	title = diadochi_liberation.2004.t
+	desc = diadochi_liberation.2004.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		scope:current_overlord.ruler ?= {
+			save_scope_as = pa_current_overlord_ruler
+		}
+		scope:subject_flipper.ruler ?= {
+			save_scope_as = pa_subject_flipper_ruler
+		}
+		scope:flipping_subject.ruler ?= {
+			save_scope_as = pa_flipping_subject_ruler
+		}
+	}
+
+	option = { # new overlord
+		name = diadochi_liberation.2004.a
+		show_as_tooltip = {
+			scope:current_overlord = {
+				cancel_subject = scope:flipping_subject # Imperator release_subject
+			}
+			if = {
+				limit = {
+					scope:flipping_subject = {
+						is_subject_type = feudatory
+					}
+				}
+				scope:flipping_subject = {
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:feudatory
+					}
+				}
+			}
+			else = {
+				scope:flipping_subject = {
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:satrapy
+					}
+				}
+			}
+		}
+	}
+}
+
+diadochi_liberation.2005 = {#OLD OVERLORD
+	type = country_event
+	title = diadochi_liberation.2005.t
+	desc = diadochi_liberation.2005.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		scope:current_overlord.ruler ?= {
+			save_scope_as = pa_current_overlord_ruler
+		}
+		scope:subject_flipper.ruler ?= {
+			save_scope_as = pa_subject_flipper_ruler
+		}
+		scope:flipping_subject.ruler ?= {
+			save_scope_as = pa_flipping_subject_ruler
+		}
+	}
+
+	option = { # new overlord
+		name = diadochi_liberation.2005.a
+		show_as_tooltip = {
+			scope:current_overlord = {
+				cancel_subject = scope:flipping_subject # Imperator release_subject
+			}
+			if = {
+				limit = {
+					scope:flipping_subject = {
+						is_subject_type = feudatory
+					}
+				}
+				scope:flipping_subject = {
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:feudatory
+					}
+				}
+			}
+			else = {
+				scope:flipping_subject = {
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:satrapy
+					}
+				}
+			}
+		}
+	}
+}
+
+diadochi_liberation.2006 = {#FLipping subject
+	type = country_event
+	title = diadochi_liberation.2006.t
+	desc = diadochi_liberation.2006.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:subject_flipper.ruler ?= {
+			save_scope_as = pa_subject_flipper_ruler
+		}
+		scope:current_overlord.ruler ?= {
+			save_scope_as = pa_current_overlord_ruler
+		}
+	}
+
+	option = { # new overlord
+		name = diadochi_liberation.2006.a
+		#custom_tooltip = diadochi_liberation.2006.at #joing war
+		show_as_tooltip = {
+			scope:current_overlord = {
+				cancel_subject = scope:flipping_subject # Imperator release_subject
+			}
+			if = {
+				limit = {
+					scope:flipping_subject = {
+						is_subject_type = feudatory
+					}
+				}
+				scope:flipping_subject = {
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:feudatory
+					}
+				}
+			}
+			else = {
+				scope:flipping_subject = {
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:satrapy
+					}
+				}
+			}
+		}
+		scope:subject_flipper = {
+			trigger_event_non_silently = {
+				id = diadochi_liberation.2007
+			}
+		}
+		ai_chance = { factor = 200 }
+	}
+}
+
+diadochi_liberation.2007 = { #NEW OVERLORD
+	type = country_event
+	title = diadochi_liberation.2007.t
+	desc = diadochi_liberation.2007.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:flipping_subject.ruler ?= {
+			save_scope_as = pa_flipping_subject_ruler
+		}
+		scope:current_overlord.ruler ?= {
+			save_scope_as = pa_current_overlord_ruler
+		}
+	}
+
+	option = { # new overlord - subject
+		name = diadochi_liberation.2007.a
+		scope:subject_flipper = {
+			if = {
+				limit = {
+					scope:flipping_subject = { is_subject_type = feudatory }
+				}
+				scope:current_overlord = {
+					cancel_subject = scope:flipping_subject # Imperator release_subject
+					hidden_effect = { remove_truce_with = scope:flipping_subject } # Imperator end_truce
+				}
+				hidden_effect = {
+					every_current_war = {
+						limit = {
+							any_war_participant = { this = scope:flipping_subject }
+						}
+						scope:flipping_subject = {
+							leave_war = { # Imperator remove_from_war = scope:flipping_subject
+								war = prev
+								actor = scope:subject_flipper
+							}
+						}
+					}
+					scope:flipping_subject = {
+						remove_truce_with = scope:current_overlord # Imperator end_truce
+						remove_truce_with = scope:subject_flipper # Imperator end_truce
+					}
+				}
+				scope:flipping_subject = {
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:feudatory
+					}
+				}
+			}
+			else = {
+				scope:current_overlord = {
+					cancel_subject = scope:flipping_subject # Imperator release_subject
+					hidden_effect = { remove_truce_with = scope:flipping_subject } # Imperator end_truce
+				}
+				hidden_effect = {
+					every_current_war = {
+						limit = {
+							any_war_participant = { this = scope:flipping_subject }
+						}
+						scope:flipping_subject = {
+							leave_war = { # Imperator remove_from_war = scope:flipping_subject
+								war = prev
+								actor = scope:subject_flipper
+							}
+						}
+					}
+					scope:flipping_subject = {
+						remove_truce_with = scope:current_overlord # Imperator end_truce
+						remove_truce_with = scope:subject_flipper # Imperator end_truce
+					}
+				}
+				scope:flipping_subject = {
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:satrapy
+					}
+				}
+			}
+			hidden_effect = {
+				every_current_war = {
+					limit = {
+						is_an_attacker = scope:subject_flipper # Imperator any_war_attacker
+						NOT = {
+							any_war_participant = { this = scope:flipping_subject }
+						}
+					}
+					scope:flipping_subject = {
+						join_war_as_attacker = { # Imperator add_to_war (attacker, not leader)
+							war = prev
+						}
+					}
+				}
+				every_current_war = {
+					limit = {
+						is_a_defender = scope:subject_flipper # Imperator any_war_defender
+						NOT = {
+							any_war_participant = { this = scope:flipping_subject }
+						}
+					}
+					scope:flipping_subject = {
+						join_war_as_defender = { # Imperator add_to_war (defender, not leader)
+							war = prev
+						}
+					}
+				}
+			}
+			scope:flipping_subject = {
+				pa_imp_republic_stasis_effect = yes
+			}
+			# add_aggressive_expansion = {
+			# 	value = scope:flipping_subject.num_of_cities
+			# 	multiply = 0.375
+			# 	multiply = scope:subject_flipper.modifier:agressive_expansion_impact
+			# 	add = {
+			# 		value = scope:flipping_subject.num_of_cities
+			# 		multiply = 0.375
+			# 	}
+			# 	min = {
+			# 		value = scope:flipping_subject.num_of_cities
+			# 		multiply = 0.0375
+			# 	}
+			# }
+			#P:A TODO No EU5 equivalent: the new overlord gains aggressive expansion scaled by the subject's city count (EU5 antagonism is per country, not a global value)
+		}
+		every_country = {
+			limit = {
+				NOR = {
+					this = scope:subject_flipper
+					this = scope:flipping_subject
+				}
+				is_ai = no
+				OR = {
+					pa_imp_is_hellenistic_nation = yes
+					AND = {
+						exists = overlord
+						overlord = { pa_imp_is_hellenistic_nation = yes }
+					}
+				}
+			}
+			trigger_event_non_silently = {
+				id = diadochi_liberation.2008
+			}
+		}
+		ai_chance = { factor = 200 }
+	}
+
+	option = { # new overlord - anneex
+		name = diadochi_liberation.2007.b
+		trigger = { scope:flipping_subject = { is_ai = yes } }
+		scope:flipping_subject = {
+			every_owned_location = { change_location_owner = root } # Imperator set_owned_by
+		}
+		# add_tyranny = 2.5 #P:A TODO No EU5 equivalent: +2.5 tyranny
+		# add_aggressive_expansion = {
+		# 	value = scope:flipping_subject.num_of_cities
+		# 	multiply = 0.75
+		# 	multiply = scope:subject_flipper.modifier:agressive_expansion_impact
+		# 	add = {
+		# 		value = scope:flipping_subject.num_of_cities
+		# 		multiply = 0.75
+		# 	}
+		# 	min = {
+		# 		value = scope:flipping_subject.num_of_cities
+		# 		multiply = 0.075
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: aggressive expansion scaled by the annexed subject's city count (EU5 antagonism is per country, not a global value)
+		ai_chance = { factor = 0 }
+	}
+
+	option = { # new overlord - nothing
+		name = diadochi_liberation.2007.c
+		custom_tooltip = diadochi_liberation.2007.ct
+		ai_chance = { factor = 0 }
+	}
+}
+
+diadochi_liberation.2008 = { #Generic
+	type = country_event
+	title = diadochi_liberation.2008.t
+	desc = diadochi_liberation.2008.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = {
+			limit = {
+				this = scope:current_overlord
+			}
+			heir ?= { save_scope_as = current_overlord_portrait } # Imperator primary_heir
+		}
+		else = {
+			scope:current_overlord.ruler ?= { save_scope_as = current_overlord_portrait }
+		}
+		scope:subject_flipper.ruler ?= {
+			save_scope_as = pa_subject_flipper_ruler
+		}
+		scope:flipping_subject.ruler ?= {
+			save_scope_as = pa_flipping_subject_ruler
+		}
+		show_as_tooltip = {
+			if = {
+				limit = {
+					scope:flipping_subject = {
+						is_subject_type = feudatory
+					}
+				}
+				scope:flipping_subject = {
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:feudatory
+					}
+				}
+			}
+			else = {
+				scope:flipping_subject = {
+					make_subject_of = {
+						target = scope:subject_flipper
+						type = subject_type:satrapy
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = diadochi_liberation.2008.a
+		trigger = { this = scope:current_overlord }
+		# scope:flipping_subject.capital_scope = {
+		# 	add_claim = root
+		# }
+		#P:A TODO No EU5 equivalent: the old overlord gains a claim on the defected subject's capital (EU5 has no location claims)
+	}
+
+	option = {
+		name = diadochi_liberation.2008.b
+		trigger = {
+			OR = {
+				has_mutual_scripted_relation = { # Imperator alliance_with = scope:subject_flipper
+					type = relation_type:alliance
+					target = scope:subject_flipper
+				}
+				is_subject_of = scope:subject_flipper
+			}
+		}
+		# scope:flipping_subject.capital_scope = {
+		# 	add_claim = root
+		# }
+		#P:A TODO No EU5 equivalent: an ally or subject of the new overlord gains a claim on the defected subject's capital (EU5 has no location claims)
+	}
+
+	option = {
+		name = diadochi_liberation.2008.c
+		trigger = {
+			NOR = {
+				this = scope:current_overlord
+				has_mutual_scripted_relation = { # Imperator alliance_with = scope:subject_flipper
+					type = relation_type:alliance
+					target = scope:subject_flipper
+				}
+				is_subject_of = scope:subject_flipper
+			}
+		}
+	}
+}
+
+diadochi_liberation.1002 = { #Join the war
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		any_current_war = {
+			any_war_participant = {
+				is_at_war_with = root # Imperator war_with = ROOT
+			}
+		}
+	}
+
+	immediate = {
+		every_current_war = {
+			limit = {
+				is_an_attacker = root # Imperator any_war_attacker = { THIS = ROOT }
+			}
+			scope:newly_liberated_state = {
+				join_war_as_attacker = { # Imperator add_to_war (attacker, not leader)
+					war = prev
+				}
+			}
+		}
+		every_current_war = {
+			limit = {
+				is_a_defender = root # Imperator any_war_defender = { THIS = ROOT }
+			}
+			scope:newly_liberated_state = {
+				join_war_as_defender = { # Imperator add_to_war (defender, not leader)
+					war = prev
+				}
+			}
+		}
+	}
+}
