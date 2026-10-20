@@ -1,0 +1,622 @@
+﻿#P:A Imported from Invictus: events/religion_flavor/rel_flavor_eastern.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = rel_flavor_eastern
+
+# Some people of another faith convert in one of our locations; an advisor proposes converting them all.
+rel_flavor_eastern.1 = {
+	type = country_event
+	title = rel_flavor_eastern.1.t
+	desc = rel_flavor_eastern.1.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		pa_imp_country_eastern_religion_trigger = yes
+		NOT = { has_variable = rel_flavor_eastern_1_cooldown }
+		any_character = {
+			is_ruler = no
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, cabinet membership stands in
+		}
+		any_owned_location = {
+			NOT = { has_location_modifier = province_improvement_eastern_religion_peaceful_relations }
+			dominant_religion = root.religion # Imperator dominant_province_religion
+			any_pop = {
+				count > 2 #P:A TODO Approximate: Imperator counted more than 2 pops; EU5 counts pop groups
+				NOR = {
+					religion = root.religion
+					religion = religion:armenian_religion
+					religion = religion:mesopotamian_pantheon # Imperator mesopotamian_religion
+					religion = religion:caucasian_pantheon # Imperator caucasian_religion
+				}
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_eastern_1_cooldown
+			days = 3650
+		}
+		random_owned_location = {
+			limit = {
+				NOT = { has_location_modifier = province_improvement_eastern_religion_peaceful_relations }
+				dominant_religion = root.religion
+				any_pop = {
+					count > 2 #P:A TODO Approximate: Imperator counted more than 2 pops; EU5 counts pop groups
+					NOR = {
+						religion = root.religion
+						religion = religion:armenian_religion
+						religion = religion:mesopotamian_pantheon
+						religion = religion:caucasian_pantheon
+					}
+				}
+			}
+			save_scope_as = country_province
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+			}
+			save_scope_as = random_advisor
+		}
+	}
+
+	option = { # Convert them all
+		name = rel_flavor_eastern.1.a
+		# add_tyranny = tyranny_large #P:A TODO No EU5 equivalent: +5 tyranny
+		scope:country_province = {
+			every_pop = { # Imperator: ordered_pops_in_province with max = total_population (every pop)
+				limit = {
+					NOR = {
+						religion = root.religion
+						religion = religion:armenian_religion
+						religion = religion:mesopotamian_pantheon
+						religion = religion:caucasian_pantheon
+					}
+				}
+				change_pop_religion = root.religion
+			}
+		}
+	}
+
+	option = { # Convert some of them peacefully
+		name = rel_flavor_eastern.1.b
+		scope:country_province = {
+			ordered_pop = { #P:A TODO Approximate: Imperator converted the happiest such pop; EU5 converts size 1 of the most satisfied one (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					NOR = {
+						religion = root.religion
+						religion = religion:armenian_religion
+						religion = religion:mesopotamian_pantheon
+						religion = religion:caucasian_pantheon
+					}
+				}
+				order_by = pop_satisfaction # Imperator pop_hapiness
+				max = 1
+				check_range_bounds = no
+				if = {
+					limit = { pop_size > 1 }
+					split_pop = {
+						size = 1
+						religion = root.religion
+					}
+				}
+				else = {
+					change_pop_religion = root.religion
+				}
+			}
+		}
+	}
+
+	option = { # No conversion
+		name = rel_flavor_eastern.1.c
+		scope:country_province = {
+			add_location_modifier = {
+				modifier = province_improvement_eastern_religion_peaceful_relations
+				days = 3650
+			}
+		}
+	}
+}
+
+# Sister faiths (Armenian, Mesopotamian, Caucasian) live in one of our locations; convert them to our faith or let them be.
+rel_flavor_eastern.2 = {
+	type = country_event
+	title = rel_flavor_eastern.2.t
+	desc = rel_flavor_eastern.2.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		pa_imp_country_eastern_religion_trigger = yes
+		NOT = { has_variable = rel_flavor_eastern_2_cooldown }
+		any_character = {
+			is_ruler = no
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, cabinet membership stands in
+		}
+		any_owned_location = {
+			NOT = { has_location_modifier = province_improvement_eastern_religion_peaceful_relations }
+			OR = {
+				AND = {
+					any_pop = { religion = religion:armenian_religion }
+					any_pop = { religion = religion:mesopotamian_pantheon }
+					OR = {
+						root = { religion = religion:armenian_religion }
+						root = { religion = religion:mesopotamian_pantheon }
+					}
+				}
+				AND = {
+					any_pop = { religion = religion:mesopotamian_pantheon }
+					any_pop = { religion = religion:caucasian_pantheon }
+					OR = {
+						root = { religion = religion:mesopotamian_pantheon }
+						root = { religion = religion:caucasian_pantheon }
+					}
+				}
+				AND = {
+					any_pop = { religion = religion:armenian_religion }
+					any_pop = { religion = religion:caucasian_pantheon }
+					OR = {
+						root = { religion = religion:armenian_religion }
+						root = { religion = religion:caucasian_pantheon }
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_eastern_2_cooldown
+			days = 3650
+		}
+		random_owned_location = {
+			limit = {
+				OR = {
+					AND = {
+						any_pop = { religion = religion:armenian_religion }
+						any_pop = { religion = religion:mesopotamian_pantheon }
+						OR = {
+							root = { religion = religion:armenian_religion }
+							root = { religion = religion:mesopotamian_pantheon }
+						}
+					}
+					AND = {
+						any_pop = { religion = religion:mesopotamian_pantheon }
+						any_pop = { religion = religion:caucasian_pantheon }
+						OR = {
+							root = { religion = religion:mesopotamian_pantheon }
+							root = { religion = religion:caucasian_pantheon }
+						}
+					}
+					AND = {
+						any_pop = { religion = religion:armenian_religion }
+						any_pop = { religion = religion:caucasian_pantheon }
+						OR = {
+							root = { religion = religion:armenian_religion }
+							root = { religion = religion:caucasian_pantheon }
+						}
+					}
+				}
+			}
+			save_scope_as = country_province
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+			}
+			save_scope_as = random_advisor
+		}
+	}
+
+	option = {
+		name = rel_flavor_eastern.2.a
+		if = {
+			limit = {
+				religion = religion:armenian_religion
+			}
+			# add_political_influence = -15 / -15 / -10 when more than 10 / more than 5 / fewer pops convert #P:A TODO No EU5 equivalent: political influence
+			scope:country_province = {
+				every_pop = {
+					limit = {
+						OR = {
+							religion = religion:mesopotamian_pantheon
+							religion = religion:caucasian_pantheon
+						}
+					}
+					change_pop_religion = religion:armenian_religion
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				religion = religion:mesopotamian_pantheon
+			}
+			# add_political_influence = -25 / -15 / -10 when more than 10 / more than 5 / fewer pops convert #P:A TODO No EU5 equivalent: political influence
+			scope:country_province = {
+				every_pop = {
+					limit = {
+						OR = {
+							religion = religion:armenian_religion
+							religion = religion:caucasian_pantheon
+						}
+					}
+					change_pop_religion = religion:mesopotamian_pantheon
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				religion = religion:caucasian_pantheon
+			}
+			# add_political_influence = -25 / -15 / -10 when more than 10 / more than 5 / fewer pops convert #P:A TODO No EU5 equivalent: political influence
+			scope:country_province = {
+				every_pop = {
+					limit = {
+						OR = {
+							religion = religion:armenian_religion
+							religion = religion:mesopotamian_pantheon
+						}
+					}
+					change_pop_religion = religion:caucasian_pantheon
+				}
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_eastern.2.b
+		scope:country_province = {
+			add_location_modifier = {
+				modifier = province_improvement_eastern_religion_peaceful_relations
+				days = 1825
+			}
+		}
+	}
+}
+
+# An advisor asks for funds to raise a shrine to the harvest goddess in one of our locations.
+rel_flavor_eastern.3 = {
+	type = country_event
+	title = rel_flavor_eastern.3.t
+	desc = rel_flavor_eastern.3.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		pa_imp_country_eastern_religion_trigger = yes
+		NOT = { has_variable = rel_flavor_eastern_3_cooldown }
+		any_character = {
+			is_ruler = no
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, cabinet membership stands in
+		}
+		any_owned_location = {
+			dominant_religion = root.religion # Imperator dominant_province_religion
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_eastern_3_cooldown
+			days = 3650
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+			}
+			save_scope_as = random_advisor
+		}
+		random_owned_location = {
+			limit = {
+				dominant_religion = root.religion
+			}
+			save_scope_as = country_province
+		}
+	}
+
+	option = {
+		name = rel_flavor_eastern.3.a
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total # Imperator has_monthly_income
+			multiply = 3
+			min = -6000
+		}
+		scope:country_province = {
+			add_location_modifier = {
+				modifier = province_improvement_eastern_religion_fertility_goddess
+				days = 5475
+			}
+		}
+		# scope:random_advisor = { add_loyalty = loyalty_priest_allowed } #P:A TODO No EU5 equivalent: loyalty gain for the advisor (EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = rel_flavor_eastern.3.b
+		# scope:random_advisor = { add_loyalty = loyalty_priest_refused } #P:A TODO No EU5 equivalent: loyalty loss for the advisor (EU5 characters have no loyalty)
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Zoroastrianism spreads into one of our locations; an advisor wants the converts brought back.
+rel_flavor_eastern.4 = {
+	type = country_event
+	title = rel_flavor_eastern.4.t
+	desc = rel_flavor_eastern.4.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		pa_imp_country_eastern_religion_trigger = yes
+		NOT = { has_variable = rel_flavor_eastern_4_cooldown }
+		any_character = {
+			is_ruler = no
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, cabinet membership stands in
+			religion = root.religion
+		}
+		any_owned_location = {
+			dominant_religion = root.religion # Imperator dominant_province_religion
+			OR = {
+				any_pop = {
+					religion = religion:zoroastrian # Imperator zoroaster
+				}
+				any_neighbor_location = {
+					any_pop = {
+						religion = religion:zoroastrian
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_eastern_4_cooldown
+			days = 3650
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+				religion = root.religion
+			}
+			save_scope_as = random_advisor
+		}
+		random_owned_location = {
+			limit = {
+				dominant_religion = root.religion
+				OR = {
+					any_pop = {
+						religion = religion:zoroastrian
+					}
+					any_neighbor_location = {
+						any_pop = {
+							religion = religion:zoroastrian
+						}
+					}
+				}
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 20
+					any_pop = {
+						count > 5 #P:A TODO Approximate: Imperator counted more than 5 pops; EU5 counts pop groups
+						religion = root.religion
+					}
+				}
+			}
+			save_scope_as = country_province
+		}
+	}
+
+	option = {
+		name = rel_flavor_eastern.4.a
+		# add_political_influence = -10 if fewer than 3 pops of our faith in the location, else -15 #P:A TODO No EU5 equivalent: political influence
+		# scope:random_advisor = { add_loyalty = loyalty_reconversion_allowed } #P:A TODO No EU5 equivalent: loyalty gain for the advisor (EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = rel_flavor_eastern.4.b
+		# scope:random_advisor = { add_loyalty = loyalty_reconversion_denied } #P:A TODO No EU5 equivalent: loyalty loss for the advisor (EU5 characters have no loyalty)
+		scope:country_province = {
+			ordered_pop = { #P:A TODO Approximate: Imperator converted the 4 happiest pops of our faith; EU5 converts size 1 of each of the 4 most satisfied (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					religion = root.religion
+				}
+				order_by = pop_satisfaction # Imperator pop_hapiness
+				max = 4
+				check_range_bounds = no
+				if = {
+					limit = { pop_size > 1 }
+					split_pop = {
+						size = 1
+						religion = religion:zoroastrian
+					}
+				}
+				else = {
+					change_pop_religion = religion:zoroastrian
+				}
+			}
+		}
+	}
+}
+
+# A spokesman of a Hellenic community in one of our locations offers to bring it into our faith.
+rel_flavor_eastern.5 = {
+	type = country_event
+	title = rel_flavor_eastern.5.t
+	desc = rel_flavor_eastern.5.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		pa_imp_country_eastern_religion_trigger = yes
+		NOT = { has_variable = rel_flavor_eastern_5_cooldown }
+		any_owned_location = {
+			dominant_religion = root.religion # Imperator dominant_province_religion
+			any_pop = {
+				count > 2 #P:A TODO Approximate: Imperator counted more than 2 pops; EU5 counts pop groups
+				OR = { # Imperator roman_pantheon
+					religion = religion:hellenic_pantheon
+					religion = religion:roman_pantheon
+				}
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_eastern_5_cooldown
+			days = 7300
+		}
+		random_owned_location = {
+			limit = {
+				dominant_religion = root.religion
+				any_pop = {
+					count > 2 #P:A TODO Approximate: Imperator counted more than 2 pops; EU5 counts pop groups
+					OR = {
+						religion = religion:hellenic_pantheon
+						religion = religion:roman_pantheon
+					}
+				}
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 10
+					any_pop = {
+						count > 10 #P:A TODO Approximate: Imperator counted pops; EU5 counts pop groups
+						OR = {
+							religion = religion:hellenic_pantheon
+							religion = religion:roman_pantheon
+						}
+					}
+				}
+				modifier = {
+					factor = 10
+					any_pop = {
+						count > 5 #P:A TODO Approximate: Imperator counted pops; EU5 counts pop groups
+						OR = {
+							religion = religion:hellenic_pantheon
+							religion = religion:roman_pantheon
+						}
+					}
+				}
+			}
+			save_scope_as = country_province
+		}
+	}
+
+	option = {
+		name = rel_flavor_eastern.5.a
+		scope:country_province = {
+			ordered_pop = { #P:A TODO Approximate: Imperator converted the happiest Hellenic pop; EU5 converts size 1 of the most satisfied one (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					OR = {
+						religion = religion:hellenic_pantheon
+						religion = religion:roman_pantheon
+					}
+				}
+				order_by = pop_satisfaction # Imperator pop_hapiness
+				max = 1
+				check_range_bounds = no
+				if = {
+					limit = { pop_size > 1 }
+					split_pop = {
+						size = 1
+						religion = root.religion
+					}
+				}
+				else = {
+					change_pop_religion = root.religion
+				}
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_eastern.5.b
+		pa_imp_remove_stability_effect = yes
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total # Imperator has_monthly_income
+			multiply = 2
+			min = -6000
+		}
+		scope:country_province = {
+			every_pop = {
+				limit = {
+					OR = {
+						religion = religion:hellenic_pantheon
+						religion = religion:roman_pantheon
+					}
+				}
+				change_pop_religion = root.religion
+			}
+		}
+		create_character = {
+			culture = root.ruler.culture
+			religion = root.religion
+			age = 30
+			female = no
+			save_scope_as = community_ambassador
+		}
+		hidden_effect = {
+			scope:community_ambassador = {
+				while = {
+					count = 3
+					if = {
+						limit = {
+							num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4); EU5 counts ruler traits
+						}
+						random_list = {
+							10 = {
+								trigger = {
+									NOT = { has_trait = silver_tongue }
+								}
+								add_trait = trait:silver_tongue # Imperator silver_tongued
+							}
+							10 = {
+								trigger = {
+									NOT = { has_trait = humble }
+								}
+								add_trait = trait:humble
+							}
+							# 10 = { trigger = { NOT = { has_trait = intelligent } } add_trait = intelligent } #P:A TODO No EU5 equivalent: Imperator trait intelligent
+							# 10 = { trigger = { NOT = { has_trait = loving } } add_trait = loving } #P:A TODO No EU5 equivalent: Imperator trait loving
+						}
+					}
+				}
+			}
+		}
+	}
+}

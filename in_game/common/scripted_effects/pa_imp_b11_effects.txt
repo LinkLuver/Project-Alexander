@@ -42,3 +42,141 @@ pa_imp_country_kill_counter_effect = {
 		}
 	}
 }
+
+#P:A Imported from Imperator (common/scripted_effects/00_medical.txt): add_correct_trait_effect
+# Character scope: gives the ailment chosen by traits.4 (variable which_disease), then clears the variable.
+pa_imp_add_correct_trait_effect = {
+	# if = { limit = { has_variable = which_disease var:which_disease = 1 NOT = { has_trait = mentagra } } add_trait = mentagra }
+	# else_if = { limit = { has_variable = which_disease var:which_disease = 2 NOT = { has_trait = arthritis } } add_trait = arthritis }
+	#P:A TODO No EU5 equivalent: which_disease 1 (mentagra), 2 (arthritis), 4 (dysentery), 5 (infection) and 6 (inflammation) gave Imperator traits EU5 does not have
+	if = {
+		limit = {
+			has_variable = which_disease
+			var:which_disease = 3
+			NOT = {
+				has_trait = smallpox_trait # pox
+			}
+		}
+		add_trait = trait:smallpox_trait # pox
+	}
+	# else_if = { limit = { has_variable = which_disease var:which_disease = 4 NOT = { has_trait = dysentery } } add_trait = dysentery }
+	# else_if = { limit = { has_variable = which_disease var:which_disease = 5 NOT = { has_trait = infection } } add_trait = infection }
+	# else_if = { limit = { has_variable = which_disease var:which_disease = 6 NOT = { has_trait = inflammation } } add_trait = inflammation }
+	if = {
+		limit = {
+			has_variable = which_disease
+		}
+		remove_variable = which_disease
+	}
+}
+
+#P:A Imported from Imperator (common/scripted_effects/00_medical.txt): add_correct_second_stage_disease_effect
+# Character scope: gives the serious illness chosen by traits.6 (variable second_stage_disease), then clears the variable.
+pa_imp_add_correct_second_stage_disease_effect = {
+	# if = { limit = { has_variable = second_stage_disease var:second_stage_disease = 1 } <remove infection or inflammation> add_trait = pneumonia }
+	# else_if = { limit = { has_variable = second_stage_disease var:second_stage_disease = 2 } <remove infection or inflammation> add_trait = leper }
+	#P:A TODO No EU5 equivalent: second_stage_disease 1 (pneumonia), 2 (leper) and 4 (gangrene) gave Imperator traits EU5 does not have, and all three removed the infection/inflammation traits first
+	if = {
+		limit = {
+			has_variable = second_stage_disease
+			var:second_stage_disease = 3
+		}
+		# if = { limit = { has_trait = infection } remove_trait = infection }
+		# else_if = { limit = { has_trait = inflammation } remove_trait = inflammation }
+		add_trait = trait:smallpox_trait # pox
+	}
+	# else_if = { limit = { has_variable = second_stage_disease var:second_stage_disease = 4 } add_trait = gangrene }
+	if = {
+		limit = {
+			has_variable = second_stage_disease
+		}
+		remove_variable = second_stage_disease
+	}
+}
+
+#P:A Imported from Imperator (common/scripted_effects/00_medical.txt): add_result_affliction_effect
+# Character scope: gives the permanent affliction chosen by the calling event (variable medical_result_acquired),
+# then clears the variable.
+pa_imp_add_result_affliction_effect = {
+	if = {
+		limit = {
+			has_variable = medical_result_acquired
+			var:medical_result_acquired = 1
+			# NOT = { has_trait = barren }
+		}
+		# add_trait = barren #P:A TODO No EU5 equivalent: Imperator trait barren
+	}
+	else_if = {
+		limit = {
+			has_variable = medical_result_acquired
+			var:medical_result_acquired = 2
+			NOT = {
+				has_trait = castrated
+			}
+		}
+		add_trait = trait:castrated
+	}
+	else_if = {
+		limit = {
+			has_variable = medical_result_acquired
+			var:medical_result_acquired = 3
+			NOT = {
+				has_trait = sickly # frail
+			}
+		}
+		add_trait = trait:sickly # frail
+	}
+	else_if = {
+		limit = {
+			has_variable = medical_result_acquired
+			var:medical_result_acquired = 4
+			NOT = {
+				has_trait = blind
+			}
+		}
+		if = {
+			limit = { has_trait = one_eyed }
+			remove_trait = trait:one_eyed
+			add_trait = trait:blind
+		}
+		else = {
+			add_trait = trait:one_eyed
+		}
+	}
+	else_if = {
+		limit = {
+			has_variable = medical_result_acquired
+			var:medical_result_acquired = 5
+			# NOT = { has_trait = paralysis }
+		}
+		# add_trait = paralysis #P:A TODO No EU5 equivalent: Imperator trait paralysis
+	}
+	else_if = {
+		limit = {
+			has_variable = medical_result_acquired
+			var:medical_result_acquired = 6
+			NOT = {
+				has_trait = blind
+			}
+		}
+		if = {
+			limit = { has_trait = one_eyed }
+			remove_trait = trait:one_eyed
+		}
+		add_trait = trait:blind
+	}
+	else_if = {
+		limit = {
+			has_variable = medical_result_acquired
+			var:medical_result_acquired = 7
+			# NOT = { has_trait = brain_damaged }
+		}
+		# add_trait = brain_damaged #P:A TODO No EU5 equivalent: Imperator trait brain_damaged
+	}
+	if = {
+		limit = {
+			has_variable = medical_result_acquired
+		}
+		remove_variable = medical_result_acquired
+	}
+}

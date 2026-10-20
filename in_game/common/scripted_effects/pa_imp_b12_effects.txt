@@ -6,3 +6,322 @@ pa_imp_character_democratic_party_conviction_effect = {
 	#P:A TODO No EU5 equivalent: in a republic, added $VALUE$ conviction for the populares party (or else the democratic party)
 	# to the character (add_party_conviction). EU5 has no parties or party conviction.
 }
+
+#P:A Imported from Imperator: republic_job_giver_effect (common/scripted_effects/00_event_effects.txt)
+# Character scope (a character of a republic).
+pa_imp_republic_job_giver_effect = {
+	#P:A TODO No EU5 equivalent: gave the character the republican office matching his best skill (martial: tribune of the
+	# soldiers / of the treasury; finesse: plebeian aedile / physician; charisma: censor / praetor; zeal: augur / pontifex),
+	# taking an office whose holder had a lower skill, else a random one of the pair, else any of the eight.
+	# EU5 has no republican offices (give_office, has_office) and no zeal skill.
+}
+
+#P:A Imported from Imperator: dhe_slave_harsh_treatment_law_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope.
+pa_imp_dhe_slave_harsh_treatment_law_effect = {
+	# if = { limit = { is_republic = yes NOT = { tag = ROM } } change_law = republican_citizen_2 }
+	# else_if = { limit = { is_republic = yes tag = ROM } change_law = lex_fufia_caninia }
+	#P:A TODO No EU5 equivalent: a republic adopted the citizenship law republican_citizen_2 (Rome: the Lex Fufia Caninia) limiting slave treatment; EU5 laws differ
+}
+
+#P:A Imported from Imperator: create_2_citizens_effect (common/scripted_effects/00_event_effects.txt)
+# Location scope (Imperator: province).
+pa_imp_create_2_citizens_effect = {
+	if = {
+		limit = {
+			owner = {
+				government_type = government_type:tribe # Imperator is_tribal
+			}
+		}
+		add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (2 tribesmen pops -> size 2); culture/religion of the new pops taken from the location's dominant culture and religion
+			type = pop_type:tribesmen
+			size = 2
+			culture = dominant_culture
+			religion = dominant_religion
+		}
+	}
+	else = {
+		add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (2 citizen pops -> size 2 burghers); culture/religion of the new pops taken from the location's dominant culture and religion
+			type = pop_type:burghers
+			size = 2
+			culture = dominant_culture
+			religion = dominant_religion
+		}
+	}
+}
+
+#P:A Imported from Imperator: create_2_nobles_effect (common/scripted_effects/00_event_effects.txt)
+# Location scope (Imperator: province).
+pa_imp_create_2_nobles_effect = {
+	# custom_tooltip = create_2_nobles_effect_tooltip (dropped: add_pop shows its own tooltip)
+	add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (2 noble pops -> size 2); culture/religion of the new pops taken from the location's dominant culture and religion
+		type = pop_type:nobles
+		size = 2
+		culture = dominant_culture
+		religion = dominant_religion
+	}
+}
+
+#P:A Imported from Invictus: trade_good_event_effect (common/scripted_effects/00_india_effects.txt)
+# Location scope (Imperator: province); root = the country. Parameter REWARD = 1-10:
+# 1 = commerce building (else granary, else 2 citizens)   2 = granary (else commerce building, else aqueduct, else 2 nobles)
+# 3 = governor popularity and trade_winds_migrants_smod   4 = trade_winds_good and 100 gold
+# 5 = poor governorship (bad)   6 = imprison governor, lose state loyalty, ruler corruption (bad)
+# 7 = up to 220 gold   8 = manpower and state_owned_resources_mod   9 = up to 100 gold and new_trade_hub
+# 10 = thriving_local_trade_smod
+# The six modifiers it applies had no owner in the import manifests; they are defined in pa_imp_b12_modifiers.txt.
+pa_imp_trade_good_event_effect = {
+	save_temporary_scope_value_as = { # Imperator compared $REWARD$ directly in each limit
+		name = trade_good_event_reward
+		value = $REWARD$
+	}
+	if = {
+		limit = {
+			scope:trade_good_event_reward = 1
+		}
+		if = {
+			limit = {
+				can_build_building = building_type:marketplace # Imperator commerce_building
+			}
+			change_building_level_in_location = {
+				building = building_type:marketplace
+				value = 1
+			}
+		}
+		else_if = {
+			limit = {
+				can_build_building = building_type:granary #P:A TODO Approximate: Imperator population_building (granary) mapped to the EU5 granary
+			}
+			change_building_level_in_location = {
+				building = building_type:granary
+				value = 1
+			}
+		}
+		else = {
+			pa_imp_create_2_citizens_effect = yes
+		}
+	}
+	else_if = {
+		limit = {
+			scope:trade_good_event_reward = 2
+		}
+		if = {
+			limit = {
+				can_build_building = building_type:granary #P:A TODO Approximate: Imperator population_building (granary) mapped to the EU5 granary
+			}
+			change_building_level_in_location = {
+				building = building_type:granary
+				value = 1
+			}
+		}
+		else_if = {
+			limit = {
+				can_build_building = building_type:marketplace # Imperator commerce_building
+			}
+			change_building_level_in_location = {
+				building = building_type:marketplace
+				value = 1
+			}
+		}
+		else_if = {
+			limit = {
+				can_build_building = building_type:aqueduct_system # Imperator aqueduct_building
+			}
+			change_building_level_in_location = {
+				building = building_type:aqueduct_system
+				value = 1
+			}
+		}
+		else = {
+			pa_imp_create_2_nobles_effect = yes
+		}
+	}
+	else_if = {
+		limit = {
+			scope:trade_good_event_reward = 3
+		}
+		# if = { limit = { exists = governor_or_ruler } governor_or_ruler = { add_popularity = popularity_small } }
+		#P:A TODO No EU5 equivalent: +5 popularity for the governor (or the ruler) of the province (EU5 has no governors or popularity)
+		province = {
+			add_province_modifier = {
+				modifier = trade_winds_migrants_smod
+				days = 9125
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:trade_good_event_reward = 4
+		}
+		add_location_modifier = {
+			modifier = trade_winds_good
+			days = 9125
+		}
+		root = {
+			add_gold = 100
+		}
+	}
+	else_if = {
+		limit = {
+			scope:trade_good_event_reward = 5
+		}
+		province = {
+			add_province_modifier = {
+				modifier = state_modifier_poor_governorship
+				days = 9125
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:trade_good_event_reward = 6
+		}
+		# add_state_loyalty = { value = 0 subtract = state_loyalty divide = 1.5 }
+		# if = {
+		# 	limit = { exists = governor_or_ruler NOT = { governor_or_ruler = owner.current_ruler } }
+		# 	root = { imprison = { target = prev.governor_or_ruler } }
+		# }
+		# root.current_ruler = { add_corruption = { value = prev.governor_or_ruler.power_base divide = 4 max = 20 min = 5 } }
+		#P:A TODO No EU5 equivalent: the state lost two thirds of its loyalty, its governor was imprisoned and the ruler gained 5-20 corruption (EU5 has no state loyalty, governors, imprisonment or corruption)
+	}
+	else_if = {
+		limit = {
+			scope:trade_good_event_reward = 7
+		}
+		root = {
+			add_gold = {
+				value = 0
+				add = monthly_income_total # Imperator has_monthly_income
+				multiply = 6
+				ceiling = yes
+				max = 220
+				min = 20
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			scope:trade_good_event_reward = 8
+		}
+		root = {
+			add_manpower = {
+				value = 0
+				add = max_manpower
+				divide = 20
+				max = 2
+			}
+		}
+		add_location_modifier = {
+			modifier = state_owned_resources_mod
+			days = -1
+		}
+	}
+	else_if = {
+		limit = {
+			scope:trade_good_event_reward = 9
+		}
+		save_temporary_scope_value_as = {
+			name = trade_good_event_income
+			value = location_tax_base #P:A TODO Approximate: Imperator province_income; EU5 location tax base
+		}
+		root = {
+			add_gold = {
+				value = 0
+				add = scope:trade_good_event_income
+				min = 5
+				multiply = 40
+				max = 100
+				ceiling = yes
+			}
+		}
+		add_location_modifier = {
+			modifier = new_trade_hub
+			days = -1
+		}
+	}
+	else_if = {
+		limit = {
+			scope:trade_good_event_reward = 10
+		}
+		province = {
+			add_province_modifier = {
+				modifier = thriving_local_trade_smod
+				days = -1
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: trade_good_decision_spread_effect (common/scripted_effects/00_india_effects.txt)
+# Location scope (Imperator: province); root = the country. Parameters: REGION = yes/no, TRADE_GOOD = an EU5 goods key
+# (callers pass the mapped EU5 good, not the Imperator trade good).
+# REGION = yes: a location of root in the same region, without the good or a valuable good, in an area without the good,
+# starts producing it. REGION = no: the same in a neighboring area that has such a location of root.
+#P:A TODO Approximate: EU5 areas and regions are not Imperator's (EU5 geography differs), so the spread reaches a different set of locations
+pa_imp_trade_good_decision_spread_effect = {
+	if = {
+		limit = {
+			always = $REGION$
+		}
+		region = {
+			random_location_in_region = {
+				limit = {
+					owner ?= root
+					NOR = {
+						raw_material = goods:$TRADE_GOOD$
+						pa_imp_valuable_trade_good_trigger = yes
+					}
+					area = {
+						NOT = {
+							any_location_in_area = {
+								raw_material = goods:$TRADE_GOOD$
+							}
+						}
+					}
+				}
+				change_raw_material = goods:$TRADE_GOOD$
+			}
+		}
+	}
+	else = {
+		area = {
+			random_neighbor_area = {
+				limit = {
+					any_location_in_area = {
+						owner ?= root
+						NOR = {
+							raw_material = goods:$TRADE_GOOD$
+							pa_imp_valuable_trade_good_trigger = yes
+						}
+					}
+				}
+				random_location_in_area = {
+					limit = {
+						owner ?= root
+						NOT = {
+							raw_material = goods:$TRADE_GOOD$
+						}
+					}
+					change_raw_material = goods:$TRADE_GOOD$
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: add_party_approval_generic_completion_effect (common/scripted_effects/00_political_objective_effects.txt)
+# Party scope in Imperator; called when a senate objective (party agenda) was completed. Only the skipped
+# senate_objectives events used it.
+pa_imp_add_party_approval_generic_completion_effect = {
+	#P:A TODO No EU5 equivalent: gave the party that completed its senate agenda party approval (medium, or large for the
+	# holdings / imprison head / convert province / acquire subject / enemy shrine / promote citizen agendas).
+	# EU5 has no parties, party approval or senate agendas.
+}
+
+#P:A Imported from Invictus: ach_holy_fire_effect (common/scripted_effects/00_achievement_effects_inv.txt)
+# Reads scope:shrine_location and scope:sacker. Only the skipped senate_objectives events used it.
+pa_imp_ach_holy_fire_effect = {
+	#P:A TODO No EU5 equivalent: tracked the Invictus "Holy Fire" achievement by setting ach_holy_fire_<religion> on the
+	# sacker for the dominant religion of the sacked shrine's province (about 40 Imperator religions). EU5 has no shrines
+	# to sack and no Imperator achievements.
+}

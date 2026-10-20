@@ -1,0 +1,464 @@
+﻿#P:A Imported from Invictus: events/000_harvest_seasons.txt
+namespace = harvest
+#P:A TODO Approximate: Imperator terrains mapped to EU5 topography/vegetation/climate: flood_plain -> farmland vegetation, desert/desert_hills -> arid climate, marsh -> wetlands; EU5 has no oasis terrain
+# Imperator seasonal_food_game_rule (a game rule) set the global variable checked below; EU5 has no such rule, so it is never set.
+
+# Hidden: winter. Rolls the severity of the winter and gives every owned location outside India and the Himalayas a 91-day food modifier by terrain and trade good.
+harvest.1 = { #Winter
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		NOT = { has_global_variable = harvest_winter_var }
+		NOT = { has_global_variable = seasonal_food_game_rule }
+	}
+
+	immediate = {
+		set_global_variable = { name = harvest_winter_var value = 1 days = 90 }
+		random_list = {
+			125 = {
+				set_global_variable = harvest_winter_setup_mild
+			}
+			75 = {
+				set_global_variable = harvest_winter_setup_normal
+			}
+			50 = {
+				set_global_variable = harvest_winter_setup_severe
+			}
+			10 = {
+				trigger = { #Very Severe Winters do not occur during the warm period
+					current_date > 500.1.1
+				}
+				set_global_variable = harvest_winter_setup_very_severe
+			}
+		}
+		# every_country = { limit = { is_ai = yes } add_country_modifier = { name = harvest_handicap_modifier duration = 91 } } (commented out in Invictus)
+		every_ownable_location = {
+			limit = {
+				has_owner = yes
+				NOT = {
+					OR = {
+						pa_imp_city_is_in_india_trigger = yes
+						pa_imp_is_in_himalayan_mountains_trigger = yes
+					}
+				}
+			}
+			if = {
+				limit = {
+					location_rank = location_rank:rural_settlement # Imperator has_city_status = no
+				}
+				if = {
+					limit = {
+						vegetation = farmland # Imperator terrain = flood_plain (approximate)
+						# terrain = oasis #P:A TODO No EU5 equivalent: oasis terrain
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_floodplain_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_floodplain_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_floodplain_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_floodplain_very_severe_modifier days = 91 }
+					}
+				}
+				else_if = {
+					limit = {
+						OR = {
+							raw_material = goods:wheat # Imperator grain
+							raw_material = goods:legumes # Imperator vegetables
+						}
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_foodgood_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_foodgood_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_foodgood_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_foodgood_very_severe_modifier days = 91 }
+					}
+				}
+				else_if = {
+					limit = {
+						raw_material = goods:fish
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_fish_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_fish_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_fish_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_fish_very_severe_modifier days = 91 }
+					}
+				}
+				else_if = {
+					limit = {
+						raw_material = goods:livestock # Imperator cattle
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_animal_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_animal_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_animal_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_animal_very_severe_modifier days = 91 }
+					}
+				}
+				else_if = {
+					limit = {
+						OR = {
+							raw_material = goods:fur
+							raw_material = goods:wild_game
+						}
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_wildanimal_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_wildanimal_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_wildanimal_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_wildanimal_very_severe_modifier days = 91 }
+					}
+				}
+				else = {
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_very_severe_modifier days = 91 }
+					}
+				}
+			}
+			else = {
+				if = {
+					limit = {
+						topography = mountains
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_city_mountain_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_city_mountain_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_city_mountain_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_city_mountain_very_severe_modifier days = 91 }
+					}
+				}
+				else_if = {
+					limit = {
+						topography = hills
+						NOT = { climate = arid } # Imperator desert_hills is its own terrain and falls to the desert branch below
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_city_hills_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_city_hills_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_city_hills_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_city_hills_very_severe_modifier days = 91 }
+					}
+				}
+				else_if = {
+					limit = {
+						climate = arid # Imperator terrain = desert / desert_hills (approximate)
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_city_desert_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_city_desert_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_city_desert_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_city_desert_very_severe_modifier days = 91 }
+					}
+				}
+				else_if = {
+					limit = {
+						topography = wetlands # Imperator marsh
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_city_marsh_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_city_marsh_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_city_marsh_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_city_marsh_very_severe_modifier days = 91 }
+					}
+				}
+				else_if = {
+					limit = {
+						vegetation = jungle
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_city_jungle_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_city_jungle_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_city_jungle_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_city_jungle_very_severe_modifier days = 91 }
+					}
+				}
+				else_if = {
+					limit = {
+						vegetation = farmland # Imperator farmland / oasis / flood_plain
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_city_farmland_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_city_farmland_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_city_farmland_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_city_farmland_very_severe_modifier days = 91 }
+					}
+				}
+				else_if = {
+					limit = {
+						vegetation = forest
+					}
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_city_forest_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_city_forest_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_city_forest_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_city_forest_very_severe_modifier days = 91 }
+					}
+				}
+				else = {
+					if = {
+						limit = { has_global_variable = harvest_winter_setup_mild }
+						add_location_modifier = { modifier = harvest_winter_city_plains_mild_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_normal }
+						add_location_modifier = { modifier = harvest_winter_city_plains_modifier days = 91 }
+					}
+					else_if = {
+						limit = { has_global_variable = harvest_winter_setup_severe }
+						add_location_modifier = { modifier = harvest_winter_city_plains_severe_modifier days = 91 }
+					}
+					else = {
+						add_location_modifier = { modifier = harvest_winter_city_plains_very_severe_modifier days = 91 }
+					}
+				}
+			}
+		}
+		remove_global_variable = harvest_winter_setup_mild
+		remove_global_variable = harvest_winter_setup_normal
+		remove_global_variable = harvest_winter_setup_severe
+		remove_global_variable = harvest_winter_setup_very_severe
+	}
+}
+
+# Hidden: summer. Gives every owned location outside India and the Himalayas a 95-day food bonus by terrain and trade good.
+harvest.2 = { #Summer
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		NOT = { has_global_variable = harvest_summer_var }
+		NOT = { has_global_variable = seasonal_food_game_rule }
+	}
+
+	immediate = {
+		set_global_variable = { name = harvest_summer_var value = 1 days = 90 }
+		every_ownable_location = {
+			limit = {
+				has_owner = yes
+				NOT = {
+					OR = {
+						pa_imp_city_is_in_india_trigger = yes
+						pa_imp_is_in_himalayan_mountains_trigger = yes
+					}
+				}
+			}
+			if = {
+				limit = {
+					location_rank = location_rank:rural_settlement # Imperator has_city_status = no
+				}
+				if = {
+					limit = {
+						OR = {
+							raw_material = goods:wheat # Imperator grain
+							raw_material = goods:legumes # Imperator vegetables
+						}
+						vegetation = farmland # Imperator terrain = flood_plain (approximate)
+						# terrain = oasis #P:A TODO No EU5 equivalent: oasis terrain
+					}
+					add_location_modifier = { modifier = harvest_summer_floodplain_modifier days = 95 }
+				}
+				else_if = {
+					limit = {
+						OR = {
+							raw_material = goods:wheat # Imperator grain
+							raw_material = goods:legumes # Imperator vegetables
+						}
+					}
+					add_location_modifier = { modifier = harvest_summer_foodgood_modifier days = 95 }
+				}
+				else_if = {
+					limit = {
+						raw_material = goods:fish
+					}
+					add_location_modifier = { modifier = harvest_summer_fish_modifier days = 95 }
+				}
+				else_if = {
+					limit = {
+						raw_material = goods:livestock # Imperator cattle
+					}
+					add_location_modifier = { modifier = harvest_summer_animal_modifier days = 95 }
+				}
+				else_if = {
+					limit = {
+						OR = {
+							raw_material = goods:fur
+							raw_material = goods:wild_game
+						}
+					}
+					add_location_modifier = { modifier = harvest_summer_wildanimal_modifier days = 95 }
+				}
+				else = {
+					add_location_modifier = { modifier = harvest_summer_modifier days = 95 }
+				}
+			}
+			else = {
+				if = {
+					limit = {
+						topography = mountains
+					}
+					add_location_modifier = { modifier = harvest_summer_city_mountain_modifier days = 95 }
+				}
+				else_if = {
+					limit = {
+						topography = hills
+						NOT = { climate = arid } # Imperator desert_hills is its own terrain and falls to the desert branch below
+					}
+					add_location_modifier = { modifier = harvest_summer_city_hills_modifier days = 95 }
+				}
+				else_if = {
+					limit = {
+						climate = arid # Imperator terrain = desert / desert_hills (approximate)
+					}
+					add_location_modifier = { modifier = harvest_summer_city_desert_modifier days = 95 }
+				}
+				else_if = {
+					limit = {
+						topography = wetlands # Imperator marsh
+					}
+					add_location_modifier = { modifier = harvest_summer_city_marsh_modifier days = 95 }
+				}
+				else_if = {
+					limit = {
+						vegetation = jungle
+					}
+					add_location_modifier = { modifier = harvest_summer_city_jungle_modifier days = 95 }
+				}
+				else_if = {
+					limit = {
+						vegetation = farmland # Imperator farmland / flood_plain / oasis
+					}
+					add_location_modifier = { modifier = harvest_summer_city_farmland_modifier days = 95 }
+				}
+				else_if = {
+					limit = {
+						vegetation = forest
+					}
+					add_location_modifier = { modifier = harvest_summer_city_forest_modifier days = 95 }
+				}
+				else = {
+					add_location_modifier = { modifier = harvest_summer_city_plains_modifier days = 95 }
+				}
+			}
+		}
+	}
+}

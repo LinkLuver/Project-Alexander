@@ -1,0 +1,391 @@
+﻿#P:A Imported from Invictus: events/religion_flavor/rel_flavor_zoro.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+# Zoroastrian flavour events. In Imperator all four were in the random events of main_event_pulse_country.
+# Imperator religion zoroaster = mod religion zoroastrian.
+namespace = rel_flavor_zoro
+
+# Conversion by Fire: purification ceremonies to convert the unbelievers of a location.
+rel_flavor_zoro.1 = {
+	type = country_event
+	title = rel_flavor_zoro.1.t
+	desc = rel_flavor_zoro.1.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		religion = religion:zoroastrian
+		any_owned_location = {
+			any_pop = {
+				religion = religion:zoroastrian
+			}
+			any_pop = {
+				NOT = { religion = religion:zoroastrian }
+			}
+		}
+		any_character = {
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+			is_ruler = no
+			religion = religion:zoroastrian
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = zoro_ruler }
+		random_owned_location = {
+			limit = {
+				any_pop = {
+					religion = religion:zoroastrian
+				}
+				any_pop = {
+					NOT = { religion = religion:zoroastrian }
+				}
+			}
+			weight = {
+				base = 1
+				#P:A TODO Approximate: Imperator counted 5 or more pops of each kind; EU5 pops are fewer, larger groups, so the counts are rarely met
+				modifier = {
+					factor = 10
+					any_pop = {
+						count >= 5
+						religion = religion:zoroastrian
+					}
+				}
+				modifier = {
+					factor = 10
+					any_pop = {
+						count >= 5
+						NOT = { religion = religion:zoroastrian }
+					}
+				}
+				modifier = {
+					factor = 10
+					any_pop = {
+						count >= 5
+						religion = religion:zoroastrian
+					}
+					any_pop = {
+						count >= 5
+						NOT = { religion = religion:zoroastrian }
+					}
+				}
+			}
+			save_scope_as = country_province
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+				is_ruler = no
+				religion = religion:zoroastrian
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 10
+					pa_imp_has_priest_office_trigger = yes
+				}
+			}
+			save_scope_as = random_advisor
+		}
+	}
+
+	option = {
+		name = rel_flavor_zoro.1.a
+		# add_political_influence = subtract_influence_medium
+		#P:A TODO No EU5 equivalent: -15 political influence (subtract_influence_medium; EU5 has no political influence)
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 3
+			min = -6000
+		}
+		# scope:random_advisor = { add_loyalty = loyalty_large_ceremony }
+		#P:A TODO No EU5 equivalent: the advisor gains loyalty (loyalty_large_ceremony; EU5 characters have no loyalty)
+		scope:country_province = {
+			ordered_pop = {
+				limit = {
+					NOT = { religion = religion:zoroastrian }
+				}
+				order_by = pop_satisfaction # Imperator pop_hapiness
+				max = 3
+				check_range_bounds = no
+				change_pop_religion = religion:zoroastrian #P:A TODO Approximate: Imperator converted 3 pops; EU5 pops are larger groups, so up to 3 whole pops convert
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_zoro.1.b
+		# add_political_influence = subtract_influence_small
+		#P:A TODO No EU5 equivalent: -10 political influence (subtract_influence_small; EU5 has no political influence)
+		# scope:random_advisor = { add_loyalty = loyalty_small_ceremony }
+		#P:A TODO No EU5 equivalent: the advisor gains loyalty (loyalty_small_ceremony; EU5 characters have no loyalty)
+		scope:country_province = {
+			ordered_pop = {
+				limit = {
+					NOT = { religion = religion:zoroastrian }
+				}
+				order_by = pop_satisfaction # Imperator pop_hapiness
+				max = 1
+				check_range_bounds = no
+				change_pop_religion = religion:zoroastrian #P:A TODO Approximate: Imperator converted 1 pop; EU5 pops are larger groups, so one whole pop converts
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_zoro.1.c
+		if = {
+			limit = {
+				government_type = government_type:monarchy
+			}
+			add_legitimacy = -20 # subtract_legitimacy_large
+		}
+		# current_ruler = { add_popularity = subtract_popularity_medium }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (subtract_popularity_medium; EU5 characters have no popularity)
+		# scope:random_advisor = { add_loyalty = loyalty_priest_refused }
+		#P:A TODO No EU5 equivalent: the advisor loses loyalty (loyalty_priest_refused; EU5 characters have no loyalty)
+	}
+}
+
+# Unsuited Rulership: the magi question a bad ruler.
+rel_flavor_zoro.2 = {
+	type = country_event
+	title = rel_flavor_zoro.2.t
+	desc = rel_flavor_zoro.2.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		religion = religion:zoroastrian
+		NOT = { has_variable = rel_flavor_zoro_2_cooldown }
+		ruler ?= {
+			# popularity <= 60 #P:A TODO No EU5 equivalent: the ruler's popularity had to be 60 or less (EU5 characters have no popularity)
+			pa_imp_char_is_bad_leader_trigger = yes
+		}
+		any_character = {
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+			is_ruler = no
+			religion = religion:zoroastrian
+			# NOT = { is_friend = root.current_ruler } #P:A TODO No EU5 equivalent: the advisor may not be a friend of the ruler (EU5 has no character friendships)
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = zoro_ruler }
+		set_variable = {
+			name = rel_flavor_zoro_2_cooldown
+			days = 1825
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+				is_ruler = no
+				religion = religion:zoroastrian
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 10
+					pa_imp_has_priest_office_trigger = yes
+				}
+			}
+			save_scope_as = random_advisor
+		}
+	}
+
+	option = {
+		name = rel_flavor_zoro.2.a
+		# add_political_influence = subtract_influence_medium
+		#P:A TODO No EU5 equivalent: -15 political influence (subtract_influence_medium; EU5 has no political influence)
+		ruler = {
+			# add_popularity = popularity_small
+			#P:A TODO No EU5 equivalent: +5 popularity for the ruler (popularity_small; EU5 characters have no popularity)
+			pa_imp_character_remove_a_bad_leader_trait_effect = yes
+		}
+	}
+
+	option = {
+		name = rel_flavor_zoro.2.b
+		if = {
+			limit = {
+				government_type = government_type:monarchy
+			}
+			add_legitimacy = -5 # subtract_legitimacy_medium
+		}
+		# current_ruler = { add_popularity = subtract_popularity_small }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (subtract_popularity_small; EU5 characters have no popularity)
+	}
+}
+
+# By Ahuramazda: the magi counsel a pious ruler, who may take on a virtuous trait.
+rel_flavor_zoro.4 = {
+	type = country_event
+	title = rel_flavor_zoro.4.t
+	desc = rel_flavor_zoro.4.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		religion = religion:zoroastrian
+		NOT = { has_variable = rel_flavor_zoro_4_cooldown }
+		ruler ?= {
+			pa_imp_char_is_religious_trigger = yes
+			num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4); EU5 counts ruler-category traits
+		}
+		any_character = {
+			is_ruler = no
+			religion = religion:zoroastrian
+			pa_imp_has_priest_office_trigger = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = zoro_ruler }
+		set_variable = {
+			name = rel_flavor_zoro_4_cooldown
+			days = 10950
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				religion = religion:zoroastrian
+				pa_imp_has_priest_office_trigger = yes
+			}
+			save_scope_as = random_advisor
+		}
+		hidden_effect = {
+			ruler = {
+				random_list = {
+					1 = {
+						trigger = {
+							NOT = { has_trait = tolerant }
+						}
+						set_variable = {
+							name = tolerant_trait_flag
+						}
+					}
+					1 = {
+						trigger = {
+							NOT = { has_trait = kind_hearted } # Imperator merciful
+						}
+						set_variable = {
+							name = merciful_trait_flag
+						}
+					}
+					# 1 = { trigger = { NOT = { has_trait = founder } } set_variable = { name = founder_trait_flag } }
+					# 1 = { trigger = { NOT = { has_trait = benefactor } } set_variable = { name = benefactor_trait_flag } }
+					# 1 = { trigger = { NOT = { has_trait = forgiving } } set_variable = { name = forgiving_trait_flag } }
+					# 1 = { trigger = { NOT = { has_trait = confident } } set_variable = { name = confident_trait_flag } }
+					#P:A TODO No EU5 equivalent: Imperator traits "founder", "benefactor", "forgiving" and "confident" were also possible
+					1 = {
+						trigger = {
+							NOT = { has_trait = kind_hearted } # Imperator kindly
+						}
+						set_variable = {
+							name = kindly_trait_flag
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_zoro.4.a
+		# add_political_influence = subtract_influence_small
+		#P:A TODO No EU5 equivalent: -10 political influence (subtract_influence_small; EU5 has no political influence)
+		ruler = {
+			switch = {
+				trigger = has_variable
+				tolerant_trait_flag = { add_trait = trait:tolerant }
+				merciful_trait_flag = { add_trait = trait:kind_hearted } # Imperator merciful
+				kindly_trait_flag = { add_trait = trait:kind_hearted } # Imperator kindly
+			}
+		}
+		# scope:random_advisor = { add_loyalty = loyalty_magi_influence }
+		#P:A TODO No EU5 equivalent: the magus gains loyalty (loyalty_magi_influence; EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = rel_flavor_zoro.4.b
+		# scope:random_advisor = { add_loyalty = loyalty_ignored_magi }
+		#P:A TODO No EU5 equivalent: the magus loses loyalty (loyalty_ignored_magi; EU5 characters have no loyalty)
+	}
+}
+
+# Guided by Ahuramazda: support the magi in spreading the teachings, for war or for the realm.
+rel_flavor_zoro.5 = {
+	type = country_event
+	title = rel_flavor_zoro.5.t
+	desc = rel_flavor_zoro.5.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		religion = religion:zoroastrian
+		NOT = { has_variable = rel_flavor_zoro_5_cooldown }
+		any_character = {
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+			is_ruler = no
+			religion = religion:zoroastrian
+			pa_imp_has_priest_office_trigger = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = zoro_ruler }
+		set_variable = {
+			name = rel_flavor_zoro_5_cooldown
+			days = 3650
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+				is_ruler = no
+				religion = religion:zoroastrian
+				pa_imp_has_priest_office_trigger = yes
+			}
+			save_scope_as = random_advisor
+		}
+	}
+
+	option = {
+		name = rel_flavor_zoro.5.a
+		# add_political_influence = subtract_influence_large
+		#P:A TODO No EU5 equivalent: -25 political influence (subtract_influence_large; EU5 has no political influence)
+		add_country_modifier = {
+			modifier = country_improvement_zoroastrianism_war
+			days = 3650
+		}
+		# scope:random_advisor = { add_loyalty = loyalty_placated_priest }
+		#P:A TODO No EU5 equivalent: the priest gains loyalty (loyalty_placated_priest; EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = rel_flavor_zoro.5.b
+		# add_political_influence = subtract_influence_medium
+		#P:A TODO No EU5 equivalent: -15 political influence (subtract_influence_medium; EU5 has no political influence)
+		add_country_modifier = {
+			modifier = country_improvement_zoroastrianism_stability
+			days = 3650
+		}
+		# scope:random_advisor = { add_loyalty = loyalty_placated_priest }
+		#P:A TODO No EU5 equivalent: the priest gains loyalty (loyalty_placated_priest; EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = rel_flavor_zoro.5.c
+		# current_ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 popularity for the ruler (popularity_medium; EU5 characters have no popularity)
+		# scope:random_advisor = { add_loyalty = loyalty_ignored_priest }
+		#P:A TODO No EU5 equivalent: the priest loses loyalty (loyalty_ignored_priest; EU5 characters have no loyalty)
+	}
+}

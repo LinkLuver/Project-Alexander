@@ -1,0 +1,520 @@
+﻿# Imperator script values for batch b19 of the Invictus/Indomita event import (2026-10-20).
+
+#P:A Imported from Invictus: cassander_health_svalue (vanilla Imperator common/script_values/00_event_values.txt). Character scope.
+pa_imp_cassander_health_svalue = {
+	value = 0 #P:A TODO No EU5 equivalent: -40% of the character's health (health / 10 * -4); EU5 characters have no health
+}
+
+#P:A Imported from Invictus: philip_health_svalue (vanilla Imperator common/script_values/00_event_values.txt). Character scope.
+pa_imp_philip_health_svalue = {
+	value = 0 #P:A TODO No EU5 equivalent: -30% of the character's health (health / 10 * -3); EU5 characters have no health
+}
+
+#P:A Imported from Invictus: combined_stats_olympics_svalue (vanilla Imperator common/script_values/00_event_values.txt). Character scope.
+# Imperator martial + finesse + charisma + zeal (each about 0-20). EU5 skills are 0-100 (Imperator x5), so the sum is
+# divided by 5 to keep the Imperator scale used by the callers (e.g. >= 25 in olympic.3).
+pa_imp_combined_stats_olympics_svalue = {
+	value = 0
+	add = mil
+	add = adm
+	add = dip
+	divide = 5
+	# add = zeal #P:A TODO No EU5 equivalent: Imperator added the character's zeal (EU5 characters have no zeal)
+}
+
+############################################################################################################
+# Mercenary bribing (warfare.3/4/5) and the Invictus AI mercenary helpers (common/script_values/ai_war_values.txt,
+# 00_character_interactions_inv.txt). In Imperator a mercenary was a character (the leader) employed by the country,
+# commanding army units made of cohorts. In EU5 a mercenary is a mercenary company (mercenary scope: monthly_cost,
+# customer, every_mercenary_sub_unit; sub_units have mercenary_hire_cost / mercenary_maintenance_cost).
+# These helpers take the EU5 mercenary scope wherever Imperator used the mercenary leader:
+# scope:target / scope:mercenary_to_bribe / scope:mercenary_to_recruit are EU5 mercenary companies.
+############################################################################################################
+
+#P:A Imported from Invictus: army_size_merc_estimation (common/script_values/00_character_interactions_inv.txt). Reads scope:target.
+pa_imp_army_size_merc_estimation = {
+	value = 0
+	if = {
+		limit = {
+			exists = scope:target
+		}
+		scope:target = {
+			add = pa_imp_army_size_merc_estimation_calculation
+		}
+	}
+}
+
+#P:A Imported from Invictus: army_size_merc_estimation_calculation (common/script_values/00_character_interactions_inv.txt). Mercenary scope (Imperator: mercenary leader).
+pa_imp_army_size_merc_estimation_calculation = {
+	value = 0
+	every_mercenary_sub_unit = {
+		add = mercenary_hire_cost #P:A TODO Approximate: Imperator summed subunits_base_recruitment_cost (fixed cost per cohort type) over the leader's units; EU5 sums the hire cost of the company's sub-units
+	}
+	multiply = 2
+	min = 200
+}
+
+#P:A Imported from Invictus: ai_army_size_merc_estimation (common/script_values/ai_war_values.txt). Mercenary scope.
+pa_imp_ai_army_size_merc_estimation = {
+	value = pa_imp_army_size_merc_estimation_calculation
+}
+
+#P:A Imported from Invictus: ai_treasury_for_counter_bribing_base (common/script_values/ai_war_values.txt). Country scope; reads scope:mercenary_to_bribe.
+pa_imp_ai_treasury_for_counter_bribing_base = {
+	# Some really minimal buffer to negative treasury, where mercs become disloyal
+	value = 10
+	add = {
+		value = monthly_income_total
+		divide = 2
+	}
+	# Counter bribe amount
+	scope:mercenary_to_bribe = {
+		add = pa_imp_ai_army_size_merc_estimation
+	}
+}
+
+#P:A Imported from Invictus: ai_treasury_for_counter_bribing_high_prio (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_ai_treasury_for_counter_bribing_high_prio = {
+	value = pa_imp_ai_treasury_for_counter_bribing_base
+
+	# We must be able to pay all our current mercenaries for at least a couple of months
+	add = {
+		value = pa_imp_ai_current_mercenary_maintenance
+		multiply = 6
+	}
+
+	# If balance is in the red, we must be able to hold out for at least a couple of months
+	if = {
+		limit = {
+			monthly_balance < 0
+		}
+		subtract = {
+			value = monthly_balance
+			multiply = 6
+		}
+	}
+}
+
+#P:A Imported from Invictus: ai_treasury_for_counter_bribing_medium_prio (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_ai_treasury_for_counter_bribing_medium_prio = {
+	value = pa_imp_ai_treasury_for_counter_bribing_base
+
+	# We must be able to pay all our current mercenaries for at least some time
+	add = {
+		value = pa_imp_ai_current_mercenary_maintenance
+		multiply = 12
+	}
+
+	# If balance is in the red, we must be able to hold out for at least some time
+	if = {
+		limit = {
+			monthly_balance < 0
+		}
+		subtract = {
+			value = monthly_balance
+			multiply = 12
+		}
+	}
+}
+
+#P:A Imported from Invictus: ai_treasury_for_counter_bribing_low_prio (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_ai_treasury_for_counter_bribing_low_prio = {
+	value = pa_imp_ai_treasury_for_counter_bribing_base
+
+	# We must be able to pay all our current mercenaries for a long time
+	add = {
+		value = pa_imp_ai_current_mercenary_maintenance
+		multiply = 42 # ai_expected_months_to_keep_mercs
+	}
+
+	# If balance is in the red, we must be able to hold out for a long time
+	if = {
+		limit = {
+			monthly_balance < 0
+		}
+		subtract = {
+			value = monthly_balance
+			multiply = 42 # ai_expected_months_to_keep_mercs
+		}
+	}
+
+	# Remaining treasury can't be lower than what we consider to be plenty of money for waging a war
+	min = {
+		value = pa_imp_ai_wartime_fund_desired
+		multiply = 2.50
+		scope:mercenary_to_bribe = {
+			add = pa_imp_ai_army_size_merc_estimation
+		}
+	}
+}
+
+#P:A Imported from Invictus: ai_current_mercenary_maintenance (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_ai_current_mercenary_maintenance = {
+	# Imperator first read a cached local variable (ai_current_mercenary_maintenance_cached) set by its AI scripts; nothing sets it in EU5
+	value = 0
+	every_hired_mercenary = {
+		add = monthly_cost #P:A TODO Approximate: Imperator summed unit_adjusted_maintenance of every army led by a mercenary; EU5 sums the monthly cost of the hired mercenary companies
+	}
+}
+
+#P:A Imported from Invictus: ai_free_mercenary_maintenance_without_bribed (common/script_values/ai_war_values.txt). Country scope; reads scope:mercenary_to_bribe.
+pa_imp_ai_free_mercenary_maintenance_without_bribed = {
+	# Max maintenance as if we didn't have the bribed mercs
+	value = pa_imp_ai_max_mercenary_maintenance_without_bribed
+	# Current maintenance as if we didn't have the bribed mercs
+	subtract = pa_imp_ai_current_mercenary_maintenance
+	scope:mercenary_to_bribe = {
+		add = pa_imp_mercenary_adjusted_maintenance # Imperator: unit_adjusted_maintenance of every unit of the bribed mercenary
+	}
+}
+
+#P:A Imported from Invictus: ai_max_mercenary_maintenance_without_bribed (common/script_values/ai_war_values.txt). Country scope; reads scope:mercenary_to_bribe.
+pa_imp_ai_max_mercenary_maintenance_without_bribed = {
+	if = {
+		limit = {
+			gold >= pa_imp_recruit_mercenary_cost_svalue
+		}
+
+		# Use treasury to offset temporary deficit, starting with wartime fund
+		value = pa_imp_ai_treasury_for_mercenaries
+		subtract = pa_imp_recruit_mercenary_cost_svalue
+		divide = 42 # ai_expected_months_to_keep_mercs
+
+		# Current treasury monthly balance
+		add = monthly_balance
+
+		# Our monthly balance will be higher without maintenance of the bribed mercs
+		scope:mercenary_to_bribe = {
+			add = pa_imp_mercenary_adjusted_maintenance # Imperator: unit_adjusted_maintenance of every unit of the bribed mercenary
+		}
+
+		# If navy is not at default economic policy, add delta between current policy and default
+		add = pa_imp_navy_adjusted_maintenance_delta
+
+		# Mercenary maintenance nerf for subjects, absolute goes before multiplier to soften its impact
+		if = {
+			limit = {
+				is_subject = yes
+				# All types that have joins_overlord_in_war = yes
+				OR = {
+					is_subject_type = feudatory
+					is_subject_type = satrapy
+					is_subject_type = client_state
+					is_subject_type = subject_mercenary_city_state
+					is_subject_type = kushite_client
+					is_subject_type = indian_client
+					is_subject_type = fiefdom
+				}
+			}
+			subtract = pa_imp_ai_max_mercenary_maintenance_subject_absolute
+			multiply = 0.75 # ai_max_mercenary_maintenance_subject_multiplier
+		}
+
+		min = 0
+	}
+	else = {
+		value = 0
+	}
+}
+
+#P:A Imported from Invictus: ai_max_mercenary_maintenance_subject_absolute (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_ai_max_mercenary_maintenance_subject_absolute = {
+	# Base tax income given to any country incl modifiers
+	value = monthly_income_trade_and_tax #P:A TODO Approximate: Imperator modifier:global_tax_income * (1 + modifier:global_tax_modifier), the flat base tax every country gets; EU5 monthly trade and tax income
+	# Don't count 50% of base tax income for mercenaries
+	multiply = 0.50
+}
+
+#P:A Imported from Invictus: ai_treasury_for_mercenaries (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_ai_treasury_for_mercenaries = {
+	# Imperator first read a cached local variable (ai_treasury_for_mercenaries_cached) set by its AI scripts; nothing sets it in EU5
+	# Start with allocating wartime fund
+	value = gold
+	max = pa_imp_ai_wartime_fund_desired
+	# Everything above it can be used only partially
+	if = {
+		limit = {
+			gold > pa_imp_ai_wartime_fund_desired
+		}
+		# Add part of the treasury at a decent rate, but with a rather harsh cap
+		add = {
+			value = gold
+			subtract = pa_imp_ai_wartime_fund_desired
+			min = 0
+			if = {
+				limit = {
+					pa_imp_ai_is_facing_existential_threat = yes
+				}
+				multiply = 0.40
+			}
+			else = {
+				multiply = 0.20
+			}
+			# No more than 175% or 250% of wartime fund is allowed in sum depending on threat
+			max = {
+				value = pa_imp_ai_wartime_fund_desired
+				if = {
+					limit = {
+						pa_imp_ai_is_facing_existential_threat = yes
+					}
+					multiply = 1.50
+				}
+				else = {
+					multiply = 0.75
+				}
+			}
+		}
+		# Add part of the treasury at a low rate, but without a cap
+		add = {
+			value = gold
+			subtract = pa_imp_ai_wartime_fund_desired
+			min = 0
+			if = {
+				limit = {
+					pa_imp_ai_is_facing_existential_threat = yes
+				}
+				multiply = 0.10
+			}
+			else = {
+				multiply = 0.05
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: ai_wartime_fund_desired (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_ai_wartime_fund_desired = {
+	value = pa_imp_max_mercenary_stacks_svalue
+	multiply = pa_imp_recruit_mercenary_cost_svalue
+
+	# Some money to pay mercenary wages
+	add = 50
+	add = monthly_income_total
+
+	# Round to 2 digits
+	multiply = 100
+	round = yes
+	divide = 100
+
+	min = 0
+}
+
+#P:A Imported from Invictus: max_mercenary_stacks_svalue (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_max_mercenary_stacks_svalue = {
+	value = 1 #P:A TODO No EU5 equivalent: Imperator modifier:max_mercenary_stacks (1 for small countries, more for great powers); EU5 has no limit on hired mercenary companies, 1 is a placeholder
+}
+
+#P:A Imported from Invictus: recruit_mercenary_cost_svalue (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_recruit_mercenary_cost_svalue = {
+	value = 100
+	# multiply = { value = 1.00 add = modifier:recruit_mercenary_cost_modifier }
+	#P:A TODO No EU5 equivalent: Imperator scaled the base 100 by the recruit_mercenary_cost_modifier (EU5 mercenary costs come from the company itself)
+}
+
+#P:A Imported from Invictus: navy_adjusted_maintenance_delta (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_navy_adjusted_maintenance_delta = {
+	value = 0 #P:A TODO No EU5 equivalent: Imperator added the navy maintenance difference between the current and the default navy economic policy (EU5 has no economic policies)
+}
+
+#P:A Imported from Invictus: mercenary_adjusted_maintenance (common/script_values/ai_war_values.txt). Mercenary scope (Imperator: mercenary leader).
+pa_imp_mercenary_adjusted_maintenance = {
+	value = monthly_cost #P:A TODO Approximate: Imperator summed unit_adjusted_maintenance (typical cohort maintenance with the employer's army maintenance modifiers) of the leader's units; EU5 monthly cost of the company
+}
+
+#P:A Imported from Invictus: mercenary_adjusted_maintenance_75_percent (common/script_values/ai_war_values.txt). Mercenary scope.
+pa_imp_mercenary_adjusted_maintenance_75_percent = {
+	value = pa_imp_mercenary_adjusted_maintenance
+	multiply = 0.75
+}
+
+#P:A Imported from Invictus: mercenary_strength_maintenance (common/script_values/ai_war_values.txt). Mercenary scope (Imperator: mercenary leader).
+pa_imp_mercenary_strength_maintenance = {
+	value = 0
+	every_mercenary_sub_unit = {
+		add = mercenary_maintenance_cost #P:A TODO Approximate: Imperator summed unit_strength_maintenance (cohort maintenance scaled by each cohort's strength) of the leader's units; EU5 sums the maintenance of the company's sub-units, not scaled by strength
+	}
+}
+
+#P:A Imported from Invictus: unit_adjusted_maintenance (common/script_values/ai_war_values.txt). Unit scope.
+pa_imp_unit_adjusted_maintenance = {
+	value = 0 #P:A TODO No EU5 equivalent: Imperator typical cohort maintenance of the unit (subunits_typical_maintenance) times the owner's or scope:recruiting_country's army/navy maintenance modifiers, assuming default economic policies; EU5 has no per-unit maintenance value (mercenary companies use monthly_cost)
+}
+
+#P:A Imported from Invictus: unit_typical_maintenance (common/script_values/ai_war_values.txt). Unit scope.
+pa_imp_unit_typical_maintenance = {
+	value = 0 #P:A TODO No EU5 equivalent: Imperator typical cohort maintenance of the unit times the army/navy maintenance modifiers (without economic policies); EU5 has no per-unit maintenance value
+}
+
+#P:A Imported from Invictus: subunits_typical_maintenance (common/script_values/ai_war_values.txt). Unit scope.
+pa_imp_subunits_typical_maintenance = {
+	value = 0 #P:A TODO No EU5 equivalent: Imperator recruitment cost of the unit's cohorts (cached per cohort type) scaled to maintenance; EU5 has no per-unit maintenance value
+}
+
+#P:A Imported from Invictus: unit_strength_maintenance (common/script_values/ai_war_values.txt). Unit scope.
+pa_imp_unit_strength_maintenance = {
+	value = 0
+	every_sub_unit = {
+		add = mercenary_maintenance_cost #P:A TODO Approximate: Imperator subunits_strength_maintenance (cohort cost scaled by strength) times the army/navy maintenance modifiers; EU5 sums the sub-units' mercenary maintenance cost
+	}
+}
+
+#P:A Imported from Invictus: subunits_strength_maintenance (common/script_values/ai_war_values.txt). Unit scope.
+pa_imp_subunits_strength_maintenance = {
+	value = 0
+	every_sub_unit = {
+		add = mercenary_maintenance_cost #P:A TODO Approximate: Imperator summed army_subunit_recruitment_cost * strength of every cohort of a unit that pays maintenance; EU5 sums the sub-units' mercenary maintenance cost
+	}
+}
+
+#P:A Imported from Invictus: subunits_base_recruitment_cost (common/script_values/ai_war_values.txt). Unit scope.
+pa_imp_subunits_base_recruitment_cost = {
+	value = 0
+	if = {
+		limit = {
+			is_army = yes
+		}
+		every_sub_unit = {
+			add = mercenary_hire_cost #P:A TODO Approximate: Imperator added a fixed cost per cohort type (archers 8, light infantry 8, heavy infantry 16, ...); EU5 sums the sub-units' mercenary hire cost
+		}
+	}
+}
+
+#P:A Imported from Invictus: army_recruitment_cost_by_cache (common/script_values/ai_war_values.txt). Unit scope.
+pa_imp_army_recruitment_cost_by_cache = {
+	value = 0 #P:A TODO No EU5 equivalent: Imperator multiplied cached cohort counts per type (num_of_<type>_subunits_cached variables, set by its AI scripts) by each type's recruitment cost; nothing sets these in EU5
+}
+
+#P:A Imported from Invictus: army_subunit_recruitment_cost (common/script_values/ai_war_values.txt). Sub-unit scope.
+pa_imp_army_subunit_recruitment_cost = {
+	value = mercenary_hire_cost #P:A TODO Approximate: Imperator fixed cost per army cohort type times scope:recruiting_country's recruitment cost modifiers; EU5 mercenary hire cost of the sub-unit
+}
+
+#P:A Imported from Invictus: navy_subunit_recruitment_cost (common/script_values/ai_war_values.txt). Sub-unit scope.
+pa_imp_navy_subunit_recruitment_cost = {
+	value = mercenary_hire_cost #P:A TODO Approximate: Imperator fixed cost per ship type (liburnian 5, ...) times scope:recruiting_country's ship cost modifiers; EU5 mercenary hire cost of the sub-unit
+}
+
+#P:A Imported from Invictus: country_population_40_percent (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_country_population_40_percent = {
+	value = total_population # Imperator country_population (pop count); EU5 population in thousands, only used in ratios
+	multiply = 0.40
+}
+
+#P:A Imported from Invictus: country_population_of_enemy_players (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_country_population_of_enemy_players = {
+	value = 0
+	every_country_at_war_with = {
+		limit = {
+			is_ai = no
+		}
+		add = total_population
+	}
+}
+
+#P:A Imported from Invictus: country_population_of_ally_side (common/script_values/ai_war_values.txt). War scope; reads scope:country_at_war.
+pa_imp_country_population_of_ally_side = {
+	value = 0
+	if = {
+		limit = {
+			any_attacker = {
+				this = scope:country_at_war
+			}
+		}
+		every_attacker = {
+			add = total_population
+		}
+	}
+	else = {
+		every_defender = {
+			add = total_population
+		}
+	}
+}
+
+#P:A Imported from Invictus: country_population_of_ally_side_plus_three_fifths (common/script_values/ai_war_values.txt). War scope.
+pa_imp_country_population_of_ally_side_plus_three_fifths = {
+	value = pa_imp_country_population_of_ally_side
+	multiply = 1.60
+}
+
+#P:A Imported from Invictus: country_population_of_enemy_side (common/script_values/ai_war_values.txt). War scope; reads scope:country_at_war.
+pa_imp_country_population_of_enemy_side = {
+	value = 0
+	if = {
+		limit = {
+			any_attacker = {
+				this = scope:country_at_war
+			}
+		}
+		every_defender = {
+			add = total_population
+		}
+	}
+	else = {
+		every_attacker = {
+			add = total_population
+		}
+	}
+}
+
+#P:A Imported from Invictus: num_of_territories_svalue (common/script_values/ai_inventions_values.txt). Country scope.
+pa_imp_num_of_territories_svalue = {
+	value = num_locations #P:A TODO Approximate: Imperator num_of_cities (owned territories); EU5 owned locations
+	min = 1
+}
+
+#P:A Imported from Invictus: num_of_territories_of_ally_side (common/script_values/ai_war_values.txt). War scope; reads scope:country_at_war.
+pa_imp_num_of_territories_of_ally_side = {
+	value = 0
+	if = {
+		limit = {
+			any_attacker = {
+				this = scope:country_at_war
+			}
+		}
+		every_attacker = {
+			add = pa_imp_num_of_territories_svalue
+		}
+	}
+	else = {
+		every_defender = {
+			add = pa_imp_num_of_territories_svalue
+		}
+	}
+}
+
+#P:A Imported from Invictus: num_of_territories_of_ally_side_plus_three_fifths (common/script_values/ai_war_values.txt). War scope.
+pa_imp_num_of_territories_of_ally_side_plus_three_fifths = {
+	value = pa_imp_num_of_territories_of_ally_side
+	multiply = 1.60
+}
+
+#P:A Imported from Invictus: num_of_territories_of_enemy_side (common/script_values/ai_war_values.txt). War scope; reads scope:country_at_war.
+pa_imp_num_of_territories_of_enemy_side = {
+	value = 0
+	if = {
+		limit = {
+			any_attacker = {
+				this = scope:country_at_war
+			}
+		}
+		every_defender = {
+			add = pa_imp_num_of_territories_svalue
+		}
+	}
+	else = {
+		every_attacker = {
+			add = pa_imp_num_of_territories_svalue
+		}
+	}
+}
+
+#P:A Imported from Invictus: diplomatic_range_svalue (common/script_values/ai_war_values.txt). Country scope.
+pa_imp_diplomatic_range_svalue = {
+	value = 0 #P:A TODO No EU5 equivalent: Imperator define NDiplomacy|DIPLOMATIC_RANGE times (1 + diplomatic_range_modifier), a distance; EU5 diplomatic range is checked with within_diplomatic_range instead
+}
+
+#P:A Imported from Invictus: ideal_family_size_svalue (vanilla Imperator common/script_values/00_event_values.txt). Character scope.
+pa_imp_ideal_family_size_svalue = {
+	value = 4 #P:A TODO No EU5 equivalent: Imperator num_of_expected_jobs + 1 (the number of offices a great family expects to hold, plus one); EU5 has no great-family office quota, 4 is a placeholder
+}

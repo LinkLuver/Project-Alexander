@@ -1,0 +1,194 @@
+﻿# Imperator scripted effects for batch b13 of the Invictus/Indomita event import (2026-10-19).
+
+#P:A Imported from Imperator: subtract_manpower_effect_10 (common/scripted_effects/00_decision_effects.txt)
+# Country scope. Costs 10 manpower, or 10 stability when the country has less than 10 manpower.
+pa_imp_subtract_manpower_effect_10 = {
+	if = {
+		limit = {
+			manpower >= 10
+		}
+		add_manpower = -10
+	}
+	else = {
+		add_stability = -10
+	}
+}
+
+# --- Pyrrhos of Epirus chain (dhe_dde_pyrrhus.*). The chain was skipped (bound to char:70 Pyrrhos and the EPI tag);
+# --- these helpers exist so that it can be ported later. Country scope unless noted.
+
+#P:A Imported from Invictus: dhe_dde_pyrrhus_1_move_effect (common/scripted_effects/00_dde_pyrrhus_effects.txt)
+# Moves the exiled Pyrrhos (scope:pyrrhus) to the next Diadochus who has not refused him (Demetrios' court if
+# Deidamia married him, then PRY, EGY, SEL, TRE, MAC (if Epirus likes Macedon), TLN, else a random Hellenic country)
+# and fires dhe_dde_pyrrhus.2 there.
+pa_imp_dhe_dde_pyrrhus_1_move_effect = {
+	#P:A TODO No EU5 equivalent: the whole effect reads the Imperator character char:70 (Pyrrhos) and his
+	# flavor_epi_deidamia_demetrius_married_flag variable, makes him a minor character and gives him loyalty_pyrrhus_travelling;
+	# Imperator character ids do not exist in EU5. Port together with the Pyrrhos chain (Invictus source above).
+}
+
+#P:A Imported from Invictus: pyrrhus_refused_variable_cleaner_effect (common/scripted_effects/00_dde_pyrrhus_effects.txt)
+# Clears the "refused Pyrrhos" flag from every country that could host him (tags checked against the mod's setup).
+pa_imp_pyrrhus_refused_variable_cleaner_effect = {
+	if = {
+		limit = {
+			c:PRY ?= { has_variable = pyrrhus_refused }
+		}
+		c:PRY = { remove_variable = pyrrhus_refused }
+	}
+	if = {
+		limit = {
+			c:EGY ?= { has_variable = pyrrhus_refused }
+		}
+		c:EGY = { remove_variable = pyrrhus_refused }
+	}
+	if = {
+		limit = {
+			c:SEL ?= { has_variable = pyrrhus_refused }
+		}
+		c:SEL = { remove_variable = pyrrhus_refused }
+	}
+	if = {
+		limit = {
+			c:TRE ?= { has_variable = pyrrhus_refused }
+		}
+		c:TRE = { remove_variable = pyrrhus_refused }
+	}
+	if = {
+		limit = {
+			c:MAC ?= { has_variable = pyrrhus_refused }
+		}
+		c:MAC = { remove_variable = pyrrhus_refused }
+	}
+	if = {
+		limit = {
+			c:TLN ?= { has_variable = pyrrhus_refused }
+		}
+		c:TLN = { remove_variable = pyrrhus_refused }
+	}
+}
+
+#P:A Imported from Invictus: pyrrhus_family_mover_effect (common/scripted_effects/00_dde_pyrrhus_effects.txt)
+# Brings Pyrrhos' (scope:pyrrhus) wife and children to Epirus.
+pa_imp_pyrrhus_family_mover_effect = {
+	if = {
+		limit = {
+			scope:pyrrhus = {
+				is_married = yes # Imperator exists = spouse
+			}
+		}
+		pa_imp_pyrrhus_wife_mover_effect = yes
+	}
+	if = {
+		limit = {
+			scope:pyrrhus = {
+				any_child = { always = yes } # Imperator num_of_children > 0
+			}
+		}
+		pa_imp_pyrrhus_children_mover_effect = yes
+	}
+}
+
+#P:A Imported from Invictus: pyrrhus_wife_mover_effect (common/scripted_effects/00_dde_pyrrhus_effects.txt)
+pa_imp_pyrrhus_wife_mover_effect = {
+	hidden_effect = {
+		scope:pyrrhus = {
+			every_spouse = { # Imperator scope:pyrrhus.spouse (a single spouse)
+				limit = {
+					NOT = {
+						employer = c:EPI
+					}
+					# prisoner = no #P:A Removed: prisoner = no is always true in EU5
+				}
+				pa_imp_remove_all_positions = yes
+				move_country = c:EPI
+				remove_character_modifier = foreign_citizen
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: pyrrhus_children_mover_effect (common/scripted_effects/00_dde_pyrrhus_effects.txt)
+pa_imp_pyrrhus_children_mover_effect = {
+	hidden_effect = {
+		scope:pyrrhus = {
+			every_child = { # Imperator: while loop moving one random child at a time
+				limit = {
+					NOT = {
+						employer = c:EPI
+					}
+					# prisoner = no #P:A Removed: prisoner = no is always true in EU5
+				}
+				pa_imp_remove_all_positions = yes
+				move_country = c:EPI
+				remove_character_modifier = foreign_citizen
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: pyrrhus_return_effect (common/scripted_effects/00_dde_pyrrhus_effects.txt)
+# Pyrrhos returns to Epirus with the troops and money of his supporter (Epirus scope).
+pa_imp_pyrrhus_return_effect = {
+	# hidden_effect = { current_ruler = { add_loyalty = loyalty_deposed } }
+	#P:A TODO No EU5 equivalent: the deposed ruler gets the loyalty_deposed loyalty modifier (EU5 characters have no loyalty)
+	if = { # If supported by small nation
+		limit = {
+			scope:pyrrhus = { has_variable = pyrrhus_supported_small_flag }
+		}
+		# hidden_effect = { add_opinion/reverse_add_opinion = { modifier = dhe_dde_pyrrhus_supported_op target = scope:pyrrhus_supporter_scope } }
+		#P:A TODO Mutual +100 opinion (dhe_dde_pyrrhus_supported_op) between Epirus and the supporter; that opinion modifier was not imported (it belongs to the skipped chain)
+		add_gold = {
+			value = scope:pyrrhus_second_country_scope.monthly_income_total
+			multiply = 2
+		}
+		# hidden_effect = { scope:dhe_dde_pyrrhus_army_scope = { add_subunit = heavy_infantry (x3) } }
+		#P:A TODO No EU5 equivalent: adds three heavy infantry cohorts to Pyrrhos' army (Imperator sub-units; port with EU5 unit effects)
+		custom_tooltip = dhe_dde_pyrrhus.5.at
+	}
+	else_if = { # Else if supported by Diadochus
+		limit = {
+			scope:pyrrhus = { has_variable = pyrrhus_supported_big_flag }
+		}
+		# hidden_effect = { add_opinion/reverse_add_opinion = { modifier = dhe_dde_pyrrhus_supported_op target = scope:pyrrhus_supporter_scope } }
+		#P:A TODO Mutual +100 opinion (dhe_dde_pyrrhus_supported_op) between Epirus and the supporter; that opinion modifier was not imported
+		add_gold = {
+			value = scope:pyrrhus_second_country_scope.monthly_income_total
+			multiply = 2
+		}
+		# hidden_effect = { scope:dhe_dde_pyrrhus_army_scope = { add_subunit = warelephant add_subunit = heavy_infantry (x3) } }
+		#P:A TODO No EU5 equivalent: adds a war elephant and three heavy infantry cohorts to Pyrrhos' army (Imperator sub-units)
+		custom_tooltip = dhe_dde_pyrrhus.5.bt
+	}
+	else = { # Else because not supported
+		# hidden_effect = { scope:dhe_dde_pyrrhus_army_scope = { add_subunit = heavy_infantry (x2) } }
+		#P:A TODO No EU5 equivalent: adds two heavy infantry cohorts to Pyrrhos' army (Imperator sub-units)
+		# hidden_effect = { reverse_add_opinion = { modifier = dhe_dde_pyrrhus_no_support_op target = scope:pyrrhus_second_country_scope } }
+		#P:A TODO -50 opinion of the refusing country towards Epirus (dhe_dde_pyrrhus_no_support_op, not imported)
+		scope:pyrrhus = { remove_variable = pyrrhus_not_supported_flag }
+		custom_tooltip = dhe_dde_pyrrhus.5.ct
+	}
+}
+
+#P:A Imported from Invictus: pyrrhus_wife_finder_effect (common/scripted_effects/00_dde_pyrrhus_effects.txt)
+# Saves the youngest eligible woman of the ruling family at court as scope:pyrrhus_betrothed_scope.
+pa_imp_pyrrhus_wife_finder_effect = {
+	ordered_character = {
+		limit = {
+			is_ruler = no
+			is_female = yes
+			age_in_years <= 30
+			is_married = no #P:A TODO Approximate: Imperator can_marry = yes; EU5 unmarried
+			dynasty = root.ruler.dynasty #P:A TODO Approximate: Imperator from_ruler_family = yes; EU5 same dynasty as the ruler
+			employer = root
+			location = root.capital # Imperator is_at_location = root.capital_scope
+		}
+		order_by = {
+			value = 0
+			subtract = age_in_years
+		}
+		max = 1
+		check_range_bounds = no
+		save_scope_as = pyrrhus_betrothed_scope
+	}
+}

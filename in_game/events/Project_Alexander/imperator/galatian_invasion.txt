@@ -1,0 +1,176 @@
+﻿#P:A Imported from Invictus: events/galatian_invasion.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = galatian_invasion
+
+#P:A Skipped: galatian_invasion.4 (Asian Targets) and .6 (Cappadocian Targets). Both only pick the defenders of the
+#   historical 3rd-century Galatian crossing into Asia Minor and fire .40/.50/.60 on them. They had no caller even in
+#   Invictus (.3 only offers .5), and the attackers they need (scope:tavium/ankyra/pessinous_attacker) are created only by
+#   galatian_invasion.1, which is date-gated (after 460 AUC) and tag-gated (DND, TEC, TOL, TOI, CEL ...). Effectively date/tag-bound.
+
+galatian_invasion.34 = { # Thracian Gauls - Start Migration
+	# Invictus fired this event from nowhere (no caller); it reuses the loc of galatian_invasion.44.
+	type = country_event
+	title = galatian_invasion.44.t
+	desc = galatian_invasion.44.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	fire_only_once = yes
+
+	trigger = {
+		culture = { has_culture_group = culture_group:gallic_group }
+		is_ai = yes
+		any_owned_location = {
+			pa_imp_in_region_thrace_region = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		random_country = {
+			limit = {
+				culture = { has_culture_group = culture_group:gallic_group }
+				any_owned_location = {
+					pa_imp_in_region_thrace_region = yes
+				}
+				is_ai = yes
+			}
+			save_scope_as = migrating_nation
+		}
+	}
+
+	option = {
+		name = galatian_invasion.44.a
+
+		scope:migrating_nation = {
+			while = {
+				count = { 15 20 }
+				if = {
+					limit = {
+						NOT = { has_variable = tylis_chosen_city }
+						any_owned_location = {
+							NOT = { has_variable = tylis_chosen_city }
+							OR = {
+								pa_imp_in_region_moesia_region = yes
+								pa_imp_in_region_illyria_region = yes
+								pa_imp_in_region_pannonia_region = yes
+								pa_imp_in_region_dacia_region = yes
+							}
+							dominant_culture ?= { has_culture_group = culture_group:gallic_group } #P:A TODO Approximate: Imperator province_dominant_culture_group (group of the dominant pop culture); EU5 dominant_culture of the location
+						}
+					}
+					random_owned_location = {
+						limit = {
+							NOT = { has_variable = tylis_chosen_city }
+							OR = {
+								pa_imp_in_region_moesia_region = yes
+								pa_imp_in_region_illyria_region = yes
+								pa_imp_in_region_pannonia_region = yes
+								pa_imp_in_region_dacia_region = yes
+							}
+							dominant_culture ?= { has_culture_group = culture_group:gallic_group }
+						}
+						set_variable = tylis_chosen_city
+					}
+					# Imperator fired .35 from the chosen province; in EU5 the migrating country fires it for itself
+					trigger_event_silently = { id = galatian_invasion.35 days = 3 }
+				}
+			}
+		}
+	}
+}
+
+galatian_invasion.35 = { # Settling
+	# Hidden: moves Gallic pops of the migrating nation (scope:migrating_nation, saved by .34) to one location in Thrace.
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:migrating_nation
+	}
+
+	immediate = {
+		random_location_in_the_world = {
+			limit = {
+				is_ownable = yes
+				pa_imp_in_region_thrace_region = yes
+				trigger_if = {
+					limit = { exists = owner }
+					owner = scope:migrating_nation
+				}
+			}
+			weight = {
+				base = 1
+				modifier = { #P:A TODO Approximate: Imperator total_population counted pops; EU5 population converted 1:1 (one pop = 1)
+					factor = 15
+					population < 15
+				}
+				modifier = {
+					factor = 15
+					population < 10
+				}
+				modifier = {
+					factor = 5
+					is_capital = yes
+				}
+				modifier = {
+					factor = 5
+					is_province_capital = yes
+				}
+				# modifier = { factor = 3 total_population < population_cap }
+				# modifier = { factor = 0.005 total_population > population_cap }
+				#P:A TODO No EU5 equivalent: weights for locations below (x3) / above (x0.005) their population capacity (EU5 locations have no population cap)
+			}
+			save_scope_as = new_city
+		}
+
+		while = {
+			count = { 15 20 }
+			if = {
+				limit = {
+					exists = scope:new_city
+					any_owned_location = {
+						any_pop = { culture = { has_culture_group = culture_group:gallic_group } }
+					}
+				}
+				random_owned_location = {
+					limit = {
+						any_pop = { culture = { has_culture_group = culture_group:gallic_group } }
+					}
+					random_pop = {
+						limit = { culture = { has_culture_group = culture_group:gallic_group } }
+						split_pop = { #P:A TODO Approximate: Imperator move_pop moved one whole pop; EU5 splits off size 1 and moves it (one Imperator pop converted 1:1 to EU5 size)
+							size = 1
+							location = scope:new_city
+						}
+					}
+				}
+				pa_imp_change_or_set_variable_effect = { VAR = galatian_pop_move_variable }
+				scope:new_city = {
+					pa_imp_change_or_set_variable_effect = { VAR = galatian_pop_move_variable }
+				}
+			}
+		}
+		if = {
+			limit = { has_variable = tylis_chosen_city }
+			remove_variable = tylis_chosen_city
+		}
+	}
+}
+
+#P:A Skipped (effectively date/tag/mission-bound, see reports/b15.md):
+#   galatian_invasion.40/.42/.43, .50/.53, .60/.63 - the Anatolian invasion: war declarations, horde spawning and the special
+#     peace for the attackers scope:tavium/ankyra/pessinous_attacker, which only the date-gated (after 460 AUC), tag-gated
+#     galatian_invasion.1 creates; the peace events are also fired by the Galatian tag decisions and the galatia_settled mission.
+#     Their helpers (pa_imp_galatian_horde_effect, pa_imp_galatian_peace_conquest_tail_effect,
+#     pa_imp_galatian_opportunist_wars_effect, modifier celtic_hordes) exist in the b15 support files for a later port.
+#   galatian_invasion.70 (Ethnogenesis) - needs has_migrated (set only by galatian_invasion.44) and the global flags
+#     asian/phrygian/cappadocian_invasion_flag (set only by .4/.5/.6 of the same chain).
+#   galatian_invasion.80 (Pops on a Journey) - unfinished Invictus placeholder (all loc "PLACEHOLDER"), no caller.
+#   galatian_invasion.90 (Mercenary State) - only fired by the galatia_settled mission; loc is "PLACEHOLDER".
+#   galatian_invasion.100-.107, .110-.112 (Galatian tournament) - fired by the galatia_settled mission, built around the
+#     rulers of c:TEC, c:TOL and c:TOI; loc is "PLACEHOLDER". Helper pa_imp_award_tournament_points_effect exists in b15 files.
+#   galatian_invasion.113-.117 (Feast/Duel) - empty placeholders with no caller and no effects, portraits of c:TEC/TOL/TOI.

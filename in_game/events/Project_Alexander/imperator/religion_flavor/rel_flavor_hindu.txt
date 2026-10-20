@@ -1,0 +1,469 @@
+﻿#P:A Imported from Invictus: events/religion_flavor/rel_flavor_hindu.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = rel_flavor_hindu
+
+# A Hindu priest offers to teach the ruler about karma, replacing one of the ruler's bad traits with its virtue.
+rel_flavor_hindu.1 = {
+	type = country_event
+	title = rel_flavor_hindu.1.t
+	desc = rel_flavor_hindu.1.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		religion = religion:hindu
+		NOT = { has_variable = rel_flavor_hindu_1_cooldown }
+		exists = ruler
+		ruler = {
+			num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4); EU5 counts ruler traits
+			OR = {
+				pa_imp_char_is_irreligious_trigger = yes
+				pa_imp_char_is_bad_leader_trigger = yes
+			}
+			OR = { #P:A TODO Approximate: added gate - the ruler needs one of the four bad traits the event can still replace in EU5 (in Imperator the event fired with any of twelve, and did nothing to the traits if none matched)
+				has_trait = cruel
+				has_trait = corrupt
+				has_trait = deceitful
+				has_trait = greedy # Imperator miserly
+			}
+		}
+		any_character = {
+			OR = {
+				pa_imp_char_is_religious_trigger = yes
+				pa_imp_char_is_good_leader_trigger = yes
+			}
+			pa_imp_has_priest_office_trigger = yes
+			religion = religion:hindu
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_hindu_1_cooldown
+			days = 3650
+		}
+		random_character = {
+			limit = {
+				OR = {
+					pa_imp_char_is_religious_trigger = yes
+					pa_imp_char_is_good_leader_trigger = yes
+				}
+				pa_imp_has_priest_office_trigger = yes
+				religion = religion:hindu
+			}
+			save_scope_as = random_priest
+		}
+		ruler = {
+			random_list = {
+				# 20 = { trigger = { has_trait = sceptical } set_variable = { name = sceptical_flag } } # Skeptical
+				# 20 = { trigger = { has_trait = lapsed } set_variable = { name = lapsed_flag } } # Lapsed
+				# 20 = { trigger = { has_trait = gluttonous } set_variable = { name = gluttonous_flag } } # Gluttonous
+				# 20 = { trigger = { has_trait = tactically_inflexible } set_variable = { name = tactically_inflexible_flag } } # Tactically Inflexible
+				# 20 = { trigger = { has_trait = arbitrary } set_variable = { name = arbitrary_flag } } # Arbitrary
+				# 20 = { trigger = { has_trait = selfish } set_variable = { name = selfish_flag } } # Selfish
+				# 20 = { trigger = { has_trait = lazy } set_variable = { name = lazy_flag } } # Lazy (its virtue, energetic, has no EU5 trait)
+				# 20 = { trigger = { has_trait = foolish } set_variable = { name = foolish_flag } } # Foolish
+				#P:A TODO No EU5 equivalent: Imperator traits sceptical, lapsed, gluttonous, tactically_inflexible, arbitrary, selfish, foolish (and the virtues energetic, self_controlled, original_thinker, shrewd); only the cruel, corrupt, deceitful and miserly branches are kept
+				20 = { # Cruel
+					trigger = {
+						has_trait = cruel
+					}
+					set_variable = {
+						name = cruel_flag
+					}
+				}
+				20 = { # Corrupt
+					trigger = {
+						has_trait = corrupt
+					}
+					set_variable = {
+						name = corrupt_flag
+					}
+				}
+				20 = { # Deceitful
+					trigger = {
+						has_trait = deceitful
+					}
+					set_variable = {
+						name = deceitful_flag
+					}
+				}
+				20 = { # Miserly
+					trigger = {
+						has_trait = greedy # Imperator miserly
+					}
+					set_variable = {
+						name = miserly_flag
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_hindu.1.a
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence
+		ruler = {
+			switch = {
+				trigger = has_variable
+				# sceptical_flag = { remove_trait = sceptical add_trait = pious } lapsed_flag = { remove_trait = lapsed add_trait = devout }
+				# gluttonous_flag = { remove_trait = gluttonous add_trait = self_controlled } tactically_inflexible_flag = { remove_trait = tactically_inflexible add_trait = original_thinker }
+				# arbitrary_flag = { remove_trait = arbitrary add_trait = just } selfish_flag = { remove_trait = selfish add_trait = generous }
+				# lazy_flag = { remove_trait = lazy add_trait = energetic } foolish_flag = { remove_trait = foolish add_trait = shrewd }
+				#P:A TODO No EU5 equivalent: the branches above use Imperator traits EU5 lacks (never picked above)
+				cruel_flag = {
+					remove_variable = cruel_flag
+					remove_trait = trait:cruel
+					add_trait = trait:kind_hearted # Imperator merciful
+				}
+				corrupt_flag = {
+					remove_variable = corrupt_flag
+					remove_trait = trait:corrupt
+					add_trait = trait:righteous
+				}
+				deceitful_flag = {
+					remove_variable = deceitful_flag
+					remove_trait = trait:deceitful
+					add_trait = trait:honest
+				}
+				miserly_flag = {
+					remove_variable = miserly_flag
+					remove_trait = trait:greedy # Imperator miserly
+					add_trait = trait:alms_giver #P:A TODO Approximate: Imperator trait "generous"; EU5 alms_giver is a religious-figure trait
+				}
+			}
+		}
+		# scope:random_priest = { add_loyalty = loyalty_karmic_help } #P:A TODO No EU5 equivalent: loyalty gain for the priest (EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = rel_flavor_hindu.1.b
+		# scope:random_priest = { add_loyalty = loyalty_karmic_reject } #P:A TODO No EU5 equivalent: loyalty loss for the priest (EU5 characters have no loyalty)
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Dissenters stir unrest in a Hindu city; the marshal wants to crush them, the priest to wait them out.
+rel_flavor_hindu.2 = {
+	type = country_event
+	title = rel_flavor_hindu.2.t
+	desc = rel_flavor_hindu.2.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		religion = religion:hindu
+		any_owned_location = {
+			dominant_religion = religion:hindu # Imperator dominant_province_religion
+			population > 3 #P:A TODO Approximate: Imperator total_population > 3 counted pops; EU5 population is in thousands (1 pop = 1 thousand)
+			NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+		}
+		any_character = {
+			religion = religion:hindu
+			pa_imp_has_priest_office_trigger = yes
+		}
+		any_character = {
+			pa_imp_has_martial_office_trigger = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		random_owned_location = {
+			limit = {
+				dominant_religion = religion:hindu
+				population > 3 #P:A TODO Approximate: Imperator total_population > 3 counted pops; EU5 population is in thousands
+				NOT = { location_rank = location_rank:rural_settlement }
+			}
+			save_scope_as = country_province
+		}
+		random_character = {
+			limit = {
+				religion = religion:hindu
+				pa_imp_has_priest_office_trigger = yes
+			}
+			save_scope_as = random_priest
+		}
+		random_character = {
+			limit = {
+				pa_imp_has_martial_office_trigger = yes
+			}
+			save_scope_as = random_marshal
+		}
+	}
+
+	option = {
+		name = rel_flavor_hindu.2.a
+		# add_tyranny = tyranny_medium #P:A TODO No EU5 equivalent: +3 tyranny
+		# scope:random_priest = { add_loyalty = loyalty_aggressive_protest } #P:A TODO No EU5 equivalent: loyalty loss for the priest (EU5 characters have no loyalty)
+		scope:country_province = {
+			random_pop = { #P:A TODO Approximate: Imperator killed one whole pop; EU5 removes size 1 of it (one Imperator pop converted 1:1 to EU5 size)
+				if = {
+					limit = { pop_size > 1 }
+					add_pop_size = -1
+				}
+				else = {
+					destroy_pop = this
+				}
+			}
+			random_pop = { #P:A TODO Approximate: second killed pop, as above
+				if = {
+					limit = { pop_size > 1 }
+					add_pop_size = -1
+				}
+				else = {
+					destroy_pop = this
+				}
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_hindu.2.b
+		scope:country_province = {
+			add_location_modifier = {
+				modifier = province_diminishment_unrest_hindu
+				days = 1825
+			}
+		}
+		# scope:random_priest = { add_loyalty = loyalty_peaceful_protest_priest } #P:A TODO No EU5 equivalent: loyalty change for the priest (EU5 characters have no loyalty)
+		# scope:random_marshal = { add_loyalty = loyalty_peaceful_protest_marshal } #P:A TODO No EU5 equivalent: loyalty change for the marshal (EU5 characters have no loyalty)
+	}
+}
+
+# Buddhists in one of our Hindu locations: convert them or leave them in peace.
+rel_flavor_hindu.3 = {
+	type = country_event
+	title = rel_flavor_hindu.3.t
+	desc = rel_flavor_hindu.3.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		religion = religion:hindu
+		NOT = { has_variable = rel_flavor_hindu_3_cooldown }
+		any_owned_location = {
+			dominant_religion = religion:hindu # Imperator dominant_province_religion
+			NOT = { has_location_modifier = province_improvement_eastern_religion_peaceful_relations }
+			any_pop = {
+				count > 3 #P:A TODO Approximate: Imperator counted more than 3 pops; EU5 counts pop groups
+				religion = religion:buddhism
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_hindu_3_cooldown
+			days = 5475
+		}
+		random_owned_location = {
+			limit = {
+				dominant_religion = religion:hindu
+				NOT = { has_location_modifier = province_improvement_eastern_religion_peaceful_relations }
+				any_pop = {
+					count > 3 #P:A TODO Approximate: Imperator counted more than 3 pops; EU5 counts pop groups
+					religion = religion:buddhism
+				}
+			}
+			save_scope_as = country_province
+		}
+	}
+
+	option = {
+		name = rel_flavor_hindu.3.a
+		# add_political_influence = subtract_influence_small #P:A TODO No EU5 equivalent: -10 political influence
+		scope:country_province = {
+			ordered_pop = { #P:A TODO Approximate: Imperator converted the 4 happiest Buddhist pops; EU5 converts size 1 of each of the 4 most satisfied (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					religion = religion:buddhism
+				}
+				order_by = pop_satisfaction # Imperator pop_hapiness
+				max = 4
+				check_range_bounds = no
+				if = {
+					limit = { pop_size > 1 }
+					split_pop = {
+						size = 1
+						religion = religion:hindu
+					}
+				}
+				else = {
+					change_pop_religion = religion:hindu
+				}
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_hindu.3.b
+		# ruler = { add_popularity = popularity_medium } #P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+		scope:country_province = {
+			add_location_modifier = {
+				modifier = province_improvement_eastern_religion_peaceful_relations
+				days = 1825
+			}
+		}
+	}
+}
+
+# Pilgrims flock to a Hindu holy place: profit from them or make the place beautiful.
+rel_flavor_hindu.4 = {
+	type = country_event
+	title = rel_flavor_hindu.4.t
+	desc = rel_flavor_hindu.4.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		religion = religion:hindu
+		NOT = { has_variable = rel_flavor_hindu_4_cooldown }
+		any_owned_location = {
+			dominant_religion = religion:hindu # Imperator dominant_province_religion
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_hindu_4_cooldown
+			days = 7300
+		}
+		random_owned_location = {
+			limit = {
+				dominant_religion = religion:hindu
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 20
+					OR = {
+						this = location:ormogang # Mount Kailash #P:A TODO Approximate location: Imperator Kailash (p:5576) mapped to ormogang
+						this = location:varanasi # Varanasi
+						this = location:kanchipuram # Kanchipuram
+						this = location:dwarka # Dvaraka
+						this = location:devprayag # Haridwar #P:A TODO Approximate location: Imperator Haridwar (p:4419) mapped to devprayag
+						this = location:bihar_sharif # Nalanda #P:A TODO Approximate location: Imperator Nalanda (p:4442) mapped to bihar_sharif
+						this = location:mathura # Mathura
+						this = location:junagarh # Girinagara
+					}
+				}
+			}
+			save_scope_as = country_province
+		}
+	}
+
+	option = {
+		name = rel_flavor_hindu.4.a
+		add_gold = {
+			value = root.monthly_income_total # Imperator has_monthly_income
+			multiply = 4
+			max = 5000
+		}
+		scope:country_province = {
+			add_location_modifier = {
+				modifier = province_improvement_hindu_pilgrimage_money
+				days = 1825
+			}
+		}
+		# ruler = { add_corruption = corruption_large } #P:A TODO No EU5 equivalent: +10 corruption for the ruler (EU5 characters have no corruption)
+	}
+
+	option = {
+		name = rel_flavor_hindu.4.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total # Imperator has_monthly_income
+			multiply = 2
+			min = -6000
+		}
+		scope:country_province = {
+			add_location_modifier = {
+				modifier = province_improvement_hindu_pilgrimage_peace
+				days = 1825
+			}
+		}
+		# ruler = { add_popularity = popularity_medium } #P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+	}
+}
+
+# A priest suggests a great festival to lift the spirits of a discontented realm.
+rel_flavor_hindu.5 = {
+	type = country_event
+	title = rel_flavor_hindu.5.t
+	desc = rel_flavor_hindu.5.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		religion = religion:hindu
+		NOT = { has_variable = rel_flavor_hindu_5_cooldown }
+		any_character = {
+			religion = religion:hindu
+			pa_imp_has_priest_office_trigger = yes
+		}
+		stability < 60
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_hindu_5_cooldown
+			days = 7300
+		}
+		random_character = {
+			limit = {
+				religion = religion:hindu
+				pa_imp_has_priest_office_trigger = yes
+			}
+			save_scope_as = random_priest
+		}
+	}
+
+	option = {
+		name = rel_flavor_hindu.5.a
+		pa_imp_add_greater_stability_effect = yes
+		# add_political_influence = subtract_influence_huge #P:A TODO No EU5 equivalent: -50 political influence
+		add_country_modifier = {
+			modifier = country_improvement_hindu_grand_ceremony
+			days = 1825
+		}
+	}
+
+	option = {
+		name = rel_flavor_hindu.5.b
+		pa_imp_add_stability_effect_small = yes
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence
+		add_country_modifier = {
+			modifier = country_improvement_hindu_ceremony
+			days = 1825
+		}
+	}
+
+	option = {
+		name = rel_flavor_hindu.5.c
+		custom_tooltip = no_effect_tooltip
+	}
+}

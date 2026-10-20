@@ -1,0 +1,694 @@
+﻿#P:A Imported from Invictus: events/warfare_events.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+# warfare.3/4/5: mercenary bribing. In Imperator fired by the character interaction merc_buyoff, the bribe-mercenary GUI
+# button and the AI effect ai_recruit_mercenaries on the mercenary's current employer, with scope:actor = the bribing
+# country and scope:target = the mercenary leader. Here scope:target is the EU5 mercenary company.
+# warfare.6-9, 13, 17: Imperator character events, converted to country events (character = scope:pa_character).
+namespace = warfare
+
+# Another country tries to buy away our mercenaries: match the offer?
+warfare.3 = {
+	type = country_event
+	title = warfare.3.t
+	desc = warfare.3.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = scope:target
+		exists = scope:actor
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = merc_employer_ruler }
+		scope:actor = {
+			ruler ?= { save_scope_as = merc_briber_ruler }
+		}
+		save_scope_as = counter_target
+		scope:target = {
+			save_scope_as = mercenary_to_bribe
+		}
+	}
+
+	option = {
+		name = warfare.3.a
+		add_gold = {
+			value = 0
+			subtract = pa_imp_army_size_merc_estimation
+		}
+		scope:actor = {
+			trigger_event_non_silently = {
+				id = warfare.4
+			}
+		}
+		ai_chance = {
+			modifier = {
+				factor = 0
+				pa_imp_ai_should_counter_bribe_mercenary = no
+			}
+		}
+	}
+
+	option = {
+		name = warfare.3.b
+		scope:target = {
+			become_hired_by = scope:actor #P:A TODO Approximate: Imperator change_mercenary_employer moved the mercenary leader and his units to the briber; EU5 has the company hired by the briber
+		}
+		scope:actor = {
+			trigger_event_non_silently = {
+				id = warfare.5
+			}
+		}
+		ai_chance = {
+			modifier = {
+				factor = 0
+				pa_imp_ai_should_counter_bribe_mercenary = yes
+			}
+		}
+	}
+}
+
+# The mercenaries refused our bribe (their employer matched it).
+warfare.4 = {
+	type = country_event
+	title = warfare.4.t
+	desc = warfare.4.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = merc_briber_ruler }
+		scope:counter_target ?= {
+			ruler ?= { save_scope_as = merc_employer_ruler }
+		}
+	}
+
+	option = {
+		name = warfare.4.a
+	}
+}
+
+# The mercenaries accepted our bribe.
+warfare.5 = {
+	type = country_event
+	title = warfare.5.t
+	desc = warfare.5.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = merc_briber_ruler }
+	}
+
+	option = {
+		name = warfare.5.a
+		custom_tooltip = merc_joined_us_tt
+	}
+}
+
+# Battle Wound. Imperator: character event from the random_events of in_land_battle (root = a commander in the battle,
+# weight 4 against 1098 for nothing). EU5 in_battle has root = the supreme commander (character); the caller must save
+# that character as scope:pa_character and fire this on its employer.
+warfare.6 = {
+	type = country_event
+	title = warfare.6.t
+	desc = warfare.6.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_adult = yes
+				NOT = { has_trait = scarred } #P:A TODO Approximate: Imperator NOT has_trait = wounded; the mod has no wounded trait, scarred is used
+				NOT = { has_variable = wounded_in_battle }
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_general = yes # not in Imperator: root was always a commander in battle
+				is_adult = yes
+				NOT = { has_trait = scarred }
+				NOT = { has_variable = wounded_in_battle }
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:pa_character
+			add = {
+				value = scope:pa_character.mil
+				divide = 20 # Imperator martial / 4; EU5 skills are x5
+				multiply = -1
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_general = yes
+					is_adult = yes
+					NOT = { has_trait = scarred }
+					NOT = { has_variable = wounded_in_battle }
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			add_trait = trait:scarred #P:A TODO Approximate: Imperator added the temporary "wounded" trait; EU5 has no wounded trait, scarred used
+			set_variable = {
+				name = wounded_in_battle
+				days = 60
+			}
+			if = {
+				limit = {
+					NOT = { has_trait = one_eyed }
+					NOT = { has_trait = blind }
+				}
+				random_list = {
+					5 = { add_trait = trait:one_eyed }
+					95 = { }
+				}
+			}
+		}
+	}
+
+	option = {
+		name = warfare.6.a
+		# scope:pa_character = { add_popularity = 5 }
+		#P:A TODO No EU5 equivalent: +5 popularity for the wounded commander (EU5 characters have no popularity)
+	}
+}
+
+# Fallen Commander. Imperator: character event from the random_events of in_land_battle (see warfare.6).
+warfare.7 = {
+	type = country_event
+	title = warfare.7.t
+	desc = warfare.7.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_adult = yes
+				NOT = { has_variable = wounded_in_battle }
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_general = yes # not in Imperator: root was always a commander in battle
+				is_adult = yes
+				NOT = { has_variable = wounded_in_battle }
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:pa_character
+			add = {
+				value = scope:pa_character.mil
+				divide = 20 # Imperator martial / 4; EU5 skills are x5
+				multiply = -1
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_general = yes
+					is_adult = yes
+					NOT = { has_variable = wounded_in_battle }
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			save_scope_as = dishonor_fallen_commander
+			# hidden_effect = {
+			# 	if = {
+			# 		limit = { has_legion_trigger = yes }
+			# 		legion = { save_scope_as = dishonor_fallen_commander_legion }
+			# 		random_list = { 75 = { } 25 = { employer = { trigger_event = { id = distinction.25 days = 10 } } } }
+			# 	}
+			# }
+			#P:A TODO No EU5 equivalent: if the commander led a legion, 25% chance of the legion-dishonor event distinction.25 (EU5 has no legions)
+			location ?= { save_scope_as = battle_location }
+		}
+		kill_character = {
+			target = scope:pa_character
+			reason = battle # Imperator death_battle
+		}
+	}
+
+	option = {
+		name = warfare.7.a
+	}
+}
+
+# Battle at Sea - Wounded Commander. Imperator: character event from the random_events of in_naval_battle (root = a
+# commander in the battle, weight 4 against 1098). EU5 in_battle (root = the supreme commander); see warfare.6.
+warfare.8 = {
+	type = country_event
+	title = warfare.8.t
+	desc = warfare.8.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_adult = yes
+				NOT = { has_trait = scarred } #P:A TODO Approximate: Imperator NOT has_trait = wounded; the mod has no wounded trait, scarred is used
+				NOT = { has_variable = wounded_in_battle }
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_admiral = yes # not in Imperator: root was always a commander in the naval battle
+				is_adult = yes
+				NOT = { has_trait = scarred }
+				NOT = { has_variable = wounded_in_battle }
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:pa_character
+			add = {
+				value = scope:pa_character.mil
+				divide = 20 # Imperator martial / 4; EU5 skills are x5
+				multiply = -1
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_admiral = yes
+					is_adult = yes
+					NOT = { has_trait = scarred }
+					NOT = { has_variable = wounded_in_battle }
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			add_trait = trait:scarred #P:A TODO Approximate: Imperator added the temporary "wounded" trait; EU5 has no wounded trait, scarred used
+			set_variable = {
+				name = wounded_in_battle
+				days = 60
+			}
+			if = {
+				limit = {
+					NOT = { has_trait = one_eyed }
+					NOT = { has_trait = blind }
+				}
+				random_list = {
+					5 = { add_trait = trait:one_eyed }
+					95 = { }
+				}
+			}
+		}
+	}
+
+	option = {
+		name = warfare.8.a
+		# scope:pa_character = { add_popularity = 5 }
+		#P:A TODO No EU5 equivalent: +5 popularity for the wounded commander (EU5 characters have no popularity)
+	}
+}
+
+# Battle at Sea - Fallen Commander. Imperator: character event from the random_events of in_naval_battle (see warfare.8).
+warfare.9 = {
+	type = country_event
+	title = warfare.9.t
+	desc = warfare.9.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_adult = yes
+				NOT = { has_variable = wounded_in_battle }
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_admiral = yes # not in Imperator: root was always a commander in the naval battle
+				is_adult = yes
+				NOT = { has_variable = wounded_in_battle }
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:pa_character
+			add = {
+				value = scope:pa_character.mil
+				divide = 20 # Imperator martial / 4; EU5 skills are x5
+				multiply = -1
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_admiral = yes
+					is_adult = yes
+					NOT = { has_variable = wounded_in_battle }
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			location ?= { save_scope_as = battle_location }
+		}
+		kill_character = {
+			target = scope:pa_character
+			reason = battle_sea #P:A TODO Approximate: Imperator death_battle (land and sea alike); EU5 has a separate sea-battle death reason
+		}
+	}
+
+	option = {
+		name = warfare.9.a
+	}
+}
+
+# Successor support: the pretender we backed has started a civil war and asks for aid (fired by warfare.13 on the
+# supporting country; scope:supported_target = the pretender, now ruler of the rebel side).
+warfare.12 = {
+	type = country_event
+	title = warfare.12.t
+	desc = warfare.12.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = scope:supported_target # not in Imperator: its only caller always saved it
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = supporting_ruler }
+		scope:supported_target = {
+			employer ?= { save_scope_as = supported_country }
+		}
+	}
+
+	option = {
+		name = warfare.12.a
+		scope:supported_country ?= {
+			add_manpower = {
+				value = 0
+				add = root.manpower
+				divide = 2
+			}
+		}
+		add_manpower = {
+			value = 0
+			subtract = root.manpower
+			divide = 2
+		}
+	}
+
+	option = {
+		name = warfare.12.b
+		create_relation = { # Imperator add_alliance
+			type = relation_type:alliance
+			first = root
+			second = scope:supported_country
+		}
+	}
+
+	option = {
+		name = warfare.12.d
+		scope:supported_country ?= {
+			add_manpower = {
+				value = 0
+				add = root.manpower
+				divide = 2
+			}
+		}
+		add_manpower = {
+			value = 0
+			subtract = root.manpower
+			divide = 2
+		}
+		create_relation = { # Imperator add_alliance
+			type = relation_type:alliance
+			first = root
+			second = scope:supported_country
+		}
+		custom_tooltip = if_small_enough_subject_tt
+		scope:supported_target = {
+			set_variable = {
+				name = complete_pretender_support
+				value = root
+				days = 3650
+			}
+		}
+	}
+
+	option = {
+		name = warfare.12.b
+		create_relation = { # Imperator add_alliance
+			type = relation_type:alliance
+			first = root
+			second = scope:supported_country
+		}
+		ai_chance = {
+			modifier = {
+				factor = 100
+			}
+		}
+	}
+
+	option = {
+		name = warfare.12.c
+		# current_ruler = { add_popularity = subtract_popularity_large }
+		#P:A TODO No EU5 equivalent: -15 popularity for the ruler (subtract_popularity_large; EU5 characters have no popularity)
+		add_stability = -10
+	}
+}
+
+# Hidden: a supported pretender's civil war breaks out; the pretender takes the rebel throne and the supporter is told.
+# Imperator: character event from on_move_country (root = the pretender who just moved to the rebel country,
+# scope:old_country = the country left). The pretender carries the variable successor_support_ci (= the supporting
+# country), set by monarchy_events.102 (batch b13). Written for EU5 on_civil_war_start fired on the rebel country
+# (scope:target there) or with scope:pa_character saved; without it the event looks for the marked pretender itself.
+warfare.13 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		in_civil_war = yes # Imperator: employer = { civil_war_with = scope:old_country }
+		trigger_if = {
+			limit = { exists = scope:old_country }
+			civil_war_opponent ?= scope:old_country
+		}
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				has_variable = successor_support_ci
+				exists = var:successor_support_ci
+				var:successor_support_ci = {
+					exists = capital
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = successor_support_ci
+				exists = var:successor_support_ci
+				var:successor_support_ci = {
+					exists = capital
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = successor_support_ci
+					exists = var:successor_support_ci
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			var:successor_support_ci = {
+				save_scope_as = origin_supporter
+			}
+			save_scope_as = supported_target
+			remove_variable = successor_support_ci
+		}
+		set_new_ruler = scope:pa_character
+		scope:origin_supporter = {
+			trigger_event_non_silently = {
+				id = warfare.12
+			}
+		}
+	}
+}
+
+# Successor support: the pretender we backed won the civil war; make the kingdom our client?
+# Imperator: on_civil_war_won/on_civil_war_lost (Invictus on_civil_war_won_inv.txt): when the winner's ruler carries
+# complete_pretender_support (= the supporter, set by warfare.12.d) and the supporter is allied to the winner, the winner
+# is saved as scope:puppet_kingdom and the supporter gets warfare.14 if it outranks the winner, else warfare.15.
+warfare.14 = {
+	type = country_event
+	title = warfare.14.t
+	desc = warfare.14.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = scope:puppet_kingdom # not in Imperator: its only caller always saved it
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = puppeteer_ruler }
+		scope:puppet_kingdom = {
+			ruler ?= { save_scope_as = puppet_ruler }
+		}
+	}
+
+	option = {
+		name = warfare.14.a
+		# add_tyranny = 20
+		#P:A TODO No EU5 equivalent: +20 tyranny (EU5 has no tyranny)
+		add_stability = -10
+		scope:puppet_kingdom = { # Imperator make_subject = { target = scope:puppet_kingdom type = client_state }
+			make_subject_of = {
+				target = root
+				type = subject_type:client_state
+			}
+		}
+		save_scope_as = puppeteer_country
+		every_country = {
+			limit = {
+				is_ai = no
+			}
+			trigger_event_non_silently = {
+				id = warfare.16
+			}
+		}
+		ai_chance = {
+			modifier = { factor = 100 }
+		}
+	}
+
+	option = {
+		name = warfare.14.b
+		add_gold = 500
+	}
+}
+
+# Successor support: the pretender we backed won the civil war, but they outrank us; take the payment (see warfare.14).
+warfare.15 = {
+	type = country_event
+	title = warfare.15.t
+	desc = warfare.15.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:puppet_kingdom # not in Imperator: its only caller always saved it
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = puppeteer_ruler }
+		scope:puppet_kingdom = {
+			ruler ?= { save_scope_as = puppet_ruler }
+		}
+	}
+
+	option = {
+		name = warfare.15.b
+		add_gold = 1000
+		# add_political_influence = 100
+		#P:A TODO No EU5 equivalent: +100 political influence (EU5 has no political influence)
+	}
+}
+
+# Successor support ping to every player: a kingdom became the client of its former backer (fired by warfare.14.a).
+warfare.16 = {
+	type = country_event
+	title = warfare.16.t
+	desc = warfare.16.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:puppet_kingdom # not in Imperator: its only caller always saved it
+		exists = scope:puppeteer_country
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = ping_ruler }
+		scope:puppet_kingdom = {
+			ruler ?= { save_scope_as = puppet_ruler }
+		}
+		scope:puppeteer_country = {
+			ruler ?= { save_scope_as = puppeteer_ruler }
+		}
+	}
+
+	option = {
+		name = warfare.16.a
+	}
+}

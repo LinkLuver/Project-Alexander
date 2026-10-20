@@ -1,0 +1,859 @@
+﻿#P:A Imported from Invictus: events/olympics.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+# The Olympic Games. In Imperator a recurring location event at Olympia (olympic.12, every 4 years, started from
+# on_game_initialized) offered the games to Olympia's owner (olympic.2); if held, every Hellenic country got olympic.3
+# and olympic.5 announced the results. olympic.2/5/6/12 were added at the end of this file on 2026-10-20 (they had
+# been classified as start-only). The events read the chain's scopes: scope:olympic_holder_country (Olympia's owner),
+# scope:olympic_games_location (Olympia).
+# olympic.4/10 were Imperator character events; they are country events here, the athlete is scope:pa_character.
+namespace = olympic
+
+# Choose an athlete to send to the Olympic Games.
+olympic.3 = {
+	type = country_event
+	title = olympic.3.t
+	desc = olympic.3.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		any_character = {
+			count >= 2
+			trigger_if = {
+				limit = {
+					employer = {
+						modifier:gender_equality = no
+					}
+				}
+				is_female = no
+			}
+			age_in_years >= 17
+			is_ruler = no
+			is_heir = no #P:A TODO Approximate: Imperator is_primary_heir = no; EU5 is_heir
+			#P:A TODO No EU5 equivalent: Imperator also excluded mercenary leaders (is_mercenary) and co-rulers (is_co_ruler)
+			is_dynasty_head = no # Imperator is_head_of_family = no
+			is_pregnant = no
+			#P:A Removed: prisoner = no is always true in EU5
+			NOT = { has_variable = pyrrhus_travelling }
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = olympic_sending_ruler }
+		if = { # not in Imperator: the caller always saved it; Olympia (Imperator p:439) is the fallback for the event text
+			limit = { NOT = { exists = scope:olympic_games_location } }
+			location:pontikokastro = { save_scope_as = olympic_games_location }
+		}
+		if = {
+			limit = {
+				any_character = {
+					trigger_if = {
+						limit = {
+							employer = {
+								modifier:gender_equality = no
+							}
+						}
+						is_female = no
+					}
+					age_in_years >= 17
+					is_ruler = no
+					is_heir = no #P:A TODO Approximate: Imperator is_primary_heir = no; EU5 is_heir
+					#P:A TODO No EU5 equivalent: Imperator also excluded mercenary leaders (is_mercenary) and co-rulers (is_co_ruler)
+					is_dynasty_head = no
+					is_pregnant = no
+					NOT = { has_variable = pyrrhus_travelling }
+				}
+			}
+			random_character = {
+				limit = {
+					trigger_if = {
+						limit = {
+							employer = {
+								modifier:gender_equality = no
+							}
+						}
+						is_female = no
+					}
+					age_in_years >= 17
+					is_ruler = no
+					is_heir = no #P:A TODO Approximate: Imperator is_primary_heir = no; EU5 is_heir
+					#P:A TODO No EU5 equivalent: Imperator also excluded mercenary leaders (is_mercenary) and co-rulers (is_co_ruler)
+					is_dynasty_head = no
+					is_pregnant = no
+					NOT = { has_variable = pyrrhus_travelling }
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 1000
+						pa_imp_combined_stats_olympics_svalue >= 25
+						age_in_years <= 32
+					}
+					# modifier = { factor = 0.1 is_party_leader = yes }
+					#P:A TODO No EU5 equivalent: party leaders were less likely to be picked (EU5 has no parties)
+					modifier = {
+						factor = 0.1
+						in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+					}
+					modifier = {
+						factor = 0.1
+						is_general = yes
+					}
+					# modifier = { factor = 0.1 is_governor = yes }
+					#P:A TODO No EU5 equivalent: governors were less likely to be picked (EU5 has no governors)
+					modifier = {
+						factor = 10
+						has_variable = number_of_olympic_wins
+					}
+				}
+				save_scope_as = olympic_champion
+			}
+		}
+		if = {
+			limit = {
+				any_character = {
+					trigger_if = {
+						limit = {
+							employer = {
+								modifier:gender_equality = no
+							}
+						}
+						is_female = no
+					}
+					age_in_years >= 17
+					is_ruler = no
+					is_heir = no #P:A TODO Approximate: Imperator is_primary_heir = no; EU5 is_heir
+					#P:A TODO No EU5 equivalent: Imperator also excluded mercenary leaders (is_mercenary) and co-rulers (is_co_ruler)
+					is_dynasty_head = no
+					is_pregnant = no
+					NOT = { has_variable = pyrrhus_travelling }
+					NOT = {
+						this = scope:olympic_champion
+					}
+				}
+			}
+			random_character = {
+				limit = {
+					trigger_if = {
+						limit = {
+							employer = {
+								modifier:gender_equality = no
+							}
+						}
+						is_female = no
+					}
+					age_in_years >= 17
+					in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no; not holding a cabinet seat stands in
+					is_ruler = no
+					is_heir = no #P:A TODO Approximate: Imperator is_primary_heir = no; EU5 is_heir
+					#P:A TODO No EU5 equivalent: Imperator also excluded mercenary leaders (is_mercenary) and co-rulers (is_co_ruler)
+					is_dynasty_head = no
+					is_pregnant = no
+					NOT = { has_variable = pyrrhus_travelling }
+					NOT = {
+						this = scope:olympic_champion
+					}
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 100
+						pa_imp_combined_stats_olympics_svalue >= 25
+						age_in_years <= 36
+					}
+					# modifier = { factor = 0.1 is_party_leader = yes }
+					#P:A TODO No EU5 equivalent: party leaders were less likely to be picked (EU5 has no parties)
+					modifier = {
+						factor = 0.1
+						in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+					}
+					modifier = {
+						factor = 0.1
+						is_general = yes
+					}
+					# modifier = { factor = 0.1 is_governor = yes }
+					#P:A TODO No EU5 equivalent: governors were less likely to be picked (EU5 has no governors)
+					modifier = {
+						factor = 10
+						has_variable = number_of_olympic_wins
+					}
+				}
+				save_scope_as = olympic_champion_2
+			}
+		}
+	}
+
+	option = {
+		name = olympic.3.a
+		if = {
+			limit = {
+				exists = scope:olympic_holder_country
+				scope:olympic_holder_country = {
+					exists = capital
+				}
+				exists = scope:olympic_champion # Imperator target_is_valid_character
+				scope:olympic_champion = { is_alive = yes }
+			}
+			# if = { limit = { scope:olympic_champion = { prisoner = yes } } release_prisoner = { target = scope:olympic_champion } }
+			#P:A Removed: EU5 has no prisoners, the athlete never needs releasing
+			set_variable = is_competing_in_olympics
+			scope:olympic_champion = {
+				set_variable = {
+					name = olympic_attendee
+					value = root
+				}
+				hidden_effect = {
+					# add_trait = olympic_competitor
+					#P:A TODO No EU5 equivalent: trait "olympic_competitor" marked the athlete (EU5 has no such trait); the olympic_attendee variable still marks it
+					pa_imp_remove_all_positions = yes
+				}
+				if = {
+					limit = {
+						NOT = {
+							employer = scope:olympic_holder_country
+						}
+					}
+					move_country = scope:olympic_holder_country
+				}
+				save_scope_as = pa_character
+				employer = {
+					trigger_event_silently = {
+						id = olympic.4
+						days = 180
+					}
+				}
+			}
+		}
+		# if = { limit = { is_iron_man = yes is_ai = no } ... ach_panem_et_circenses_var ... }
+		#P:A TODO No EU5 equivalent: counted Olympic participations for an Imperator ironman achievement
+		ai_chance = {
+			base = 1
+			# modifier = { factor = 0.1 target_is_valid_character = scope:olympic_champion scope:olympic_champion = { has_any_office = yes is_party_leader = yes is_clan_chief = yes } }
+			#P:A TODO No EU5 equivalent: AI avoided sending an office holder who was also a party leader and clan chief (EU5 has no parties or clans)
+		}
+	}
+
+	option = {
+		name = olympic.3.b
+		if = {
+			limit = {
+				exists = scope:olympic_holder_country
+				scope:olympic_holder_country = {
+					exists = capital
+				}
+				exists = scope:olympic_champion_2
+				scope:olympic_champion_2 = { is_alive = yes } # Imperator target_is_valid_character
+			}
+			set_variable = is_competing_in_olympics
+			# if = { limit = { scope:olympic_champion_2 = { prisoner = yes } } release_prisoner = { target = scope:olympic_champion_2 } }
+			#P:A Removed: EU5 has no prisoners, the athlete never needs releasing
+			scope:olympic_champion_2 = {
+				set_variable = {
+					name = olympic_attendee
+					value = root
+				}
+				hidden_effect = {
+					# add_trait = olympic_competitor
+					#P:A TODO No EU5 equivalent: trait "olympic_competitor" marked the athlete (EU5 has no such trait); the olympic_attendee variable still marks it
+					pa_imp_remove_all_positions = yes
+				}
+				move_country = scope:olympic_holder_country
+				save_scope_as = pa_character
+				employer = {
+					trigger_event_silently = {
+						id = olympic.4
+						days = 180
+					}
+				}
+			}
+		}
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0.1
+				exists = scope:olympic_champion_2
+				scope:olympic_champion_2 = {
+					in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office OR is_party_leader OR is_clan_chief; only the cabinet seat (for has_any_office) is checked
+				}
+			}
+		}
+	}
+
+	option = {
+		name = olympic.3.c
+		# current_ruler = { add_popularity = subtract_popularity_small }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (subtract_popularity_small; EU5 characters have no popularity)
+		ai_chance = {
+			base = 1
+		}
+	}
+}
+
+# Hidden: the athlete returns home after the games (fired by olympic.3 for the host country, athlete = scope:pa_character).
+olympic.4 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:pa_character
+		scope:pa_character = {
+			is_alive = yes
+			has_variable = olympic_attendee
+		}
+	}
+
+	immediate = {
+		scope:pa_character = {
+			var:olympic_attendee = {
+				save_scope_as = destination_country
+			}
+			if = {
+				limit = {
+					exists = scope:destination_country
+					scope:destination_country = {
+						exists = capital
+					}
+				}
+				pa_imp_remove_all_positions = yes
+				move_country = scope:destination_country
+				remove_variable = olympic_attendee
+				# remove_trait = olympic_competitor
+				#P:A TODO No EU5 equivalent: removed the "olympic_competitor" trait (EU5 has no such trait)
+				# if = { limit = { has_character_modifier = foreign_citizen } remove_character_modifier = foreign_citizen }
+				#P:A TODO No EU5 equivalent: foreign_citizen is an Imperator citizenship modifier (EU5 has no citizenship)
+			}
+			else = {
+				remove_variable = olympic_attendee
+				# remove_trait = olympic_competitor
+				#P:A TODO No EU5 equivalent: removed the "olympic_competitor" trait (EU5 has no such trait)
+			}
+		}
+	}
+}
+
+# Our athlete was imprisoned by the host: pay the ransom? (Imperator: fired by the character interaction "imprison"
+# on an Olympic athlete, with scope:imprisoned_athlete saved; EU5 has no imprisonment, so nothing fires it yet.)
+olympic.7 = {
+	type = country_event
+	title = olympic.7.t
+	desc = olympic.7.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:imprisoned_athlete # not in Imperator: its only caller always saved it
+	}
+
+	immediate = {
+		scope:imprisoned_athlete.employer = {
+			save_scope_as = evil_olympic_monsters
+			ruler ?= { save_scope_as = evil_olympic_ruler }
+		}
+		if = { # not in Imperator: olympic.9 reads scope:imprisoned_athlete_country, the country that pays the ransom
+			limit = { NOT = { exists = scope:imprisoned_athlete_country } }
+			save_scope_as = imprisoned_athlete_country
+		}
+	}
+
+	option = {
+		name = olympic.7.a
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 12
+			floor = yes
+			max = -20
+			min = -4000
+		}
+		scope:imprisoned_athlete = {
+			hidden_effect = {
+				pa_imp_remove_all_positions = yes
+			}
+			move_country = root
+		}
+		if = {
+			limit = {
+				exists = scope:evil_olympic_monsters
+				scope:evil_olympic_monsters = {
+					exists = capital
+				}
+			}
+			scope:evil_olympic_monsters = {
+				trigger_event_non_silently = {
+					id = olympic.9
+				}
+			}
+		}
+		ai_chance = {
+			base = 1
+		}
+	}
+
+	option = {
+		name = olympic.7.b
+		ai_chance = {
+			base = 9
+		}
+	}
+}
+
+# The games were cancelled: nobody came (Imperator: fired by olympic.5 and Scythian mission events).
+olympic.8 = {
+	type = country_event
+	title = olympic.8.t
+	desc = olympic.8.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				has_variable = is_competing_in_olympics
+			}
+			remove_variable = is_competing_in_olympics
+		}
+	}
+
+	option = {
+		name = olympic.8.a
+		# if = { limit = { scope:olympic_holder_country = root } current_ruler = { add_popularity = subtract_popularity_small } }
+		#P:A TODO No EU5 equivalent: the host's ruler lost 5 popularity (subtract_popularity_small; EU5 characters have no popularity)
+	}
+}
+
+# The athlete's country paid our ransom (fired by olympic.7).
+olympic.9 = {
+	type = country_event
+	title = olympic.9.t
+	desc = olympic.9.desc
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = ransom_receiver_ruler }
+	}
+
+	option = {
+		name = olympic.9.a
+		if = {
+			limit = { exists = scope:imprisoned_athlete_country }
+			add_gold = {
+				value = scope:imprisoned_athlete_country.monthly_income_total
+				multiply = 12
+				max = 5000
+			}
+		}
+	}
+}
+
+# Hidden: an athlete died abroad during the games; tell the home country.
+# Imperator: character event from on_character_death. Written for EU5 on_character_death
+# (root = the dead character's country, scope:target = the dead character).
+olympic.10 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:target
+		scope:target = {
+			has_variable = olympic_attendee
+		}
+	}
+
+	immediate = {
+		scope:target = {
+			var:olympic_attendee = {
+				save_scope_as = dead_athlete_target_country
+			}
+			save_scope_as = dead_athlete
+		}
+		if = {
+			limit = {
+				exists = scope:dead_athlete_target_country
+				scope:dead_athlete_target_country = {
+					exists = capital
+				}
+			}
+			scope:dead_athlete_target_country = {
+				trigger_event_non_silently = {
+					id = olympic.11
+				}
+			}
+		}
+	}
+}
+
+# Our athlete died at the games (fired by olympic.10).
+olympic.11 = {
+	type = country_event
+	title = olympic.11.t
+	desc = olympic.11.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	option = {
+		name = olympic.11.a
+	}
+}
+
+#P:A Imported from Invictus by the orchestrator on 2026-10-20 (b21): olympic.2/5/6/12 were first classified as
+# start-only, but olympic.12 repeats every four years and drives the whole chain.
+
+# Hidden: the Olympic Games at Olympia (Imperator p:439, EU5 location:pontikokastro) fall due every four years and are
+# offered to its owner. Started from on_game_start by pa_imp_olympics_start
+# (in_game/common/on_action/pa_imperator_events.txt), as Invictus did from on_game_initialized; then re-fires itself.
+olympic.12 = {
+	type = location_event
+	hidden = yes
+
+	immediate = {
+		save_scope_as = olympic_games_location
+		owner ?= { save_scope_as = olympia_owner_country }
+		if = {
+			limit = {
+				exists = scope:olympia_owner_country
+				controller ?= scope:olympia_owner_country # Imperator owner = controller: Olympia is not occupied
+			}
+			scope:olympia_owner_country = {
+				trigger_event_silently = olympic.2
+			}
+		}
+		if = { # counts olympiads
+			limit = { has_global_variable = olympic_counter_global_var }
+			change_global_variable = {
+				name = olympic_counter_global_var
+				add = 1
+			}
+		}
+		else = {
+			set_global_variable = {
+				name = olympic_counter_global_var
+				value = 1
+			}
+		}
+		# Imperator also set a debug variable olympics_countdown here (not carried over)
+		#P:A TODO Verify: EU5 fires a location event only for an owned location; if Olympia is ever left unowned, the four-year cycle stops (Imperator kept it going)
+		trigger_event_silently = {
+			id = olympic.12
+			days = 1459 # 4 years - 11 April
+		}
+	}
+}
+
+# The Olympic Games are due: Olympia's owner decides whether to hold them (fired by olympic.12).
+olympic.2 = {
+	type = country_event
+	title = olympic.2.t
+	desc = olympic.2.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		culture ?= {
+			OR = {
+				has_culture_group = culture_group:greek_group # Imperator country_culture_group = hellenic
+				has_culture_group = culture_group:italic_group # Imperator country_culture_group = latin
+			}
+		}
+	}
+
+	immediate = {
+		save_scope_as = olympic_holder_country
+	}
+
+	option = { # hold the games
+		name = olympic.2.a
+		trigger = {
+			in_civil_war = no
+		}
+		custom_tooltip = olympics_yay
+		hidden_effect = {
+			every_country = {
+				limit = {
+					culture ?= { has_culture_group = culture_group:greek_group } # Imperator country_culture_group = hellenic
+					NOT = { this = root }
+				}
+				add_opinion = {
+					modifier = olympics_sanctioned
+					target = root
+				}
+				trigger_event_silently = olympic.3
+			}
+		}
+		trigger_event_silently = {
+			id = olympic.5
+			days = 120
+		}
+		ai_chance = {
+			base = 100
+		}
+	}
+
+	option = { # don't hold the games
+		name = olympic.2.b
+		custom_tooltip = olympics_nope
+		hidden_effect = {
+			every_country = {
+				limit = {
+					culture ?= { has_culture_group = culture_group:greek_group } # Imperator country_culture_group = hellenic
+					NOT = { this = root }
+				}
+				add_opinion = {
+					modifier = olympics_refused
+					target = root
+				}
+			}
+		}
+		ai_chance = {
+			base = 1
+		}
+	}
+}
+
+# Hidden: the games are held. With at least three athletes the best one wins (olympic.6 for the host and every
+# competing country), otherwise the games are cancelled (olympic.8). The athletes were moved to the host by olympic.3.
+olympic.5 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:olympic_holder_country
+		scope:olympic_holder_country = {
+			exists = capital # Imperator has_land = yes
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				any_character = {
+					count >= 3
+					has_variable = olympic_attendee
+				}
+			}
+			# Imperator kept the highlight in a local variable read by olympic.6; a global variable carries it to the other countries
+			random_list = {
+				1 = { set_global_variable = { name = olympic_event_selector_global value = 1 } }
+				1 = { set_global_variable = { name = olympic_event_selector_global value = 2 } }
+				1 = { set_global_variable = { name = olympic_event_selector_global value = 3 } }
+				1 = { set_global_variable = { name = olympic_event_selector_global value = 4 } }
+				1 = { set_global_variable = { name = olympic_event_selector_global value = 5 } }
+				1 = { set_global_variable = { name = olympic_event_selector_global value = 6 } }
+			}
+			ordered_character = { # Imperator ordered_in_list over every attendee
+				limit = {
+					is_alive = yes
+					#P:A Removed: prisoner = no is always true in EU5
+					has_variable = olympic_attendee
+				}
+				order_by = pa_imp_combined_stats_olympics_svalue
+				position = 0
+				var:olympic_attendee = {
+					save_scope_as = victor_origin_country
+				}
+				save_scope_as = victorious_competitor
+				if = {
+					limit = {
+						NOT = { has_variable = number_of_olympic_wins }
+					}
+					set_variable = {
+						name = number_of_olympic_wins
+						value = 1
+					}
+				}
+				else = {
+					change_variable = {
+						name = number_of_olympic_wins
+						add = 1
+					}
+				}
+				random_list = {
+					1 = {
+						kill_character = {
+							target = scope:victorious_competitor
+							reason = sporting_accident #P:A TODO Approximate: Imperator death_reason = death_in_olympics ("Died heroically, during an Olympic event")
+						}
+					}
+					99 = {}
+				}
+			}
+			random_character = {
+				limit = {
+					is_alive = yes
+					has_variable = olympic_attendee
+				}
+				var:olympic_attendee = {
+					save_scope_as = highlight_1_origin_country
+				}
+				save_scope_as = highlight_competitor_1
+			}
+			random_character = {
+				limit = {
+					is_alive = yes
+					has_variable = olympic_attendee
+					NOT = { this = scope:highlight_competitor_1 }
+				}
+				var:olympic_attendee = {
+					save_scope_as = highlight_2_origin_country
+				}
+				save_scope_as = highlight_competitor_2
+			}
+			scope:olympic_holder_country = {
+				trigger_event_silently = olympic.6
+			}
+			every_country = {
+				limit = {
+					has_variable = is_competing_in_olympics
+					NOT = { this = scope:olympic_holder_country } #P:A Fixed: Invictus fired olympic.6 twice for a host that also competed
+				}
+				trigger_event_silently = olympic.6
+			}
+		}
+		else = {
+			scope:olympic_holder_country = {
+				trigger_event_silently = olympic.8
+			}
+			every_country = {
+				limit = {
+					has_variable = is_competing_in_olympics
+					NOT = { this = scope:olympic_holder_country } #P:A Fixed: Invictus fired olympic.8 twice for a host that also competed
+				}
+				trigger_event_silently = olympic.8
+			}
+		}
+	}
+}
+
+# The games conclude: the host and every competing country learn the victor.
+olympic.6 = {
+	type = country_event
+	title = olympic.6.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					exists = scope:victorious_competitor
+					scope:victorious_competitor = {
+						is_alive = no
+					}
+				}
+				desc = olympic.6.desc_2
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = olympic.6.desc
+			}
+		}
+	}
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	immediate = {
+		# portraits: Imperator left_portrait = highlight_competitor_1 / _2, right_portrait = victorious_competitor (saved by olympic.5)
+		if = {
+			limit = {
+				scope:victor_origin_country ?= root
+			}
+			every_country = {
+				limit = {
+					has_variable = is_competing_in_olympics
+					NOT = { this = root }
+				}
+				add_opinion = {
+					modifier = olympic_victor
+					target = root
+				}
+			}
+		}
+		if = {
+			limit = {
+				has_variable = is_competing_in_olympics
+			}
+			remove_variable = is_competing_in_olympics
+		}
+	}
+
+	option = {
+		name = olympic.6.a
+		trigger = {
+			scope:victor_origin_country ?= root # Imperator exclusive = yes (EU5 has none: option b repeats the condition)
+		}
+		pa_imp_add_stability_effect = yes
+		scope:victorious_competitor = {
+			if = {
+				limit = {
+					is_alive = yes
+				}
+				# force_add_trait = olympic_champion
+				#P:A TODO No EU5 equivalent: trait "olympic_champion" (EU5 has no such trait; the variable number_of_olympic_wins still counts the victories)
+			}
+			else = {
+				root = {
+					add_country_modifier = {
+						modifier = olympic_mourning
+						days = 1460
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = olympic.6.b
+		trigger = { # Imperator exclusive = yes on options a and c: b shows only when neither applies
+			NOT = { scope:victor_origin_country ?= root }
+			NOT = { scope:olympic_holder_country ?= root }
+		}
+		# current_ruler = { add_popularity = popularity_small }
+		#P:A TODO No EU5 equivalent: +popularity for the ruler (EU5 characters have no popularity)
+	}
+
+	option = {
+		name = olympic.6.c
+		trigger = {
+			scope:olympic_holder_country ?= root
+		}
+		# current_ruler = { add_popularity = popularity_small }
+		#P:A TODO No EU5 equivalent: +popularity for the ruler (EU5 characters have no popularity)
+		if = {
+			limit = {
+				scope:victor_origin_country ?= root
+			}
+			pa_imp_add_stability_effect = yes
+			scope:victorious_competitor = {
+				if = {
+					limit = {
+						is_alive = yes
+					}
+					# force_add_trait = olympic_champion
+					#P:A TODO No EU5 equivalent: trait "olympic_champion" (EU5 has no such trait; the variable number_of_olympic_wins still counts the victories)
+				}
+				else = {
+					employer ?= {
+						add_country_modifier = {
+							modifier = olympic_mourning
+							days = 1460
+						}
+					}
+				}
+			}
+		}
+	}
+}

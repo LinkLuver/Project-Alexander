@@ -826,3 +826,903 @@ diadochi_liberation.1002 = { #Join the war
 		}
 	}
 }
+
+# Corinth is taken: garrison it, or liberate it as a feudatory or tributary (or play as it).
+# Only caller in Invictus: diadochi_liberation.1001, which is disabled (always = no, call commented out).
+diadochi_liberation.1 = {
+	type = country_event
+	title = diadochi_liberation.1.t
+	desc = diadochi_liberation.1.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	fire_only_once = yes
+	trigger = {
+		owns = location:corinth # Imperator p:418.owner = ROOT (Korinthos)
+		NOT = { tag = COT } #P:A TODO Approximate: guard added; in the mod Corinth (COT) exists at start and owns the city, and cannot liberate itself
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		# right_portrait = char:9 #P:A TODO No EU5 equivalent: portrait of Antipatros (Imperator character 9); character ids differ and he is dead at start
+		location:corinth = {
+			save_scope_as = pa_corinth
+		}
+	}
+
+	option = { # keep the city "[GetProvince('(int32)418').GetName] is an important strategic garrison.
+		name = diadochi_liberation.1.a
+		show_as_tooltip = {
+			location:corinth = { #Corinth
+				change_location_owner = root # Imperator set_owned_by
+			}
+		}
+		custom_tooltip = diadochi_liberation.1.a.t
+		hidden_effect = {
+			every_country = {
+				limit = {
+					exists = capital
+					capital = {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = root modifier = macedonian_garrisons_bad } #Macedonian Garrisons
+			}
+		}
+		ai_chance = { factor = 20 }
+	}
+
+	option = { # feudatory - "We will restore the Acrocorinth to glory!"
+		name = diadochi_liberation.1.b
+		custom_tooltip = diadochi_liberation.1.bt
+		hidden_effect = {
+			# p:418 = {
+			# 	create_country = {
+			# 		save_scope_as = newly_liberated_state
+			# 		name = {
+			# 			name = "CORINTH_NAME"
+			# 			adjective = "CORINTH_ADJECTIVE"
+			# 		}
+			# 		change_country_tag = KOR
+			# 		change_country_flag = CORINTH_FLAG
+			# 		change_country_color = ocean_blue
+			# 		set_country_religion = roman_pantheon
+			# 		set_country_heritage = corinthian_heritage
+			# 		change_government = democratic_republic
+			# 	}
+			# }
+			#P:A TODO Approximate: Imperator created a new country at Corinth and turned it into the KOR tag; here the mod's Corinth tag COT (Imperator KOR) is released from its cores in our locations, after making Corinth a COT core. Any other COT cores we hold are released with it
+			location:corinth = {
+				if = {
+					limit = { NOT = { is_core_of = c:COT } }
+					add_core = c:COT
+				}
+			}
+			create_country_from_cores_in_our_locations = c:COT
+			c:COT = {
+				save_scope_as = newly_liberated_state
+				#P:A TODO Approximate: CORINTH_NAME/CORINTH_ADJECTIVE, CORINTH_FLAG and the ocean_blue colour are not applied; COT keeps its own name, flag and map colour
+				change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+				# set_country_heritage = corinthian_heritage #P:A TODO No EU5 equivalent: sets the Corinthian heritage (EU5 has no heritages)
+				change_government_type = government_type:republic #P:A TODO Approximate: Imperator democratic_republic (EU5 has no government sub-forms)
+			}
+			set_global_variable = corinth_has_been_created
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:feudatory
+				}
+			}
+			trigger_event_silently = {
+				id = diadochi_liberation.1002 #Join the war
+			}
+		}
+		ai_chance = { factor = 15 }
+	}
+
+	option = { # Tributary - The Corinthians have suffered occupation too long.
+		name = diadochi_liberation.1.c
+		custom_tooltip = diadochi_liberation.1.ct
+		custom_tooltip = diadochi_liberation.1.c.t2
+		hidden_effect = {
+			every_country = {
+				limit = {
+					exists = capital
+					capital = {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = root modifier = macedonian_garrisons_good } #Macedonian Garrisons Removed
+			}
+			# p:418 = { create_country = { ... } } -- same block as option b (KOR tag, CORINTH_NAME, CORINTH_FLAG, ocean_blue, roman_pantheon, corinthian_heritage, democratic_republic)
+			#P:A TODO Approximate: Imperator created a new country at Corinth and turned it into the KOR tag; here the mod's Corinth tag COT (Imperator KOR) is released from its cores in our locations, after making Corinth a COT core. Any other COT cores we hold are released with it
+			location:corinth = {
+				if = {
+					limit = { NOT = { is_core_of = c:COT } }
+					add_core = c:COT
+				}
+			}
+			create_country_from_cores_in_our_locations = c:COT
+			c:COT = {
+				save_scope_as = newly_liberated_state
+				#P:A TODO Approximate: CORINTH_NAME/CORINTH_ADJECTIVE, CORINTH_FLAG and the ocean_blue colour are not applied; COT keeps its own name, flag and map colour
+				change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+				# set_country_heritage = corinthian_heritage #P:A TODO No EU5 equivalent: sets the Corinthian heritage (EU5 has no heritages)
+				change_government_type = government_type:republic #P:A TODO Approximate: Imperator democratic_republic (EU5 has no government sub-forms)
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:tributary
+				}
+			}
+		}
+		ai_chance = { factor = 10 }
+	}
+
+	option = { # Tag switch
+		name = diadochi_liberation.1.d
+		custom_tooltip = diadochi_liberation.1.dt
+		# highlight = yes #P:A TODO No EU5 equivalent: highlighted option
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			# p:418 = { create_country = { ... } } -- same block as option b (KOR tag, CORINTH_NAME, CORINTH_FLAG, ocean_blue, roman_pantheon, corinthian_heritage, democratic_republic)
+			#P:A TODO Approximate: Imperator created a new country at Corinth and turned it into the KOR tag; here the mod's Corinth tag COT (Imperator KOR) is released from its cores in our locations, after making Corinth a COT core. Any other COT cores we hold are released with it
+			location:corinth = {
+				if = {
+					limit = { NOT = { is_core_of = c:COT } }
+					add_core = c:COT
+				}
+			}
+			create_country_from_cores_in_our_locations = c:COT
+			c:COT = {
+				save_scope_as = newly_liberated_state
+				#P:A TODO Approximate: CORINTH_NAME/CORINTH_ADJECTIVE, CORINTH_FLAG and the ocean_blue colour are not applied; COT keeps its own name, flag and map colour
+				change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+				# set_country_heritage = corinthian_heritage #P:A TODO No EU5 equivalent: sets the Corinthian heritage (EU5 has no heritages)
+				change_government_type = government_type:republic #P:A TODO Approximate: Imperator democratic_republic (EU5 has no government sub-forms)
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:tributary
+				}
+			}
+			change_player = scope:newly_liberated_state # Imperator set_player_country
+		}
+		ai_chance = { factor = 0 }
+	}
+}
+
+# Chalkis is taken: garrison it, or liberate it as a feudatory or tributary (or play as it). No caller in Invictus.
+diadochi_liberation.2 = {
+	type = country_event
+	title = diadochi_liberation.2.t
+	desc = diadochi_liberation.2.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	fire_only_once = yes
+	trigger = {
+		owns = location:negroponte # Imperator p:407.owner = ROOT (Chalcis)
+		NOT = { tag = CHAL } #P:A TODO Approximate: guard added; in the mod Chalkis (CHAL) exists at start and owns the city, and cannot liberate itself
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		# right_portrait = char:37 #P:A TODO No EU5 equivalent: portrait of Antigonos Monophthalmos (Imperator character 37); character ids differ
+		location:corinth = { # the opinion tooltips name the region of Corinth (Imperator p:418)
+			save_scope_as = pa_corinth
+		}
+	}
+
+	option = { # garrison the city
+		name = diadochi_liberation.2.a
+		show_as_tooltip = {
+			location:negroponte = { #Chalkis
+				change_location_owner = root # Imperator set_owned_by
+			}
+		}
+		custom_tooltip = diadochi_liberation.2.a.t
+		hidden_effect = {
+			every_country = {
+				limit = {
+					exists = capital
+					capital = {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = root modifier = macedonian_garrisons_bad } #Macedonian Garrisons
+			}
+		}
+		ai_chance = { factor = 20 }
+	}
+
+	option = { # feudatory
+		name = diadochi_liberation.2.b
+		custom_tooltip = diadochi_liberation.2.bt
+		hidden_effect = {
+			# p:407 = { #Chalkis
+			# 	create_country = {
+			# 		save_scope_as = newly_liberated_state
+			# 		name = {
+			# 			name = CHALKIS_NAME
+			# 			adjective = CHALKIS_ADJECTIVE
+			# 		}
+			# 		if = {
+			# 			limit = {
+			# 				NOT = {
+			# 					primary_culture = euboean
+			# 				}
+			# 			}
+			# 			set_primary_culture_cleanup_effect = {
+			# 				NEW_PRIMARY_CULTURE = euboean
+			# 				MAKE_OLD_CULTURE_INTEGRATED = yes
+			# 			}
+			# 		}
+			# 		set_country_religion = roman_pantheon
+			# 		change_government = oligarchic_republic
+			# 		change_country_color = chalkis_color
+			# 		change_country_flag = CHALCIS_FLAG
+			# 		change_country_tag = CH2
+			# 	}
+			# }
+			#P:A TODO Approximate: Imperator created a new country at Chalkis and turned it into the CH2 tag; here the mod's Chalkis tag CHAL (Imperator CH2) is released from its cores in our locations, after making Chalkis a CHAL core. Any other CHAL cores we hold are released with it
+			location:negroponte = {
+				if = {
+					limit = { NOT = { is_core_of = c:CHAL } }
+					add_core = c:CHAL
+				}
+			}
+			create_country_from_cores_in_our_locations = c:CHAL
+			c:CHAL = {
+				save_scope_as = newly_liberated_state
+				#P:A TODO Approximate: CHALKIS_NAME/CHALKIS_ADJECTIVE, CHALCIS_FLAG and chalkis_color are not applied; CHAL keeps its own name, flag and map colour
+				if = {
+					limit = {
+						NOT = {
+							culture = culture:euboean # Imperator primary_culture = euboean
+						}
+					}
+					pa_imp_set_primary_culture_cleanup_effect = {
+						NEW_PRIMARY_CULTURE = euboean
+						MAKE_OLD_CULTURE_INTEGRATED = yes
+					}
+				}
+				change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+				change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic (EU5 has no government sub-forms)
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:feudatory
+				}
+			}
+			trigger_event_silently = {
+				id = diadochi_liberation.1002 #Join the war
+			}
+		}
+		ai_chance = { factor = 15 }
+	}
+
+	option = { # Tributary
+		name = diadochi_liberation.2.c
+		custom_tooltip = diadochi_liberation.2.ct
+		custom_tooltip = diadochi_liberation.2.c.t2
+		hidden_effect = {
+			every_country = {
+				limit = {
+					exists = capital
+					capital = {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = root modifier = macedonian_garrisons_good } #Macedonian Garrisons Removed
+			}
+			# p:407 = { create_country = { ... } } -- same block as option b (CH2 tag, CHALKIS_NAME, euboean culture, roman_pantheon, oligarchic_republic, chalkis_color, CHALCIS_FLAG)
+			#P:A TODO Approximate: Imperator created a new country at Chalkis and turned it into the CH2 tag; here the mod's Chalkis tag CHAL (Imperator CH2) is released from its cores in our locations, after making Chalkis a CHAL core. Any other CHAL cores we hold are released with it
+			location:negroponte = {
+				if = {
+					limit = { NOT = { is_core_of = c:CHAL } }
+					add_core = c:CHAL
+				}
+			}
+			create_country_from_cores_in_our_locations = c:CHAL
+			c:CHAL = {
+				save_scope_as = newly_liberated_state
+				#P:A TODO Approximate: CHALKIS_NAME/CHALKIS_ADJECTIVE, CHALCIS_FLAG and chalkis_color are not applied; CHAL keeps its own name, flag and map colour
+				if = {
+					limit = {
+						NOT = {
+							culture = culture:euboean # Imperator primary_culture = euboean
+						}
+					}
+					pa_imp_set_primary_culture_cleanup_effect = {
+						NEW_PRIMARY_CULTURE = euboean
+						MAKE_OLD_CULTURE_INTEGRATED = yes
+					}
+				}
+				change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+				change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic (EU5 has no government sub-forms)
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:tributary
+				}
+			}
+		}
+		ai_chance = { factor = 10 }
+	}
+
+	option = { # Tag switch
+		name = diadochi_liberation.2.d
+		custom_tooltip = diadochi_liberation.2.dt
+		# highlight = yes #P:A TODO No EU5 equivalent: highlighted option
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			# p:407 = { create_country = { ... } } -- same block as option b (CH2 tag, CHALKIS_NAME, euboean culture, roman_pantheon, oligarchic_republic, chalkis_color, CHALCIS_FLAG)
+			#P:A TODO Approximate: Imperator created a new country at Chalkis and turned it into the CH2 tag; here the mod's Chalkis tag CHAL (Imperator CH2) is released from its cores in our locations, after making Chalkis a CHAL core. Any other CHAL cores we hold are released with it
+			location:negroponte = {
+				if = {
+					limit = { NOT = { is_core_of = c:CHAL } }
+					add_core = c:CHAL
+				}
+			}
+			create_country_from_cores_in_our_locations = c:CHAL
+			c:CHAL = {
+				save_scope_as = newly_liberated_state
+				#P:A TODO Approximate: CHALKIS_NAME/CHALKIS_ADJECTIVE, CHALCIS_FLAG and chalkis_color are not applied; CHAL keeps its own name, flag and map colour
+				if = {
+					limit = {
+						NOT = {
+							culture = culture:euboean # Imperator primary_culture = euboean
+						}
+					}
+					pa_imp_set_primary_culture_cleanup_effect = {
+						NEW_PRIMARY_CULTURE = euboean
+						MAKE_OLD_CULTURE_INTEGRATED = yes
+					}
+				}
+				change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+				change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic (EU5 has no government sub-forms)
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:tributary
+				}
+			}
+			change_player = scope:newly_liberated_state # Imperator set_player_country
+		}
+		ai_chance = { factor = 0 }
+	}
+}
+
+# Salamis is taken: garrison it, liberate it as a feudatory or tributary, or return it to Athens. No caller in Invictus.
+diadochi_liberation.3 = {
+	type = country_event
+	title = diadochi_liberation.3.t
+	desc = diadochi_liberation.3.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	fire_only_once = yes
+	trigger = {
+		owns = location:hulst # Imperator p:7902.owner = ROOT (Salamis)
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		# left_portrait = char:380 #P:A TODO No EU5 equivalent: portrait of Demetrios of Phaleron (Imperator character 380); character ids differ
+		# right_portrait = char:37 #P:A TODO No EU5 equivalent: portrait of Antigonos Monophthalmos (Imperator character 37); character ids differ
+		# right_portrait = char:38 #P:A TODO No EU5 equivalent: portrait of Demetrios Poliorketes (Imperator character 38); character ids differ
+		location:corinth = { # the opinion tooltips name the region of Corinth (Imperator p:418)
+			save_scope_as = pa_corinth
+		}
+	}
+
+	option = { # garrison the island
+		name = diadochi_liberation.3.a
+		show_as_tooltip = {
+			location:hulst = { #Salamis
+				change_location_owner = root # Imperator set_owned_by
+			}
+		}
+		custom_tooltip = diadochi_liberation.3.a.t
+		hidden_effect = {
+			every_country = {
+				limit = {
+					exists = capital
+					capital = {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = root modifier = macedonian_garrisons_bad } #Macedonian Garrisons
+			}
+		}
+		ai_chance = { factor = 20 }
+	}
+
+	option = { # feudatory
+		name = diadochi_liberation.3.b
+		custom_tooltip = diadochi_liberation.3.bt
+		hidden_effect = {
+			location:hulst = { #Salamis
+				create_country_from_location = { # Imperator create_country
+					save_scope_as = newly_liberated_state
+					change_country_name = SALAMIS_NAME
+					change_country_adjective = SALAMIS_ADJECTIVE
+					change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic (EU5 has no government sub-forms)
+					# change_country_color = salamis_green #P:A TODO No EU5 equivalent: the named colour salamis_green is not defined in the mod
+					change_country_flag = SALAMIS_FLAG
+					# change_country_tag = SAL #P:A TODO No EU5 equivalent: Imperator made the new country the SAL tag; the mod has no tag for Attic Salamis (SLM is Salamis on Cyprus), so it stays a dynamic country
+				}
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:feudatory
+				}
+			}
+			trigger_event_silently = {
+				id = diadochi_liberation.1002 #Join the war
+			}
+		}
+		ai_chance = { factor = 15 }
+	}
+
+	option = { # Tributary
+		name = diadochi_liberation.3.c
+		custom_tooltip = diadochi_liberation.3.ct
+		custom_tooltip = diadochi_liberation.3.c.t2
+		hidden_effect = {
+			every_country = {
+				limit = {
+					exists = capital
+					capital = {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = root modifier = macedonian_garrisons_good } #Macedonian Garrisons Removed
+			}
+			location:hulst = { #Salamis
+				create_country_from_location = { # Imperator create_country
+					save_scope_as = newly_liberated_state
+					change_country_name = SALAMIS_NAME
+					change_country_adjective = SALAMIS_ADJECTIVE
+					change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic (EU5 has no government sub-forms)
+					# change_country_color = salamis_green #P:A TODO No EU5 equivalent: the named colour salamis_green is not defined in the mod
+					change_country_flag = SALAMIS_FLAG
+					# change_country_tag = SAL #P:A TODO No EU5 equivalent: Imperator made the new country the SAL tag; the mod has no tag for Attic Salamis (SLM is Salamis on Cyprus), so it stays a dynamic country
+				}
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:tributary
+				}
+			}
+		}
+		ai_chance = { factor = 10 }
+	}
+
+	option = { # Restore to owner
+		name = diadochi_liberation.3.d
+		custom_tooltip = diadochi_liberation.3.c.t2
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			every_country = {
+				limit = {
+					exists = capital
+					capital = {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = root modifier = macedonian_garrisons_good } #Macedonian Garrisons Removed
+			}
+		}
+		if = {
+			limit = {
+				exists = c:ATH
+				c:ATH = {
+					num_locations >= 1 # Imperator num_of_cities
+					NOT = { is_subject_of = c:PRY }
+				}
+			}
+			location:hulst = {
+				change_location_owner = c:ATH # Imperator set_owned_by
+			}
+		}
+		else_if = {
+			limit = {
+				exists = c:MGA
+				c:MGA = {
+					num_locations >= 1 # Imperator num_of_cities
+				}
+			}
+			location:hulst = {
+				change_location_owner = c:ATH # Imperator set_owned_by; (sic) the Invictus source gives Salamis to ATH in the Megara branch too
+			}
+		}
+		# The Invictus source repeats the Megara else_if a second time, unchanged; the duplicate is left out
+		else = {
+			custom_tooltip = diadochi_liberation.3.ct
+			hidden_effect = {
+				location:hulst = { #Salamis
+					create_country_from_location = { # Imperator create_country
+						save_scope_as = newly_liberated_state
+						change_country_name = SALAMIS_NAME
+						change_country_adjective = SALAMIS_ADJECTIVE
+						change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+						change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic (EU5 has no government sub-forms)
+						# change_country_color = salamis_green #P:A TODO No EU5 equivalent: the named colour salamis_green is not defined in the mod
+						change_country_flag = SALAMIS_FLAG
+						# change_country_tag = SAL #P:A TODO No EU5 equivalent: Imperator made the new country the SAL tag; the mod has no tag for Attic Salamis (SLM is Salamis on Cyprus), so it stays a dynamic country
+					}
+				}
+				scope:newly_liberated_state = {
+					make_subject_of = {
+						target = root
+						type = subject_type:tributary
+					}
+				}
+			}
+		}
+		ai_chance = { factor = 0 }
+	}
+}
+
+# Aigina is taken: garrison it, or liberate it as a feudatory or tributary. No caller in Invictus.
+diadochi_liberation.4 = {
+	type = country_event
+	title = diadochi_liberation.4.t
+	desc = diadochi_liberation.4.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	fire_only_once = yes
+	trigger = {
+		owns = location:oxford # Imperator p:442.owner = ROOT (Aigina)
+		NOT = { tag = AGN } #P:A TODO Approximate: guard added; in the mod Aigina (AGN) exists at start and owns the island, and cannot liberate itself
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		# right_portrait = char:37 #P:A TODO No EU5 equivalent: portrait of Antigonos Monophthalmos (Imperator character 37); character ids differ
+		# right_portrait = char:38 #P:A TODO No EU5 equivalent: portrait of Demetrios Poliorketes (Imperator character 38); character ids differ
+		location:corinth = { # the opinion tooltips name the region of Corinth (Imperator p:418)
+			save_scope_as = pa_corinth
+		}
+	}
+
+	option = { # garrison the island
+		name = diadochi_liberation.4.a
+		show_as_tooltip = {
+			location:oxford = { #Aigina
+				change_location_owner = root # Imperator set_owned_by
+			}
+		}
+		custom_tooltip = diadochi_liberation.4.a.t
+		hidden_effect = {
+			every_country = {
+				limit = {
+					exists = capital
+					capital = {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = root modifier = macedonian_garrisons_bad } #Macedonian Garrisons
+			}
+		}
+		ai_chance = { factor = 20 }
+	}
+
+	option = { # feudatory
+		name = diadochi_liberation.4.b
+		custom_tooltip = diadochi_liberation.4.bt
+		hidden_effect = {
+			location:oxford = { #Aigina
+				create_country_from_location = { # Imperator create_country (a new country, no tag change; the mod's AGN tag is not used)
+					save_scope_as = newly_liberated_state
+					change_country_name = AIGINA_NAME
+					change_country_adjective = AIGINA_ADJECTIVE
+					if = {
+						limit = {
+							NOT = {
+								culture = culture:argolic # Imperator primary_culture = argolian
+							}
+						}
+						pa_imp_set_primary_culture_cleanup_effect = {
+							NEW_PRIMARY_CULTURE = argolic # Imperator argolian
+							MAKE_OLD_CULTURE_INTEGRATED = yes
+						}
+					}
+					change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator plutocratic_republic (EU5 has no government sub-forms)
+					change_country_color = light_green
+					change_country_flag = AIGINA_FLAG
+				}
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:feudatory
+				}
+			}
+			trigger_event_silently = {
+				id = diadochi_liberation.1002 #Join the war
+			}
+		}
+		ai_chance = { factor = 15 }
+	}
+
+	option = { # Tributary
+		name = diadochi_liberation.4.c
+		custom_tooltip = diadochi_liberation.4.ct
+		custom_tooltip = diadochi_liberation.4.c.t2
+		hidden_effect = {
+			every_country = {
+				limit = {
+					exists = capital
+					capital = {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = root modifier = macedonian_garrisons_good } #Macedonian Garrisons Removed
+			}
+			location:oxford = { #Aigina
+				create_country_from_location = { # Imperator create_country (a new country, no tag change; the mod's AGN tag is not used)
+					save_scope_as = newly_liberated_state
+					change_country_name = AIGINA_NAME
+					change_country_adjective = AIGINA_ADJECTIVE
+					if = {
+						limit = {
+							NOT = {
+								culture = culture:argolic # Imperator primary_culture = argolian
+							}
+						}
+						pa_imp_set_primary_culture_cleanup_effect = {
+							NEW_PRIMARY_CULTURE = argolic # Imperator argolian
+							MAKE_OLD_CULTURE_INTEGRATED = yes
+						}
+					}
+					change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator plutocratic_republic (EU5 has no government sub-forms)
+					change_country_color = light_green
+					change_country_flag = AIGINA_FLAG
+				}
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:tributary
+				}
+			}
+		}
+		ai_chance = { factor = 10 }
+	}
+}
+
+# Sikyon is taken: garrison it, or liberate it as a feudatory or tributary (or play as it). No caller in Invictus.
+diadochi_liberation.5 = {
+	type = country_event
+	title = diadochi_liberation.5.t
+	desc = diadochi_liberation.5.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	fire_only_once = yes
+	trigger = {
+		owns = location:enghien # Imperator p:8003.owner = ROOT (Sikyon)
+		NOT = { tag = SIK } #P:A TODO Approximate: guard added; in the mod Sikyon (SIK) exists at start and owns the city, and cannot liberate itself
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		# right_portrait = char:42 #P:A TODO No EU5 equivalent: portrait of Ptolemaios Soter (Imperator character 42); character ids differ
+		# right_portrait = char:523 #P:A TODO No EU5 equivalent: portrait of Kratesipolis (Imperator character 523); character ids differ
+		# right_portrait = char:522 #P:A TODO No EU5 equivalent: portrait of Alexandros, son of Polyperchon (Imperator character 522); character ids differ
+		location:corinth = { # the opinion tooltips name the region of Corinth (Imperator p:418)
+			save_scope_as = pa_corinth
+		}
+	}
+
+	option = { # garrison the city
+		name = diadochi_liberation.5.a
+		show_as_tooltip = {
+			location:enghien = { #Sikyon
+				change_location_owner = root # Imperator set_owned_by
+			}
+		}
+		custom_tooltip = diadochi_liberation.5.a.t
+		hidden_effect = {
+			every_country = {
+				limit = {
+					exists = capital
+					capital = {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = root modifier = macedonian_garrisons_bad } #Macedonian Garrisons
+			}
+		}
+		ai_chance = { factor = 20 }
+	}
+
+	option = { # feudatory
+		name = diadochi_liberation.5.b
+		custom_tooltip = diadochi_liberation.5.bt
+		hidden_effect = {
+			location:enghien = { #Sikyon
+				create_country_from_location = { # Imperator create_country (a new country, no tag change; the mod's SIK tag is not used)
+					save_scope_as = newly_liberated_state
+					change_country_name = SIKYON_NAME
+					change_country_adjective = SIKYON_ADJECTIVE
+					change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator aristocratic_republic (EU5 has no government sub-forms)
+					# change_country_color = sicyon_purple #P:A TODO No EU5 equivalent: the named colour sicyon_purple is not defined in the mod
+					change_country_flag = SIKYON_FLAG
+				}
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:feudatory
+				}
+			}
+			trigger_event_silently = {
+				id = diadochi_liberation.1002 #Join the war
+			}
+		}
+		ai_chance = { factor = 15 }
+	}
+
+	option = { # Tributary
+		name = diadochi_liberation.5.c
+		custom_tooltip = diadochi_liberation.5.ct
+		custom_tooltip = diadochi_liberation.5.c.t2
+		hidden_effect = {
+			every_country = {
+				limit = {
+					exists = capital
+					capital = {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = root modifier = macedonian_garrisons_good } #Macedonian Garrisons Removed
+			}
+			location:enghien = { #Sikyon
+				create_country_from_location = { # Imperator create_country (a new country, no tag change; the mod's SIK tag is not used)
+					save_scope_as = newly_liberated_state
+					change_country_name = SIKYON_NAME
+					change_country_adjective = SIKYON_ADJECTIVE
+					change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator aristocratic_republic (EU5 has no government sub-forms)
+					# change_country_color = sicyon_purple #P:A TODO No EU5 equivalent: the named colour sicyon_purple is not defined in the mod
+					change_country_flag = SIKYON_FLAG
+				}
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:tributary
+				}
+			}
+		}
+		ai_chance = { factor = 10 }
+	}
+
+	option = { # Tag switch
+		name = diadochi_liberation.5.d
+		custom_tooltip = diadochi_liberation.5.dt
+		# highlight = yes #P:A TODO No EU5 equivalent: highlighted option
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			location:enghien = { #Sikyon
+				create_country_from_location = { # Imperator create_country (a new country, no tag change; the mod's SIK tag is not used)
+					save_scope_as = newly_liberated_state
+					change_country_name = SIKYON_NAME
+					change_country_adjective = SIKYON_ADJECTIVE
+					change_religion = religion:hellenic_pantheon #P:A TODO Approximate: Imperator set_country_religion = roman_pantheon, which Invictus calls "Hellenic"; mapped to the mod's hellenic_pantheon (the mod's roman_pantheon is "Italic")
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator aristocratic_republic (EU5 has no government sub-forms)
+					# change_country_color = sicyon_purple #P:A TODO No EU5 equivalent: the named colour sicyon_purple is not defined in the mod
+					change_country_flag = SIKYON_FLAG
+				}
+			}
+			scope:newly_liberated_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:tributary
+				}
+			}
+			change_player = scope:newly_liberated_state # Imperator set_player_country
+		}
+		ai_chance = { factor = 0 }
+	}
+}

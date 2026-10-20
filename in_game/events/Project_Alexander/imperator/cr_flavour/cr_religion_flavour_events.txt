@@ -1,0 +1,108 @@
+﻿#P:A Imported from Invictus: events/cr_flavour/cr_religion_flavour_events.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+# Melqart's temple at Tyre is sacked (desecration.2/.3) and the god is reborn at Gadir.
+# Imperator Tyrus (p:743) -> location:sidon (approximate: no Tyre location in the mod map); Gadir (p:1344) -> location:cadiz.
+# The pilot's desecration.2 fires cr_religious_flavour_events.2 on location:cadiz directly, so .1 is an unused relay for now.
+namespace = cr_religious_flavour_events
+
+# Hidden relay: if Tyre and Gadir have different owners, Melqart will be reborn at Gadir.
+cr_religious_flavour_events.1 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		if = {
+			limit = {
+				NOT = { location:sidon.owner ?= location:cadiz.owner } #P:A TODO Approximate location: Imperator Tyrus (p:743) mapped to sidon
+			}
+			location:cadiz = {
+				trigger_event_non_silently = {
+					id = cr_religious_flavour_events.2
+					days = { 120 360 }
+				}
+			}
+		}
+		save_scope_as = cr_sacker_of_temples
+	}
+}
+
+# The Egersis of Melqart (fired on Gadir)
+cr_religious_flavour_events.2 = {
+	type = location_event
+	title = cr_religious_flavour_events.2.t
+	desc = cr_religious_flavour_events.2.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		OR = { # Imperator dominant_province_religion = carthaginian_pantheon (split in the mod)
+			dominant_religion = religion:punic_pantheon
+			dominant_religion = religion:canaanite_pantheon
+		}
+		location_num_holy_sites = 0 #P:A TODO Approximate: Imperator is_holy_site = no (a deity holy site in the province); EU5 holy sites are defined per religion
+		# deity:omen_melqart = { has_holy_site = no } #P:A TODO No EU5 equivalent: Melqart must have no holy site anywhere (EU5 has no deities)
+	}
+
+	immediate = {
+		hidden_effect = {
+			every_country = {
+				limit = {
+					NOT = { this = root.owner }
+					# has_deity_in_pantheon = deity:omen_melqart
+					OR = { #P:A TODO Approximate: Imperator "has Melqart in its pantheon"; EU5 has no deities, countries of the Punic or Canaanite faith stand in
+						religion = religion:punic_pantheon
+						religion = religion:canaanite_pantheon
+					}
+				}
+				trigger_event_non_silently = { id = cr_religious_flavour_events.3 }
+			}
+		}
+		set_global_variable = cr_melqart_is_dead_flag # Imperator set it from the owner scope
+	}
+
+	option = {
+		name = cr_religious_flavour_events.2.a
+		# set_province_deity = deity:omen_melqart #P:A TODO No EU5 equivalent: makes Melqart the location's patron deity (EU5 locations have no deities)
+		# owner = {
+		# 	create_country_treasure = {
+		# 		key = cr_treasure_golden_olive_tree_gadir
+		# 		icon = cr_treasure_golden_olive_tree_01
+		# 		modifier = { local_happiness_for_same_culture_modifier = 0.03 }
+		# 	}
+		# 	treasure:cr_treasure_golden_olive_tree_gadir = { transfer_treasure_to_province = p:1344 }
+		# }
+		#P:A TODO No EU5 equivalent: the owner gets the treasure "Golden Olive Tree of Gadir" (+3% primary-culture happiness), kept at Gadir; EU5 has no treasures
+	}
+}
+
+# Melqart of the West: other Melqart worshippers hear of his rebirth at Gadir.
+cr_religious_flavour_events.3 = {
+	type = country_event
+	title = cr_religious_flavour_events.3.t
+	desc = cr_religious_flavour_events.3.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = location:cadiz.owner # guard added: the option targets Gadir's owner
+	}
+
+	immediate = {
+		# show_as_tooltip = { p:1344 = { set_province_deity = deity:omen_melqart } }
+		#P:A TODO No EU5 equivalent: the tooltip showed Melqart becoming Gadir's patron deity (EU5 locations have no deities)
+	}
+
+	option = {
+		name = cr_religious_flavour_events.3.a
+		add_opinion = {
+			target = location:cadiz.owner
+			modifier = new_temple_of_melqart_opmod
+		}
+	}
+}

@@ -1,0 +1,1245 @@
+﻿#P:A Imported from Invictus: events/dhe/dhe_city_fall.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = dhe_city_fall
+
+# Imperator province events fired by on_ownership_change (root = the province, owner = its new owner).
+# EU5: location events for on_location_changed_owner (root = location, scope:winner = new owner, scope:loser = old owner).
+# Each event checks its own city; dhe_city_fall.100 (hidden) marks the new owner so each city falls only once per country.
+
+# Carthage
+dhe_city_fall.1 = {
+	type = location_event
+	title = dhe_city_fall.1.t
+	desc = {
+		first_valid = {
+			triggered_desc = { #special text for proto_europeans
+				trigger = { owner = { culture = { has_culture_group = culture_group:nuragic_group } } } #P:A TODO Approximate: Imperator proto_european culture group mapped to nuragic_group
+				desc = dhe_city_fall.1.desc_2
+			}
+			triggered_desc = { # vanilla text
+				trigger = { always = yes }
+				desc = dhe_city_fall.1.desc
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		this = location:tunis
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_1
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					has_variable = cr_walls_of_carthage_exist
+				}
+				add_location_modifier = {
+					modifier = cr_carthage_walls_of_carthage
+					days = -1
+				}
+			}
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.1.a
+		pa_imp_merciful_ruler_effect = yes
+		owner = {
+			if = {
+				limit = {
+					culture = { has_culture_group = culture_group:nuragic_group }
+				}
+				custom_tooltip = nuragic_dhe_city_fall.1
+				# random_list = { 66 = { current_ruler = { add_trait = submissive } } 33 = { current_ruler = { add_trait = weak_willed } } }
+				#P:A TODO No EU5 equivalent: a Nuragic ruler showing mercy became submissive (66%) or weak_willed (33%); EU5 has neither trait
+			}
+		}
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.1.b
+		pa_imp_neutral_conqueror_effect = yes
+		owner = {
+			if = {
+				limit = {
+					culture = { has_culture_group = culture_group:nuragic_group }
+				}
+				custom_tooltip = nuragic_dhe_city_fall.1
+				# random_list = { 66 = { current_ruler = { add_trait = submissive } } 16 = { current_ruler = { add_trait = weak_willed } } 18 = { } }
+				#P:A TODO No EU5 equivalent: a Nuragic ruler became submissive (66%) or weak_willed (16%); EU5 has neither trait
+			}
+		}
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.1.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_carthaginian_fleet
+				days = 3650
+			}
+		}
+		remove_location_modifier = cr_carthage_walls_of_carthage
+		hidden_effect = {
+			remove_variable = cr_walls_of_carthage_exist
+		}
+		pa_imp_sacking_conqueror_effect = yes
+		owner = {
+			if = {
+				limit = {
+					ironman = yes
+					is_ai = no
+					NOT = {
+						has_variable = ach_carthago_delenda_est_var
+					}
+				}
+				set_variable = ach_carthago_delenda_est_var
+			}
+		}
+		owner = {
+			if = {
+				limit = {
+					culture = { has_culture_group = culture_group:nuragic_group }
+				}
+				custom_tooltip = nuragic_dhe_city_fall.1
+				# random_list = { 33 = { current_ruler = { add_trait = submissive } } 6 = { current_ruler = { add_trait = weak_willed } } 61 = { } }
+				#P:A TODO No EU5 equivalent: a Nuragic ruler became submissive (33%) or weak_willed (6%); EU5 has neither trait
+			}
+		}
+	}
+
+	option = {
+		name = dhe_city_fall.1.d
+		trigger = {
+			owner = {
+				tag = ROM
+				# current_ruler = { has_trait = lunatic }
+			}
+			always = no #P:A TODO No EU5 equivalent: option only for a Roman ruler with the "lunatic" trait, which EU5 lacks
+		}
+		owner = {
+			if = {
+				limit = {
+					ironman = yes
+					is_ai = no
+					NOT = {
+						has_variable = ach_carthago_delenda_est_var
+					}
+				}
+				set_variable = ach_carthago_delenda_est_var
+			}
+		}
+		pa_imp_salt_earth_effect = yes
+		custom_tooltip = lunatic_tooltip
+	}
+	option = {
+		name = dhe_city_fall.1.e
+		trigger = {
+			owner = {
+				culture = { has_culture_group = culture_group:nuragic_group }
+			}
+		}
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_carthaginian_fleet
+				days = 3650
+			}
+			ruler ?= {
+				add_trait = trait:cruel
+				# add_trait = victorious
+				#P:A TODO No EU5 equivalent: the ruler also gained the "victorious" trait
+			}
+		}
+		remove_location_modifier = cr_carthage_walls_of_carthage
+		add_location_modifier = {
+			modifier = into_ashes
+			days = -1
+		}
+		hidden_effect = {
+			remove_variable = cr_walls_of_carthage_exist
+		}
+		pa_imp_mass_murder_effect = yes
+
+		custom_tooltip = nuragic_dhe_city_fall.1
+	}
+}
+
+# Rome
+dhe_city_fall.2 = {
+	type = location_event
+	title = dhe_city_fall.2.t
+	desc = dhe_city_fall.2.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:rome
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_2
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.2.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.2.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.2.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_roman_morale
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+	}
+}
+
+# Alexandria
+dhe_city_fall.3 = {
+	type = location_event
+	title = dhe_city_fall.3.t
+	desc = dhe_city_fall.3.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		this = location:alexandria
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_3
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.3.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.3.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.3.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_alexandrian_technology
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+		owner = {
+			if = {
+				limit = {
+					ironman = yes
+					is_ai = no
+					OR = {
+						tag = PRY
+						has_variable = phrygia_achievement_check
+					}
+					NOT = {
+						has_variable = ach_alexandria_sacked
+					}
+				}
+				set_variable = ach_alexandria_sacked
+			}
+		}
+	}
+}
+
+# Memphis
+dhe_city_fall.4 = {
+	type = location_event
+	title = dhe_city_fall.4.t
+	desc = dhe_city_fall.4.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:memphis
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_4
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.4.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.4.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.4.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_memphian_goods
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+	}
+}
+
+# Tyre
+dhe_city_fall.5 = {
+	type = location_event
+	title = dhe_city_fall.5.t
+	desc = dhe_city_fall.5.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		this = location:sidon #P:A TODO Approximate location: Imperator Tyrus (p:743) mapped to sidon
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_5
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.5.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.5.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.5.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_tyrian_resources
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+	}
+}
+
+# Jerusalem
+dhe_city_fall.6 = {
+	type = location_event
+	title = dhe_city_fall.6.t
+	desc = dhe_city_fall.6.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:jerusalem
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_6
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.6.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.6.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.6.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_jerusalemite_monuments
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+	}
+}
+
+# Antigonia/Antiochea
+dhe_city_fall.7 = {
+	type = location_event
+	title = dhe_city_fall.7.t
+	desc = dhe_city_fall.7.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:antioch #P:A TODO Approximate location: Imperator Antigoneia (p:790) mapped to antioch
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_7
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.7.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.7.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.7.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_great_trade_routes
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+	}
+}
+
+# Babylon
+dhe_city_fall.8 = {
+	type = location_event
+	title = dhe_city_fall.8.t
+	desc = dhe_city_fall.8.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		this = location:babylon
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_8
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.8.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.8.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.8.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_babylonian_experience
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+		owner = {
+			if = {
+				limit = {
+					ironman = yes
+					is_ai = no
+					OR = {
+						tag = PRY
+						has_variable = phrygia_achievement_check
+					}
+					NOT = {
+						has_variable = ach_babylon_sacked
+					}
+				}
+				set_variable = ach_babylon_sacked
+			}
+		}
+	}
+}
+
+# Seleucia Magna
+dhe_city_fall.9 = {
+	type = location_event
+	title = dhe_city_fall.9.t
+	desc = dhe_city_fall.9.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:seleukia #P:A TODO Approximate location: Imperator Seleucia Magna (p:911) mapped to seleukia
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_9
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.9.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.9.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.9.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_seleucian_bureaucracy
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+	}
+}
+
+# Persepolis
+dhe_city_fall.10 = {
+	type = location_event
+	title = dhe_city_fall.10.t
+	desc = dhe_city_fall.10.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:istakhr #P:A TODO Approximate location: Imperator Persepolis (p:4799) mapped to istakhr
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_10
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.10.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.10.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.10.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_monuments_of_persepolis
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+		owner = {
+			if = {
+				limit = {
+					ironman = yes
+					is_ai = no
+					OR = {
+						tag = SPA
+						has_variable = sparta_achievement_check
+					}
+					NOT = {
+						has_variable = ach_persepolis_sacked
+					}
+				}
+				set_variable = ach_persepolis_sacked
+			}
+		}
+	}
+}
+
+# Pataliputra
+dhe_city_fall.11 = {
+	type = location_event
+	title = dhe_city_fall.11.t
+	desc = dhe_city_fall.11.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:patna
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_11
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.11.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.11.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.11.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_warelephants_of_pataliputra
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+	}
+}
+
+# Syracuse
+dhe_city_fall.12 = {
+	type = location_event
+	title = dhe_city_fall.12.t
+	desc = dhe_city_fall.12.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:syracuse
+		owner = {
+			in_civil_war = no
+			NOR = {
+				has_variable = dhe_city_fall_12
+				ruler ?= { has_variable = me_syr_current_tyrant_flag }
+				has_variable = me_syr_demo_civil_war_active
+				has_variable = death_to_tyrants_flag
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.12.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.12.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.12.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_syracusan_technology
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+	}
+}
+
+# Athens
+dhe_city_fall.13 = {
+	type = location_event
+	title = dhe_city_fall.13.t
+	desc = dhe_city_fall.13.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:athens
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_13
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.13.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.13.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.13.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_athenian_ideas
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+	}
+}
+
+# Sparta
+dhe_city_fall.14 = {
+	type = location_event
+	title = dhe_city_fall.14.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { owner = { tag = VNT } }
+				desc = veneto_flavour_event.1.desc
+			}
+			triggered_desc = {
+				trigger = { NOT = { owner = { tag = VNT } } }
+				desc = dhe_city_fall.14.desc
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:bruges
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_14
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.14.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.14.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.14.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_spartan_discipline
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+	}
+}
+
+# Pella
+dhe_city_fall.15 = {
+	type = location_event
+	title = dhe_city_fall.15.t
+	desc = dhe_city_fall.15.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:pella
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_15
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.15.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.15.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.15.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_pellan_treasures
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+		owner = {
+			if = {
+				limit = {
+					ironman = yes
+					is_ai = no
+					OR = {
+						tag = PRY
+						tag = SPA
+						has_variable = sparta_achievement_check
+						has_variable = phrygia_achievement_check
+					}
+					NOT = {
+						has_variable = ach_pella_sacked
+					}
+				}
+				set_variable = ach_pella_sacked
+			}
+		}
+	}
+}
+
+# Lysimachea
+dhe_city_fall.16 = {
+	type = location_event
+	title = dhe_city_fall.16.t
+	desc = dhe_city_fall.16.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		this = location:gallipoli #P:A TODO Approximate location: Imperator Lysimacheia (p:350) mapped to gallipoli
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_16
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.16.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.16.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.16.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_lysimacheian_materials
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+		owner = {
+			if = {
+				limit = {
+					ironman = yes
+					is_ai = no
+					OR = {
+						tag = PRY
+						has_variable = phrygia_achievement_check
+					}
+					NOT = {
+						has_variable = ach_lysimacheia_sacked
+					}
+				}
+				set_variable = ach_lysimacheia_sacked
+			}
+		}
+	}
+}
+
+# Rhodes
+dhe_city_fall.17 = {
+	type = location_event
+	title = dhe_city_fall.17.t
+	desc = dhe_city_fall.17.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		this = location:rodos
+		owner = {
+			in_civil_war = no
+			NOT = {
+				has_variable = dhe_city_fall_17
+			}
+		}
+		pa_imp_city_fall_trigger = yes
+	}
+
+	immediate = {
+		save_scope_as = special_province
+		owner = {
+			ruler ?= { save_scope_as = pa_ruler }
+		}
+	}
+
+	option = { # Treat them nicely
+		name = dhe_city_fall.17.a
+		pa_imp_merciful_ruler_effect = yes
+	}
+
+	option = { # Bring a few things back home
+		name = dhe_city_fall.17.b
+		pa_imp_neutral_conqueror_effect = yes
+	}
+
+	option = { # Sack the city
+		name = dhe_city_fall.17.c
+		owner = {
+			add_country_modifier = {
+				modifier = country_improvement_rhodesian_designs
+				days = 3650
+			}
+		}
+		pa_imp_sacking_conqueror_effect = yes
+	}
+}
+
+# SET UP FILE
+# Hidden: marks the new owner of one of the great cities, so its dhe_city_fall event fires only once per country.
+# The approximate locations carry the same TODO as their events (.5 .7 .9 .10 .16).
+dhe_city_fall.100 = {
+	type = location_event
+	hidden = yes
+
+	trigger = {
+		OR = {
+			this = location:tunis # Carthage
+			this = location:rome # Rome
+			this = location:alexandria # Alexandria
+			this = location:memphis # Memphis
+			this = location:sidon # Tyre (approximate: sidon)
+			this = location:jerusalem # Jerusalem
+			this = location:antioch # Antigonia/Antiocheia (approximate: antioch)
+			this = location:babylon # Babylon
+			this = location:seleukia # Seleucia Magna (approximate: seleukia)
+			this = location:istakhr # Persepolis (approximate: istakhr)
+			this = location:patna # Pataliputra
+			this = location:syracuse # Syracuse
+			this = location:athens # Athens
+			this = location:bruges # Sparta
+			this = location:pella # Pella
+			this = location:gallipoli # Lysimacheia (approximate: gallipoli)
+			this = location:rodos # Rhodes
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				this = location:tunis # Carthage
+				owner = { NOT = { has_variable = dhe_city_fall_1 } }
+			}
+			owner = { set_variable = dhe_city_fall_1 }
+		}
+		else_if = {
+			limit = {
+				this = location:rome # Rome
+				owner = { NOT = { has_variable = dhe_city_fall_2 } }
+			}
+			owner = { set_variable = dhe_city_fall_2 }
+		}
+		else_if = {
+			limit = {
+				this = location:alexandria # Alexandria
+				owner = { NOT = { has_variable = dhe_city_fall_3 } }
+			}
+			owner = { set_variable = dhe_city_fall_3 }
+		}
+		else_if = {
+			limit = {
+				this = location:memphis # Memphis
+				owner = { NOT = { has_variable = dhe_city_fall_4 } }
+			}
+			owner = { set_variable = dhe_city_fall_4 }
+		}
+		else_if = {
+			limit = {
+				this = location:sidon # Tyre (approximate: sidon)
+				owner = { NOT = { has_variable = dhe_city_fall_5 } }
+			}
+			owner = { set_variable = dhe_city_fall_5 }
+		}
+		else_if = {
+			limit = {
+				this = location:jerusalem # Jerusalem
+				owner = { NOT = { has_variable = dhe_city_fall_6 } }
+			}
+			owner = { set_variable = dhe_city_fall_6 }
+		}
+		else_if = {
+			limit = {
+				this = location:antioch # Antigonia/Antiocheia (approximate: antioch)
+				owner = { NOT = { has_variable = dhe_city_fall_7 } }
+			}
+			owner = { set_variable = dhe_city_fall_7 }
+		}
+		else_if = {
+			limit = {
+				this = location:babylon # Babylon
+				owner = { NOT = { has_variable = dhe_city_fall_8 } }
+			}
+			owner = { set_variable = dhe_city_fall_8 }
+		}
+		else_if = {
+			limit = {
+				this = location:seleukia # Seleucia Magna (approximate: seleukia)
+				owner = { NOT = { has_variable = dhe_city_fall_9 } }
+			}
+			owner = { set_variable = dhe_city_fall_9 }
+		}
+		else_if = {
+			limit = {
+				this = location:istakhr # Persepolis (approximate: istakhr)
+				owner = { NOT = { has_variable = dhe_city_fall_10 } }
+			}
+			owner = { set_variable = dhe_city_fall_10 }
+		}
+		else_if = {
+			limit = {
+				this = location:patna # Pataliputra
+				owner = { NOT = { has_variable = dhe_city_fall_11 } }
+			}
+			owner = { set_variable = dhe_city_fall_11 }
+		}
+		else_if = {
+			limit = {
+				this = location:syracuse # Syracuse
+				owner = { NOT = { has_variable = dhe_city_fall_12 } }
+			}
+			owner = { set_variable = dhe_city_fall_12 }
+		}
+		else_if = {
+			limit = {
+				this = location:athens # Athens
+				owner = { NOT = { has_variable = dhe_city_fall_13 } }
+			}
+			owner = { set_variable = dhe_city_fall_13 }
+		}
+		else_if = {
+			limit = {
+				this = location:bruges # Sparta
+				owner = { NOT = { has_variable = dhe_city_fall_14 } }
+			}
+			owner = { set_variable = dhe_city_fall_14 }
+		}
+		else_if = {
+			limit = {
+				this = location:pella # Pella
+				owner = { NOT = { has_variable = dhe_city_fall_15 } }
+			}
+			owner = { set_variable = dhe_city_fall_15 }
+		}
+		else_if = {
+			limit = {
+				this = location:gallipoli # Lysimacheia (approximate: gallipoli)
+				owner = { NOT = { has_variable = dhe_city_fall_16 } }
+			}
+			owner = { set_variable = dhe_city_fall_16 }
+		}
+		else_if = {
+			limit = {
+				this = location:rodos # Rhodes
+				owner = { NOT = { has_variable = dhe_city_fall_17 } }
+			}
+			owner = { set_variable = dhe_city_fall_17 }
+		}
+	}
+}

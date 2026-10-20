@@ -1,0 +1,79 @@
+﻿# Imperator script values for batch b14 of the Invictus/Indomita event import (2026-10-19).
+
+#P:A Imported from Imperator: title_importance_svalue (common/script_values)
+# Character scope: a quarter of the character's title importance, at least 1.
+pa_imp_title_importance_svalue = {
+	value = 1 #P:A TODO No EU5 equivalent: Imperator title_importance / 4 (min 1); EU5 characters have no title importance, so the floor of 1 is used
+}
+
+#P:A Imported from Invictus: get_love_target_age_svalue (common/script_values)
+# Any scope that holds the variable love_target_age (set by scheme.21).
+pa_imp_get_love_target_age_svalue = {
+	value = var:love_target_age
+}
+
+#P:A Imported from Invictus: seek_spouse_age_window (common/script_values)
+# Needs scope:spouse_seeker: the age of the partner created for the spouse seeker.
+pa_imp_seek_spouse_age_window = {
+	value = 0
+	if = { # If the spouse seeker is important
+		limit = {
+			scope:spouse_seeker = {
+				OR = {
+					AND = {
+						exists = employer.ruler
+						is_close_relative = employer.ruler
+					}
+					is_ruler = yes
+					is_dynasty_head = yes # Imperator is_head_of_family
+				}
+			}
+		}
+		if = { # If the spouse seeker is an important woman
+			limit = {
+				scope:spouse_seeker = { is_female = yes }
+			}
+			add = pa_imp_seek_spouse_age_window_vip_woman
+		}
+		else = { add = pa_imp_seek_spouse_age_window_vip_man } # If the spouse seeker is an important man
+	}
+	else = { add = pa_imp_seek_spouse_age_window_pleb } # If the spouse seeker is not important
+}
+
+#P:A Imported from Invictus: seek_spouse_age_window_vip_woman (common/script_values)
+pa_imp_seek_spouse_age_window_vip_woman = { # If the spouse seeker is an important woman
+	value = scope:spouse_seeker.age_in_years
+	add = {
+		integer_range = { # +3 to +15 years
+			min = 3
+			max = 15
+		}
+	}
+	min = 16
+}
+
+#P:A Imported from Invictus: seek_spouse_age_window_pleb (common/script_values)
+pa_imp_seek_spouse_age_window_pleb = { # If the spouse seeker is not important
+	value = scope:spouse_seeker.age_in_years
+	add = {
+		integer_range = { # -20 to +10 years
+			min = -20
+			max = 10
+		}
+	}
+	min = 16
+}
+
+#P:A Imported from Invictus: seek_spouse_age_window_vip_man (common/script_values)
+pa_imp_seek_spouse_age_window_vip_man = { # If the spouse seeker is an important man
+	value = scope:spouse_seeker.age_in_years
+	add = {
+		integer_range = { # -15 to +3 years, max 25
+			min = -15
+			max = 3
+		}
+	}
+	min = 16
+	max = 26
+}
+

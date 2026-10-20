@@ -1,2 +1,323 @@
 ﻿#P:A Imported from Indomita: events/chinese_flavor.txt
 namespace = chinese_flavor
+
+# Hidden: marks the rulers of the five largest Chinese-culture countries with the chinese_ruler variable.
+# Imperator: on_action chinese_ruler_assigment_pulse (decade pulse, delay 7300-18250 days, trigger country_culture_group = chinese).
+chinese_flavor.1 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		culture = { has_culture_group = culture_group:chinese_group } # Imperator country_culture_group = chinese
+	}
+
+	immediate = {
+		ordered_country = {
+			limit = {
+				culture = { has_culture_group = culture_group:chinese_group } # Imperator country_culture_group = "chinese"
+			}
+			max = 5
+			check_range_bounds = no
+			order_by = num_locations # Imperator num_of_cities
+			ruler ?= { # Imperator current_ruler
+				if = {
+					limit = {
+						NOT = { has_variable = chinese_ruler }
+					}
+					set_variable = chinese_ruler
+				}
+			}
+		}
+	}
+}
+
+# A New Emperor: China is unified and receives the Mandate of Heaven.
+# Imperator callers: decision form_china, events me_xiongnu_3.23 and me_zhou.21, mission qin_03_empire.
+chinese_flavor.2 = { # A New Emperor
+	type = country_event
+	major = yes # Imperator major_country_event
+	title = chinese_flavor.2.t
+	desc = chinese_flavor.2.desc
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = {
+			limit = {
+				# Should check that there are not 5 merchants already, if there are the effects would do nothing.
+				NOT = {
+					pa_imp_country_has_special_pop = {
+						type = merchant # Type of special pop to check for
+						text = country_has_5_merchant_tt
+						count = 5 # checks if >= 5
+					}
+				}
+				# Check if there is at least 1 merchant special pop in the capital
+				exists = capital
+				capital = {
+					pa_imp_province_has_special_pop = {
+						text = prov_has_1_merchant_tt
+						type = merchant # Type of special pop to check for
+						count = 1 # checks if >= 5
+					}
+				}
+			}
+			capital = {
+				pa_imp_add_special_pop = {
+					text = add_2_merchant_tt
+					type = merchant
+					count = 2
+				}
+			}
+		}
+		#P:A TODO Approximate: Imperator picked the ruler's family members (char1-char6) in order of prominence; EU5 characters have no prominence, so random adult family members are picked
+		if = {
+			limit = {
+				ruler ?= { is_married = yes }
+			}
+			ruler = {
+				random_spouse = { # Imperator current_ruler.spouse
+					save_scope_as = char1
+				}
+			}
+		}
+		else = {
+			random_character = { # Imperator ordered_character, order_by = prominence
+				limit = {
+					is_adult = yes
+					is_ruler = no
+					dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				}
+				save_scope_as = char1
+			}
+		}
+		random_character = { # Imperator ordered_character, order_by = prominence
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				exists = scope:char1
+				NOT = { this = scope:char1 }
+			}
+			save_scope_as = char2
+		}
+		random_character = { # Imperator ordered_character, order_by = prominence
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				exists = scope:char1
+				exists = scope:char2
+				NOR = {
+					this = scope:char1
+					this = scope:char2
+				}
+			}
+			save_scope_as = char3
+		}
+		random_character = { # Imperator ordered_character, order_by = prominence
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				exists = scope:char1
+				exists = scope:char2
+				exists = scope:char3
+				NOR = {
+					this = scope:char1
+					this = scope:char2
+					this = scope:char3
+				}
+			}
+			save_scope_as = char4
+		}
+		random_character = { # Imperator ordered_character, order_by = prominence
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				exists = scope:char1
+				exists = scope:char2
+				exists = scope:char3
+				exists = scope:char4
+				NOR = {
+					this = scope:char1
+					this = scope:char2
+					this = scope:char3
+					this = scope:char4
+				}
+			}
+			save_scope_as = char5
+		}
+		random_character = { # Imperator ordered_character, order_by = prominence
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				exists = scope:char1
+				exists = scope:char2
+				exists = scope:char3
+				exists = scope:char4
+				exists = scope:char5
+				NOR = {
+					this = scope:char1
+					this = scope:char2
+					this = scope:char3
+					this = scope:char4
+					this = scope:char5
+				}
+			}
+			save_scope_as = char6
+		}
+		set_global_variable = china_unified
+		set_variable = {
+			name = mandate_variable
+			value = 60 # mandate_initial_value
+		}
+		pa_imp_mandate_yearly_effects = yes
+		set_variable = {
+			name = first_chinese_emperor_character_scope_variable
+			value = root.ruler # Imperator root.current_ruler
+		}
+	}
+
+	option = { #The Celestial Empire will last for Eternity
+		name = chinese_flavor.2.a
+		add_legitimacy = 25
+	}
+
+	after = {
+		every_country = {
+			limit = {
+				is_ai = no
+				NOT = { this = root }
+			}
+			trigger_event_non_silently = { id = chinese_flavor.4 }
+		}
+	}
+}
+
+# Empire in the East: a foreign embassy announces the unification of China (fired by chinese_flavor.2 for every other player country).
+chinese_flavor.4 = {
+	type = country_event
+	title = chinese_flavor.4.t
+	desc = chinese_flavor.4.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		#P:A TODO Approximate: Imperator picked the ruler's family members (char1-char6) in order of prominence; EU5 characters have no prominence, so random adult family members are picked
+		if = {
+			limit = {
+				ruler ?= { is_married = yes }
+			}
+			ruler = {
+				random_spouse = { # Imperator current_ruler.spouse
+					save_scope_as = char1
+				}
+			}
+		}
+		else = {
+			random_character = { # Imperator ordered_character, order_by = prominence
+				limit = {
+					is_adult = yes
+					is_ruler = no
+					dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				}
+				save_scope_as = char1
+			}
+		}
+		random_character = { # Imperator ordered_character, order_by = prominence
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				exists = scope:char1
+				NOT = { this = scope:char1 }
+			}
+			save_scope_as = char2
+		}
+		random_character = { # Imperator ordered_character, order_by = prominence
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				exists = scope:char1
+				exists = scope:char2
+				NOR = {
+					this = scope:char1
+					this = scope:char2
+				}
+			}
+			save_scope_as = char3
+		}
+		random_character = { # Imperator ordered_character, order_by = prominence
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				exists = scope:char1
+				exists = scope:char2
+				exists = scope:char3
+				NOR = {
+					this = scope:char1
+					this = scope:char2
+					this = scope:char3
+				}
+			}
+			save_scope_as = char4
+		}
+		random_character = { # Imperator ordered_character, order_by = prominence
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				exists = scope:char1
+				exists = scope:char2
+				exists = scope:char3
+				exists = scope:char4
+				NOR = {
+					this = scope:char1
+					this = scope:char2
+					this = scope:char3
+					this = scope:char4
+				}
+			}
+			save_scope_as = char5
+		}
+		random_character = { # Imperator ordered_character, order_by = prominence
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				dynasty ?= root.ruler.dynasty # Imperator has_same_family = root.current_ruler
+				exists = scope:char1
+				exists = scope:char2
+				exists = scope:char3
+				exists = scope:char4
+				exists = scope:char5
+				NOR = {
+					this = scope:char1
+					this = scope:char2
+					this = scope:char3
+					this = scope:char4
+					this = scope:char5
+				}
+			}
+			save_scope_as = char6
+		}
+	}
+
+	option = { # An Empire like this can't last long...
+		name = chinese_flavor.4.a
+	}
+}

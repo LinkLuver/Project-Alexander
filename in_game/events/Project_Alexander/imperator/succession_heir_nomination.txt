@@ -1,0 +1,138 @@
+﻿#P:A Imported from Invictus: events/succession_heir_nomination.txt
+# Heir nomination ("anoint heir") events. In Imperator heir_events.5/10/11 were fired by the scripted GUI anoint_heir
+# on the ruler's country after it made a character heir apparent: scope:nominee = the new heir, scope:lost_heir = the
+# previous heir, scope:nominator = the ruler. The caller must save scope:nominee (and scope:lost_heir when there was a
+# previous heir) before firing them; scope:nominator falls back to the ruler.
+# Not imported (bound to specific tags or dynasties): heir_events.1/2/3/12/13/14/15 (regnal names of the Seleukid,
+# Lagid, Mithridatid, Zipoeteid, Attalid and Teukrid dynasties) and heir_events.6/7/8/9 (EGY, SEL, Antigonid, MAC/EPI
+# coronations).
+namespace = heir_events
+
+# An heir apparent is crowned over the siblings: a sibling is jealous.
+heir_events.5 = {
+	type = country_event
+	title = heir_events.5.t
+	desc = heir_events.5.desc
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = scope:nominee
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:nominator } }
+			ruler = { save_scope_as = nominator }
+		}
+		hidden_effect = {
+			random_character = {
+				limit = {
+					is_eligible_heir = root #P:A TODO Approximate: Imperator random_successor (a character in the line of succession); EU5 picks any eligible heir of the country
+					NOT = { has_character_modifier = nominated_heir_modifier }
+					NOT = { this = scope:nominee } # in Imperator the nominee always carried nominated_heir_modifier
+					trigger_if = {
+						limit = { exists = scope:lost_heir }
+						NOT = { this = scope:lost_heir }
+					}
+					age_in_years > 5
+				}
+				save_scope_as = angry_sibling
+			}
+			# random_character = { limit = { is_head_of_family = yes is_ruler = no loyalty < 55 } save_scope_as = conspiring_hof }
+			#P:A TODO No EU5 equivalent: picked a disloyal family head (loyalty < 55) as scope:conspiring_hof; only used for add_friend below
+		}
+	}
+
+	option = {
+		name = heir_events.5.a
+		# if = {
+		# 	limit = { exists = scope:angry_sibling }
+		# 	scope:angry_sibling = {
+		# 		add_loyalty = jealous_sibling
+		# 		if = { limit = { exists = scope:conspiring_hof } add_friend = scope:conspiring_hof }
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: the jealous sibling lost loyalty (jealous_sibling) and befriended a disloyal family head (EU5 characters have no loyalty or friends)
+		# scope:lost_heir = { add_loyalty = jealous_sibling }
+		#P:A TODO No EU5 equivalent: the previous heir lost loyalty (jealous_sibling; EU5 characters have no loyalty)
+	}
+}
+
+# Generic coronation of an heir apparent (Imperator fallback for countries without a dynastic coronation event).
+heir_events.10 = {
+	type = country_event
+	title = heir_events.10.t
+	desc = heir_events.10.desc
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = scope:nominee
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:nominator } }
+			ruler = { save_scope_as = nominator }
+		}
+	}
+
+	option = {
+		name = heir_events.10.a
+		# scope:lost_heir = { add_loyalty = jealous_sibling }
+		#P:A TODO No EU5 equivalent: the previous heir lost loyalty (jealous_sibling; EU5 characters have no loyalty)
+	}
+
+	after = {
+		# every_country_culture = {
+		# 	limit = { is_culture = root.culture NOT = { has_country_culture_modifier = succesful_coronation_ceremony } }
+		# 	add_country_culture_modifier = { name = "succesful_coronation_ceremony" duration = 730 }
+		# }
+		#P:A TODO No EU5 equivalent: the country's primary culture got "Succesful Coronation Ceremony" (+8% culture happiness) for 2 years (EU5 has no country-culture modifiers or culture happiness)
+	}
+}
+
+# A child is crowned heir apparent: the grandees are displeased.
+heir_events.11 = {
+	type = country_event
+	title = heir_events.11.t
+	desc = heir_events.11.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:nominee
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:nominator } }
+			ruler = { save_scope_as = nominator }
+		}
+		# hidden_effect = { random_character = { limit = { is_head_of_family = yes is_ruler = no loyalty < 55 } save_scope_as = conspiring_hof } }
+		#P:A TODO No EU5 equivalent: picked a disloyal family head (loyalty < 55) as scope:conspiring_hof; only used for add_friend below
+	}
+
+	option = {
+		name = heir_events.11.a
+		# if = {
+		# 	limit = { exists = scope:angry_sibling }
+		# 	every_successor = {
+		# 		limit = { NOT = { has_triggered_character_modifier = nominated_heir_modifier } NOT = { this = scope:lost_heir } }
+		# 		add_loyalty = jealous_sibling
+		# 	}
+		# }
+		# scope:lost_heir = {
+		# 	add_loyalty = jealous_sibling
+		# 	if = { limit = { exists = scope:conspiring_hof } add_friend = scope:conspiring_hof }
+		# }
+		#P:A TODO No EU5 equivalent: the other successors and the previous heir lost loyalty (jealous_sibling) and the previous heir befriended a disloyal family head (EU5 characters have no loyalty or friends)
+	}
+}

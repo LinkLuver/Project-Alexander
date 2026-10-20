@@ -1,0 +1,212 @@
+﻿#P:A Imported from Invictus: events/rise_of_the_family.txt
+# Great families. family_events.3 was an Imperator character event from monthly_head_of_family_pulse (root = the head of a
+# great family); here it is a country event with the dynasty head as scope:pa_character (it finds one itself if the caller
+# saves none). Imperator "minor characters" (not in a great family) are EU5 characters without a dynasty.
+# family_events.8 was fired by the Imperator character interactions adopt_to_family and adoption
+# (scope:picked_adoption_candidate = the adopted character).
+namespace = family_events
+
+# A small great family adopts a new member.
+family_events.3 = {
+	type = country_event
+	title = family_events.3.t
+	desc = family_events.3.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_dynasty_head = yes # Imperator: root was a head of family
+				trigger_if = {
+					limit = {
+						root = {
+							is_ai = no
+						}
+					}
+					is_ruler = no
+				}
+				dynasty = {
+					any_character_in_dynasty = {
+						count < pa_imp_ideal_family_size_svalue #num_of_expected_jobs +1
+						OR = {
+							is_female = no
+							employer ?= { modifier:gender_equality = yes }
+						}
+						is_adult = yes
+						#P:A Removed: prisoner = no is always true in EU5
+						is_ruler = no
+						NOT = { has_character_modifier = foreign_citizen }
+					}
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_dynasty_head = yes
+				trigger_if = {
+					limit = {
+						root = {
+							is_ai = no
+						}
+					}
+					is_ruler = no
+				}
+				dynasty = {
+					any_character_in_dynasty = {
+						count < pa_imp_ideal_family_size_svalue
+						OR = {
+							is_female = no
+							employer ?= { modifier:gender_equality = yes }
+						}
+						is_adult = yes
+						is_ruler = no
+						NOT = { has_character_modifier = foreign_citizen }
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_dynasty_head = yes
+					trigger_if = {
+						limit = {
+							root = {
+								is_ai = no
+							}
+						}
+						is_ruler = no
+					}
+					dynasty = {
+						any_character_in_dynasty = {
+							count < pa_imp_ideal_family_size_svalue
+							OR = {
+								is_female = no
+								employer ?= { modifier:gender_equality = yes }
+							}
+							is_adult = yes
+							is_ruler = no
+							NOT = { has_character_modifier = foreign_citizen }
+						}
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		# root.family = { if = { limit = { prestige > 200 } add_prestige = -5 } }
+		#P:A TODO No EU5 equivalent: -5 prestige for the great family if it had more than 200 (EU5 dynasties have no prestige)
+		if = {
+			limit = {
+				any_character = {
+					has_dynasty = no #P:A TODO Approximate: Imperator is_minor_character = yes (not in a great family); EU5 character without a dynasty
+					is_adult = yes
+					#P:A TODO No EU5 equivalent: Imperator also excluded mercenary leaders (is_mercenary = no)
+					is_ruler = no
+					employer = root
+					NOT = { has_variable = olympic_attendee }
+					OR = {
+						root = { modifier:gender_equality = yes }
+						is_female = no
+					}
+					NOT = {
+						has_character_modifier = foreign_citizen
+					}
+					#P:A Removed: prisoner = no is always true in EU5
+					# NOT = { has_trait = proud } NOT = { has_trait = selfish } #P:A TODO No EU5 equivalent: Imperator traits "proud" and "selfish" also excluded the candidate
+					NOT = { has_trait = arrogant }
+					NOT = { has_trait = stubborn }
+					NOT = { has_variable = pyrrhus_travelling }
+					OR = {
+						culture = scope:pa_character.culture
+						pa_imp_citizenship_restrictions_trigger = yes
+					}
+				}
+			}
+			random_character = { #P:A TODO Approximate: Imperator ordered_character by power_base (max 1); EU5 characters have no power base, a random one is picked
+				limit = {
+					has_dynasty = no
+					is_adult = yes
+					is_ruler = no
+					employer = root
+					NOT = { has_variable = olympic_attendee }
+					OR = {
+						root = { modifier:gender_equality = yes }
+						is_female = no
+					}
+					NOT = {
+						has_character_modifier = foreign_citizen
+					}
+					NOT = { has_trait = arrogant }
+					NOT = { has_trait = stubborn }
+					NOT = { has_variable = pyrrhus_travelling }
+					OR = {
+						culture = scope:pa_character.culture
+						pa_imp_citizenship_restrictions_trigger = yes
+					}
+				}
+				change_dynasty = scope:pa_character.dynasty # Imperator set_family = root.family
+				save_scope_as = adopted_person
+				add_character_modifier = {
+					modifier = adopted_into_great_family
+					years = -1
+				}
+				# adapt_family_name = yes
+				#P:A TODO No EU5 equivalent: the adopted character took the family name (EU5 characters carry the dynasty name automatically)
+			}
+		}
+		else = {
+			create_character = {
+				female = no
+				age = 30
+				dynasty = scope:pa_character.dynasty # Imperator family = root.family
+				save_scope_as = adopted_person
+			}
+		}
+	}
+
+	option = {
+		name = family_events.3.a
+	}
+}
+
+# What is in a name? An adopted member of the royal family may take the family name.
+family_events.8 = {
+	type = country_event
+	title = family_events.8.t
+	desc = family_events.8.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:picked_adoption_candidate
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = adopting_ruler }
+	}
+
+	option = {
+		name = family_events.8.a
+		# if = {
+		# 	limit = { scope:picked_adoption_candidate = { OR = { father = employer.current_ruler mother = employer.current_ruler } } }
+		# 	scope:picked_adoption_candidate = { add_loyalty = loyalty_ruler_adoption }
+		# }
+		#P:A TODO No EU5 equivalent: a child of the ruler gained loyalty (loyalty_ruler_adoption; EU5 characters have no loyalty)
+		# scope:picked_adoption_candidate = { adapt_family_name = yes }
+		#P:A TODO No EU5 equivalent: the adopted character takes the family name (EU5 characters carry the dynasty name automatically)
+	}
+	option = {
+		name = family_events.8.b
+		custom_tooltip = family_events.8.tt
+	}
+}

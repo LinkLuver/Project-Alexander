@@ -1,0 +1,260 @@
+﻿# Imperator scripted effects for batch b18 of the Invictus/Indomita event import (2026-10-19).
+
+#P:A Imported from Imperator: increment_state_investment_count (common/scripted_effects/00_event_effects.txt)
+# Province scope (Imperator: state). Counts the investments made in the province.
+pa_imp_increment_state_investment_count = {
+	if = {
+		limit = {
+			NOT = {
+				has_variable = num_state_investments
+			}
+		}
+		set_variable = {
+			name = num_state_investments
+			value = 1
+		}
+	}
+	else = {
+		change_variable = {
+			name = num_state_investments
+			add = 1
+		}
+	}
+}
+
+#P:A Imported from Invictus: found_city_effect (common/scripted_effects/00_city_effects_inv.txt)
+# Location scope (Imperator: province). Raises a settlement to a city (EU5: town).
+pa_imp_found_city_effect = {
+	change_location_rank = location_rank:town # Imperator set_city_status = city
+	hidden_effect = {
+		every_neighbor_location = {
+			limit = {
+				is_land = yes # Imperator NOR = { is_sea = yes terrain = riverine_terrain } (EU5 rivers and seas are water locations)
+				location_rank = location_rank:rural_settlement # Imperator has_city_status = no
+			}
+			pa_imp_add_neighbor_city_modifier_effect = yes
+		}
+	}
+	if = {
+		limit = {
+			pa_imp_food_trade_good_trigger = yes
+			# NOT = { terrain = oasis } (EU5 has no oasis terrain)
+		}
+		# Remembers the food good (Imperator: "Must not be cleared!"; read when city status is revoked)
+		if = {
+			limit = { raw_material = goods:wheat } # Imperator grain
+			set_variable = had_grain
+		}
+		else_if = {
+			limit = { raw_material = goods:fish }
+			set_variable = had_fish
+		}
+		else_if = {
+			limit = { raw_material = goods:livestock } # Imperator cattle
+			set_variable = had_cattle
+		}
+		else_if = {
+			limit = { raw_material = goods:legumes } # Imperator vegetables
+			set_variable = had_vegetables
+		}
+		else_if = {
+			limit = { raw_material = goods:fruit } # Imperator fruits / dates (both map to EU5 fruit)
+			set_variable = had_fruits
+		}
+		else_if = {
+			limit = { raw_material = goods:olives } # Imperator olive
+			set_variable = had_olive
+		}
+		hidden_effect = {
+			pa_imp_replace_food_after_city_upgrade_effect = { VARIABLE_OR_SET_TRADE_GOODS = set_variable } #See comments in scripted effect before tampering with this
+		}
+		pa_imp_replace_food_after_city_upgrade_finish_effect = yes
+		while = {
+			count = 3
+			random_pop = { #P:A TODO Approximate: Imperator turned 3 whole pops into citizens; EU5 turns size 1 of a pop into burghers each time (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					NOT = { pop_type = pop_type:burghers } # Imperator citizen
+				}
+				if = {
+					limit = { pop_size > 1 }
+					split_pop = {
+						size = 1
+						type = pop_type:burghers
+					}
+				}
+				else = {
+					change_pop_type = pop_type:burghers
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: add_neighbor_city_modifier_effect (common/scripted_effects/00_city_effects_inv.txt)
+# Location scope (Imperator: province).
+pa_imp_add_neighbor_city_modifier_effect = {
+	# if = { limit = { is_uninhabitable = no }
+	# 	if = { limit = { has_province_modifier = neighbor_city } remove_province_modifier = neighbor_city }
+	# 	while = { count = neighbor_cities_svalue add_permanent_province_modifier = { name = neighbor_city mode = add } }
+	# }
+	#P:A TODO No EU5 equivalent: one stacking "neighbor_city" modifier per neighbouring city, whose only effect was +4 local civilization value (EU5 has no civilization value); the modifier was not imported
+}
+
+#P:A Imported from Invictus: replace_food_after_city_upgrade_effect (common/scripted_effects/00_event_effects_inv_1_0.txt)
+# Location scope. VARIABLE_OR_SET_TRADE_GOODS = set_variable picks the replacement good as a location variable.
+# Imperator also accepted set_trade_goods (to show the change in a tooltip); EU5 has no such effect and the swap itself is disabled (see pa_imp_replace_food_after_city_upgrade_finish_effect), so only set_variable is valid.
+pa_imp_replace_food_after_city_upgrade_effect = {
+	random_list = { #If set_variable is used it must be cleared, use the scripted effect after!
+		5 = {
+			modifier = {
+				factor = 2
+				OR = {
+					pa_imp_in_region_upper_egypt_region = yes
+					pa_imp_in_region_lower_egypt_region = yes
+				}
+			}
+			$VARIABLE_OR_SET_TRADE_GOODS$ = papyrus
+		}
+		15 = { #Always pretty high chance
+			$VARIABLE_OR_SET_TRADE_GOODS$ = cloth
+			modifier = {
+				factor = 1.5
+				pa_imp_city_is_in_india_trigger = yes # Imperator: the nine Indian regions
+			}
+		}
+		10 = { #Often high chance
+			modifier = {
+				factor = 2
+				OR = {
+					topography = wetlands # Imperator marsh
+					climate = arid # Imperator desert / desert_hills (approximate)
+				}
+			}
+			$VARIABLE_OR_SET_TRADE_GOODS$ = earthware
+		}
+		10 = {
+			modifier = {
+				factor = 2
+				topography = wetlands # Imperator marsh
+			}
+			$VARIABLE_OR_SET_TRADE_GOODS$ = dye
+		}
+		5 = {
+			modifier = {
+				factor = 0
+				NOR = {
+					topography = mountains
+					is_coastal = yes
+				}
+			}
+			$VARIABLE_OR_SET_TRADE_GOODS$ = salt
+		}
+		5 = { #Unusual but not very dependent on where you are
+			$VARIABLE_OR_SET_TRADE_GOODS$ = glass
+		}
+		10 = { #Only in certain regions
+			modifier = {
+				factor = 0
+				NOR = {
+					pa_imp_in_region_asia_region = yes
+					pa_imp_in_region_greece_region = yes
+					pa_imp_in_region_cilicia_region = yes
+					pa_imp_in_region_assyria_region = yes
+					pa_imp_in_region_mesopotamia_region = yes
+					pa_imp_in_region_persis_region = yes
+					pa_imp_in_region_media_region = yes
+					pa_imp_in_region_bactriana_region = yes
+					pa_imp_in_region_ariana_region = yes
+					pa_imp_in_region_parthia_region = yes
+					pa_imp_in_region_syria_region = yes
+					pa_imp_in_region_palestine_region = yes
+					pa_imp_city_is_in_india_trigger = yes #P:A TODO Approximate: Imperator listed the Indian regions except maru_region
+					pa_imp_in_region_sogdiana_region = yes
+					pa_imp_in_region_lower_egypt_region = yes
+				}
+			}
+			modifier = {
+				factor = 0.2
+				OR = {
+					pa_imp_in_region_asia_region = yes
+					pa_imp_in_region_greece_region = yes
+					pa_imp_in_region_cilicia_region = yes
+					pa_imp_in_region_syria_region = yes
+					pa_imp_in_region_palestine_region = yes
+					pa_imp_in_region_lower_egypt_region = yes
+				}
+			}
+			$VARIABLE_OR_SET_TRADE_GOODS$ = silk
+		}
+	}
+}
+
+#P:A Imported from Invictus: replace_food_after_city_upgrade_finish_effect (common/scripted_effects/00_event_effects_inv_1_0.txt)
+# Location scope.
+pa_imp_replace_food_after_city_upgrade_finish_effect = {
+	# switch = {
+	# 	trigger = has_variable
+	# 	papyrus = { set_trade_goods = papyrus remove_variable = papyrus }
+	# 	cloth = { set_trade_goods = cloth remove_variable = cloth }
+	# 	earthware = { set_trade_goods = earthware remove_variable = earthware }
+	# 	dye = { set_trade_goods = dye remove_variable = dye }
+	# 	glass = { set_trade_goods = glass remove_variable = glass }
+	# 	silk = { set_trade_goods = silk remove_variable = silk }
+	# 	salt = { set_trade_goods = salt remove_variable = salt }
+	# }
+	#P:A TODO No EU5 equivalent: Imperator cities produce no food trade goods, so a new city swapped its food good for the good picked above; EU5 towns keep their raw material, and papyrus, cloth and glass are not EU5 raw materials. Only the marker variable is cleared.
+	switch = {
+		trigger = has_variable
+		papyrus = { remove_variable = papyrus }
+		cloth = { remove_variable = cloth }
+		earthware = { remove_variable = earthware }
+		dye = { remove_variable = dye }
+		glass = { remove_variable = glass }
+		silk = { remove_variable = silk }
+		salt = { remove_variable = salt }
+	}
+}
+
+#P:A Imported from Invictus: replace_food_after_city_upgrade_finish_effect_tooltip (common/scripted_effects/00_event_effects_inv_1_0.txt)
+# Location scope. Tooltip-only version of the effect above.
+pa_imp_replace_food_after_city_upgrade_finish_effect_tooltip = {
+	# show_as_tooltip = { switch = { trigger = has_variable papyrus = { set_trade_goods = papyrus remove_variable = papyrus } ... salt = { set_trade_goods = salt remove_variable = salt } } }
+	#P:A TODO No EU5 equivalent: showed the trade good swap of a new city (disabled, see pa_imp_replace_food_after_city_upgrade_finish_effect)
+}
+
+#P:A Imported from Invictus: positive_religious_caste_effect (common/scripted_effects)
+# Country scope.
+pa_imp_positive_religious_caste_effect = {
+	# monarchy: change_law = religious_integration_efforts; tribe: change_law = adopt_human_sacrifice_law_tribal;
+	# republic: change_law = republican_religious_2 (Rome: grant_religious_freedoms) - each only if not already enacted
+	#P:A TODO No EU5 equivalent: enacted the government's pro-religious Imperator law (EU5 laws and policies differ)
+}
+
+#P:A Imported from Imperator: add_greater_stability_effect (common/scripted_effects/00_event_effects.txt)
+# Country scope.
+pa_imp_add_greater_stability_effect = {
+	if = {
+		limit = {
+			stability >= 70
+			stability < 80
+		}
+		# add_political_influence = influence_medium
+		#P:A TODO No EU5 equivalent: +15 political influence instead of stability when stability is 70-79 (EU5 has no political influence)
+	}
+	else_if = {
+		limit = {
+			stability >= 80
+		}
+		# add_political_influence = influence_large
+		#P:A TODO No EU5 equivalent: +25 political influence instead of stability when stability is 80+ (EU5 has no political influence)
+	}
+	else_if = {
+		limit = {
+			is_ai = yes
+		}
+		add_stability = 12
+	}
+	else = {
+		add_stability = 10
+	}
+}

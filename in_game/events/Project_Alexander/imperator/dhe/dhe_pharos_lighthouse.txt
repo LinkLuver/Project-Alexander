@@ -1,0 +1,555 @@
+﻿#P:A Imported from Invictus: events/dhe/dhe_pharos_lighthouse.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+# Building the Pharos Lighthouse at Alexandria (Imperator p:516 = location:alexandria, exact). Not tag-bound: any owner
+# of Alexandria. In Imperator the decision construction_of_the_pharos (owns Alexandria, 1200 gold, stability > 50, not
+# built yet) paid 1200 gold, set the country variables pharos_lighthouse_progress = 1 and pharos_lighthouse_quality = 1,
+# fired dhe_pharos_lighthouse.10 at once and dhe_pharos_lighthouse.1 after 200-400 days, and started the great work.
+# dhe_pharos_lighthouse.1 is the hidden progress loop: four more steps of 200-400 days, each with a random complication
+# (.2 to .6) that raises the quality; at progress 5 the quality picks the ending (.11 / .12 / .13).
+namespace = dhe_pharos_lighthouse
+
+# Hidden: construction progress loop.
+dhe_pharos_lighthouse.1 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		if = {
+			limit = { # Check if the building is completed or under progress
+				var:pharos_lighthouse_progress < 5
+				owns = location:alexandria
+			}
+			random_list = { # Progress Events
+				2 = { # Building progresses without any event
+					change_variable = {
+						name = pharos_lighthouse_quality
+						add = 1
+					}
+				}
+				2 = { # Complication - Drought
+					trigger = {
+						NOT = {
+							location:alexandria = {
+								has_location_modifier = province_diminishment_starvation_lighthouse
+							}
+						}
+						any_character = {
+							in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+							is_ruler = no
+						}
+					}
+					trigger_event_non_silently = {
+						id = dhe_pharos_lighthouse.2
+					}
+				}
+				2 = { # Complication - Materials
+					trigger = {
+						any_character = {
+							in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+							is_ruler = no
+						}
+					}
+					trigger_event_non_silently = {
+						id = dhe_pharos_lighthouse.3
+					}
+				}
+				2 = { # Complication - Workers Leaving
+					trigger_event_non_silently = {
+						id = dhe_pharos_lighthouse.4
+					}
+				}
+				2 = { # Complication - Earthquake
+					trigger_event_non_silently = {
+						id = dhe_pharos_lighthouse.5
+					}
+				}
+				2 = { # Building Progress - Quality Materials
+					trigger_event_non_silently = {
+						id = dhe_pharos_lighthouse.6
+					}
+				}
+			}
+			change_variable = {
+				name = pharos_lighthouse_progress
+				add = 1
+			}
+			trigger_event_silently = { # Trigger next event
+				id = dhe_pharos_lighthouse.1
+				days = { 200 400 }
+			}
+		}
+		else_if = {
+			limit = {
+				var:pharos_lighthouse_progress = 5
+				owns = location:alexandria
+			}
+			if = {
+				limit = {
+					var:pharos_lighthouse_quality < 3
+				}
+				trigger_event_non_silently = {
+					id = dhe_pharos_lighthouse.11
+				}
+			}
+			else_if = {
+				limit = {
+					var:pharos_lighthouse_quality >= 3
+					var:pharos_lighthouse_quality < 5
+				}
+				trigger_event_non_silently = {
+					id = dhe_pharos_lighthouse.12
+				}
+			}
+			else_if = {
+				limit = {
+					var:pharos_lighthouse_quality >= 5
+				}
+				trigger_event_non_silently = {
+					id = dhe_pharos_lighthouse.13
+				}
+			}
+		}
+		else = {
+			remove_variable = pharos_lighthouse_progress
+			remove_variable = pharos_lighthouse_quality
+		}
+	}
+}
+
+# Drought complications.
+dhe_pharos_lighthouse.2 = {
+	type = country_event
+	title = dhe_pharos_lighthouse.2.t
+	desc = dhe_pharos_lighthouse.2.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		owns = location:alexandria
+		any_character = {
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+			is_ruler = no
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pharos_ruler }
+		random_character = {
+			limit = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+				is_ruler = no
+			}
+			save_scope_as = random_advisor
+		}
+	}
+
+	option = { # Fix it all
+		name = dhe_pharos_lighthouse.2.a
+		custom_tooltip = dhe_pharos_lighthouse.2.a.tt
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 12
+			floor = yes
+			max = -400
+			min = -1200
+		}
+	}
+
+	option = { # Fix it for the lighthouse workers
+		name = dhe_pharos_lighthouse.2.b
+		custom_tooltip = dhe_pharos_lighthouse.2.a.tt
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 8
+			min = -900
+			max = -250
+		}
+		location:alexandria = {
+			add_location_modifier = {
+				modifier = province_diminishment_starvation_lighthouse
+				days = 3650
+			}
+		}
+		hidden_effect = {
+			change_variable = {
+				name = pharos_lighthouse_quality
+				add = 1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_pharos_lighthouse.2.c
+		custom_tooltip = dhe_pharos_lighthouse.2.c.tt
+		location:alexandria = {
+			add_location_modifier = {
+				modifier = province_diminishment_starvation_lighthouse
+				days = 3650
+			}
+		}
+		hidden_effect = {
+			change_variable = {
+				name = pharos_lighthouse_quality
+				add = 1
+			}
+		}
+	}
+}
+
+# Complications with materials.
+dhe_pharos_lighthouse.3 = {
+	type = country_event
+	title = dhe_pharos_lighthouse.3.t
+	desc = dhe_pharos_lighthouse.3.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		owns = location:alexandria
+		any_character = {
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+			is_ruler = no
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pharos_ruler }
+		random_character = {
+			limit = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+				is_ruler = no
+			}
+			save_scope_as = random_advisor
+		}
+	}
+
+	option = { # Use Gold to fix it
+		name = dhe_pharos_lighthouse.3.a
+		custom_tooltip = dhe_pharos_lighthouse.2.a.tt
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 10
+			min = -1100
+			max = -300
+		}
+		hidden_effect = {
+			change_variable = {
+				name = pharos_lighthouse_quality
+				add = 1
+			}
+		}
+	}
+
+	option = { # Use Civic Power to fix it
+		name = dhe_pharos_lighthouse.3.b
+		custom_tooltip = dhe_pharos_lighthouse.2.a.tt
+		# add_political_influence = subtract_influence_large
+		#P:A TODO No EU5 equivalent: cost -25 political influence (subtract_influence_large; EU5 has no political influence), so this option is free for now
+		hidden_effect = {
+			change_variable = {
+				name = pharos_lighthouse_quality
+				add = 1
+			}
+		}
+	}
+
+	option = { # Don't fix it
+		name = dhe_pharos_lighthouse.3.c
+		custom_tooltip = dhe_pharos_lighthouse.3.c.tt
+	}
+}
+
+# Workers disappear from the construction site.
+dhe_pharos_lighthouse.4 = {
+	type = country_event
+	title = dhe_pharos_lighthouse.4.t
+	desc = dhe_pharos_lighthouse.4.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		owns = location:alexandria
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pharos_ruler }
+	}
+
+	option = { # Use Cash
+		name = dhe_pharos_lighthouse.4.a
+		custom_tooltip = dhe_pharos_lighthouse.2.a.tt
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 8
+			min = -800
+			max = -200
+		}
+		hidden_effect = {
+			change_variable = {
+				name = pharos_lighthouse_quality
+				add = 1
+			}
+		}
+	}
+
+	option = { # Use Military Power
+		name = dhe_pharos_lighthouse.4.b
+		custom_tooltip = dhe_pharos_lighthouse.2.a.tt
+		pa_imp_subtract_manpower_effect_10 = yes
+		hidden_effect = {
+			change_variable = {
+				name = pharos_lighthouse_quality
+				add = 1
+			}
+		}
+	}
+
+	option = { # Don't fix it
+		name = dhe_pharos_lighthouse.4.c
+		custom_tooltip = dhe_pharos_lighthouse.4.c.tt
+	}
+}
+
+# An earthquake damages the construction.
+dhe_pharos_lighthouse.5 = {
+	type = country_event
+	title = dhe_pharos_lighthouse.5.t
+	desc = dhe_pharos_lighthouse.5.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		owns = location:alexandria
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pharos_ruler }
+	}
+
+	option = {
+		name = dhe_pharos_lighthouse.5.a
+		custom_tooltip = dhe_pharos_lighthouse.2.a.tt
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 12
+			floor = yes
+			max = -400
+			min = -1200
+		}
+		hidden_effect = {
+			change_variable = {
+				name = pharos_lighthouse_quality
+				add = 1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_pharos_lighthouse.5.b
+		custom_tooltip = dhe_pharos_lighthouse.5.b.tt
+	}
+}
+
+# A shipment of high-quality materials arrives.
+dhe_pharos_lighthouse.6 = {
+	type = country_event
+	title = dhe_pharos_lighthouse.6.t
+	desc = dhe_pharos_lighthouse.6.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		owns = location:alexandria
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pharos_ruler }
+	}
+
+	option = {
+		name = dhe_pharos_lighthouse.6.a
+		custom_tooltip = dhe_pharos_lighthouse.6.a.tt
+		hidden_effect = {
+			change_variable = {
+				name = pharos_lighthouse_quality
+				add = 2
+			}
+		}
+	}
+
+	option = {
+		name = dhe_pharos_lighthouse.6.b
+		custom_tooltip = dhe_pharos_lighthouse.2.a.tt
+		add_gold = {
+			value = monthly_income_total
+			multiply = 8
+			max = 5000
+		}
+		hidden_effect = {
+			change_variable = {
+				name = pharos_lighthouse_quality
+				add = 1
+			}
+		}
+	}
+}
+
+# Construction of the Pharos begins (fired by the Imperator decision construction_of_the_pharos).
+dhe_pharos_lighthouse.10 = {
+	type = country_event
+	title = dhe_pharos_lighthouse.10.t
+	desc = dhe_pharos_lighthouse.10.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		owns = location:alexandria
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pharos_ruler }
+	}
+
+	option = {
+		name = dhe_pharos_lighthouse.10.a
+	}
+}
+
+# The Pharos is completed: low quality (quality < 3).
+dhe_pharos_lighthouse.11 = {
+	type = country_event
+	title = dhe_pharos_lighthouse.11.t
+	desc = dhe_pharos_lighthouse.11.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		owns = location:alexandria
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pharos_ruler }
+	}
+
+	option = {
+		name = dhe_pharos_lighthouse.11.a
+		location:alexandria = {
+			# finish_great_work_construction = { great_work = "lighthouse_of_alexandria" locator = secondary_great_work }
+			if = { #P:A TODO Approximate: Imperator finished the great work "Lighthouse of Alexandria" (the same for every quality); EU5 has no great works, a level of the mod's pharos trade building is added instead
+				limit = {
+					NOT = { has_building = building_type:pharos }
+				}
+				change_building_level_in_location = {
+					building = building_type:pharos
+					value = 1
+				}
+			}
+			set_variable = built_pharos
+		}
+		hidden_effect = {
+			remove_variable = pharos_lighthouse_progress
+			remove_variable = pharos_lighthouse_quality
+		}
+	}
+}
+
+# The Pharos is completed: medium quality (3 <= quality < 5).
+dhe_pharos_lighthouse.12 = {
+	type = country_event
+	title = dhe_pharos_lighthouse.12.t
+	desc = dhe_pharos_lighthouse.12.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		owns = location:alexandria
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pharos_ruler }
+	}
+
+	option = {
+		name = dhe_pharos_lighthouse.12.a
+		location:alexandria = {
+			# finish_great_work_construction = { great_work = "lighthouse_of_alexandria" locator = secondary_great_work }
+			if = { #P:A TODO Approximate: Imperator finished the great work "Lighthouse of Alexandria"; EU5 has no great works, a level of the mod's pharos trade building is added instead
+				limit = {
+					NOT = { has_building = building_type:pharos }
+				}
+				change_building_level_in_location = {
+					building = building_type:pharos
+					value = 1
+				}
+			}
+			set_variable = built_pharos
+		}
+		hidden_effect = {
+			remove_variable = pharos_lighthouse_progress
+			remove_variable = pharos_lighthouse_quality
+		}
+	}
+}
+
+# The Pharos is completed: high quality (quality >= 5).
+dhe_pharos_lighthouse.13 = {
+	type = country_event
+	title = dhe_pharos_lighthouse.13.t
+	desc = dhe_pharos_lighthouse.13.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		owns = location:alexandria
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pharos_ruler }
+	}
+
+	option = {
+		name = dhe_pharos_lighthouse.13.a
+		location:alexandria = {
+			# finish_great_work_construction = { great_work = "lighthouse_of_alexandria" locator = secondary_great_work }
+			if = { #P:A TODO Approximate: Imperator finished the great work "Lighthouse of Alexandria"; EU5 has no great works, a level of the mod's pharos trade building is added instead
+				limit = {
+					NOT = { has_building = building_type:pharos }
+				}
+				change_building_level_in_location = {
+					building = building_type:pharos
+					value = 1
+				}
+			}
+			set_variable = built_pharos
+		}
+		hidden_effect = {
+			remove_variable = pharos_lighthouse_progress
+			remove_variable = pharos_lighthouse_quality
+		}
+	}
+}

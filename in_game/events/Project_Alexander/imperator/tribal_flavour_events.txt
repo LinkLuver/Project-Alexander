@@ -1,0 +1,296 @@
+﻿#P:A Imported from Invictus: events/tribal_flavour_events.txt
+# Tribal flavour. tribal_flavour_events.1 and .2 were in the random events of Imperator main_event_pulse_country;
+# .2 starts the tribal collapse chain (.2 -> .4 after 20-22 years -> .3 for the neighbours).
+namespace = tribal_flavour_events
+
+# A Feud: two tribesmen quarrel over a found treasure.
+tribal_flavour_events.1 = {
+	type = country_event
+	title = tribal_flavour_event.1.t
+	desc = tribal_flavour_event.1.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:tribe
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = tribal_ruler }
+		random_character = {
+			limit = {
+				is_ruler = no
+				is_adult = yes
+			}
+			save_scope_as = duelist_1
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				is_adult = yes
+				NOT = { this = scope:duelist_1 }
+			}
+			save_scope_as = duelist_2
+		}
+	}
+
+	option = {
+		name = tribal_flavour_event.1.a
+		# scope:duelist_1 = { add_loyalty = loyalty_picked_side add_gold = add_gold_small }
+		# scope:duelist_2 = { add_loyalty = loyalty_picked_other_side }
+		#P:A TODO No EU5 equivalent: the favoured tribesman gains loyalty and 100 personal gold, the other loses loyalty (EU5 characters have no loyalty or personal wealth)
+	}
+
+	option = {
+		name = tribal_flavour_event.1.b
+		# scope:duelist_2 = { add_loyalty = loyalty_picked_side add_gold = add_gold_small }
+		# scope:duelist_1 = { add_loyalty = loyalty_picked_other_side }
+		#P:A TODO No EU5 equivalent: the favoured tribesman gains loyalty and 100 personal gold, the other loses loyalty (EU5 characters have no loyalty or personal wealth)
+	}
+
+	option = {
+		name = tribal_flavour_event.1.c
+		# add_tyranny = 5
+		#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		add_gold = 100 # add_gold_small
+		# scope:duelist_1 = { add_loyalty = loyalty_chided_bickering }
+		# scope:duelist_2 = { add_loyalty = loyalty_chided_bickering }
+		#P:A TODO No EU5 equivalent: both tribesmen lose loyalty (loyalty_chided_bickering; EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = tribal_flavour_event.1.d
+		pa_imp_add_stability_effect = yes
+		# scope:duelist_1 = { add_loyalty = loyalty_chided_bickering_2 }
+		# scope:duelist_2 = { add_loyalty = loyalty_chided_bickering_2 }
+		#P:A TODO No EU5 equivalent: both tribesmen lose loyalty (loyalty_chided_bickering_2; EU5 characters have no loyalty)
+	}
+}
+
+# Hidden: a large, unstable AI tribe enters a "last hurrah" before collapsing (tribal_flavour_events.4 after 20-22 years).
+tribal_flavour_events.2 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		is_ai = yes
+		government_type = government_type:tribe
+		num_locations >= 110 #P:A TODO Approximate: Imperator num_of_cities >= 110 (territories); EU5 owned locations, which are smaller and more numerous
+		at_war = no
+		in_civil_war = no
+		NOT = {
+			has_variable = is_facing_tribal_crisis
+		}
+		OR = {
+			stability <= 30
+			societal_value:centralization_vs_decentralization > 90 #P:A TODO Approximate: Imperator centralization < -90
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 1.35
+			num_locations >= 150 # Imperator num_of_cities
+		}
+		modifier = {
+			factor = 1.25
+			num_locations >= 200
+		}
+		modifier = {
+			factor = 1.2
+			num_locations >= 300
+		}
+		modifier = {
+			factor = 1.2
+			num_locations >= 400
+		}
+		modifier = {
+			factor = 1.2
+			num_locations >= 500
+		}
+	}
+
+	immediate = {
+		#kind of a last hurrah
+		set_variable = is_facing_tribal_crisis
+		if = {
+			limit = {
+				culture = {
+					OR = {
+						has_culture_group = culture_group:saka_group # Imperator scythia
+						has_culture_group = culture_group:western_steppe_group # Imperator scythian_east
+						has_culture_group = culture_group:bactrian_group # Imperator bactrian
+					}
+				}
+				NOT = {
+					has_variable = has_been_through_tribal_collapse
+				}
+			}
+			add_country_modifier = {
+				modifier = steppe_insanity_unleashed
+				days = 7300
+			}
+			trigger_event_silently = {
+				id = tribal_flavour_events.4
+				days = { 7300 8000 }
+			}
+			change_government_type = government_type:steppe_horde
+			pa_imp_switch_government_type_event_clearup_effect = yes
+		}
+		else_if = {
+			limit = {
+				# government = tribal_chiefdom
+				always = no #P:A TODO No EU5 equivalent: Imperator government form tribal_chiefdom (EU5 has one tribe government type); chiefdoms got migratory_insanity_unleashed, now every tribe takes the next branch
+				NOT = {
+					has_variable = has_been_through_tribal_collapse
+				}
+			}
+			add_country_modifier = {
+				modifier = migratory_insanity_unleashed
+				days = 7300
+			}
+			trigger_event_silently = {
+				id = tribal_flavour_events.4
+				days = { 7300 8000 }
+			}
+		}
+		else_if = {
+			limit = {
+				NOT = {
+					has_variable = has_been_through_tribal_collapse
+				}
+			}
+			add_country_modifier = {
+				modifier = tribal_insanity_unleashed
+				days = 7300
+			}
+			trigger_event_silently = {
+				id = tribal_flavour_events.4
+				days = { 7300 8000 }
+			}
+		}
+		else = {
+			trigger_event_silently = {
+				id = tribal_flavour_events.4
+				days = 1
+			}
+		}
+	}
+}
+
+# News that a tribal empire has collapsed (fired by tribal_flavour_events.4 for every player; scope:origin_crisis = the collapsed tribe).
+tribal_flavour_events.3 = {
+	type = country_event
+	title = tribal_flavour_events.3.t
+	desc = tribal_flavour_events.3.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:origin_crisis # not in Imperator: its only caller always saved it
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = news_ruler }
+		scope:origin_crisis = {
+			ruler ?= { save_scope_as = origin_crisis_ruler }
+		}
+	}
+
+	option = {
+		name = tribal_flavour_events.3.a
+		custom_tooltip = target_fallen_tfe3
+	}
+}
+
+# Hidden: the tribal collapse. Every province outside the capital's region breaks away as a new tribe, takes the rest of
+# its region from us, and becomes our tributary (the first time) or fully independent (the second time).
+tribal_flavour_events.4 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		is_ai = yes
+		government_type = government_type:tribe
+	}
+
+	immediate = {
+		remove_variable = is_facing_tribal_crisis
+		save_scope_as = origin_crisis
+
+		# Revert laws to default
+		# change_law = tribal_religious_freedom_law / no_exchange_laws / anarchic_society_law_tribal / personal_loyalty_law /
+		# clan_cohesion / nomadic_law_tribal / tribal_decentralized_laws_1 / tribal_centralized_laws_1 /
+		# super_decentralized_law_one / super_centralized_law_one; steppe hordes also steppe_horde_levy_size_1 /
+		# training_steppe_1 / steppe_arbitration_1 (each only if not already in place)
+		#P:A TODO No EU5 equivalent: reset every tribal law to its default (Imperator laws; EU5 laws and policies differ)
+
+		every_province = { # Imperator every_country_state
+			limit = {
+				NOT = {
+					region = scope:origin_crisis.capital.region
+				}
+			}
+			province_capital ?= {
+				create_country_from_location = {
+					change_government_type = government_type:tribe #P:A TODO Approximate: Imperator tribal_kingdom; EU5 has one tribe government type
+					pa_imp_add_military_experience_to_new_country_effect = yes
+					trigger_event_silently = {
+						id = revolt_events.4
+					}
+					save_scope_as = sbgnq2
+					capital.region = {
+						every_location_in_region = {
+							limit = {
+								owner = scope:origin_crisis
+							}
+							change_location_owner = scope:sbgnq2
+						}
+					}
+					scope:origin_crisis = {
+						#kill them properly the second time, no subjects
+						if = {
+							limit = { has_variable = has_been_through_tribal_collapse }
+							add_country_modifier = {
+								modifier = has_collapsed_tribe_crisis_again
+								days = 1900
+							}
+							scope:sbgnq2 = {
+								add_country_modifier = {
+									modifier = rise_and_rise_again
+									days = 1900
+								}
+							}
+						}
+						else = {
+							scope:sbgnq2 = { # Imperator make_subject = { target = scope:sbgnq2 type = tributary }
+								make_subject_of = {
+									target = scope:origin_crisis
+									type = subject_type:tributary
+								}
+							}
+							add_country_modifier = {
+								modifier = has_collapsed_tribe_crisis
+								days = 1900
+							}
+						}
+					}
+				}
+			}
+		}
+		every_country = {
+			limit = {
+				is_ai = no
+			}
+			trigger_event_non_silently = {
+				id = tribal_flavour_events.3
+			}
+		}
+		set_variable = has_been_through_tribal_collapse
+	}
+}

@@ -1,0 +1,429 @@
+﻿#P:A Imported from Indomita: events/mandate_events.txt
+# Mandate of Heaven events for the Chinese Empire. In Indomita all ten were in the biyearly_country_pulse.
+# Indomita gated them with government = chinese_empire; EU5 has no such government form, so they require a monarchy with
+# the mandate variable that chinese_flavor.2 (batch b10) sets when the empire is formed.
+namespace = mandate_events
+
+# Yellow River Dikes.
+mandate_events.1 = {
+	type = country_event
+	title = mandate_events.1.t
+	desc = mandate_events.1.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:monarchy #P:A TODO Approximate: Imperator government = chinese_empire; EU5 monarchy that holds the Mandate of Heaven variable
+		has_variable = mandate_variable
+		any_owned_location = {
+			OR = {
+				pa_imp_in_region_ji_region = yes
+				pa_imp_in_region_yu_region = yes
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = mandate_ruler }
+		random_owned_location = {
+			limit = {
+				OR = {
+					pa_imp_in_region_ji_region = yes
+					pa_imp_in_region_yu_region = yes
+				}
+			}
+			save_scope_as = target_province
+		}
+	}
+
+	option = {
+		name = mandate_events.1.a
+		pa_imp_change_mandate_effect = { amount = 5 }
+		custom_tooltip = add_5_mandate
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 6
+		}
+		scope:target_province = {
+			add_pop = { #P:A TODO Approximate: Imperator create_state_pop = freemen (one pop); EU5 adds a peasant pop of size 1 with the location's dominant culture and religion
+				type = pop_type:peasants
+				size = 1
+				culture = dominant_culture
+				religion = dominant_religion
+			}
+		}
+	}
+
+	option = {
+		name = mandate_events.1.b
+		pa_imp_change_mandate_effect = { amount = -5 }
+		custom_tooltip = subtract_5_mandate
+	}
+}
+
+# A Gift: a courtier offers the emperor a manor.
+mandate_events.2 = {
+	type = country_event
+	title = mandate_events.2.t
+	desc = mandate_events.2.desc
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:monarchy #P:A TODO Approximate: Imperator government = chinese_empire; EU5 monarchy that holds the Mandate of Heaven variable
+		has_variable = mandate_variable
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = mandate_ruler }
+	}
+
+	option = {
+		name = mandate_events.2.a
+		pa_imp_change_mandate_effect = { amount = -5 }
+		custom_tooltip = subtract_5_mandate
+		add_gold = {
+			value = monthly_income_total
+			multiply = 12
+		}
+		# current_ruler = { family = { add_prestige = 100 } }
+		#P:A TODO No EU5 equivalent: +100 prestige for the ruler's great family (EU5 dynasties have no prestige)
+	}
+
+	option = {
+		name = mandate_events.2.b
+		# current_ruler = { add_corruption = -10 }
+		#P:A TODO No EU5 equivalent: -10 corruption for the ruler (EU5 characters have no corruption)
+	}
+}
+
+# Quick-Fingered Treasurer.
+mandate_events.3 = {
+	type = country_event
+	title = mandate_events.3.t
+	desc = mandate_events.3.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:monarchy #P:A TODO Approximate: Imperator government = chinese_empire; EU5 monarchy that holds the Mandate of Heaven variable
+		has_variable = mandate_variable
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = mandate_ruler }
+	}
+
+	option = {
+		name = mandate_events.3.a
+		pa_imp_change_mandate_effect = { amount = -5 }
+		custom_tooltip = subtract_5_mandate
+	}
+
+	option = {
+		name = mandate_events.3.b
+		# current_ruler = { add_corruption = 10 }
+		#P:A TODO No EU5 equivalent: +10 corruption for the ruler (EU5 characters have no corruption)
+	}
+}
+
+# Trade Regulations: local officials stimulate commerce against official policy.
+mandate_events.4 = {
+	type = country_event
+	title = mandate_events.4.t
+	desc = mandate_events.4.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:monarchy #P:A TODO Approximate: Imperator government = chinese_empire; EU5 monarchy that holds the Mandate of Heaven variable
+		has_variable = mandate_variable
+		any_owned_location = {
+			has_building = building_type:marketplace # Imperator commerce_building
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = mandate_ruler }
+		random_owned_location = {
+			limit = {
+				has_building = building_type:marketplace
+			}
+			save_scope_as = target_province
+		}
+	}
+
+	option = {
+		name = mandate_events.4.a
+		pa_imp_change_mandate_effect = { amount = -5 }
+		custom_tooltip = subtract_5_mandate
+		scope:target_province = {
+			add_location_modifier = {
+				modifier = mandate_trade_regulations_mod
+				days = 3650
+			}
+		}
+	}
+
+	option = {
+		name = mandate_events.4.b
+		pa_imp_change_mandate_effect = { amount = 5 }
+		custom_tooltip = add_5_mandate
+		scope:target_province = {
+			add_location_modifier = {
+				modifier = mandate_trade_regulations_neg_mod
+				days = 3650
+			}
+		}
+	}
+}
+
+# The Isolation of the emperor by court factions.
+mandate_events.5 = {
+	type = country_event
+	title = mandate_events.5.t
+	desc = mandate_events.5.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:monarchy #P:A TODO Approximate: Imperator government = chinese_empire; EU5 monarchy that holds the Mandate of Heaven variable
+		has_variable = mandate_variable
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = mandate_ruler }
+	}
+
+	option = {
+		name = mandate_events.5.a
+		pa_imp_change_mandate_effect = { amount = -5 }
+		custom_tooltip = subtract_5_mandate
+		add_stability = 10
+	}
+
+	option = {
+		name = mandate_events.5.b
+		add_legitimacy = -10
+	}
+}
+
+# The Levy of a province: officials update the census to expand the levy.
+mandate_events.6 = {
+	type = country_event
+	title = mandate_events.6.t
+	desc = mandate_events.6.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:monarchy #P:A TODO Approximate: Imperator government = chinese_empire; EU5 monarchy that holds the Mandate of Heaven variable
+		has_variable = mandate_variable
+		any_owned_location = {
+			any_buildings_in_location = { #P:A TODO Approximate: Imperator has_building = military_building; EU5 any building of the military category
+				building_category = military_category
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = mandate_ruler }
+		random_owned_location = {
+			limit = {
+				any_buildings_in_location = {
+					building_category = military_category
+				}
+			}
+			save_scope_as = target_province
+		}
+	}
+
+	option = {
+		name = mandate_events.6.a
+		add_manpower = 4
+	}
+
+	option = {
+		name = mandate_events.6.b
+		scope:target_province = {
+			add_pop = { #P:A TODO Approximate: Imperator create_state_pop = freemen twice (two pops); EU5 adds a peasant pop of size 2 with the location's dominant culture and religion
+				type = pop_type:peasants
+				size = 2
+				culture = dominant_culture
+				religion = dominant_religion
+			}
+		}
+	}
+}
+
+# Retainer Flogged: a cruel high official.
+mandate_events.7 = {
+	type = country_event
+	title = mandate_events.7.t
+	desc = mandate_events.7.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:monarchy #P:A TODO Approximate: Imperator government = chinese_empire; EU5 monarchy that holds the Mandate of Heaven variable
+		has_variable = mandate_variable
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = mandate_ruler }
+	}
+
+	option = {
+		name = mandate_events.7.a
+		# add_tyranny = 5
+		#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+	}
+
+	option = {
+		name = mandate_events.7.b
+		add_legitimacy = -10
+	}
+}
+
+# Gold Mine Discovered in a metal-producing location.
+mandate_events.8 = {
+	type = country_event
+	title = mandate_events.8.t
+	desc = mandate_events.8.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:monarchy #P:A TODO Approximate: Imperator government = chinese_empire; EU5 monarchy that holds the Mandate of Heaven variable
+		has_variable = mandate_variable
+		any_owned_location = {
+			raw_material = goods:copper #P:A TODO Approximate: Imperator trade good base_metals -> EU5 copper
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = mandate_ruler }
+		random_owned_location = {
+			limit = {
+				raw_material = goods:copper
+			}
+			save_scope_as = target_province
+		}
+	}
+
+	option = {
+		name = mandate_events.8.a
+		scope:target_province = {
+			change_raw_material = goods:goods_gold #P:A TODO Approximate: Imperator trade good precious_metals -> EU5 gold
+		}
+	}
+
+	option = {
+		name = mandate_events.8.b
+		pa_imp_change_mandate_effect = { amount = 5 }
+		custom_tooltip = add_5_mandate
+	}
+}
+
+# Bullion Leaves the Country.
+mandate_events.9 = {
+	type = country_event
+	title = mandate_events.9.t
+	desc = mandate_events.9.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:monarchy #P:A TODO Approximate: Imperator government = chinese_empire; EU5 monarchy that holds the Mandate of Heaven variable
+		has_variable = mandate_variable
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = mandate_ruler }
+	}
+
+	option = {
+		name = mandate_events.9.a
+		pa_imp_change_mandate_effect = { amount = -5 }
+		custom_tooltip = subtract_5_mandate
+	}
+
+	option = {
+		name = mandate_events.9.b
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 6
+		}
+	}
+}
+
+# Renovating a Zhou dynasty pagoda.
+mandate_events.10 = {
+	type = country_event
+	title = mandate_events.10.t
+	desc = mandate_events.10.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital
+		government_type = government_type:monarchy #P:A TODO Approximate: Imperator government = chinese_empire; EU5 monarchy that holds the Mandate of Heaven variable
+		has_variable = mandate_variable
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = mandate_ruler }
+	}
+
+	option = {
+		name = mandate_events.10.a
+		pa_imp_change_mandate_effect = { amount = 5 }
+		custom_tooltip = add_5_mandate
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total
+			multiply = 9
+		}
+		# current_ruler = { add_zeal = 1 }
+		#P:A TODO No EU5 equivalent: +1 zeal for the ruler (EU5 characters have no zeal)
+	}
+
+	option = {
+		name = mandate_events.10.b
+		# current_ruler = { family = { add_prestige = -100 } }
+		#P:A TODO No EU5 equivalent: -100 prestige for the ruler's great family (EU5 dynasties have no prestige)
+		# current_ruler = { add_zeal = -2 }
+		#P:A TODO No EU5 equivalent: -2 zeal for the ruler (EU5 characters have no zeal)
+	}
+}

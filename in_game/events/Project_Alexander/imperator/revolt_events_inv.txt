@@ -1,0 +1,277 @@
+﻿#P:A Imported from Invictus: events/revolt_events_inv.txt
+# Revolts. In Imperator revolt_events.1 and .2 were fired by on_state_secession on the country a state seceded from
+# (root), with scope:revolting_state_province = the capital territory of the seceding state (now owned by the new
+# revolt country) and scope:revolting_state_governorship = its governorship. EU5 has no state secession; the caller
+# must save scope:revolting_state_province as the EU5 location of the breakaway (for example from a rebel victory).
+namespace = revolt_events
+
+# Hidden: a seceding state drags other disloyal states along (or several revolts break out).
+revolt_events.1 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:revolting_state_province # not in Imperator: its caller always saved it
+		scope:revolting_state_province.owner = {
+			NOT = {
+				this = root
+			}
+		}
+	}
+
+	immediate = {
+		#root = player country
+		scope:revolting_state_province = {
+			owner = {
+				#This is the revolting country
+				pa_imp_add_military_experience_to_new_country_effect = yes #Give mil experience to revolts so they can compete
+				random_current_war = {
+					save_scope_as = revolt_war_scope
+				}
+				save_scope_as = revolt_country
+			}
+			# area = { every_area_province = { add_claim = root } }
+			#P:A TODO No EU5 equivalent: root got claims on every territory of the revolting area (EU5 has no claims on locations)
+		}
+		random_list = {
+			60 = { #Single large rebellion
+				every_province = { # Imperator every_country_state
+					limit = {
+						NOT = {
+							this = root.capital.province
+						}
+						any_location_in_province = { # Imperator any_state_province
+							#Any state with less than 15 loyalty that is in the same governorship as the revolting state OR is a neighboring area of the state.
+							local_control < 0.15 #P:A TODO Approximate: Imperator state_loyalty < 15 (of 100); EU5 local control below 15%
+							OR = {
+								region = scope:revolting_state_province.region #P:A TODO Approximate: Imperator same governorship as the revolting state (scope:revolting_state_governorship); EU5 has no governorships, the same region stands in
+								#any_neighbor_state doesn't exists...so do this instead
+								area = {
+									any_neighbor_area = {
+										this = scope:revolting_state_province.area
+									}
+								}
+							}
+						}
+					}
+					province_capital ?= {
+						dominant_culture ?= {
+							save_scope_as = new_culture_revolt
+						}
+						area = {
+							every_location_in_area = {
+								limit = { owner = root }
+								change_location_owner = scope:revolt_country
+								# add_claim = root
+								#P:A TODO No EU5 equivalent: root kept a claim on the lost territory (EU5 has no claims on locations)
+							}
+						}
+					}
+				}
+			}
+			20 = { #Revolt buffed
+				trigger = {
+					num_locations > 100 #P:A TODO Approximate: Imperator num_of_cities > 100 (territories); EU5 owned locations
+				}
+				every_province = { # Imperator every_country_state
+					limit = {
+						NOT = {
+							this = root.capital.province
+						}
+						any_location_in_province = {
+							#Any state with less than 15 loyalty that is in the same governorship as the revolting state OR is a neighboring area of the state.
+							local_control < 0.15 #P:A TODO Approximate: Imperator state_loyalty < 15 (of 100); EU5 local control below 15%
+							OR = {
+								region = scope:revolting_state_province.region #P:A TODO Approximate: Imperator same governorship; EU5 same region
+								area = {
+									any_neighbor_area = {
+										this = scope:revolting_state_province.area
+									}
+								}
+							}
+						}
+					}
+					province_capital ?= {
+						dominant_culture ?= {
+							save_scope_as = new_culture_revolt
+						}
+						area = {
+							every_location_in_area = {
+								limit = { owner = root }
+								change_location_owner = scope:revolt_country
+								# add_claim = root
+								#P:A TODO No EU5 equivalent: root kept a claim on the lost territory (EU5 has no claims on locations)
+							}
+						}
+					}
+				}
+				scope:revolt_country = {
+					capital ?= {
+						#P:A TODO Approximate: Imperator created one army at the capital (randomly 3 heavy infantry, 4 light infantry, 2 archers and a supply train, or 1 heavy infantry, 4 light infantry and 2 archers); EU5 raises the same number of sub-units of the matching categories in the capital, the supply train has no EU5 equivalent
+						random_list = {
+							1 = {
+								create_num_sub_unit_of_category = {
+									count = 3
+									category = sub_unit_category:army_heavy_infantry
+								}
+								create_num_sub_unit_of_category = {
+									count = 4
+									category = sub_unit_category:army_light_infantry
+								}
+								create_num_sub_unit_of_category = {
+									count = 2
+									category = sub_unit_category:army_ranged_infantry # Imperator archers
+								}
+								# add_subunit = supply_train
+							}
+							2 = {
+								create_num_sub_unit_of_category = {
+									count = 1
+									category = sub_unit_category:army_heavy_infantry
+								}
+								create_num_sub_unit_of_category = {
+									count = 4
+									category = sub_unit_category:army_light_infantry
+								}
+								create_num_sub_unit_of_category = {
+									count = 2
+									category = sub_unit_category:army_ranged_infantry # Imperator archers
+								}
+							}
+						}
+					}
+					add_country_modifier = {
+						modifier = lucky_revolt_mod
+						days = 730
+					}
+				}
+			}
+			20 = { #Multiple revolts
+				every_province = { # Imperator every_country_state
+					limit = {
+						NOT = {
+							this = root.capital.province
+						}
+						any_location_in_province = {
+							#Any state with less than 15 loyalty that is in the same governorship as the revolting state OR is a neighboring area of the state.
+							local_control < 0.15 #P:A TODO Approximate: Imperator state_loyalty < 15 (of 100); EU5 local control below 15%
+							OR = {
+								region = scope:revolting_state_province.region #P:A TODO Approximate: Imperator same governorship; EU5 same region
+								area = {
+									any_neighbor_area = {
+										this = scope:revolting_state_province.area
+									}
+								}
+							}
+						}
+					}
+					province_capital ?= {
+						if = {
+							limit = {
+								dominant_culture ?= scope:revolt_country.culture #capital_scope.culture doesnt work in capital_scope, use dominant instead
+							}
+							area = {
+								every_location_in_area = {
+									limit = { owner = root }
+									change_location_owner = scope:revolt_country
+									# add_claim = root
+									#P:A TODO No EU5 equivalent: root kept a claim on the lost territory (EU5 has no claims on locations)
+								}
+							}
+						}
+						else = {
+							create_country_from_location = {
+								save_scope_as = revolt_snowball_country
+							}
+							# add_claim = root
+							#P:A TODO No EU5 equivalent: root kept a claim on the lost territory (EU5 has no claims on locations)
+						}
+						if = {
+							limit = {
+								exists = scope:revolt_snowball_country
+							}
+							scope:revolt_snowball_country = {
+								pa_imp_add_military_experience_to_new_country_effect = yes #Give mil experience to revolts so they can compete
+								capital.area = {
+									every_location_in_area = {
+										limit = { owner = root }
+										change_location_owner = scope:revolt_snowball_country
+										# add_claim = root
+									}
+								}
+								random_present_culture_in_country = { #P:A TODO Approximate: Imperator integrated the country culture with the most pops (ordered_country_culture by country_culture_pop_count, is_integrated = no); EU5 makes a random present, not yet accepted culture accepted
+									limit = {
+										NOT = { scope:revolt_snowball_country = { has_primary_or_accepted_culture = prev } }
+									}
+									save_scope_as = revolt_snowball_culture
+								}
+								if = {
+									limit = { exists = scope:revolt_snowball_culture }
+									add_accepted_culture = scope:revolt_snowball_culture # Imperator: ROOT = { integrate_country_culture = PREV }, meant for the new country
+								}
+								if = {
+									limit = { exists = scope:revolt_war_scope }
+									join_war_as_attacker = { # Imperator add_to_war = { attacker = yes leader = no }
+										war = scope:revolt_war_scope
+									}
+								}
+								trigger_event_silently = {
+									id = revolt_events.4
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		scope:revolt_country = {
+			#Let them integrate a random culture
+			ordered_present_culture_in_country = { #P:A TODO Approximate: Imperator integrated up to 2 country cultures with the most pops (order_by country_culture_pop_count); EU5 makes up to 2 present, not yet accepted cultures accepted, in no particular order
+				limit = {
+					NOT = { scope:revolt_country = { has_primary_or_accepted_culture = prev } }
+				}
+				order_by = 1
+				max = 2
+				check_range_bounds = no
+				scope:revolt_country = { add_accepted_culture = prev } # Imperator: ROOT = { integrate_country_culture = PREV }, meant for the revolt country
+			}
+		}
+		if = {
+			limit = { is_ai = yes }
+			trigger_event_silently = {
+				id = revolt_events.2
+				days = 1
+			}
+		}
+	}
+}
+
+# Hidden (AI only, after revolt_events.1): every remaining state gains loyalty so the revolt does not snowball.
+revolt_events.2 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		every_province = { # Imperator every_country_state
+			province_capital ?= {
+				change_control = 0.10 #P:A TODO Approximate: Imperator add_state_loyalty = 10 on every state (of 100); EU5 raises the local control of each province capital by 10%
+			}
+		}
+	}
+}
+
+#P:A Imported from Indomita
+# Hidden: a new country accepts one of its cultures (fired by revolt_events.1 and tribal_flavour_events.4 on new countries).
+revolt_events.4 = { #integrating country culture workaround
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		random_present_culture_in_country = { #P:A TODO Approximate: Imperator integrated a random non-integrated country culture (integrate_country_culture); EU5 makes a random present culture that is not yet accepted an accepted culture
+			limit = {
+				NOT = { root = { has_primary_or_accepted_culture = prev } }
+			}
+			root = { add_accepted_culture = prev }
+		}
+	}
+}

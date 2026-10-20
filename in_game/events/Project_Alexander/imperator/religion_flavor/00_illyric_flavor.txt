@@ -1,0 +1,323 @@
+﻿#P:A Imported from Invictus: events/religion_flavor/00_illyric_flavor.txt
+# Illyrian cults. In Invictus the ruler of an Illyrian-pantheon country picks a cult (decision cult_choice_illyric, 25 political
+# influence, fires illyric_flavor.1) and gets a cultist trait; the pulse events then check that trait.
+#P:A TODO No EU5 equivalent: the cultist traits (sun_cultist, serpent_cultist, horseman_cultist, wolf_cultist, pirate_cultist) do not exist in EU5.
+#   illyric_flavor.1 sets a ruler variable illyric_<cult>_cultist instead (the trait bonuses are lost).
+#   The mod splits Imperator illyrian_pantheon into sun_illyrian_pantheon and snake_illyrian_pantheon, so the sun and serpent
+#   events also fire for countries of that religion (Approximate); the Thracian Horseman events need the ruler variable.
+#   The decision is not imported, so nothing fires illyric_flavor.1 yet.
+namespace = illyric_flavor
+
+# Cult Choice Event
+illyric_flavor.1 = {
+	type = country_event
+	title = illyric_flavor_1_title
+	desc = illyric_flavor_1_desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+			set_variable = cult_chosen
+		}
+	}
+
+	option = {
+		name = illyric_flavor_1.a
+		## Cult of the Sun - Religious Boost ##
+		ruler = {
+			# force_add_trait = sun_cultist
+			set_variable = illyric_sun_cultist #P:A TODO Approximate: stands in for the Invictus trait sun_cultist (its bonuses are lost; no such EU5 trait)
+		}
+	}
+
+	option = {
+		name = illyric_flavor_1.b
+		## Cult of the Serpent - Economic Boost ##
+		ruler = {
+			# force_add_trait = serpent_cultist
+			set_variable = illyric_serpent_cultist #P:A TODO Approximate: stands in for the Invictus trait serpent_cultist (its bonuses are lost; no such EU5 trait)
+		}
+	}
+
+	option = {
+		name = illyric_flavor_1.c
+		## Cult of the Thracian Horseman - Horsey Boost ##
+		ruler = {
+			# force_add_trait = horseman_cultist
+			set_variable = illyric_horseman_cultist #P:A TODO Approximate: stands in for the Invictus trait horseman_cultist (its bonuses are lost; no such EU5 trait)
+		}
+	}
+
+	option = {
+		name = illyric_flavor_1.d
+		trigger = {
+			has_variable = wolf_cult_var # set by the Invictus Messapia mission events (not imported)
+		}
+		## Cult of the Wolf - Messapian Special ##
+		ruler = {
+			# force_add_trait = wolf_cultist
+			set_variable = illyric_wolf_cultist #P:A TODO Approximate: stands in for the Invictus trait wolf_cultist (its bonuses are lost; no such EU5 trait)
+		}
+	}
+
+	option = {
+		name = illyric_flavor_1.e
+		trigger = {
+			has_variable = pirate_cult_var # set by the Invictus Adriatic pirate missions (not imported)
+		}
+		## Cult of the Skull and Bones - Pirate Illyria Special ##
+		ruler = {
+			# force_add_trait = pirate_cultist
+			set_variable = illyric_pirate_cultist #P:A TODO Approximate: stands in for the Invictus trait pirate_cultist (its bonuses are lost; no such EU5 trait)
+		}
+	}
+}
+
+# Bright Day
+illyric_flavor.2 = {
+	type = country_event
+	title = illyric_flavor_2_title
+	desc = illyric_flavor_2_desc
+	interface_lock = no
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		# religion = illyrian_pantheon
+		# current_ruler = { has_trait = sun_cultist }
+		OR = { #P:A TODO Approximate: Imperator required an Illyrian-pantheon ruler with the sun_cultist trait; here a Sun Illyrian country, or an Illyrian one whose ruler chose the sun cult in illyric_flavor.1
+			religion = religion:sun_illyrian_pantheon
+			AND = {
+				religion = religion:snake_illyrian_pantheon
+				ruler ?= { has_variable = illyric_sun_cultist }
+			}
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = illyric_flavor_2.a
+		add_stability = 3
+	}
+
+	option = {
+		name = illyric_flavor_2.b
+		add_legitimacy = 2 # legitimacy_small
+		# current_ruler = { add_popularity = popularity_small } #P:A TODO No EU5 equivalent: +5 ruler popularity (EU5 characters have no popularity)
+	}
+}
+
+# Dark Day
+illyric_flavor.3 = {
+	type = country_event
+	title = illyric_flavor_3_title
+	desc = illyric_flavor_3_desc
+	interface_lock = no
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		# religion = illyrian_pantheon
+		# current_ruler = { has_trait = sun_cultist }
+		OR = { #P:A TODO Approximate: Imperator required an Illyrian-pantheon ruler with the sun_cultist trait; here a Sun Illyrian country, or an Illyrian one whose ruler chose the sun cult in illyric_flavor.1
+			religion = religion:sun_illyrian_pantheon
+			AND = {
+				religion = religion:snake_illyrian_pantheon
+				ruler ?= { has_variable = illyric_sun_cultist }
+			}
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		# Imperator also showed right_portrait = scope:priest, which the event never set
+	}
+
+	option = {
+		name = illyric_flavor_3.a
+		add_stability = -3
+	}
+
+	option = {
+		name = illyric_flavor_3.b
+		add_legitimacy = -2 # subtract_legitimacy_small
+		# current_ruler = { add_popularity = subtract_popularity_small } #P:A TODO No EU5 equivalent: -5 ruler popularity (EU5 characters have no popularity)
+	}
+}
+
+# Rare Snake Found
+illyric_flavor.30 = {
+	type = country_event
+	title = illyric_flavor_30_title
+	desc = illyric_flavor_30_desc
+	interface_lock = no
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		# religion = illyrian_pantheon
+		# current_ruler = { has_trait = serpent_cultist }
+		OR = { #P:A TODO Approximate: Imperator required an Illyrian-pantheon ruler with the serpent_cultist trait; here a Snake Illyrian country, or an Illyrian one whose ruler chose the serpent cult in illyric_flavor.1
+			religion = religion:snake_illyrian_pantheon
+			AND = {
+				religion = religion:sun_illyrian_pantheon
+				ruler ?= { has_variable = illyric_serpent_cultist }
+			}
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = illyric_flavor_30.a
+		add_gold = 100 # add_gold_small
+	}
+
+	option = {
+		name = illyric_flavor_30.b
+		# add_political_influence = 20 #P:A TODO No EU5 equivalent: +20 political influence
+	}
+}
+
+# Snake Attack
+illyric_flavor.31 = {
+	type = country_event
+	title = illyric_flavor_31_title
+	desc = illyric_flavor_31_desc
+	interface_lock = no
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		# religion = illyrian_pantheon
+		# current_ruler = { has_trait = serpent_cultist }
+		OR = { #P:A TODO Approximate: Imperator required an Illyrian-pantheon ruler with the serpent_cultist trait; here a Snake Illyrian country, or an Illyrian one whose ruler chose the serpent cult in illyric_flavor.1
+			religion = religion:snake_illyrian_pantheon
+			AND = {
+				religion = religion:sun_illyrian_pantheon
+				ruler ?= { has_variable = illyric_serpent_cultist }
+			}
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = illyric_flavor_31.a
+		add_gold = -100 # subtract_gold_small
+	}
+
+	option = {
+		name = illyric_flavor_31.b
+		# add_political_influence = -20 #P:A TODO No EU5 equivalent: -20 political influence
+	}
+}
+
+# Horse on Snake Violence
+illyric_flavor.60 = {
+	type = country_event
+	title = illyric_flavor_60_title
+	desc = illyric_flavor_60_desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		OR = { # Imperator illyrian_pantheon (split in the mod)
+			religion = religion:sun_illyrian_pantheon
+			religion = religion:snake_illyrian_pantheon
+		}
+		# current_ruler = { has_trait = horseman_cultist }
+		ruler ?= { has_variable = illyric_horseman_cultist } #P:A TODO Approximate: Imperator horseman_cultist trait; the ruler variable set by illyric_flavor.1 stands in (no such EU5 trait)
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = illyric_flavor_60.a
+		add_legitimacy = 2 # legitimacy_small
+		add_stability = -3
+	}
+
+	option = {
+		name = illyric_flavor_60.b
+		# current_ruler = { add_popularity = popularity_small } #P:A TODO No EU5 equivalent: +5 ruler popularity (EU5 characters have no popularity)
+		add_gold = -100 # subtract_gold_small
+	}
+}
+
+# Sun Cult Plight
+illyric_flavor.61 = {
+	type = country_event
+	title = illyric_flavor_61_title
+	desc = illyric_flavor_61_desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		OR = { # Imperator illyrian_pantheon (split in the mod)
+			religion = religion:sun_illyrian_pantheon
+			religion = religion:snake_illyrian_pantheon
+		}
+		# current_ruler = { has_trait = horseman_cultist }
+		ruler ?= { has_variable = illyric_horseman_cultist } #P:A TODO Approximate: Imperator horseman_cultist trait; the ruler variable set by illyric_flavor.1 stands in (no such EU5 trait)
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = illyric_flavor_61.a
+		# add_political_influence = -20 #P:A TODO No EU5 equivalent: -20 political influence
+		add_manpower = 2
+	}
+
+	option = {
+		name = illyric_flavor_61.b
+		# add_political_influence = 20 #P:A TODO No EU5 equivalent: +20 political influence
+		add_manpower = -2
+	}
+}

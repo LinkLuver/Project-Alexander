@@ -1,0 +1,123 @@
+﻿#P:A Imported from Invictus: events/sell_province_events.txt
+# Selling provinces to another country. In Invictus the seller picks Imperator states in a scripted GUI (variable list
+# province_to_sell, price var:province_price_offer) and the confirm_sell_province button fires sell_province.1 on the buyer
+# with scope:sender = the seller (the buyer is saved as scope:buyer for .2/.3). Imperator states are EU5 provinces.
+#P:A TODO No EU5 caller: the Invictus sell-province scripted GUI is not imported, so nothing fires these events yet.
+namespace = sell_province
+
+# A country offers to sell us provinces.
+sell_province.1 = {
+	type = country_event
+	title = sell_province_title
+	desc = sell_province_desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		scope:sender.ruler ?= {
+			save_scope_as = pa_sender_ruler
+		}
+		save_scope_as = buyer # added: .2/.3 show the buyer; Imperator expected the GUI to have saved it
+	}
+
+	option = {
+		name = sell_province.agree
+		ai_chance = {
+			base = 100
+		}
+		scope:sender = {
+			add_gold = var:province_price_offer
+			remove_variable = sent_province_offer
+			trigger_event_non_silently = {
+				id = sell_province.3
+			}
+		}
+		add_gold = pa_imp_province_price_buyer
+		scope:sender = {
+			every_in_list = {
+				variable = province_to_sell
+				every_location_in_province = { #P:A TODO Approximate: Imperator handed over every territory of the state; EU5 provinces can be split between owners, so only the seller's locations change hands
+					limit = {
+						owner ?= scope:sender
+					}
+					change_location_owner = root # Imperator set_owned_by
+				}
+			}
+			clear_variable_list = province_to_sell
+			### remake the list, in case the player reopened it:
+			clear_variable_list = regions_list_to_sell
+			set_variable = {
+				name = province_price_offer
+				value = 0
+			}
+			# every_governorships = {
+			# 	clear_variable_list = provinces_list_to_sell
+			# 	scope:sender = { add_to_variable_list = { name = regions_list_to_sell target = prev } }
+			# 	every_governorship_state = {
+			# 		save_scope_as = this_state
+			# 		prev = { add_to_variable_list = { name = provinces_list_to_sell target = scope:this_state } }
+			# 	}
+			# }
+			#P:A TODO No EU5 equivalent: rebuilt the GUI's per-governorship lists of sellable states (EU5 has no governorships)
+		}
+	}
+
+	option = {
+		name = sell_province.refuse
+		ai_chance = {
+			base = 0
+		}
+		scope:sender = {
+			remove_variable = sent_province_offer
+			trigger_event_non_silently = {
+				id = sell_province.2
+			}
+		}
+	}
+}
+
+# The buyer refused our offer (to the seller).
+sell_province.2 = {
+	type = country_event
+	title = sell_province_refused_title
+	desc = sell_province_refused_desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		scope:buyer.ruler ?= {
+			save_scope_as = pa_buyer_ruler
+		}
+	}
+
+	option = {
+		name = CONFIRM
+	}
+}
+
+# The buyer accepted: our provinces are sold (to the seller).
+sell_province.3 = {
+	type = country_event
+	title = provinces_sold
+	desc = provinces_sold_desc
+	interface_lock = no
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		scope:buyer.ruler ?= {
+			save_scope_as = pa_buyer_ruler
+		}
+	}
+
+	option = {
+		name = CONFIRM
+	}
+}

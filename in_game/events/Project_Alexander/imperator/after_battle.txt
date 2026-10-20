@@ -1,0 +1,1636 @@
+﻿#P:A Imported from Invictus: events/after_battle.txt
+# Imperator character events (root = the army or fleet commander), converted to country events.
+# The hidden events after_battle.1-.10, .21-.30 and .41 were fired by Imperator on_actions with the commander as root.
+# In EU5 they are written for battle on_actions (root = the country of the main unit, scope:actor = that unit,
+# scope:target = the main enemy unit); the commander scope:actor.leader is saved as scope:pa_character:
+#   winners: Invictus custom_on_great_battle_commander (fired from on_great_battle_won_country) -> EU5 on_great_battle_won
+#   losers:  Imperator on_battle_lost (root = the losing commander)                            -> EU5 on_battle_lost
+# The visible events after_battle.11-.20, .31-.40 and .51 are fired by the hidden ones.
+namespace = after_battle
+
+#Tactical Supremacy
+# Hidden: after a great victory, the commander may become "victorious". For EU5 on_great_battle_won.
+after_battle.1 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.11, which exists to give the commander the Imperator trait victorious (EU5 has no such trait)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			NOR = {
+				# has_trait = victorious #P:A TODO No EU5 equivalent: Imperator trait victorious
+				has_trait = conqueror
+				# has_trait = comradely #P:A TODO No EU5 equivalent: Imperator trait comradely
+			}
+			is_adult = yes
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator martial / 4 (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_1_target
+		}
+		trigger_event_non_silently = after_battle.11 # Imperator: employer = { trigger_event = ... } (root is the employer)
+	}
+}
+
+after_battle.11 = {
+	type = country_event
+	title = after_battle.1.t
+	desc = after_battle.1.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the commander the Imperator trait victorious (EU5 has no such trait)
+		exists = scope:after_battle_1_target
+		scope:after_battle_1_target = {
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = after_battle.1.a
+		# scope:after_battle_1_target = {
+		# 	add_trait = victorious
+		# }
+		#P:A TODO No EU5 equivalent: adds the Imperator trait victorious to the commander
+	}
+}
+
+#Outmanouevred
+# Hidden: after a lost battle, a "victorious" commander loses the trait. For EU5 on_battle_lost.
+after_battle.2 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.12, which exists to remove the Imperator trait victorious (EU5 has no such trait)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_alive = yes
+			# has_trait = victorious #P:A TODO No EU5 equivalent: Imperator trait victorious
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 0.25
+			scope:actor.leader ?= {
+				mil >= 40 # Imperator martial >= 8
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_2_target
+		}
+		trigger_event_non_silently = after_battle.12 # Imperator: employer = { trigger_event = ... } (root is the employer)
+	}
+}
+
+after_battle.12 = {
+	type = country_event
+	title = after_battle.2.t
+	desc = after_battle.2.d
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to remove the Imperator trait victorious from the commander (EU5 has no such trait)
+		exists = scope:after_battle_2_target
+		scope:after_battle_2_target = {
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = after_battle.2.a
+		# scope:after_battle_2_target = {
+		# 	remove_trait = victorious
+		# }
+		#P:A TODO No EU5 equivalent: removes the Imperator trait victorious from the commander
+	}
+}
+
+#Conqueror
+# Hidden: after a great victory, the commander may become a "Conqueror". For EU5 on_great_battle_won.
+after_battle.3 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			NOT = {
+				has_trait = conqueror
+			}
+			# number_of_status_traits < max_number_of_status_traits_svalue #P:A TODO No EU5 equivalent: Imperator allowed at most 1 "status" trait (max_number_of_status_traits_svalue); EU5 has no status trait category
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator martial / 4 (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_3_target
+		}
+		trigger_event_non_silently = after_battle.13 # Imperator: employer = { trigger_event = ... } (root is the employer)
+	}
+}
+
+after_battle.13 = {
+	type = country_event
+	title = after_battle.3.t
+	desc = after_battle.3.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = scope:after_battle_3_target
+		scope:after_battle_3_target = {
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = after_battle.3.a
+		scope:after_battle_3_target = {
+			add_trait = trait:conqueror
+		}
+	}
+}
+
+#Leading from the Front
+# Hidden: a brave or cowardly commander (not the ruler) in a lost battle. For EU5 on_battle_lost.
+after_battle.4 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_ruler = no
+			OR = {
+				has_trait = craven # Imperator coward
+				# has_trait = brave #P:A TODO No EU5 equivalent: Imperator trait brave
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_4_target
+		}
+		trigger_event_non_silently = after_battle.14 # Imperator: employer = { trigger_event = ... } (root is the employer)
+	}
+}
+
+after_battle.14 = {
+	type = country_event
+	title = after_battle.4.t
+	desc = after_battle.4.d
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:after_battle_4_target
+		scope:after_battle_4_target = {
+			is_alive = yes
+			# NOT = { has_loyalty = loyalty_fled_battle } #P:A TODO No EU5 equivalent: Imperator character loyalty modifier "fled battle" (EU5 characters have no loyalty)
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = after_battle.4.a
+		scope:after_battle_4_target = {
+			random_list = { # Invictus weights: only the third outcome can happen
+				0 = {
+					# if = { limit = { has_trait = brave } add_popularity = 15 }
+					# else = { if = { limit = { has_trait = coward } remove_trait = coward } add_trait = brave }
+					#P:A TODO No EU5 equivalent: +15 popularity if brave, else coward -> brave (EU5 has no popularity and no brave trait); weight 0 in Invictus
+					if = {
+						limit = {
+							has_trait = craven
+						}
+						remove_trait = trait:craven
+					}
+				}
+				0 = {
+					# add_popularity = 10 #P:A TODO No EU5 equivalent: +10 character popularity; weight 0 in Invictus
+				}
+				2 = {
+					# if = { limit = { has_legion_trigger = yes } hidden_effect = { legion = { add_legion_history = { key = commander_death_history commander = scope:after_battle_4_target province = scope:after_battle_4_target.location } } } }
+					#P:A TODO No EU5 equivalent: records the commander's death in the legion history (EU5 has no legions)
+					kill_character = {
+						target = scope:after_battle_4_target
+						reason = battle
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = after_battle.4.b
+		scope:after_battle_4_target = {
+			if = {
+				limit = {
+					has_trait = craven # Imperator coward
+				}
+				# add_loyalty = loyalty_fled_battle
+				# add_popularity = -10
+				#P:A TODO No EU5 equivalent: the coward gets the "fled battle" loyalty modifier and -10 popularity (EU5 characters have neither)
+			}
+			else = {
+				# if = { limit = { has_trait = brave } remove_trait = brave }
+				#P:A TODO No EU5 equivalent: removes the Imperator trait brave first
+				add_trait = trait:craven # Imperator coward
+			}
+		}
+	}
+}
+
+#Battle Hardened
+# Hidden: after a great victory, the commander may become "confident". For EU5 on_great_battle_won.
+after_battle.5 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.15, which exists to give the commander the Imperator trait confident (EU5 has no such trait)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			# number_of_military_traits < max_number_of_military_traits_svalue (1)
+			trigger_if = { #P:A TODO Approximate: Imperator counted "military" traits; EU5 general / admiral trait categories used
+				limit = { is_admiral = yes }
+				num_of_traits_of_category = { type = admiral value < 1 }
+			}
+			trigger_else = {
+				num_of_traits_of_category = { type = general value < 1 }
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator martial / 4 (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_5_target
+		}
+		trigger_event_non_silently = after_battle.15 # Imperator: employer = { trigger_event = ... } (root is the employer)
+	}
+}
+
+after_battle.15 = {
+	type = country_event
+	title = after_battle.5.t
+	desc = after_battle.5.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the commander the Imperator trait confident (EU5 has no such trait; the stability branch only ran for commanders who already had it)
+		exists = scope:after_battle_5_target
+		scope:after_battle_5_target = {
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = after_battle.5.a
+		# scope:after_battle_5_target = {
+		# 	if = { limit = { NOT = { has_trait = confident } } add_trait = confident }
+		# 	else = { employer = { add_stability = stability_after_battle } }
+		# }
+		#P:A TODO No EU5 equivalent: adds the Imperator trait confident to the commander; if already confident, +5 stability (stability_after_battle) instead
+		# add_stability = 5 # stability_after_battle (Imperator: only if the commander already had the trait confident)
+	}
+}
+
+#Tactical Genius
+# Hidden: after a great victory, the commander may become "tactician". For EU5 on_great_battle_won.
+after_battle.6 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.16, which exists to give the commander the Imperator trait tactician (EU5 has no such trait)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			# number_of_military_traits < max_number_of_military_traits_svalue (1)
+			trigger_if = { #P:A TODO Approximate: Imperator counted "military" traits; EU5 general / admiral trait categories used
+				limit = { is_admiral = yes }
+				num_of_traits_of_category = { type = admiral value < 1 }
+			}
+			trigger_else = {
+				num_of_traits_of_category = { type = general value < 1 }
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator martial / 4 (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_6_target
+		}
+		trigger_event_non_silently = after_battle.16 # Imperator: employer = { trigger_event = ... } (root is the employer)
+	}
+}
+
+after_battle.16 = {
+	type = country_event
+	title = after_battle.6.t
+	desc = after_battle.6.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the commander the Imperator trait tactician (EU5 has no such trait; the stability branch only ran for commanders who already had it)
+		exists = scope:after_battle_6_target
+		scope:after_battle_6_target = {
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = after_battle.6.a
+		# scope:after_battle_6_target = {
+		# 	if = { limit = { has_trait = tactician } employer = { add_stability = stability_after_battle } }
+		# 	else = { add_trait = tactician }
+		# }
+		#P:A TODO No EU5 equivalent: adds the Imperator trait tactician to the commander; if the commander already had it, +5 stability (stability_after_battle) instead
+	}
+}
+
+#Uniform Regulations
+# Hidden: after a great victory, the commander may become "disciplined". For EU5 on_great_battle_won.
+after_battle.7 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.17, which exists to give the commander the Imperator trait disciplined (EU5 has no such trait)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			# number_of_military_traits < max_number_of_military_traits_svalue (1)
+			trigger_if = { #P:A TODO Approximate: Imperator counted "military" traits; EU5 general / admiral trait categories used
+				limit = { is_admiral = yes }
+				num_of_traits_of_category = { type = admiral value < 1 }
+			}
+			trigger_else = {
+				num_of_traits_of_category = { type = general value < 1 }
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator martial / 4 (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_7_target
+		}
+		trigger_event_non_silently = after_battle.17 # Imperator: employer = { trigger_event = ... } (root is the employer)
+	}
+}
+
+after_battle.17 = {
+	type = country_event
+	title = after_battle.7.t
+	desc = after_battle.7.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the commander the Imperator trait disciplined (EU5 has no such trait; the stability branch only ran for commanders who already had it)
+		exists = scope:after_battle_7_target
+		scope:after_battle_7_target = {
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = after_battle.7.a
+		# scope:after_battle_7_target = {
+		# 	if = { limit = { has_trait = disciplined } employer = { add_stability = stability_after_battle } }
+		# 	else = { add_trait = disciplined }
+		# }
+		#P:A TODO No EU5 equivalent: adds the Imperator trait disciplined to the commander; if the commander already had it, +5 stability (stability_after_battle) instead
+	}
+}
+
+#Indomitable
+# Hidden: after a great victory, the commander may become "steadfast". For EU5 on_great_battle_won.
+after_battle.8 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.18, which exists to give the commander the Imperator trait steadfast (EU5 has no such trait)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			# number_of_military_traits < max_number_of_military_traits_svalue (1)
+			trigger_if = { #P:A TODO Approximate: Imperator counted "military" traits; EU5 general / admiral trait categories used
+				limit = { is_admiral = yes }
+				num_of_traits_of_category = { type = admiral value < 1 }
+			}
+			trigger_else = {
+				num_of_traits_of_category = { type = general value < 1 }
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator martial / 4 (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_8_target
+		}
+		trigger_event_non_silently = after_battle.18 # Imperator: employer = { trigger_event = ... } (root is the employer)
+	}
+}
+
+after_battle.18 = {
+	type = country_event
+	title = after_battle.8.t
+	desc = after_battle.8.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the commander the Imperator trait steadfast (EU5 has no such trait; the stability branch only ran for commanders who already had it)
+		exists = scope:after_battle_8_target
+		scope:after_battle_8_target = {
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = after_battle.8.a
+		# scope:after_battle_8_target = {
+		# 	if = { limit = { has_trait = steadfast } employer = { add_stability = stability_after_battle } }
+		# 	else = { add_trait = steadfast }
+		# }
+		#P:A TODO No EU5 equivalent: adds the Imperator trait steadfast to the commander; if the commander already had it, +5 stability (stability_after_battle) instead
+	}
+}
+
+#Indomitable (Carnage!)
+# Hidden: after a great victory, the commander may become "aggressive". For EU5 on_great_battle_won.
+after_battle.9 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.19, which exists to give the commander the Imperator trait aggressive (EU5 has no such trait)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			# number_of_military_traits < max_number_of_military_traits_svalue (1)
+			trigger_if = { #P:A TODO Approximate: Imperator counted "military" traits; EU5 general / admiral trait categories used
+				limit = { is_admiral = yes }
+				num_of_traits_of_category = { type = admiral value < 1 }
+			}
+			trigger_else = {
+				num_of_traits_of_category = { type = general value < 1 }
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator martial / 4 (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_9_target
+		}
+		trigger_event_non_silently = after_battle.19 # Imperator: employer = { trigger_event = ... } (root is the employer)
+	}
+}
+
+after_battle.19 = {
+	type = country_event
+	title = after_battle.9.t
+	desc = after_battle.9.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the commander the Imperator trait aggressive (EU5 has no such trait; the stability branch only ran for commanders who already had it)
+		exists = scope:after_battle_9_target
+		scope:after_battle_9_target = {
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = after_battle.9.a
+		# scope:after_battle_9_target = {
+		# 	if = { limit = { has_trait = aggressive } employer = { add_stability = stability_after_battle } }
+		# 	else = { add_trait = aggressive }
+		# }
+		#P:A TODO No EU5 equivalent: adds the Imperator trait aggressive to the commander; if the commander already had it, +5 stability (stability_after_battle) instead
+	}
+}
+
+#Disaster!
+# Hidden: the commander is struck by an arrow during a great victory. For EU5 on_great_battle_won.
+after_battle.10 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:actor.leader
+	}
+
+	weight_multiplier = {
+		base = 1
+		# modifier = { factor = 3 has_trait = tactically_inflexible } #P:A TODO No EU5 equivalent: x3 weight for commanders with the Imperator trait tactically_inflexible
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_20_target
+		}
+		trigger_event_non_silently = { # Imperator: employer = { trigger_event = ... } (root is the employer)
+			id = after_battle.20
+			days = 1
+		}
+	}
+}
+
+after_battle.20 = {
+	type = country_event
+	title = after_battle.10.t
+	desc = after_battle.10.d
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:after_battle_20_target
+		scope:after_battle_20_target = {
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = after_battle.10.a
+		#Increased amount of injuries also increases chance to die.
+		scope:after_battle_20_target = {
+			random_list = {
+				30 = { }
+				20 = {
+					# trigger = { NOT = { has_trait = wounded } }
+					# add_trait = wounded
+					#P:A TODO No EU5 equivalent: adds the Imperator trait wounded (EU5 has no such trait); the outcome keeps its weight and does nothing
+				}
+				20 = {
+					trigger = {
+						NOT = { has_trait = maimed }
+					}
+					add_trait = trait:maimed
+				}
+				20 = {
+					# trigger = { NOT = { has_trait = limp } }
+					# add_trait = limp
+					#P:A TODO No EU5 equivalent: adds the Imperator trait limp (EU5 has no such trait); the outcome keeps its weight and does nothing
+				}
+				10 = {
+					# if = { limit = { has_legion_trigger = yes } hidden_effect = { legion = { add_legion_history = { key = commander_death_history commander = scope:after_battle_20_target province = scope:after_battle_20_target.location } } } }
+					#P:A TODO No EU5 equivalent: records the commander's death in the legion history (EU5 has no legions)
+					kill_character = { #P:A TODO Approximate: Imperator death_succumbed_to_injuries; EU5 death reason battle used
+						target = scope:after_battle_20_target
+						reason = battle
+					}
+				}
+			}
+		}
+	}
+}
+
+# Pompey - Ship Specialisation
+# Hidden: after a great naval victory, the admiral may specialise. For EU5 on_great_battle_won.
+after_battle.21 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.31, which exists to give the admiral one of the Imperator traits coastal_raider / squadron_leader / princeps (EU5 has none of them)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_admiral = yes
+			is_adult = yes
+			# NOR = { has_trait = coastal_raider has_trait = squadron_leader has_trait = princeps } #P:A TODO No EU5 equivalent: Imperator admiral traits
+			# number_of_military_traits < max_number_of_military_traits_svalue (1)
+			num_of_traits_of_category = { type = admiral value < 1 } #P:A TODO Approximate: Imperator counted "military" traits; EU5 admiral trait category used
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator 0.25 * martial (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_21_target
+		}
+		trigger_event_non_silently = { # Imperator: employer = { trigger_event = ... } (root is the employer)
+			id = after_battle.31
+			days = 1
+		}
+	}
+}
+
+after_battle.31 = {
+	type = country_event
+	title = after_battle.21.t
+	desc = after_battle.21.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the admiral one of the Imperator traits coastal_raider / squadron_leader / princeps (EU5 has none of them)
+		exists = scope:after_battle_21_target
+		scope:after_battle_21_target = {
+			is_admiral = yes
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	option = {
+		name = after_battle.21.a
+		# scope:after_battle_21_target = { add_trait = coastal_raider }
+		#P:A TODO No EU5 equivalent: adds the Imperator admiral trait coastal_raider
+	}
+
+	option = {
+		name = after_battle.21.b
+		# scope:after_battle_21_target = { add_trait = squadron_leader }
+		#P:A TODO No EU5 equivalent: adds the Imperator admiral trait squadron_leader
+	}
+
+	option = {
+		name = after_battle.21.c
+		# scope:after_battle_21_target = { add_trait = princeps }
+		#P:A TODO No EU5 equivalent: adds the Imperator admiral trait princeps
+	}
+}
+
+# Pompey - Personality 1
+# Hidden: after a great naval victory, the admiral may gain a seafaring trait. For EU5 on_great_battle_won.
+after_battle.22 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.32, which exists to give the admiral one of the Imperator traits seadog / oarmaster / improviser (EU5 has none of them)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_admiral = yes
+			is_adult = yes
+			# NOR = { has_trait = seadog has_trait = oarmaster has_trait = improviser } #P:A TODO No EU5 equivalent: Imperator admiral traits
+			# number_of_military_traits < max_number_of_military_traits_svalue (1)
+			num_of_traits_of_category = { type = admiral value < 1 } #P:A TODO Approximate: Imperator counted "military" traits; EU5 admiral trait category used
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator 0.25 * martial (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_22_target
+		}
+		trigger_event_non_silently = { # Imperator: employer = { trigger_event = ... } (root is the employer)
+			id = after_battle.32
+			days = 1
+		}
+	}
+}
+
+after_battle.32 = {
+	type = country_event
+	title = after_battle.22.t
+	desc = after_battle.22.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the admiral one of the Imperator traits seadog / oarmaster / improviser (EU5 has none of them)
+		exists = scope:after_battle_22_target
+		scope:after_battle_22_target = {
+			is_admiral = yes
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	option = {
+		name = after_battle.22.a
+		# scope:after_battle_22_target = { add_trait = seadog }
+		#P:A TODO No EU5 equivalent: adds the Imperator admiral trait seadog
+	}
+
+	option = {
+		name = after_battle.22.b
+		# scope:after_battle_22_target = { add_trait = oarmaster }
+		#P:A TODO No EU5 equivalent: adds the Imperator admiral trait oarmaster
+	}
+
+	option = {
+		name = after_battle.22.c
+		# scope:after_battle_22_target = { add_trait = improviser }
+		#P:A TODO No EU5 equivalent: adds the Imperator admiral trait improviser
+	}
+}
+
+# Pompey - Daring
+# Hidden: after a great naval victory, the admiral may become "daring". For EU5 on_great_battle_won.
+after_battle.23 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.33, which exists to give the admiral the Imperator trait daring (EU5 has no such trait)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_admiral = yes
+			NOR = {
+				# has_trait = daring #P:A TODO No EU5 equivalent: Imperator admiral trait daring
+				has_trait = healthy #P:A TODO Approximate: Imperator tough (naval trait: -5% naval damage taken, +health) mapped to the EU5 health trait healthy
+			}
+			is_adult = yes
+			# number_of_military_traits < max_number_of_military_traits_svalue (1)
+			num_of_traits_of_category = { type = admiral value < 1 } #P:A TODO Approximate: Imperator counted "military" traits; EU5 admiral trait category used
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator 0.25 * martial (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_23_target
+		}
+		trigger_event_non_silently = { # Imperator: employer = { trigger_event = ... } (root is the employer)
+			id = after_battle.33
+			days = 1
+		}
+	}
+}
+
+after_battle.33 = {
+	type = country_event
+	title = after_battle.23.t
+	desc = after_battle.23.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the admiral the Imperator trait daring (EU5 has no such trait)
+		exists = scope:after_battle_23_target
+		scope:after_battle_23_target = {
+			is_admiral = yes
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	option = {
+		name = after_battle.23.a
+		# scope:after_battle_23_target = { add_trait = daring }
+		#P:A TODO No EU5 equivalent: adds the Imperator admiral trait daring
+	}
+}
+
+# Pompey - Tough
+# Hidden: after a great naval victory, the admiral may become "tough". For EU5 on_great_battle_won.
+after_battle.24 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_admiral = yes
+			is_adult = yes
+			NOR = {
+				# has_trait = daring #P:A TODO No EU5 equivalent: Imperator admiral trait daring
+				has_trait = healthy #P:A TODO Approximate: Imperator tough (naval trait: -5% naval damage taken, +health) mapped to the EU5 health trait healthy
+			}
+			# number_of_military_traits < max_number_of_military_traits_svalue (1)
+			num_of_traits_of_category = { type = admiral value < 1 } #P:A TODO Approximate: Imperator counted "military" traits; EU5 admiral trait category used
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator 0.25 * martial (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_24_target
+		}
+		trigger_event_non_silently = { # Imperator: employer = { trigger_event = ... } (root is the employer)
+			id = after_battle.34
+			days = 1
+		}
+	}
+}
+
+after_battle.34 = {
+	type = country_event
+	title = after_battle.24.t
+	desc = after_battle.24.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = scope:after_battle_24_target
+		scope:after_battle_24_target = {
+			is_admiral = yes
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	option = {
+		name = after_battle.24.a
+		scope:after_battle_24_target = {
+			add_trait = trait:healthy #P:A TODO Approximate: Imperator tough (naval trait: -5% naval damage taken, +health) mapped to the EU5 health trait healthy
+		}
+	}
+}
+
+# Pompey - Brave/Coward
+# Hidden: the admiral argues for a counter-attack during a great naval victory. For EU5 on_great_battle_won.
+after_battle.25 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_admiral = yes
+			is_adult = yes
+			OR = {
+				has_trait = craven # Imperator coward
+				# has_trait = brave #P:A TODO No EU5 equivalent: Imperator trait brave
+				# number_of_military_traits < max_number_of_military_traits_svalue (1)
+				num_of_traits_of_category = { type = admiral value < 1 } #P:A TODO Approximate: Imperator counted "military" traits; EU5 admiral trait category used
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 2
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				multiply = -0.02 # Imperator -0.1 * martial (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_25_target
+		}
+		trigger_event_non_silently = { # Imperator: employer = { trigger_event = ... } (root is the employer)
+			id = after_battle.35
+			days = 1
+		}
+	}
+}
+
+after_battle.35 = {
+	type = country_event
+	title = after_battle.25.t
+	desc = after_battle.25.d
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = scope:after_battle_25_target
+		scope:after_battle_25_target = {
+			is_admiral = yes
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	option = {
+		name = after_battle.25.a
+		scope:after_battle_25_target = {
+			random_list = {
+				40 = {
+					# if = { limit = { has_trait = brave } add_popularity = 15 }
+					# else = { if = { limit = { has_trait = coward } remove_trait = coward } add_trait = brave }
+					#P:A TODO No EU5 equivalent: +15 popularity if brave, else the admiral becomes brave (EU5 has no popularity and no brave trait); only the coward removal is kept
+					if = {
+						limit = {
+							has_trait = craven
+						}
+						remove_trait = trait:craven
+					}
+				}
+				40 = {
+					# add_popularity = 10 #P:A TODO No EU5 equivalent: +10 character popularity
+				}
+				20 = {
+					# if = { limit = { has_legion_trigger = yes } hidden_effect = { legion = { add_legion_history = { key = commander_death_history commander = scope:after_battle_25_target province = scope:after_battle_25_target.location } } } }
+					#P:A TODO No EU5 equivalent: records the commander's death in the legion history (EU5 has no legions)
+					kill_character = { # Imperator death_reason = death_battle
+						target = scope:after_battle_25_target
+						reason = battle
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = after_battle.25.b
+		scope:after_battle_25_target = {
+			if = {
+				limit = {
+					has_trait = craven # Imperator coward
+				}
+				# add_loyalty = loyalty_fled_battle
+				# add_popularity = -10
+				#P:A TODO No EU5 equivalent: the coward gets the "fled battle" loyalty modifier and -10 popularity (EU5 characters have neither)
+			}
+			else = {
+				# if = { limit = { has_trait = brave } remove_trait = brave }
+				#P:A TODO No EU5 equivalent: removes the Imperator trait brave first
+				add_trait = trait:craven # Imperator coward
+			}
+		}
+	}
+}
+
+# Pompey Victorious Gained
+# Hidden: after a great naval victory, the admiral may become "victorious". For EU5 on_great_battle_won.
+after_battle.26 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.36, which exists to give the admiral the Imperator trait victorious (EU5 has no such trait)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_admiral = yes
+			is_adult = yes
+			NOR = {
+				# has_trait = victorious #P:A TODO No EU5 equivalent: Imperator trait victorious
+				has_trait = conqueror
+			}
+			# number_of_status_traits < max_number_of_status_traits_svalue #P:A TODO No EU5 equivalent: Imperator allowed at most 1 "status" trait; EU5 has no status trait category
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				divide = 20 # Imperator 0.25 * martial (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_26_target
+		}
+		trigger_event_non_silently = after_battle.36 # Imperator: employer = { trigger_event = ... } (root is the employer)
+	}
+}
+
+after_battle.36 = {
+	type = country_event
+	title = after_battle.26.t
+	desc = after_battle.26.d
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the admiral the Imperator trait victorious (EU5 has no such trait)
+		exists = scope:after_battle_26_target
+		scope:after_battle_26_target = {
+			is_alive = yes
+			is_admiral = yes
+			is_adult = yes
+		}
+	}
+
+	option = {
+		name = after_battle.26.a
+		# scope:after_battle_26_target = { add_trait = victorious }
+		#P:A TODO No EU5 equivalent: adds the Imperator trait victorious to the admiral
+	}
+}
+
+# Pompey Victorious Lost
+# Hidden: after a lost naval battle, a "victorious" admiral loses the trait. For EU5 on_battle_lost.
+after_battle.27 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.37, which exists to remove the Imperator trait victorious (EU5 has no such trait)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_admiral = yes
+			# has_trait = victorious #P:A TODO No EU5 equivalent: Imperator trait victorious
+			is_adult = yes
+		}
+	}
+
+	weight_multiplier = {
+		base = 2
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				multiply = -0.02 # Imperator -0.1 * martial (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_27_target
+		}
+		trigger_event_non_silently = after_battle.37 # Imperator: employer = { trigger_event = ... } (root is the employer)
+	}
+}
+
+after_battle.37 = {
+	type = country_event
+	title = after_battle.27.t
+	desc = after_battle.27.d
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to remove the Imperator trait victorious from the admiral (EU5 has no such trait)
+		exists = scope:after_battle_27_target
+		scope:after_battle_27_target = {
+			is_alive = yes
+			is_admiral = yes
+			is_adult = yes
+		}
+	}
+
+	option = {
+		name = after_battle.27.a
+		# scope:after_battle_27_target = { remove_trait = victorious }
+		#P:A TODO No EU5 equivalent: removes the Imperator trait victorious from the admiral
+	}
+}
+
+# Pompey - Reckless
+# Hidden: after a great naval victory, the admiral may become "reckless". For EU5 on_great_battle_won.
+after_battle.28 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.38, which exists to give the admiral the Imperator trait reckless (EU5 has no such trait)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_admiral = yes
+			# number_of_personality_traits < max_number_of_traits_svalue (4)
+			num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator counted "personality" traits; EU5 ruler trait category used
+			is_adult = yes
+		}
+	}
+
+	weight_multiplier = {
+		base = 2
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				multiply = -0.02 # Imperator -0.1 * martial (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_28_target
+		}
+		trigger_event_non_silently = { # Imperator: employer = { trigger_event = ... } (root is the employer)
+			id = after_battle.38
+			days = 1
+		}
+	}
+}
+
+after_battle.38 = {
+	type = country_event
+	title = after_battle.28.t
+	desc = after_battle.28.d
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the admiral the Imperator trait reckless (EU5 has no such trait); the loyalty/popularity branch only ran for admirals who already had it
+		exists = scope:after_battle_28_target
+		scope:after_battle_28_target = {
+			is_admiral = yes
+			is_alive = yes
+			# NOT = { has_loyalty = loyalty_reckless_leader } #P:A TODO No EU5 equivalent: Imperator character loyalty modifier "reckless leader" (EU5 characters have no loyalty)
+			is_adult = yes
+		}
+	}
+
+	option = {
+		name = after_battle.28.a
+		# scope:after_battle_28_target = {
+		# 	if = { limit = { has_trait = reckless } add_loyalty = loyalty_reckless_leader add_popularity = subtract_popularity_medium }
+		# 	else = { add_trait = reckless }
+		# }
+		#P:A TODO No EU5 equivalent: adds the Imperator trait reckless; if the admiral already had it, the "reckless leader" loyalty modifier and -10 popularity (subtract_popularity_medium) instead (EU5 has no such trait, loyalty or popularity)
+	}
+}
+
+# Pompey - Daring Lost
+# Hidden: after a lost naval battle, the admiral's daring reputation suffers. For EU5 on_battle_lost.
+after_battle.29 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: only relays to after_battle.39, whose only effects are removing the Imperator trait daring or character loyalty/popularity (EU5 has none of them)
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_admiral = yes
+			is_adult = yes
+		}
+	}
+
+	weight_multiplier = {
+		base = 2
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				multiply = -0.02 # Imperator -0.1 * martial (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_29_target
+		}
+		trigger_event_non_silently = { # Imperator: employer = { trigger_event = ... } (root is the employer)
+			id = after_battle.39
+			days = 1
+		}
+	}
+}
+
+after_battle.39 = {
+	type = country_event
+	title = after_battle.29.t
+	desc = after_battle.29.d
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event only removes the Imperator trait daring, or else applies the "reckless leader" loyalty modifier and -10 popularity (EU5 has no such trait, loyalty or popularity)
+		exists = scope:after_battle_29_target
+		scope:after_battle_29_target = {
+			is_admiral = yes
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	option = {
+		name = after_battle.29.a
+		# if = { limit = { scope:after_battle_29_target = { has_trait = daring } } scope:after_battle_29_target = { remove_trait = daring } }
+		# else = { scope:after_battle_29_target = { add_loyalty = loyalty_reckless_leader add_popularity = subtract_popularity_medium } }
+		#P:A TODO No EU5 equivalent: removes the Imperator trait daring; otherwise the "reckless leader" loyalty modifier and -10 popularity (subtract_popularity_medium)
+	}
+}
+
+# Pompey - Tough Lost
+# Hidden: after a lost naval battle, the admiral's toughness is mocked. For EU5 on_battle_lost.
+after_battle.30 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_admiral = yes
+			is_adult = yes
+		}
+	}
+
+	weight_multiplier = {
+		base = 2
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				multiply = -0.02 # Imperator -0.1 * martial (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_30_target
+		}
+		trigger_event_non_silently = { # Imperator: employer = { trigger_event = ... } (root is the employer)
+			id = after_battle.40
+			days = 1
+		}
+	}
+}
+
+after_battle.40 = {
+	type = country_event
+	title = after_battle.30.t
+	desc = after_battle.30.d
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:after_battle_30_target
+		scope:after_battle_30_target = {
+			is_admiral = yes
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	option = {
+		name = after_battle.30.a
+		scope:after_battle_30_target = {
+			if = {
+				limit = {
+					has_trait = healthy #P:A TODO Approximate: Imperator tough (naval trait: -5% naval damage taken, +health) mapped to the EU5 health trait healthy
+				}
+				remove_trait = trait:healthy
+			}
+			else = {
+				# add_loyalty = loyalty_incompetent_leader
+				# add_popularity = subtract_popularity_medium
+				#P:A TODO No EU5 equivalent: the "incompetent leader" loyalty modifier and -10 popularity (subtract_popularity_medium) for the admiral (EU5 characters have neither)
+			}
+		}
+	}
+}
+
+# Pompey - Wounded
+# Hidden: the admiral is wounded in a lost naval battle. For EU5 on_battle_lost.
+after_battle.41 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:actor.leader
+		scope:actor.leader = {
+			is_admiral = yes
+			is_adult = yes
+		}
+	}
+
+	weight_multiplier = {
+		base = 2
+		modifier = {
+			exists = scope:actor.leader
+			add = {
+				value = scope:actor.leader.mil
+				multiply = -0.02 # Imperator -0.1 * martial (EU5 skills are x5)
+			}
+		}
+	}
+
+	immediate = {
+		scope:actor.leader = {
+			save_scope_as = pa_character
+			save_scope_as = after_battle_41_target
+		}
+		trigger_event_non_silently = { # Imperator: employer = { trigger_event = ... } (root is the employer)
+			id = after_battle.51
+			days = 1
+		}
+	}
+}
+
+after_battle.51 = {
+	type = country_event
+	title = after_battle.41.t
+	desc = after_battle.41.d
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:after_battle_41_target
+		scope:after_battle_41_target = {
+			is_admiral = yes
+			is_alive = yes
+			is_adult = yes
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		# modifier = { factor = 3 scope:after_battle_41_target = { has_trait = daring } } #P:A TODO No EU5 equivalent: x3 weight for admirals with the Imperator trait daring
+	}
+
+	option = {
+		name = after_battle.41.a
+		#Increased amount of injuries also increases chance to die.
+		scope:after_battle_41_target = {
+			random_list = {
+				30 = { }
+				20 = {
+					# trigger = { NOT = { has_trait = wounded } }
+					# add_trait = wounded
+					#P:A TODO No EU5 equivalent: adds the Imperator trait wounded (EU5 has no such trait); the outcome keeps its weight and does nothing
+				}
+				20 = {
+					trigger = {
+						NOT = { has_trait = maimed }
+					}
+					add_trait = trait:maimed
+				}
+				20 = {
+					# trigger = { NOT = { has_trait = limp } }
+					# add_trait = limp
+					#P:A TODO No EU5 equivalent: adds the Imperator trait limp (EU5 has no such trait); the outcome keeps its weight and does nothing
+				}
+				10 = {
+					# if = { limit = { has_legion_trigger = yes } hidden_effect = { legion = { add_legion_history = { key = commander_death_history commander = scope:after_battle_41_target province = scope:after_battle_41_target.location } } } }
+					#P:A TODO No EU5 equivalent: records the commander's death in the legion history (EU5 has no legions)
+					kill_character = { #P:A TODO Approximate: Imperator death_succumbed_to_injuries; EU5 death reason battle used
+						target = scope:after_battle_41_target
+						reason = battle
+					}
+				}
+			}
+		}
+	}
+}

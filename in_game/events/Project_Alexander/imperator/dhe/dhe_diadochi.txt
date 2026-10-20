@@ -1,0 +1,254 @@
+﻿#P:A Imported from Invictus: events/dhe/dhe_diadochi.txt
+namespace = diadochi_flavor
+
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+
+# The Dahae Belligerency begins for a Derbiccan (EU5 dahae) country; starts the dhe_parthians chain (batch b07).
+diadochi_flavor.100 = {#reworked start Parthia stuff and moved to dhe_parthia
+	type = country_event
+	title = dhe_parthians.2000.t
+	desc = dhe_parthians.2000.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		NOT = {
+			has_global_variable = triggered_parthian_horde
+		}
+		culture = culture:dahae # Imperator derbiccan
+		location:hamadan = { # Imperator p:1595 Ecbatana
+			has_owner = yes
+			owner = {
+				NOT = {
+					culture = {
+						has_culture_group = culture_group:saka_group # Imperator scythia
+					}
+				}
+			}
+		}
+	}
+
+	fire_only_once = yes
+
+	immediate = {
+		set_global_variable = triggered_parthian_horde
+		ruler ?= { save_scope_as = diadochi_flavor_100_ruler } # Imperator left_portrait = root.current_ruler
+		location:hamadan.owner ?= { # Imperator right_portrait = p:1595.owner.current_ruler (Ecbatana)
+			ruler ?= { save_scope_as = diadochi_flavor_100_ecbatana_ruler }
+		}
+		c:PAR ?= { # Imperator right_portrait = c:PAR.current_ruler (Parthia)
+			ruler ?= { save_scope_as = diadochi_flavor_100_parthia_ruler }
+		}
+	}
+
+	option = {
+		name = dhe_parthians.2000.a
+		custom_tooltip = dhe_parthians.2000.tt
+	}
+
+	after = {
+		location:astarabad = { #P:A TODO Approximate location: Imperator Zadrakarta (p:3435) mapped to astarabad
+			set_variable = {
+				name = dahae_belligerency_var
+				value = 500
+			}
+			trigger_event_silently = {
+				id = dhe_parthians.2
+				days = 30
+			}
+		}
+		every_country = {
+			limit = {
+				NOT = { THIS = ROOT }
+				any_owned_location = {
+					OR = {
+						pa_imp_in_region_parthia_region = yes
+						pa_imp_in_region_mesopotamia_region = yes
+						pa_imp_in_region_media_region = yes
+						pa_imp_in_region_persis_region = yes
+						pa_imp_in_region_ariana_region = yes
+						pa_imp_in_region_bactriana_region = yes
+						pa_imp_in_region_sakia_region = yes
+					}
+				}
+			}
+			trigger_event_non_silently = {
+				id = dhe_parthians.2001
+				days = 2
+			}
+		}
+	}
+}
+
+# Hidden trigger on ruler change: an independent owner of Salamis (not its capital) decides the island's fate.
+diadochi_flavor.93 = {#Fate of Salamis
+	type = country_event
+	title = diadochi_flavor.93.t
+	desc = diadochi_flavor.93.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	fire_only_once = yes
+	trigger = {
+		owns = location:hulst # Imperator p:7902 Salamis
+		NOT = { capital = location:hulst }
+		is_subject = no
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = diadochi_flavor_93_ruler } # Imperator left_portrait = current_ruler
+		heir ?= { save_scope_as = diadochi_flavor_93_heir } # Imperator left_portrait = primary_heir
+		c:MAC ?= { # Imperator right_portrait = c:MAC.current_ruler
+			ruler ?= { save_scope_as = diadochi_flavor_93_macedon_ruler }
+		}
+		c:ATH ?= { # Imperator right_portrait = c:ATH.current_ruler
+			ruler ?= { save_scope_as = diadochi_flavor_93_athens_ruler }
+		}
+	}
+
+	option = {
+		name = diadochi_flavor.93.a
+		custom_tooltip = diadochi_flavor.93.at
+		hidden_effect = {
+			every_country = {
+				limit = {
+					capital ?= {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							#pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = ROOT modifier = macedonian_garrisons_good }
+			}
+				location:hulst = { #Salamis
+					create_country_from_location = { # Imperator create_country
+						save_scope_as = salamis_scope
+						change_country_name = SALAMIS_NAME
+						change_country_adjective = SALAMIS_ADJECTIVE
+						# set_country_heritage = salamis_heritage #P:A TODO No EU5 equivalent: Imperator country heritage
+						change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek culture -> hellenic_pantheon)
+						change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic (EU5 has no government sub-forms)
+						# change_country_color = salamis_green #P:A TODO No EU5 equivalent: the named colour salamis_green is not defined in the mod
+						change_country_flag = SALAMIS_FLAG
+						# change_country_tag = SAL #P:A TODO No EU5 equivalent: the mod has no tag for Attic Salamis, so it stays a dynamic country
+					}
+				}
+			scope:salamis_scope = {
+				make_subject_of = {
+					target = root
+					type = subject_type:feudatory
+				}
+			}
+		}
+		ai_chance = {
+			factor = 20
+		}
+	}
+
+	option = { # Restore to owner
+		name = diadochi_flavor.93.b
+		trigger = {
+			c:ATH ?= {
+				exists = capital # Imperator num_of_cities >= 1
+			}
+		}
+		custom_tooltip = diadochi_flavor.93.bt
+		# add_political_influence = 20 #P:A TODO No EU5 equivalent: +20 political influence
+		hidden_effect = {
+			every_country = {
+				limit = {
+					capital ?= {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							#pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = ROOT modifier = macedonian_garrisons_good }
+			}
+			if = {
+				limit = {
+					c:ATH = {
+						is_subject = yes
+					}
+				}
+				location:hulst = {
+					change_location_owner = c:ATH
+				}
+			}
+			else = {
+				random_list = {
+					50 = {
+						location:hulst = { #Salamis
+							create_country_from_location = { # Imperator create_country
+								save_scope_as = salamis_scope
+								change_country_name = SALAMIS_NAME
+								change_country_adjective = SALAMIS_ADJECTIVE
+								# set_country_heritage = salamis_heritage #P:A TODO No EU5 equivalent: Imperator country heritage
+								change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek culture -> hellenic_pantheon)
+								change_government_type = government_type:republic #P:A TODO Approximate: Imperator democratic_republic (EU5 has no government sub-forms)
+								# change_country_color = salamis_green #P:A TODO No EU5 equivalent: the named colour salamis_green is not defined in the mod
+								change_country_flag = SALAMIS_FLAG
+								# change_country_tag = SAL #P:A TODO No EU5 equivalent: the mod has no tag for Attic Salamis, so it stays a dynamic country
+							}
+						}
+						scope:salamis_scope = {
+							make_subject_of = {
+								target = c:ATH
+								type = subject_type:feudatory
+							}
+						}
+					}
+					25 = {
+						location:hulst = {
+							change_location_owner = c:ATH
+						}
+					}
+				}
+			}
+		}
+		ai_chance = {
+			factor = 70
+		}
+	}
+
+	option = {
+		name = diadochi_flavor.93.c
+		show_as_tooltip = {
+			location:hulst = { #Salamis
+				change_location_owner = root
+			}
+		}
+		custom_tooltip = diadochi_flavor.93.ct
+		add_manpower = -2
+		hidden_effect = {
+			every_country = {
+				limit = {
+					capital ?= {
+						pa_imp_in_region_greece_region = yes
+						NOR = {
+							pa_imp_in_area_crete_area = yes
+							#pa_imp_in_area_epirus_area = yes
+						}
+					}
+					NOT = { culture = culture:macedonian } # Imperator primary_culture = macedonian
+				}
+				add_opinion = { target = ROOT modifier = macedonian_garrisons_bad }
+			}
+		}
+		ai_chance = {
+			factor = 10
+		}
+	}
+}

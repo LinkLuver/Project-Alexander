@@ -1,0 +1,149 @@
+﻿# Imperator scripted effects for batch b20 of the Invictus/Indomita event import (2026-10-20).
+
+#P:A Imported from Indomita (common/scripted_effects/MPR_scripted_effects.txt)
+# Location scope (Imperator province): makes the number of stacked <type>_in_province_mod location modifiers equal to
+# var:<type>_in_territory (1-5) for each special pop type (priest, merchant, architect, artist). Imperator wrote out the
+# same block four times; it is one helper call per type here.
+pa_imp_add_special_pop_province_modifier_effect = {
+	pa_imp_b20_special_pop_stack_effect = { type = priest }
+	pa_imp_b20_special_pop_stack_effect = { type = merchant }
+	pa_imp_b20_special_pop_stack_effect = { type = architect }
+	pa_imp_b20_special_pop_stack_effect = { type = artist }
+}
+
+# Helper of pa_imp_add_special_pop_province_modifier_effect (b20), location scope, one special pop type.
+pa_imp_b20_special_pop_stack_effect = {
+	# type = priest/merchant/architect/artist
+	if = {
+		limit = {
+			has_variable = $type$_in_territory
+		}
+		if = {
+			limit = {
+				NOT = { has_location_modifier = $type$_in_province_mod }
+			}
+			add_location_modifier = { # Imperator add_permanent_province_modifier
+				modifier = $type$_in_province_mod
+				days = -1
+				mode = add
+			}
+		}
+		if = {
+			limit = {
+				has_location_modifier = $type$_in_province_mod
+			}
+			if = {
+				limit = { var:$type$_in_territory = 1 }
+				remove_location_modifier = $type$_in_province_mod
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+			}
+			else_if = {
+				limit = { var:$type$_in_territory = 2 }
+				remove_location_modifier = $type$_in_province_mod
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+			}
+			else_if = {
+				limit = { var:$type$_in_territory = 3 }
+				remove_location_modifier = $type$_in_province_mod
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+			}
+			else_if = {
+				limit = { var:$type$_in_territory = 4 }
+				remove_location_modifier = $type$_in_province_mod
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+			}
+			else_if = {
+				limit = { var:$type$_in_territory = 5 }
+				remove_location_modifier = $type$_in_province_mod
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+				add_location_modifier = { modifier = $type$_in_province_mod days = -1 mode = add }
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus (common/scripted_effects/00_india_effects.txt)
+# Location scope (Imperator province). Converts part of the location's people to $RELIGION$ (EU5 religion key, e.g. jain).
+# Imperator converted a random 1/4 to 1/8 of all pops of the province that did not already follow $RELIGION$.
+pa_imp_spread_religion_in_province = {
+	save_scope_as = province_name
+	religion:$RELIGION$ = {
+		save_scope_as = pa_spread_religion
+	}
+	custom_tooltip = pa_b20_spread_religion_in_province_tt # Imperator spread_$RELIGION$_in_province_tt (one key per religion)
+	hidden_effect = {
+		every_pop = { #P:A TODO Approximate: Imperator turned 12.5-25% of the province's pops (whole pops) to the religion; EU5 splits 12.5-25% off every pop of another religion
+			limit = {
+				NOT = { religion = religion:$RELIGION$ }
+			}
+			split_pop = {
+				fraction = { 0.125 0.25 }
+				religion = religion:$RELIGION$
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus (common/scripted_effects/00_religion_effects_inv.txt)
+# Country scope. The country (and its ruler, and the ruler's family at court) adopts $RELIGION$ (EU5 religion key),
+# at the cost of 10 stability, with the soft_recent_convert_modifier for 10 years.
+pa_imp_soft_change_religion_effect = {
+	# custom_tooltip = religion_conversion_tooltip #P:A TODO No EU5 equivalent: "every character not following the new faith loses 20 loyalty" (EU5 characters have no loyalty)
+	custom_tooltip = pa_b20_religion_conversion_family_tooltip
+	# if = { limit = { is_republic = yes has_party_type = traditionalist_party } add_party_approval = { party_type = traditionalist_party value = -5 } }
+	# if = { limit = { is_republic = yes has_party_type = boni_party } add_party_approval = { party_type = boni_party value = -5 } }
+	#P:A TODO No EU5 equivalent: republics lost 5 approval with the traditionalist and boni parties (EU5 has no parties)
+	# add_political_influence = -50 #P:A TODO No EU5 equivalent: -50 political influence
+	add_stability = -10
+	add_country_modifier = {
+		modifier = soft_recent_convert_modifier
+		days = 3650
+	}
+	change_religion = religion:$RELIGION$
+	ruler ?= {
+		if = {
+			limit = {
+				NOT = { religion = religion:$RELIGION$ }
+			}
+			change_character_religion = religion:$RELIGION$
+		}
+	}
+	hidden_effect = {
+		# every_character = { limit = { NOT = { has_same_religion_as = employer.current_ruler } } add_loyalty = national_conversion_l }
+		#P:A TODO No EU5 equivalent: -20 loyalty for every character of another faith (EU5 characters have no loyalty)
+		if = {
+			limit = {
+				exists = ruler.dynasty
+			}
+			ruler.dynasty = {
+				save_scope_as = pa_convert_dynasty
+			}
+			every_character = { #P:A TODO Approximate: Imperator converted only family members at court with loyalty >= 60; EU5 has no loyalty, every family member at court converts
+				limit = {
+					dynasty ?= scope:pa_convert_dynasty
+					NOT = { religion = religion:$RELIGION$ }
+				}
+				change_character_religion = religion:$RELIGION$
+			}
+		}
+	}
+	# ordered_character = {
+	# 	limit = { loyalty >= 60 NOT = { has_religion = $RELIGION$ } is_ruler = no from_ruler_family = no }
+	# 	max = 6
+	# 	order_by = prominence
+	# 	check_range_bounds = no
+	# 	set_character_religion = $RELIGION$
+	# }
+	#P:A TODO No EU5 equivalent: up to 6 of the most prominent loyal (loyalty >= 60) characters outside the ruler's family converted too (EU5 has no loyalty or prominence)
+	# if = { limit = { has_senate_approval < 60 is_republic = yes NOT = { has_variable = dictatorship_enabled } } add_tyranny = { ... } }
+	#P:A TODO No EU5 equivalent: republics with senate approval below 60% gained up to 20 tyranny (EU5 has no senate or tyranny)
+}

@@ -1,0 +1,812 @@
+﻿#P:A Imported from Indomita: events/FMO_CFT_lifestyle_events.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = lifestyle_events
+
+# Ruler lifestyle events of Indomita's character focus tree (CFT), fired by its biyearly country pulse.
+# EU5 has no focus trees (same conventions as CFT_FMO_lifestyle_event_chain.txt, batch b08):
+# - the ruler's focus (has_triggered_character_modifier = <x>_focus_triggered_mod) is approximated by the ruler's best
+#   EU5 skill (oratory -> DIP, martial -> MIL, civic -> ADM; zeal -> a pious or zealous ruler);
+# - focus experience (character_experience, add_focus_experience) has no EU5 equivalent; the calls go to the empty
+#   stub pa_imp_add_focus_experience (b08) so a later port can fill it in.
+# - events whose only effect has no EU5 equivalent are held false with always = no.
+
+##############################################################################################################################################################
+# Oratory
+##############################################################################################################################################################
+
+# Foreign affairs focus: the ruler's diplomacy soothes the neighbours (less aggressive expansion)
+lifestyle_events.1 = {
+	type = country_event
+	title = lifestyle_events.1.t
+	desc = lifestyle_events.1.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = foreign_affairs_focus_triggered_mod
+			dip >= { value = adm } #P:A TODO Approximate: Indomita foreign affairs focus (oratory tree); EU5 has no focus trees, the ruler's best skill must be DIP
+			dip >= { value = mil }
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+		}
+		always = no #P:A TODO No EU5 equivalent: the event only lowers aggressive expansion (-2 to -20 by the ruler's charisma), which EU5 lacks (antagonism is per country and per modifier)
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+	}
+
+	option = {
+		name = lifestyle_events.1.a
+		# if = { limit = { current_ruler = { has_trait = master_of_diplomacy_trait } } add_aggressive_expansion = -20 }
+		# else_if = { limit = { current_ruler = { charisma > 8 } } add_aggressive_expansion = -10 }
+		# else_if = { limit = { current_ruler = { charisma > 5 } } add_aggressive_expansion = -5 }
+		# else = { add_aggressive_expansion = -2 }
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+	}
+}
+
+# Populist focus: the ruler's popularity lowers tyranny
+lifestyle_events.2 = {
+	type = country_event
+	title = lifestyle_events.2.t
+	desc = lifestyle_events.2.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = populist_focus_triggered_mod
+			dip >= { value = adm } #P:A TODO Approximate: Indomita populist focus (oratory tree); EU5 has no focus trees, the ruler's best skill must be DIP
+			dip >= { value = mil }
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+		}
+		always = no #P:A TODO No EU5 equivalent: the event only lowers tyranny (-2 to -10 by the ruler's charisma), which EU5 lacks
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+	}
+
+	option = {
+		name = lifestyle_events.2.a
+		# if = { limit = { current_ruler = { charisma > 9 } } add_tyranny = -10 }
+		# else_if = { limit = { current_ruler = { charisma > 5 } } add_tyranny = -5 }
+		# else = { add_tyranny = -2 }
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+	}
+}
+
+# Family focus: a chaste ruler discovers the pleasures of the flesh
+lifestyle_events.3 = {
+	type = country_event
+	title = lifestyle_events.3.t
+	desc = lifestyle_events.3.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = family_focus_triggered_mod
+			dip >= { value = adm } #P:A TODO Approximate: Indomita family focus (oratory tree); EU5 has no focus trees, the ruler's best skill must be DIP
+			dip >= { value = mil }
+			# has_trait = chaste
+			# NOT = { has_trait = lustful }
+			# character_experience > 60 #P:A TODO No EU5 equivalent: more than 60 focus-tree experience (Indomita character focus system)
+		}
+		always = no #P:A TODO No EU5 equivalent: the event swaps the ruler's "chaste" trait for "lustful"; EU5 has neither trait
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+	}
+
+	option = {
+		name = lifestyle_events.3.a
+		ruler = {
+			# remove_trait = chaste
+			# add_trait = lustful
+			pa_imp_add_focus_experience = { text = add_25_focus_xp amount = 25 }
+		}
+	}
+}
+
+# Oration focus: the court's thinkers help the ruler overcome a social weakness
+lifestyle_events.4 = {
+	type = country_event
+	title = lifestyle_events.4.t
+	desc = lifestyle_events.4.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+		# Imperator preferred holders of a technology office (has_tech_office), else any non-ruler
+		ordered_character = { #P:A TODO Approximate: Imperator picked technology office holders first (EU5 has no offices)
+			limit = {
+				is_ruler = no
+			}
+			order_by = adm # Imperator finesse
+			save_scope_as = finesse_thinker
+		}
+		ordered_character = {
+			limit = {
+				is_ruler = no
+				NOT = { this = scope:finesse_thinker }
+			}
+			order_by = age_in_years #P:A TODO No EU5 equivalent: Imperator ordered by zeal (EU5 characters have no zeal); the eldest stands in
+			save_scope_as = zeal_thinker
+		}
+		ordered_character = {
+			limit = {
+				is_ruler = no
+				NOT = { this = scope:finesse_thinker }
+				NOT = { this = scope:zeal_thinker }
+			}
+			order_by = dip # Imperator charisma
+			save_scope_as = charisma_thinker
+		}
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = oration_focus_triggered_mod
+			dip >= { value = adm } #P:A TODO Approximate: Indomita oration focus (oratory tree); EU5 has no focus trees, the ruler's best skill must be DIP
+			dip >= { value = mil }
+			# OR = { has_trait = reclusive has_trait = shy has_trait = blunt }
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+		}
+		always = no #P:A TODO No EU5 equivalent: the event removes the ruler's "reclusive", "shy" or "blunt" trait; EU5 has none of them
+	}
+
+	option = {
+		name = lifestyle_events.4.a
+		# trigger = { current_ruler = { has_trait = reclusive } }
+		ruler = {
+			# remove_trait = reclusive
+			pa_imp_add_focus_experience = { text = add_25_focus_xp amount = 25 }
+		}
+	}
+
+	option = {
+		name = lifestyle_events.4.b
+		# trigger = { current_ruler = { has_trait = shy } }
+		ruler = {
+			# remove_trait = shy
+			pa_imp_add_focus_experience = { text = add_25_focus_xp amount = 25 }
+		}
+	}
+
+	option = {
+		name = lifestyle_events.4.c
+		# trigger = { current_ruler = { has_trait = blunt } }
+		ruler = {
+			# remove_trait = blunt
+			pa_imp_add_focus_experience = { text = add_25_focus_xp amount = 25 }
+		}
+	}
+}
+
+##############################################################################################################################################################
+# Martial
+##############################################################################################################################################################
+
+# Prowess focus: training cures the ruler's frailty
+lifestyle_events.5 = {
+	type = country_event
+	title = lifestyle_events.5.t
+	desc = lifestyle_events.5.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+		ordered_character = { #P:A TODO Approximate: Imperator picked the best technology office holder (EU5 has no offices); EU5 picks the best non-ruler
+			limit = {
+				is_ruler = no
+			}
+			order_by = mil # Imperator martial
+			save_scope_as = martial_thinker
+		}
+	}
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = prowess_focus_triggered_mod
+			mil >= { value = adm } #P:A TODO Approximate: Indomita prowess focus (martial tree); EU5 has no focus trees, the ruler's best skill must be MIL
+			mil >= { value = dip }
+			has_trait = sickly # Imperator frail
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+		}
+	}
+
+	option = {
+		name = lifestyle_events.5.a
+		ruler = {
+			remove_trait = trait:sickly
+			pa_imp_add_focus_experience = { text = add_25_focus_xp amount = 25 }
+		}
+	}
+}
+
+# Command focus: the ruler's drills raise fresh manpower
+lifestyle_events.6 = {
+	type = country_event
+	title = lifestyle_events.6.t
+	desc = lifestyle_events.6.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = command_focus_triggered_mod
+			mil >= { value = adm } #P:A TODO Approximate: Indomita command focus (martial tree); EU5 has no focus trees, the ruler's best skill must be MIL
+			mil >= { value = dip }
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+		}
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+	}
+
+	option = {
+		name = lifestyle_events.6.a
+		if = {
+			limit = {
+				ruler = { mil > 40 } # Imperator martial > 8
+			}
+			add_manpower = {
+				value = max_manpower
+				divide = 5
+				max = 20
+			}
+		}
+		else_if = {
+			limit = {
+				ruler = { mil > 25 } # Imperator martial > 5
+			}
+			add_manpower = {
+				value = max_manpower
+				divide = 10
+				max = 10
+			}
+		}
+		else = {
+			add_manpower = {
+				value = max_manpower
+				divide = 20
+				max = 5
+			}
+		}
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+	}
+}
+
+# Strategy focus: the ruler's study of strategy yields military experience
+lifestyle_events.7 = {
+	type = country_event
+	title = lifestyle_events.7.t
+	desc = lifestyle_events.7.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = strategy_focus_triggered_mod
+			mil >= { value = adm } #P:A TODO Approximate: Indomita strategy focus (martial tree); EU5 has no focus trees, the ruler's best skill must be MIL
+			mil >= { value = dip }
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+		}
+		always = no #P:A TODO No EU5 equivalent: the event only adds military experience (2-10 by the ruler's martial); EU5 army tradition is not a spendable currency
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+	}
+
+	option = {
+		name = lifestyle_events.7.a
+		# if = { limit = { current_ruler = { martial > 9 } } add_military_experience = 10 }
+		# else_if = { limit = { current_ruler = { martial > 6 } } add_military_experience = 5 }
+		# else = { add_military_experience = 2 }
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+	}
+}
+
+# Siegecraft focus: the brutality of sieges hardens the ruler
+lifestyle_events.8 = {
+	type = country_event
+	title = lifestyle_events.8.t
+	desc = lifestyle_events.8.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = siegecraft_focus_triggered_mod
+			mil >= { value = adm } #P:A TODO Approximate: Indomita siegecraft focus (martial tree); EU5 has no focus trees, the ruler's best skill must be MIL
+			mil >= { value = dip }
+			NOT = { has_trait = cruel }
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+		}
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+	}
+
+	option = {
+		name = lifestyle_events.8.a
+		ruler = {
+			add_trait = trait:cruel
+			if = {
+				limit = { has_trait = kind_hearted }
+				remove_trait = trait:kind_hearted # Imperator merciful
+			}
+			pa_imp_add_focus_experience = { text = add_25_focus_xp amount = 25 }
+		}
+	}
+}
+
+##############################################################################################################################################################
+# Civic
+##############################################################################################################################################################
+
+# Wealth focus: the ruler's investments pay off
+lifestyle_events.9 = {
+	type = country_event
+	title = lifestyle_events.9.t
+	desc = lifestyle_events.9.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+		ordered_character = { #P:A TODO Approximate: Imperator picked technology office holders first (EU5 has no offices)
+			limit = {
+				is_ruler = no
+			}
+			order_by = adm # Imperator finesse
+			save_scope_as = finesse_thinker
+		}
+	}
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = wealth_focus_triggered_mod
+			adm >= { value = mil } #P:A TODO Approximate: Indomita wealth focus (civic tree); EU5 has no focus trees, the ruler's best skill must be ADM
+			adm >= { value = dip }
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+		}
+		always = no #P:A TODO No EU5 equivalent: the event only adds 100-500 to the ruler's personal wealth (EU5 characters have no wealth)
+	}
+
+	option = {
+		name = lifestyle_events.9.a
+		# if = { limit = { current_ruler = { finesse > 6 } } current_ruler = { add_gold = 500 } }
+		# else = { current_ruler = { add_gold = 100 } }
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+	}
+}
+
+# Holding focus: the ruler acquires a new holding
+lifestyle_events.10 = {
+	type = country_event
+	title = lifestyle_events.10.t
+	desc = lifestyle_events.10.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = holding_focus_triggered_mod
+			adm >= { value = mil } #P:A TODO Approximate: Indomita holding focus (civic tree); EU5 has no focus trees, the ruler's best skill must be ADM
+			adm >= { value = dip }
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+		}
+		# any_owned_province = { NOT = { exists = holding_owner } }
+		always = no #P:A TODO No EU5 equivalent: the event gives the ruler a holding in an unheld province (EU5 has no character holdings)
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+		random_owned_location = {
+			# limit = { NOT = { exists = holding_owner } }
+			save_scope_as = holding_province
+		}
+	}
+
+	option = {
+		name = lifestyle_events.10.a
+		ruler = {
+			# add_holding = scope:holding_province
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+	}
+}
+
+# Commerce focus: the ruler gains the Midas touch
+lifestyle_events.11 = {
+	type = country_event
+	title = lifestyle_events.11.t
+	desc = lifestyle_events.11.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = commerce_focus_triggered_mod
+			adm >= { value = mil } #P:A TODO Approximate: Indomita commerce focus (civic tree); EU5 has no focus trees, the ruler's best skill must be ADM
+			adm >= { value = dip }
+			# character_experience > 90 #P:A TODO No EU5 equivalent: more than 90 focus-tree experience (Indomita character focus system)
+			NOT = { has_trait = midas_touched }
+		}
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+	}
+
+	option = {
+		name = lifestyle_events.11.a
+		ruler = {
+			add_trait = trait:midas_touched
+			pa_imp_add_focus_experience = { text = add_25_focus_xp amount = 25 }
+		}
+	}
+}
+
+# Construction focus: the ruler funds a new building
+lifestyle_events.12 = {
+	type = country_event
+	title = lifestyle_events.12.t
+	desc = lifestyle_events.12.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = construction_focus_triggered_mod
+			adm >= { value = mil } #P:A TODO Approximate: Indomita construction focus (civic tree); EU5 has no focus trees, the ruler's best skill must be ADM
+			adm >= { value = dip }
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+			# wealth > 100
+		}
+		gold >= 100 #P:A TODO Approximate: the ruler paid 100 from personal wealth; EU5 characters have no wealth, the treasury pays
+		any_owned_location = {
+			# free_building_slots > 0 #P:A TODO No EU5 equivalent: a free building slot (EU5 has no building slots)
+			NOT = { location_rank = location_rank:rural_settlement } #P:A TODO Approximate: only towns and cities, because the settlement options (villa, crafts workshop) have no EU5 building
+		}
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+		random_owned_location = {
+			limit = {
+				NOT = { location_rank = location_rank:rural_settlement }
+			}
+			save_scope_as = building_province
+		}
+	}
+
+	option = {
+		name = lifestyle_events.12.a
+		trigger = {
+			scope:building_province = {
+				location_rank = location_rank:rural_settlement
+			}
+			always = no #P:A TODO No EU5 equivalent: Imperator villa_building has no EU5 building
+		}
+		# scope:building_province = { add_building_level = villa_building }
+		add_gold = -100 # Imperator: from the ruler's personal wealth
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+	}
+	option = {
+		name = lifestyle_events.12.b
+		trigger = {
+			scope:building_province = {
+				location_rank = location_rank:rural_settlement
+			}
+			always = no #P:A TODO No EU5 equivalent: Imperator crafts_workshop_building has no EU5 building
+		}
+		# scope:building_province = { add_building_level = crafts_workshop_building }
+		add_gold = -100 # Imperator: from the ruler's personal wealth
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+	}
+	option = {
+		name = lifestyle_events.12.c
+		trigger = {
+			NOT = {
+				scope:building_province = {
+					location_rank = location_rank:rural_settlement
+				}
+			}
+		}
+		scope:building_province = {
+			change_building_level_in_location = { # Imperator aqueduct_building
+				building = building_type:aqueduct_system
+				value = 1
+			}
+		}
+		add_gold = -100 # Imperator: from the ruler's personal wealth
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+	}
+	option = {
+		name = lifestyle_events.12.d
+		trigger = {
+			NOT = {
+				scope:building_province = {
+					location_rank = location_rank:rural_settlement
+				}
+			}
+		}
+		scope:building_province = {
+			change_building_level_in_location = { #P:A TODO Approximate: Imperator commerce_building (forum); EU5 marketplace
+				building = building_type:marketplace
+				value = 1
+			}
+		}
+		add_gold = -100 # Imperator: from the ruler's personal wealth
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+	}
+}
+
+##############################################################################################################################################################
+# Zeal
+##############################################################################################################################################################
+
+# Piety focus: the ruler becomes pious
+lifestyle_events.13 = {
+	type = country_event
+	title = lifestyle_events.13.t
+	desc = lifestyle_events.13.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = piety_focus_triggered_mod
+			pa_imp_char_is_religious_trigger = yes #P:A TODO Approximate: Indomita piety focus (zeal tree); EU5 has no focus trees or zeal skill, a pious or zealous ruler stands in (with NOT pious below, only zealots qualify)
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+			NOT = { has_trait = pious }
+		}
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+	}
+
+	option = {
+		name = lifestyle_events.13.a
+		ruler = {
+			add_trait = trait:pious
+			# remove_trait = sceptical #P:A TODO No EU5 equivalent: the ruler lost the "sceptical" trait, which EU5 lacks
+			pa_imp_add_focus_experience = { text = add_25_focus_xp amount = 25 }
+		}
+	}
+}
+
+# Philosophy focus: the ruler's philosophical studies inspire an innovation
+lifestyle_events.14 = {
+	type = country_event
+	title = lifestyle_events.14.t
+	desc = lifestyle_events.14.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = philosophy_focus_triggered_mod
+			pa_imp_char_is_religious_trigger = yes #P:A TODO Approximate: Indomita philosophy focus (zeal tree); EU5 has no focus trees or zeal skill, a pious or zealous ruler stands in
+			# character_experience > 90 #P:A TODO No EU5 equivalent: more than 90 focus-tree experience (Indomita character focus system)
+			# zeal > 7 #P:A TODO No EU5 equivalent: zeal above 7 (EU5 characters have no zeal)
+			adm > 35 # Imperator finesse > 7
+		}
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+		# Indomita showed scope:finesse_thinker (portrait and desc) without ever saving it; saved here as in lifestyle_events.9
+		ordered_character = {
+			limit = {
+				is_ruler = no
+			}
+			order_by = adm # Imperator finesse
+			save_scope_as = finesse_thinker
+		}
+	}
+
+	option = {
+		name = lifestyle_events.14.a
+		add_research_progress = research_progress_mild_bonus #P:A TODO Approximate: Imperator add_innovation = 1 (one invention point); EU5 research progress
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_25_focus_xp amount = 25 }
+		}
+	}
+}
+
+# Divinity focus: divine favour restores the ruler's health
+lifestyle_events.15 = {
+	type = country_event
+	title = lifestyle_events.15.t
+	desc = lifestyle_events.15.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = divinity_focus_triggered_mod
+			pa_imp_char_is_religious_trigger = yes #P:A TODO Approximate: Indomita divinity focus (zeal tree); EU5 has no focus trees or zeal skill, a pious or zealous ruler stands in
+			# character_experience > 60 #P:A TODO No EU5 equivalent: more than 60 focus-tree experience (Indomita character focus system)
+		}
+		always = no #P:A TODO No EU5 equivalent: the event only adds 5 health to the ruler (EU5 characters have no health value)
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+	}
+
+	option = {
+		name = lifestyle_events.15.a
+		ruler = {
+			# add_health = 5
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+	}
+}
+
+# Priestly support focus: the ruler's priests convert a province
+lifestyle_events.16 = {
+	type = country_event
+	title = lifestyle_events.16.t
+	desc = lifestyle_events.16.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		ruler ?= {
+			# has_triggered_character_modifier = priestly_support_focus_triggered_mod
+			pa_imp_char_is_religious_trigger = yes #P:A TODO Approximate: Indomita priestly support focus (zeal tree); EU5 has no focus trees or zeal skill, a pious or zealous ruler stands in
+			# character_experience > 80 #P:A TODO No EU5 equivalent: more than 80 focus-tree experience (Indomita character focus system)
+		}
+		any_owned_location = {
+			NOT = { dominant_religion = root.religion }
+		}
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+		random_owned_location = {
+			limit = {
+				NOT = { dominant_religion = root.religion }
+			}
+			save_scope_as = conversion_province
+		}
+	}
+
+	option = {
+		name = lifestyle_events.16.a
+		trigger = {
+			scope:conversion_province = {
+				population > 20 #P:A TODO Approximate: Imperator more than 20 pops; EU5 population converted 1:1 (one pop = 1)
+			}
+		}
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+		scope:conversion_province = {
+			while = {
+				count = 7
+				random_pop = { #P:A TODO Approximate: Imperator converted 7 pops; EU5 pops are larger groups, so up to 7 whole pops convert
+					limit = {
+						NOT = { religion = root.religion }
+					}
+					change_pop_religion = root.religion
+				}
+			}
+		}
+	}
+	option = {
+		name = lifestyle_events.16.b
+		trigger = {
+			scope:conversion_province = {
+				population <= 20
+			}
+		}
+		ruler = {
+			pa_imp_add_focus_experience = { text = add_10_focus_xp amount = 10 }
+		}
+		scope:conversion_province = {
+			while = {
+				count = 3
+				random_pop = { #P:A TODO Approximate: Imperator converted 3 pops; EU5 pops are larger groups, so up to 3 whole pops convert
+					limit = {
+						NOT = { religion = root.religion }
+					}
+					change_pop_religion = root.religion
+				}
+			}
+		}
+	}
+}

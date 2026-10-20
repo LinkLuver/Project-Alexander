@@ -1,0 +1,113 @@
+﻿#P:A Imported from Invictus: events/slave_revolts.txt (slave_revolts.3 only)
+# The end of an Invictus slave revolt. Invictus checked it every month and after won battles (00_monthly_country.txt,
+# on_battle_won_country_inv.txt); the battle on_action also counted the defeated slave rebels in var:slaves_defeated.
+#P:A TODO The revolt itself (slave_revolts.1/.2, which add ongoing_slave_revolt and spawn slave rebel armies tagged with
+#   var:slaveflag) is not part of the import, so nothing gives a country ongoing_slave_revolt yet and the event stays dormant.
+namespace = slave_revolts
+
+# Slave Revolt Defeated
+slave_revolts.3 = {
+	type = country_event
+	title = slave_revolts.3.t
+	desc = slave_revolts.3.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		has_country_modifier = ongoing_slave_revolt
+		# NOT = { any_owned_province = { any_unit_in_province = { has_variable = slaveflag } } }
+		#P:A TODO No EU5 equivalent: no slave rebel army may remain in our lands; EU5 has no such armies (slave_revolts.1 not imported), so the check is dropped
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		# Imperator right_portrait = scope:actor.commander (the winning general, from the battle on_action)
+		if = {
+			limit = {
+				has_country_modifier = ongoing_slave_revolt
+			}
+			remove_country_modifier = ongoing_slave_revolt
+		}
+		# every_owned_province = { limit = { controller = c:REB } set_controller = root }
+		#P:A TODO No EU5 equivalent: rebel-held locations (controller = c:REB) returned to our control; EU5 rebels are not a country to compare against
+	}
+
+	option = {
+		name = slave_revolts.3.a # Time to make an example
+		set_variable = {
+			name = slave_moratorium
+			value = 1
+			days = 10950
+		}
+		custom_tooltip = slave_revolts.3.moratorium.a.tt
+		add_country_modifier = {
+			modifier = crucified_slaves
+			days = 5475
+		}
+	}
+
+	option = {
+		name = slave_revolts.3.b # Let us be lenient
+		custom_tooltip = slave_revolts.3.b.tt
+		set_variable = {
+			name = slave_moratorium
+			value = 1
+			days = 5475
+		}
+		custom_tooltip = slave_revolts.3.moratorium.b.tt
+		add_country_modifier = {
+			modifier = lenient_slave_handling
+			days = 5475
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					has_variable = slaves_defeated # guard added: Invictus counted it in on_battle_won_country (not imported)
+				}
+				change_variable = {
+					name = slaves_defeated
+					divide = 3
+					min = 2
+					max = 40
+				}
+				while = {
+					limit = {
+						var:slaves_defeated >= 1
+					}
+					change_variable = {
+						name = slaves_defeated
+						subtract = 1
+					}
+					random_owned_location = {
+						limit = {
+							region = root.capital.region #P:A TODO Approximate: Imperator region of the capital; EU5 regions differ from Imperator regions
+						}
+						weight = {
+							base = 1
+							modifier = {
+								factor = 10
+								is_capital = yes
+							}
+							modifier = {
+								factor = 5
+								population > 10 #P:A TODO Approximate: Imperator more than 10 pops, read as 10 (thousand) EU5 population
+							}
+						}
+						add_pop = { #P:A TODO Approximate: Imperator create_state_pop = slaves (1 pop) -> size 1 slaves with the location's dominant culture and religion
+							type = pop_type:slaves
+							size = 1
+							culture = dominant_culture
+							religion = dominant_religion
+						}
+					}
+				}
+				remove_variable = slaves_defeated
+			}
+		}
+	}
+}

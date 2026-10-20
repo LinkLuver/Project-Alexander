@@ -1,3 +1,2041 @@
 ﻿#P:A Imported from Invictus: events/traits.txt
 # Imperator character events, converted to country events: the character is scope:pa_character.
 namespace = traits
+
+# A character develops a new personality trait (character trait pulse; traits.3 and trial.4 force a given trait
+# by presetting my_piquante_trait_picker).
+traits.1 = {
+	type = country_event
+	title = traits.1.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:pa_character = {
+						has_variable = event_simple_trait_window
+					}
+				}
+				desc = traits.1.desc_short
+			}
+			triggered_desc = {
+				desc = traits.1.desc
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+	interface_lock = no
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_alive = yes
+				exists = employer
+				num_of_traits < 4 #P:A TODO Approximate: Imperator counted personality traits only (number_of_personality_traits < max_number_of_traits_svalue = 4); EU5 counts every trait
+				OR = {
+					NOT = {
+						has_variable = has_trait_timer
+					}
+					has_variable = my_piquante_trait_picker
+				}
+				NAND = {
+					exists = var:event_simple_trait_window
+					var:event_simple_trait_window = 0
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_alive = yes
+				exists = employer
+				num_of_traits < 4 #P:A TODO Approximate: Imperator counted personality traits only (number_of_personality_traits < max_number_of_traits_svalue = 4); EU5 counts every trait
+				OR = {
+					NOT = {
+						has_variable = has_trait_timer
+					}
+					has_variable = my_piquante_trait_picker
+				}
+				NAND = {
+					exists = var:event_simple_trait_window
+					var:event_simple_trait_window = 0
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_alive = yes
+					exists = employer
+					num_of_traits < 4 #P:A TODO Approximate: Imperator counted personality traits only (number_of_personality_traits < max_number_of_traits_svalue = 4); EU5 counts every trait
+					OR = {
+						NOT = {
+							has_variable = has_trait_timer
+						}
+						has_variable = my_piquante_trait_picker
+					}
+					NAND = {
+						exists = var:event_simple_trait_window
+						var:event_simple_trait_window = 0
+					}
+				}
+				save_scope_as = pa_character # left_portrait = root
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = has_trait_timer
+				days = 3600
+			}
+			if = {
+				limit = {
+					NOT = {
+						has_variable = my_piquante_trait_picker
+					}
+				}
+				# Only the entries whose trait exists in EU5 are live (traits table); the rest stay commented.
+				random_list = {
+					1 = {
+						#abrasive
+						trigger = {
+							NOR = {
+								# has_trait = good_natured
+								has_trait = abrasive
+								# has_trait = two_faced
+								# has_trait = inferiority_complex
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 1
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 2
+						}
+					}
+					# 1 = { #good_natured trigger = { NOR = { has_trait = good_natured has_trait = abrasive has_trait = two_faced has_trait = inferiority_complex } } set_variable = { name = my_piquante_trait_picker value = 2 } set_variable = { name = traits_option_variable value = 1 } } #P:A TODO No EU5 equivalent: Imperator trait good_natured
+					1 = {
+						#silver_tongued (EU5 silver_tongue)
+						trigger = {
+							NOR = {
+								# has_trait = blunt
+								has_trait = silver_tongue # silver_tongued
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 3
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 1
+						}
+					}
+					# 1 = { #blunt trigger = { NOR = { has_trait = silver_tongued has_trait = blunt } } set_variable = { name = my_piquante_trait_picker value = 4 } set_variable = { name = traits_option_variable value = 2 } } #P:A TODO No EU5 equivalent: Imperator trait blunt
+					1 = {
+						#crafty (EU5 schemer)
+						trigger = {
+							NOR = {
+								# has_trait = guileless
+								has_trait = schemer # crafty
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 5
+						}
+					}
+					# 1 = { #guileless trigger = { NOR = { has_trait = crafty has_trait = guileless } } set_variable = { name = my_piquante_trait_picker value = 6 } } #P:A TODO No EU5 equivalent: Imperator trait guileless
+					# 1 = { #sceptical trigger = { NOR = { has_trait = pious has_trait = sceptical } } set_variable = { name = my_piquante_trait_picker value = 7 } } #P:A TODO No EU5 equivalent: Imperator trait sceptical
+					1 = {
+						#pious
+						trigger = {
+							NOR = {
+								# has_trait = sceptical
+								has_trait = pious
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 8
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 1
+						}
+					}
+					1 = {
+						#zealous (EU5 zealot)
+						trigger = {
+							NOR = {
+								has_trait = tolerant
+								has_trait = zealot # zealous
+								# has_trait = xenophobic
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 9
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 2
+						}
+					}
+					1 = {
+						#tolerant
+						trigger = {
+							NOR = {
+								has_trait = zealot # zealous
+								has_trait = tolerant
+								# has_trait = xenophobic
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 10
+						}
+					}
+					1 = {
+						#devout (EU5 pious)
+						trigger = {
+							NOR = {
+								# has_trait = lapsed
+								has_trait = pious # devout
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 11
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 1
+						}
+					}
+					# 1 = { #lapsed trigger = { NOR = { has_trait = devout has_trait = lapsed } } set_variable = { name = my_piquante_trait_picker value = 12 } } #P:A TODO No EU5 equivalent: Imperator trait lapsed
+					# 1 = { #original_thinker trigger = { NOR = { has_trait = original_thinker has_trait = tactically_inflexible } } set_variable = { name = my_piquante_trait_picker value = 13 } } #P:A TODO No EU5 equivalent: Imperator trait original_thinker
+					# 1 = { #tactically_inflexible trigger = { NOR = { has_trait = tactically_inflexible has_trait = original_thinker } } set_variable = { name = my_piquante_trait_picker value = 14 } set_variable = { name = traits_option_variable value = 3 } } #P:A TODO No EU5 equivalent: Imperator trait tactically_inflexible
+					1 = {
+						#just
+						trigger = {
+							NOR = {
+								# has_trait = arbitrary
+								has_trait = just
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 15
+						}
+					}
+					# 1 = { #arbitrary trigger = { NOR = { has_trait = just has_trait = arbitrary } } set_variable = { name = my_piquante_trait_picker value = 16 } } #P:A TODO No EU5 equivalent: Imperator trait arbitrary
+					1 = {
+						#cruel
+						trigger = {
+							NOR = {
+								has_trait = kind_hearted # merciful
+								has_trait = cruel
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 17
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 3
+						}
+					}
+					1 = {
+						#merciful (EU5 kind_hearted)
+						trigger = {
+							NOR = {
+								has_trait = cruel
+								has_trait = kind_hearted # merciful
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 18
+						}
+					}
+					1 = {
+						#righteous
+						trigger = {
+							NOR = {
+								has_trait = corrupt
+								has_trait = righteous
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 19
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 1
+						}
+					}
+					1 = {
+						#corrupt
+						trigger = {
+							NOR = {
+								has_trait = righteous
+								has_trait = corrupt
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 20
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 3
+						}
+					}
+					# 1 = { #founder trigger = { NOR = { has_trait = incapable has_trait = founder has_trait = resourceful } } set_variable = { name = my_piquante_trait_picker value = 21 } } #P:A TODO No EU5 equivalent: Imperator trait founder
+					# 1 = { #incapable trigger = { NOR = { has_trait = founder has_trait = incapable has_trait = resourceful } } set_variable = { name = my_piquante_trait_picker value = 22 } } #P:A TODO No EU5 equivalent: Imperator trait incapable
+					# 1 = { #benefactor trigger = { NOR = { has_trait = harsh has_trait = benefactor has_trait = easygoing } } set_variable = { name = my_piquante_trait_picker value = 23 } set_variable = { name = traits_option_variable value = 1 } } #P:A TODO No EU5 equivalent: Imperator trait benefactor
+					# 1 = { #harsh trigger = { NOR = { has_trait = benefactor has_trait = harsh has_trait = easygoing } } set_variable = { name = my_piquante_trait_picker value = 24 } set_variable = { name = traits_option_variable value = 3 } } #P:A TODO No EU5 equivalent: Imperator trait harsh
+					1 = {
+						#scholar
+						trigger = {
+							NOR = {
+								# has_trait = narrowminded
+								has_trait = scholar
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 25
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 1
+						}
+					}
+					# 1 = { #narrowminded trigger = { NOR = { has_trait = scholar has_trait = narrowminded } } set_variable = { name = my_piquante_trait_picker value = 26 } } #P:A TODO No EU5 equivalent: Imperator trait narrowminded
+					# 1 = { #lustful trigger = { NOR = { has_trait = chaste has_trait = lustful } } set_variable = { name = my_piquante_trait_picker value = 27 } } #P:A TODO No EU5 equivalent: Imperator trait lustful
+					# 1 = { #chaste trigger = { NOR = { has_trait = lustful has_trait = chaste } } set_variable = { name = my_piquante_trait_picker value = 28 } } #P:A TODO No EU5 equivalent: Imperator trait chaste
+					# 1 = { #proud trigger = { NOR = { has_trait = humble has_trait = proud has_trait = overbearing has_trait = narcissistic } } set_variable = { name = my_piquante_trait_picker value = 29 } } #P:A TODO No EU5 equivalent: Imperator trait proud
+					1 = {
+						#humble
+						trigger = {
+							NOR = {
+								# has_trait = proud
+								has_trait = humble
+								# has_trait = overbearing
+								# has_trait = narcissistic
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 30
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 1
+						}
+					}
+					# 1 = { #vengeful trigger = { NOR = { has_trait = forgiving has_trait = vengeful } } set_variable = { name = my_piquante_trait_picker value = 31 } } #P:A TODO No EU5 equivalent: Imperator trait vengeful
+					# 1 = { #forgiving trigger = { NOR = { has_trait = vengeful has_trait = forgiving } } set_variable = { name = my_piquante_trait_picker value = 32 } } #P:A TODO No EU5 equivalent: Imperator trait forgiving
+					# 1 = { #assertive trigger = { NOR = { has_trait = submissive has_trait = assertive has_trait = shy } } set_variable = { name = my_piquante_trait_picker value = 33 } } #P:A TODO No EU5 equivalent: Imperator trait assertive
+					# 1 = { #submissive trigger = { NOR = { has_trait = assertive has_trait = submissive has_trait = shy has_trait = overbearing } } set_variable = { name = my_piquante_trait_picker value = 34 } } #P:A TODO No EU5 equivalent: Imperator trait submissive
+					# 1 = { #intelligent trigger = { NOR = { has_trait = dumb has_trait = intelligent has_trait = provocateur has_trait = forger has_trait = eccentric } } set_variable = { name = my_piquante_trait_picker value = 35 } } #P:A TODO No EU5 equivalent: Imperator trait intelligent
+					# 1 = { #dumb trigger = { NOR = { has_trait = intelligent has_trait = dumb has_trait = provocateur has_trait = forger has_trait = eccentric } } set_variable = { name = my_piquante_trait_picker value = 36 } } #P:A TODO No EU5 equivalent: Imperator trait dumb
+					1 = {
+						#generous #P:A TODO Approximate: Imperator trait generous mapped to EU5 alms_giver (a religious-figure trait)
+						trigger = {
+							NOR = {
+								# has_trait = selfish
+								has_trait = greedy # miserly
+								has_trait = alms_giver # generous (approximate)
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 37
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 1
+						}
+					}
+					# 1 = { #selfish trigger = { NOR = { has_trait = generous has_trait = selfish } } set_variable = { name = my_piquante_trait_picker value = 38 } set_variable = { name = traits_option_variable value = 3 } } #P:A TODO No EU5 equivalent: Imperator trait selfish
+					1 = {
+						#honest
+						trigger = {
+							NOR = {
+								has_trait = deceitful
+								has_trait = honest
+								# has_trait = two_faced
+								# has_trait = inferiority_complex
+								# has_trait = forger
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 39
+						}
+					}
+					1 = {
+						#deceitful
+						trigger = {
+							NOR = {
+								has_trait = honest
+								has_trait = deceitful
+								# has_trait = trustworthy
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 40
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 3
+						}
+					}
+					# 1 = { #energetic trigger = { NOR = { has_trait = lazy has_trait = energetic has_trait = dull } } set_variable = { name = my_piquante_trait_picker value = 41 } set_variable = { name = traits_option_variable value = 2 } } #P:A TODO No EU5 equivalent: Imperator trait energetic
+					1 = {
+						#lazy
+						trigger = {
+							NOR = {
+								# has_trait = energetic
+								has_trait = lazy
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 42
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 2
+						}
+					}
+					# 1 = { #cautious trigger = { NOR = { has_trait = reckless has_trait = cautious } } set_variable = { name = my_piquante_trait_picker value = 43 } } #P:A TODO No EU5 equivalent: Imperator trait cautious
+					# 1 = { #reckless trigger = { NOR = { has_trait = cautious has_trait = reckless } } set_variable = { name = my_piquante_trait_picker value = 44 } set_variable = { name = traits_option_variable value = 2 } } #P:A TODO No EU5 equivalent: Imperator trait reckless
+					# 1 = { #shrewd trigger = { NOR = { has_trait = foolish has_trait = shrewd } } set_variable = { name = my_piquante_trait_picker value = 45 } } #P:A TODO No EU5 equivalent: Imperator trait shrewd
+					# 1 = { #foolish trigger = { NOR = { has_trait = shrewd has_trait = foolish } } set_variable = { name = my_piquante_trait_picker value = 46 } } #P:A TODO No EU5 equivalent: Imperator trait foolish
+					# 1 = { #gluttonous trigger = { NOR = { has_trait = self_controlled has_trait = gluttonous } } set_variable = { name = my_piquante_trait_picker value = 47 } } #P:A TODO No EU5 equivalent: Imperator trait gluttonous
+					# 1 = { #self_controlled trigger = { NOR = { has_trait = gluttonous has_trait = self_controlled } } set_variable = { name = my_piquante_trait_picker value = 48 } } #P:A TODO No EU5 equivalent: Imperator trait self_controlled
+					1 = {
+						#arrogant
+						trigger = {
+							NOR = {
+								# has_trait = modest
+								has_trait = arrogant
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 49
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 3
+						}
+					}
+					# 1 = { #modest trigger = { NOR = { has_trait = arrogant has_trait = modest } } set_variable = { name = my_piquante_trait_picker value = 50 } } #P:A TODO No EU5 equivalent: Imperator trait modest
+					1 = {
+						#prominent
+						trigger = {
+							NOR = {
+								# has_trait = unnoticeable
+								has_trait = prominent
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 51
+						}
+					}
+					# 1 = { #unnoticeable trigger = { NOR = { has_trait = prominent has_trait = unnoticeable } } set_variable = { name = my_piquante_trait_picker value = 52 } } #P:A TODO No EU5 equivalent: Imperator trait unnoticeable
+					# 1 = { #loving trigger = { NOR = { has_trait = cold has_trait = loving } } set_variable = { name = my_piquante_trait_picker value = 53 } set_variable = { name = traits_option_variable value = 1 } } #P:A TODO No EU5 equivalent: Imperator trait loving
+					# 1 = { #cold trigger = { NOR = { has_trait = loving has_trait = cold } } set_variable = { name = my_piquante_trait_picker value = 54 } set_variable = { name = traits_option_variable value = 3 } } #P:A TODO No EU5 equivalent: Imperator trait cold
+					# 1 = { #ambitious trigger = { NOR = { has_trait = content has_trait = ambitious } } set_variable = { name = my_piquante_trait_picker value = 55 } set_variable = { name = traits_option_variable value = 2 } } #P:A TODO No EU5 equivalent: Imperator trait ambitious
+					# 1 = { #content trigger = { NOR = { has_trait = ambitious has_trait = content } } set_variable = { name = my_piquante_trait_picker value = 56 } } #P:A TODO No EU5 equivalent: Imperator trait content
+					# 1 = { #suspicious trigger = { NOR = { has_trait = trusting has_trait = suspicious } } set_variable = { name = my_piquante_trait_picker value = 57 } set_variable = { name = traits_option_variable value = 3 } } #P:A TODO No EU5 equivalent: Imperator trait suspicious
+					# 1 = { #trusting trigger = { NOR = { has_trait = suspicious has_trait = trusting } } set_variable = { name = my_piquante_trait_picker value = 58 } } #P:A TODO No EU5 equivalent: Imperator trait trusting
+					# 1 = { #wise trigger = { NOR = { has_trait = rash has_trait = wise } } set_variable = { name = my_piquante_trait_picker value = 59 } set_variable = { name = traits_option_variable value = 1 } } #P:A TODO No EU5 equivalent: Imperator trait wise
+					# 1 = { #rash trigger = { NOR = { has_trait = wise has_trait = rash has_trait = patient } } set_variable = { name = my_piquante_trait_picker value = 60 } } #P:A TODO No EU5 equivalent: Imperator trait rash
+					# 1 = { #jealous trigger = { NOR = { has_trait = secure has_trait = jealous } } set_variable = { name = my_piquante_trait_picker value = 61 } } #P:A TODO No EU5 equivalent: Imperator trait jealous
+					# 1 = { #secure trigger = { NOR = { has_trait = jealous has_trait = secure has_trait = immature } } set_variable = { name = my_piquante_trait_picker value = 62 } } #P:A TODO No EU5 equivalent: Imperator trait secure
+					# 1 = { #sarcastic trigger = { NOR = { has_trait = plain_speaking has_trait = sarcastic } } set_variable = { name = my_piquante_trait_picker value = 63 } } #P:A TODO No EU5 equivalent: Imperator trait sarcastic
+					# 1 = { #plain_speaking trigger = { NOR = { has_trait = sarcastic has_trait = plain_speaking } } set_variable = { name = my_piquante_trait_picker value = 64 } } #P:A TODO No EU5 equivalent: Imperator trait plain_speaking
+					1 = {
+						#stubborn
+						trigger = {
+							NOR = {
+								# has_trait = weak_willed
+								has_trait = stubborn
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 65
+						}
+					}
+					# 1 = { #weak_willed trigger = { NOR = { has_trait = stubborn has_trait = weak_willed } } set_variable = { name = my_piquante_trait_picker value = 66 } } #P:A TODO No EU5 equivalent: Imperator trait weak_willed
+					# 1 = { #plague trigger = { always = no } set_variable = { name = my_piquante_trait_picker value = 67 } set_variable = { name = traits_option_variable value = 3 } } #P:A TODO Imperator already disabled this entry (trigger always = no); trait plague would map to EU5 bubonic_plague_trait
+					# 1 = { #leper trigger = { always = no } set_variable = { name = my_piquante_trait_picker value = 68 } set_variable = { name = traits_option_variable value = 3 } } #P:A TODO No EU5 equivalent: Imperator trait leper
+					# 1 = { #pneumonia trigger = { always = no } set_variable = { name = my_piquante_trait_picker value = 69 } set_variable = { name = traits_option_variable value = 3 } } #P:A TODO No EU5 equivalent: Imperator trait pneumonia
+					# 1 = { #schizophrenic trigger = { always = no } set_variable = { name = my_piquante_trait_picker value = 70 } set_variable = { name = traits_option_variable value = 3 } } #P:A TODO No EU5 equivalent: Imperator trait schizophrenic
+					1 = {
+						#miserly (EU5 greedy)
+						trigger = {
+							NOR = {
+								has_trait = alms_giver # generous (approximate)
+								has_trait = greedy # miserly
+								# has_trait = extravagant
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 71
+						}
+						set_variable = {
+							name = traits_option_variable
+							value = 2
+						}
+					}
+					1 = {
+						#kindly (EU5 kind_hearted)
+						trigger = {
+							NOR = {
+								# has_trait = uncaring
+								has_trait = kind_hearted # kindly
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 72
+						}
+					}
+					# 1 = { #uncaring trigger = { NOR = { has_trait = kindly has_trait = uncaring } } set_variable = { name = my_piquante_trait_picker value = 73 } } #P:A TODO No EU5 equivalent: Imperator trait uncaring
+					# 1 = { #polymath trigger = { NOR = { has_trait = obsessive has_trait = polymath } } set_variable = { name = my_piquante_trait_picker value = 74 } } #P:A TODO No EU5 equivalent: Imperator trait polymath
+					# 1 = { #obsessive trigger = { NOR = { has_trait = polymath has_trait = obsessive } } set_variable = { name = my_piquante_trait_picker value = 75 } } #P:A TODO No EU5 equivalent: Imperator trait obsessive
+					# 1 = { #monotonous trigger = { NOR = { has_trait = monotonous has_trait = orator has_trait = charming } } set_variable = { name = my_piquante_trait_picker value = 76 } } #P:A TODO No EU5 equivalent: Imperator trait monotonous
+					# 1 = { #orator trigger = { NOR = { has_trait = monotonous has_trait = orator } } set_variable = { name = my_piquante_trait_picker value = 77 } } #P:A TODO No EU5 equivalent: Imperator trait orator
+					# 1 = { #poet trigger = { NOT = { has_trait = poet } } set_variable = { name = my_piquante_trait_picker value = 78 } } #P:A TODO No EU5 equivalent: Imperator trait poet
+					1 = {
+						#frail (EU5 sickly)
+						trigger = {
+							NOT = {
+								has_trait = sickly # frail
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 79
+						}
+					}
+					# 1 = { #stressed trigger = { NOT = { has_trait = stressed } } set_variable = { name = my_piquante_trait_picker value = 80 } } #P:A TODO No EU5 equivalent: Imperator trait stressed
+					# 1 = { #epileptic trigger = { NOT = { has_trait = epileptic } } set_variable = { name = my_piquante_trait_picker value = 81 } } #P:A TODO No EU5 equivalent: Imperator trait epileptic
+					# 1 = { #dull trigger = { NOT = { has_trait = dull has_trait = energetic has_trait = intelligent } } set_variable = { name = my_piquante_trait_picker value = 82 } } #P:A TODO No EU5 equivalent: Imperator trait dull
+					# 1 = { #paranoid trigger = { NOT = { has_trait = paranoid has_trait = guileless } } set_variable = { name = my_piquante_trait_picker value = 83 } } #P:A TODO No EU5 equivalent: Imperator trait paranoid
+					# 1 = { #shy trigger = { NOT = { has_trait = shy has_trait = assertive } } set_variable = { name = my_piquante_trait_picker value = 84 } } #P:A TODO No EU5 equivalent: Imperator trait shy
+					# 1 = { #xenophobic trigger = { NOT = { has_trait = xenophobic has_trait = tolerant has_trait = impartial } } set_variable = { name = my_piquante_trait_picker value = 85 } } #P:A TODO No EU5 equivalent: Imperator trait xenophobic
+					# 1 = { #immature trigger = { NOT = { has_trait = immature has_trait = secure } } set_variable = { name = my_piquante_trait_picker value = 86 } } #P:A TODO No EU5 equivalent: Imperator trait immature
+					# 1 = { #impartial trigger = { NOT = { has_trait = impartial has_trait = xenophobic } } set_variable = { name = my_piquante_trait_picker value = 87 } } #P:A TODO No EU5 equivalent: Imperator trait impartial
+					# 1 = { #reclusive trigger = { NOT = { has_trait = reclusive } } set_variable = { name = my_piquante_trait_picker value = 88 } } #P:A TODO No EU5 equivalent: Imperator trait reclusive
+					# 1 = { #uncouth trigger = { NOT = { has_trait = uncouth has_trait = cultured } } set_variable = { name = my_piquante_trait_picker value = 89 } } #P:A TODO No EU5 equivalent: Imperator trait uncouth
+					# 1 = { #cultured trigger = { NOT = { has_trait = cultured has_trait = uncouth } } set_variable = { name = my_piquante_trait_picker value = 90 } } #P:A TODO No EU5 equivalent: Imperator trait cultured
+					1 = {
+						#obsessive_perfectionist
+						trigger = {
+							NOT = {
+								has_trait = obsessive_perfectionist
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 91
+						}
+					}
+					# 1 = { #intimidating trigger = { NOT = { has_trait = intimidating } } set_variable = { name = my_piquante_trait_picker value = 92 } } #P:A TODO No EU5 equivalent: Imperator trait intimidating
+					# 1 = { #extravagant trigger = { NOT = { has_trait = extravagant has_trait = miserly } } set_variable = { name = my_piquante_trait_picker value = 93 } } #P:A TODO No EU5 equivalent: Imperator trait extravagant
+					# 1 = { #overbearing trigger = { NOT = { has_trait = overbearing has_trait = humble has_trait = submissive } } set_variable = { name = my_piquante_trait_picker value = 94 } } #P:A TODO No EU5 equivalent: Imperator trait overbearing
+					# 1 = { #easygoing trigger = { NOT = { has_trait = easygoing has_trait = harsh } } set_variable = { name = my_piquante_trait_picker value = 95 } } #P:A TODO No EU5 equivalent: Imperator trait easygoing
+					# 1 = { #two_faced trigger = { NOT = { has_trait = two_faced has_trait = honest has_trait = good_natured } } set_variable = { name = my_piquante_trait_picker value = 96 } } #P:A TODO No EU5 equivalent: Imperator trait two_faced
+					# 1 = { #inferiority_complex trigger = { NOT = { has_trait = inferiority_complex has_trait = honest has_trait = good_natured } } set_variable = { name = my_piquante_trait_picker value = 97 } } #P:A TODO No EU5 equivalent: Imperator trait inferiority_complex
+					# 1 = { #provocateur trigger = { NOT = { has_trait = provocateur has_trait = dull has_trait = dumb } } set_variable = { name = my_piquante_trait_picker value = 98 } } #P:A TODO No EU5 equivalent: Imperator trait provocateur
+					# 1 = { #forger trigger = { NOT = { has_trait = forger has_trait = dull has_trait = honest has_trait = dumb } } set_variable = { name = my_piquante_trait_picker value = 99 } } #P:A TODO No EU5 equivalent: Imperator trait forger
+					# 1 = { #eccentric trigger = { NOT = { has_trait = eccentric has_trait = dull has_trait = dumb } } set_variable = { name = my_piquante_trait_picker value = 100 } } #P:A TODO No EU5 equivalent: Imperator trait eccentric
+					# 1 = { #charming trigger = { NOT = { has_trait = charming has_trait = dull has_trait = monotonous } } set_variable = { name = my_piquante_trait_picker value = 101 } } #P:A TODO No EU5 equivalent: Imperator trait charming
+					1 = {
+						#midas_touched
+						trigger = {
+							NOT = {
+								has_trait = midas_touched
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 102
+						}
+					}
+					# 1 = { #patient trigger = { NOT = { has_trait = patient has_trait = impatient has_trait = rash } } set_variable = { name = my_piquante_trait_picker value = 103 } } #P:A TODO No EU5 equivalent: Imperator trait patient
+					# 1 = { #impatient trigger = { NOT = { has_trait = impatient has_trait = patient } } set_variable = { name = my_piquante_trait_picker value = 104 } } #P:A TODO No EU5 equivalent: Imperator trait impatient
+					1 = {
+						#well_connected
+						trigger = {
+							NOT = {
+								has_trait = well_connected
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 105
+						}
+					}
+					# 1 = { #narcissistic trigger = { NOT = { has_trait = narcissistic has_trait = humble } } set_variable = { name = my_piquante_trait_picker value = 106 } } #P:A TODO No EU5 equivalent: Imperator trait narcissistic
+					# 1 = { #pacifist trigger = { NOT = { has_trait = pacifist } } set_variable = { name = my_piquante_trait_picker value = 107 } } #P:A TODO No EU5 equivalent: Imperator trait pacifist
+					1 = {
+						#carouser #P:A TODO Approximate: Imperator trait carouser mapped to EU5 drunkard
+						trigger = {
+							NOT = {
+								has_trait = drunkard # carouser (approximate)
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 108
+						}
+					}
+					# 1 = { #pillager trigger = { NOT = { has_trait = pillager } } set_variable = { name = my_piquante_trait_picker value = 109 } } #P:A TODO No EU5 equivalent: Imperator trait pillager
+					# 1 = { #pyromaniac trigger = { NOT = { has_trait = pyromaniac } } set_variable = { name = my_piquante_trait_picker value = 110 } } #P:A TODO No EU5 equivalent: Imperator trait pyromaniac
+					# 1 = { #pessimistic trigger = { NOT = { has_trait = pessimistic has_trait = guileless } } set_variable = { name = my_piquante_trait_picker value = 111 } } #P:A TODO No EU5 equivalent: Imperator trait pessimistic
+					# 1 = { #trustworthy trigger = { NOT = { has_trait = trustworthy has_trait = deceitful } } set_variable = { name = my_piquante_trait_picker value = 112 } } #P:A TODO No EU5 equivalent: Imperator trait trustworthy
+					# 1 = { #resourceful trigger = { NOT = { has_trait = resourceful has_trait = incapable } } set_variable = { name = my_piquante_trait_picker value = 113 } } #P:A TODO No EU5 equivalent: Imperator trait resourceful
+					1 = {
+						#drunkard
+						trigger = {
+							NOT = {
+								has_trait = drunkard
+							}
+						}
+						set_variable = {
+							name = my_piquante_trait_picker
+							value = 114
+						}
+					}
+					# 1 = { #explorer trigger = { NOT = { has_trait = explorer has_trait = coward } } set_variable = { name = my_piquante_trait_picker value = 115 } } #P:A TODO No EU5 equivalent: Imperator trait explorer
+					# 1 = { #insecure trigger = { NOT = { has_trait = insecure has_trait = secure } } set_variable = { name = my_piquante_trait_picker value = 116 } } #P:A TODO No EU5 equivalent: Imperator trait insecure
+				}
+			}
+		}
+	}
+
+	option = {
+		name = traits.1.a
+		# The Imperator option checked the picker in blocks of ten (< 11, < 21, ...); one flat chain here.
+		# A picker preset by a caller (traits.3, trial.4) to a trait EU5 lacks adds nothing: those values are only
+		# listed in the commented random_list entries above.
+		scope:pa_character = {
+			if = {
+				limit = { var:my_piquante_trait_picker = 1 }
+				add_trait = trait:abrasive
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 3 }
+				add_trait = trait:silver_tongue # silver_tongued
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 5 }
+				add_trait = trait:schemer # crafty
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 8 }
+				add_trait = trait:pious
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 9 }
+				add_trait = trait:zealot # zealous
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 10 }
+				add_trait = trait:tolerant
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 11 }
+				add_trait = trait:pious # devout
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 15 }
+				add_trait = trait:just
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 17 }
+				add_trait = trait:cruel
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 18 }
+				add_trait = trait:kind_hearted # merciful
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 19 }
+				add_trait = trait:righteous
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 20 }
+				add_trait = trait:corrupt
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 25 }
+				add_trait = trait:scholar
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 30 }
+				add_trait = trait:humble
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 37 }
+				add_trait = trait:alms_giver # generous
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 39 }
+				add_trait = trait:honest
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 40 }
+				add_trait = trait:deceitful
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 42 }
+				add_trait = trait:lazy
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 49 }
+				add_trait = trait:arrogant
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 51 }
+				add_trait = trait:prominent
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 65 }
+				add_trait = trait:stubborn
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 71 }
+				add_trait = trait:greedy # miserly
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 72 }
+				add_trait = trait:kind_hearted # kindly
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 79 }
+				add_trait = trait:sickly # frail
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 91 }
+				add_trait = trait:obsessive_perfectionist
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 102 }
+				add_trait = trait:midas_touched
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 105 }
+				add_trait = trait:well_connected
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 108 }
+				add_trait = trait:drunkard # carouser
+			}
+			else_if = {
+				limit = { var:my_piquante_trait_picker = 114 }
+				add_trait = trait:drunkard
+			}
+		}
+	}
+
+	after = {
+		scope:pa_character = {
+			remove_variable = my_piquante_trait_picker
+			remove_variable = event_simple_trait_window
+			remove_variable = traits_option_variable
+		}
+	}
+}
+
+# A character goes mad (character trait pulse).
+traits.2 = {
+	type = country_event
+	title = traits.2.t
+	desc = traits.2.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				exists = employer
+				# NOT = { has_trait = lunatic }
+			}
+		}
+		trigger_else = {
+			any_character = {
+				exists = employer
+				# NOT = { has_trait = lunatic }
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event gives the "lunatic" trait (or costs 10 gold to avoid it); EU5 has no lunatic trait
+	}
+
+	# weight_multiplier = { base = 1 modifier = { factor = 2 has_trait = inbred } } #P:A TODO No EU5 equivalent: twice as likely for "inbred" characters (EU5 has no inbred trait)
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					exists = employer
+				}
+				save_scope_as = pa_character # left_portrait = root
+			}
+		}
+	}
+
+	option = {
+		name = traits.2.a
+		# add_trait = lunatic #P:A TODO No EU5 equivalent: Imperator trait lunatic
+		# highlight = yes #P:A TODO No EU5 equivalent: highlighted option
+		custom_tooltip = enables_unusual_event_options
+		hidden_effect = {
+			scope:pa_character = {
+				remove_variable = random_object_1
+			}
+		}
+	}
+
+	option = {
+		name = traits.2.b
+		hidden_effect = {
+			scope:pa_character = {
+				remove_variable = random_object_1
+			}
+		}
+		add_gold = -10 # employer = { add_treasury = -10 }
+	}
+}
+
+# Hidden test relay: forces traits.1 to give the zealous trait (EU5 zealot). Imperator: "leave unreferenced".
+# Note: it sets event_simple_trait_window = 0, which the traits.1 trigger rejects, exactly as in Imperator.
+traits.3 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:pa_character
+	}
+
+	immediate = {
+		scope:pa_character = {
+			set_variable = {
+				name = my_piquante_trait_picker
+				value = 9
+			}
+			set_variable = {
+				name = event_simple_trait_window
+				value = 0
+			}
+		}
+		trigger_event_non_silently = { id = traits.1 } # scope:pa_character carries over
+	}
+}
+
+# Hidden: a character contracts a minor ailment (yearly medical pulse). Rulers and heirs get traits.5 instead.
+traits.4 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_alive = yes
+				# NOT = { has_ambition = scheme_seek_treatment }
+				NOT = {
+					calc_true_if = {
+						amount >= 3
+						# has_trait = hemorrhagic_fever
+						has_trait = bubonic_plague_trait # plague
+						# has_trait = mentagra
+						# has_trait = arthritis
+						has_trait = smallpox_trait # pox
+						# has_trait = dysentery
+						# has_trait = infection
+						# has_trait = inflammation
+						# has_trait = wounded
+						# has_trait = pneumonia
+						# has_trait = gangrene
+						# has_trait = leper
+					}
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_alive = yes
+				# NOT = { has_ambition = scheme_seek_treatment }
+				NOT = {
+					calc_true_if = {
+						amount >= 3
+						# has_trait = hemorrhagic_fever
+						has_trait = bubonic_plague_trait # plague
+						# has_trait = mentagra
+						# has_trait = arthritis
+						has_trait = smallpox_trait # pox
+						# has_trait = dysentery
+						# has_trait = infection
+						# has_trait = inflammation
+						# has_trait = wounded
+						# has_trait = pneumonia
+						# has_trait = gangrene
+						# has_trait = leper
+					}
+				}
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: every ailment it gives (mentagra, arthritis, dysentery, infection, inflammation) is an Imperator trait EU5 does not have
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_alive = yes
+					# NOT = { has_ambition = scheme_seek_treatment }
+					NOT = {
+						calc_true_if = {
+							amount >= 3
+							# has_trait = hemorrhagic_fever
+							has_trait = bubonic_plague_trait # plague
+							# has_trait = mentagra
+							# has_trait = arthritis
+							has_trait = smallpox_trait # pox
+							# has_trait = dysentery
+							# has_trait = infection
+							# has_trait = inflammation
+							# has_trait = wounded
+							# has_trait = pneumonia
+							# has_trait = gangrene
+							# has_trait = leper
+						}
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			random_list = {
+				10 = {
+					trigger = {
+						# NOT = { has_trait = mentagra }
+					}
+					set_variable = {
+						name = which_disease
+						value = 1
+					}
+					if = {
+						limit = {
+							exists = employer
+							pa_imp_is_important_person_medical = yes
+						}
+						save_scope_as = injured_personage
+						root = {
+							trigger_event_non_silently = { id = traits.5 } # employer = { trigger_event = traits.5 }
+						}
+					}
+					else = {
+						# add_trait = mentagra #P:A TODO No EU5 equivalent: Imperator trait mentagra
+					}
+				}
+				10 = {
+					trigger = {
+						# NOT = { has_trait = arthritis }
+						age_in_years > 36
+					}
+					set_variable = {
+						name = which_disease
+						value = 2
+					}
+					if = {
+						limit = {
+							exists = employer
+							pa_imp_is_important_person_medical = yes
+						}
+						save_scope_as = injured_personage
+						root = {
+							trigger_event_non_silently = { id = traits.5 } # employer = { trigger_event = traits.5 }
+						}
+					}
+					else = {
+						# add_trait = arthritis #P:A TODO No EU5 equivalent: Imperator trait arthritis
+					}
+				}
+				10 = {
+					trigger = {
+						# NOT = { has_trait = dysentery }
+					}
+					set_variable = {
+						name = which_disease
+						value = 4
+					}
+					if = {
+						limit = {
+							exists = employer
+							pa_imp_is_important_person_medical = yes
+						}
+						save_scope_as = injured_personage
+						root = {
+							trigger_event_non_silently = { id = traits.5 } # employer = { trigger_event = traits.5 }
+						}
+					}
+					else = {
+						# add_trait = dysentery #P:A TODO No EU5 equivalent: Imperator trait dysentery
+					}
+				}
+				10 = {
+					trigger = {
+						# NOT = { has_trait = infection }
+					}
+					set_variable = {
+						name = which_disease
+						value = 5
+					}
+					if = {
+						limit = {
+							exists = employer
+							pa_imp_is_important_person_medical = yes
+						}
+						save_scope_as = injured_personage
+						root = {
+							trigger_event_non_silently = { id = traits.5 } # employer = { trigger_event = traits.5 }
+						}
+					}
+					else = {
+						# add_trait = infection #P:A TODO No EU5 equivalent: Imperator trait infection
+					}
+				}
+				10 = {
+					trigger = {
+						# NOT = { has_trait = inflammation }
+					}
+					set_variable = {
+						name = which_disease
+						value = 6
+					}
+					if = {
+						limit = {
+							exists = employer
+							pa_imp_is_important_person_medical = yes
+						}
+						save_scope_as = injured_personage
+						root = {
+							trigger_event_non_silently = { id = traits.5 } # employer = { trigger_event = traits.5 }
+						}
+					}
+					else = {
+						# add_trait = inflammation #P:A TODO No EU5 equivalent: Imperator trait inflammation
+					}
+				}
+			}
+		}
+	}
+}
+
+# A ruler or heir has fallen ill (fired by traits.4).
+traits.5 = {
+	type = country_event
+	title = traits.5.t
+	desc = traits.5.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:injured_personage
+		scope:injured_personage = {
+			pa_imp_char_valid_for_country_events_trigger = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = current_ruler # left_portrait = root.current_ruler
+		}
+		# right_portrait = scope:injured_personage (already saved by traits.4)
+	}
+
+	option = {
+		name = traits.5.a
+		if = {
+			limit = {
+				scope:injured_personage = {
+					pa_imp_char_valid_for_country_events_trigger = yes
+				}
+			}
+			scope:injured_personage = {
+				pa_imp_add_correct_trait_effect = yes
+			}
+		}
+	}
+
+	option = {
+		name = traits.5.b
+		custom_tooltip = kindly_tooltip
+		# highlight = yes #P:A TODO No EU5 equivalent: highlighted option
+		trigger = {
+			ruler ?= {
+				has_trait = kind_hearted # kindly
+			}
+			scope:injured_personage = {
+				NOT = { this = root.ruler }
+			}
+		}
+		scope:injured_personage = {
+			pa_imp_add_correct_trait_effect = yes
+			# add_loyalty = loyalty_illness_wishes #P:A TODO No EU5 equivalent: +loyalty for the ruler's get-well wishes (EU5 characters have no loyalty)
+		}
+	}
+}
+
+# Hidden: a minor ailment develops into a serious illness (yearly medical pulse, disease on_actions).
+# Rulers and heirs get traits.7 instead.
+traits.6 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				exists = employer
+				pa_imp_has_any_infection = yes # always no in EU5 (no infection traits), so this event never fires
+				# NOT = { has_ambition = scheme_seek_treatment }
+			}
+		}
+		trigger_else = {
+			any_character = {
+				exists = employer
+				pa_imp_has_any_infection = yes # always no in EU5 (no infection traits), so this event never fires
+				# NOT = { has_ambition = scheme_seek_treatment }
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					exists = employer
+					pa_imp_has_any_infection = yes # always no in EU5 (no infection traits), so this event never fires
+					# NOT = { has_ambition = scheme_seek_treatment }
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			random_list = {
+				10 = {
+					trigger = {
+						# NOT = { has_trait = pneumonia }
+						# OR = { has_trait = infection has_trait = inflammation }
+						always = no #P:A TODO No EU5 equivalent: needs the Imperator infection/inflammation traits and gives pneumonia
+					}
+					set_variable = {
+						name = second_stage_disease
+						value = 1
+					}
+					if = {
+						limit = {
+							exists = employer
+							pa_imp_is_important_person_medical = yes
+						}
+						save_scope_as = diseased_personage
+						root = {
+							trigger_event_non_silently = { id = traits.7 } # employer = { trigger_event = traits.7 }
+						}
+					}
+					else = {
+						# if = { limit = { has_trait = infection } remove_trait = infection }
+						# else_if = { limit = { has_trait = inflammation } remove_trait = inflammation }
+						# add_trait = pneumonia
+					}
+				}
+				10 = {
+					trigger = {
+						# NOT = { has_trait = leper }
+						# OR = { has_trait = infection has_trait = inflammation }
+						always = no #P:A TODO No EU5 equivalent: needs the Imperator infection/inflammation traits and gives leprosy
+					}
+					set_variable = {
+						name = second_stage_disease
+						value = 2
+					}
+					if = {
+						limit = {
+							exists = employer
+							pa_imp_is_important_person_medical = yes
+						}
+						save_scope_as = diseased_personage
+						root = {
+							trigger_event_non_silently = { id = traits.7 } # employer = { trigger_event = traits.7 }
+						}
+					}
+					else = {
+						# if = { limit = { has_trait = infection } remove_trait = infection }
+						# else_if = { limit = { has_trait = inflammation } remove_trait = inflammation }
+						# add_trait = leper
+					}
+				}
+				10 = {
+					trigger = {
+						is_adult = yes
+						NOT = {
+							has_trait = smallpox_trait # pox
+						}
+						# OR = { has_trait = infection has_trait = inflammation }
+						always = no #P:A TODO No EU5 equivalent: needs the Imperator infection/inflammation traits (the smallpox it gives exists in EU5)
+					}
+					set_variable = {
+						name = second_stage_disease
+						value = 3
+					}
+					if = {
+						limit = {
+							exists = employer
+							pa_imp_is_important_person_medical = yes
+						}
+						save_scope_as = diseased_personage
+						root = {
+							trigger_event_non_silently = { id = traits.7 } # employer = { trigger_event = traits.7 }
+						}
+					}
+					else = {
+						# if = { limit = { has_trait = infection } remove_trait = infection }
+						# else_if = { limit = { has_trait = inflammation } remove_trait = inflammation }
+						add_trait = trait:smallpox_trait # pox
+					}
+				}
+				10 = {
+					trigger = {
+						# NOT = { has_trait = gangrene }
+						OR = {
+							# has_trait = wounded
+							has_trait = maimed
+						}
+					}
+					set_variable = {
+						name = second_stage_disease
+						value = 4
+					}
+					if = {
+						limit = {
+							exists = employer
+							pa_imp_is_important_person_medical = yes
+						}
+						save_scope_as = diseased_personage
+						root = {
+							trigger_event_non_silently = { id = traits.7 } # employer = { trigger_event = traits.7 }
+						}
+					}
+					else = {
+						# add_trait = gangrene #P:A TODO No EU5 equivalent: Imperator trait gangrene
+					}
+				}
+			}
+		}
+	}
+}
+
+# A ruler's or heir's ailment becomes a serious illness (fired by traits.6).
+traits.7 = {
+	type = country_event
+	title = traits.7.t
+	desc = traits.7.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:diseased_personage
+		scope:diseased_personage = {
+			pa_imp_char_valid_for_country_events_trigger = yes
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = current_ruler # left_portrait = root.current_ruler
+		}
+		# right_portrait = scope:diseased_personage (already saved by traits.6)
+	}
+
+	option = {
+		name = traits.7.a
+		if = {
+			limit = {
+				scope:diseased_personage = {
+					pa_imp_char_valid_for_country_events_trigger = yes
+				}
+			}
+			scope:diseased_personage = {
+				pa_imp_add_correct_second_stage_disease_effect = yes
+			}
+		}
+	}
+}
+
+# Hidden: a grave illness leaves a permanent affliction (barren or castrated). Rulers and heirs get traits.9 instead.
+traits.8 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				exists = employer
+				# NOT = { has_ambition = scheme_seek_treatment }
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = pneumonia
+					# has_trait = gangrene
+					has_trait = maimed
+					has_trait = smallpox_trait # pox
+				}
+				NOR = {
+					# has_trait = barren
+					has_trait = castrated
+				}
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				exists = employer
+				# NOT = { has_ambition = scheme_seek_treatment }
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = pneumonia
+					# has_trait = gangrene
+					has_trait = maimed
+					has_trait = smallpox_trait # pox
+				}
+				NOR = {
+					# has_trait = barren
+					has_trait = castrated
+				}
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					exists = employer
+					# NOT = { has_ambition = scheme_seek_treatment }
+					OR = {
+						has_trait = bubonic_plague_trait # plague
+						# has_trait = hemorrhagic_fever
+						# has_trait = pneumonia
+						# has_trait = gangrene
+						has_trait = maimed
+						has_trait = smallpox_trait # pox
+					}
+					NOR = {
+						# has_trait = barren
+						has_trait = castrated
+					}
+					NOT = {
+						has_variable = seeking_treatment
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			if = {
+				limit = {
+					exists = employer
+					is_female = yes
+					pa_imp_is_important_person_medical = yes
+				}
+				set_variable = {
+					name = medical_result_acquired
+					value = 1
+				}
+				save_scope_as = result_acquired_target
+				root = {
+					trigger_event_non_silently = { id = traits.9 } # employer = { trigger_event = traits.9 }
+				}
+			}
+			else_if = {
+				limit = {
+					exists = employer
+					is_female = no
+					pa_imp_is_important_person_medical = yes
+				}
+				set_variable = {
+					name = medical_result_acquired
+					value = 2
+				}
+				save_scope_as = result_acquired_target
+				root = {
+					trigger_event_non_silently = { id = traits.9 }
+				}
+			}
+			else_if = {
+				limit = {
+					is_female = yes
+				}
+				# add_trait = barren #P:A TODO No EU5 equivalent: Imperator trait barren (women gain nothing here in EU5)
+			}
+			else = {
+				add_trait = trait:castrated
+			}
+		}
+	}
+}
+
+# A ruler or heir is left with a permanent affliction (fired by traits.8 and traits.10-14).
+traits.9 = {
+	type = country_event
+	title = traits.9.t
+	desc = traits.9.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:result_acquired_target
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = current_ruler # left_portrait = root.current_ruler
+		}
+		# right_portrait = scope:result_acquired_target (already saved by the calling event)
+	}
+
+	option = {
+		name = traits.9.a
+		if = {
+			limit = {
+				exists = scope:result_acquired_target
+				scope:result_acquired_target = {
+					pa_imp_char_valid_for_country_events_trigger = yes
+				}
+			}
+			scope:result_acquired_target = {
+				pa_imp_add_result_affliction_effect = yes
+			}
+		}
+	}
+}
+
+# Hidden: a grave illness leaves the character frail (EU5 sickly). Rulers and heirs get traits.9 instead.
+traits.10 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				exists = employer
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = pneumonia
+					# has_trait = gangrene
+					has_trait = maimed
+				}
+				NOT = {
+					has_trait = sickly # frail
+				}
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				exists = employer
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = pneumonia
+					# has_trait = gangrene
+					has_trait = maimed
+				}
+				NOT = {
+					has_trait = sickly # frail
+				}
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					exists = employer
+					OR = {
+						has_trait = bubonic_plague_trait # plague
+						# has_trait = hemorrhagic_fever
+						# has_trait = pneumonia
+						# has_trait = gangrene
+						has_trait = maimed
+					}
+					NOT = {
+						has_trait = sickly # frail
+					}
+					NOT = {
+						has_variable = seeking_treatment
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			if = {
+				limit = {
+					exists = employer
+					pa_imp_is_important_person_medical = yes
+				}
+				set_variable = {
+					name = medical_result_acquired
+					value = 3
+				}
+				save_scope_as = result_acquired_target
+				root = {
+					trigger_event_non_silently = { id = traits.9 } # employer = { trigger_event = traits.9 }
+				}
+			}
+			else = {
+				add_trait = trait:sickly # frail
+			}
+		}
+	}
+}
+
+# Hidden: a grave illness costs the character an eye. Rulers and heirs get traits.9 instead.
+traits.11 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_alive = yes
+				exists = employer
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = pneumonia
+					# has_trait = gangrene
+				}
+				NOT = {
+					has_trait = one_eyed
+				}
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_alive = yes
+				exists = employer
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = pneumonia
+					# has_trait = gangrene
+				}
+				NOT = {
+					has_trait = one_eyed
+				}
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_alive = yes
+					exists = employer
+					OR = {
+						has_trait = bubonic_plague_trait # plague
+						# has_trait = hemorrhagic_fever
+						# has_trait = pneumonia
+						# has_trait = gangrene
+					}
+					NOT = {
+						has_trait = one_eyed
+					}
+					NOT = {
+						has_variable = seeking_treatment
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			if = {
+				limit = {
+					exists = employer
+					pa_imp_is_important_person_medical = yes
+				}
+				set_variable = {
+					name = medical_result_acquired
+					value = 4
+				}
+				save_scope_as = result_acquired_target
+				root = {
+					trigger_event_non_silently = { id = traits.9 } # employer = { trigger_event = traits.9 }
+				}
+			}
+			else = {
+				add_trait = trait:one_eyed
+			}
+		}
+	}
+}
+
+# Hidden: a grave illness leaves the character paralysed. Rulers and heirs get traits.9 instead.
+traits.12 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				exists = employer
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = gangrene
+				}
+				# NOT = { has_trait = paralysis }
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				exists = employer
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = gangrene
+				}
+				# NOT = { has_trait = paralysis }
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event gives the Imperator trait paralysis
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					exists = employer
+					OR = {
+						has_trait = bubonic_plague_trait # plague
+						# has_trait = hemorrhagic_fever
+						# has_trait = gangrene
+					}
+					# NOT = { has_trait = paralysis }
+					NOT = {
+						has_variable = seeking_treatment
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			if = {
+				limit = {
+					exists = employer
+					pa_imp_is_important_person_medical = yes
+				}
+				set_variable = {
+					name = medical_result_acquired
+					value = 5
+				}
+				save_scope_as = result_acquired_target
+				root = {
+					trigger_event_non_silently = { id = traits.9 } # employer = { trigger_event = traits.9 }
+				}
+			}
+			else = {
+				# add_trait = paralysis
+			}
+		}
+	}
+}
+
+# Hidden: a grave illness leaves the character blind. Rulers and heirs get traits.9 instead.
+traits.13 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				exists = employer
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = gangrene
+				}
+				NOT = {
+					has_trait = blind
+				}
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				exists = employer
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = gangrene
+				}
+				NOT = {
+					has_trait = blind
+				}
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					exists = employer
+					OR = {
+						has_trait = bubonic_plague_trait # plague
+						# has_trait = hemorrhagic_fever
+						# has_trait = gangrene
+					}
+					NOT = {
+						has_trait = blind
+					}
+					NOT = {
+						has_variable = seeking_treatment
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			if = {
+				limit = {
+					exists = employer
+					pa_imp_is_important_person_medical = yes
+				}
+				set_variable = {
+					name = medical_result_acquired
+					value = 6
+				}
+				save_scope_as = result_acquired_target
+				root = {
+					trigger_event_non_silently = { id = traits.9 } # employer = { trigger_event = traits.9 }
+				}
+			}
+			else = {
+				if = {
+					limit = { has_trait = one_eyed }
+					remove_trait = trait:one_eyed
+				}
+				add_trait = trait:blind
+			}
+		}
+	}
+}
+
+# Hidden: a grave illness leaves the character brain-damaged. Rulers and heirs get traits.9 instead.
+traits.14 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				exists = employer
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = gangrene
+					# has_trait = pneumonia
+					has_trait = smallpox_trait # pox
+				}
+				# NOT = { has_trait = brain_damaged }
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				exists = employer
+				OR = {
+					has_trait = bubonic_plague_trait # plague
+					# has_trait = hemorrhagic_fever
+					# has_trait = gangrene
+					# has_trait = pneumonia
+					has_trait = smallpox_trait # pox
+				}
+				# NOT = { has_trait = brain_damaged }
+				NOT = {
+					has_variable = seeking_treatment
+				}
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event gives the Imperator trait brain_damaged
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					exists = employer
+					OR = {
+						has_trait = bubonic_plague_trait # plague
+						# has_trait = hemorrhagic_fever
+						# has_trait = gangrene
+						# has_trait = pneumonia
+						has_trait = smallpox_trait # pox
+					}
+					# NOT = { has_trait = brain_damaged }
+					NOT = {
+						has_variable = seeking_treatment
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			if = {
+				limit = {
+					pa_imp_is_important_person_medical = yes
+				}
+				set_variable = {
+					name = medical_result_acquired
+					value = 7
+				}
+				save_scope_as = result_acquired_target
+				root = {
+					trigger_event_non_silently = { id = traits.9 } # employer = { trigger_event = traits.9 }
+				}
+			}
+			else = {
+				# add_trait = brain_damaged
+			}
+		}
+	}
+}
+
+# Hidden: chance to recover from certain illnesses (disease on_actions). Rulers and heirs get traits.16 instead.
+traits.15 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				exists = employer
+				pa_imp_char_valid_for_country_events_trigger = yes
+				OR = {
+					pa_imp_recoverable_ailments_trigger = yes
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				exists = employer
+				pa_imp_char_valid_for_country_events_trigger = yes
+				OR = {
+					pa_imp_recoverable_ailments_trigger = yes
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					exists = employer
+					pa_imp_char_valid_for_country_events_trigger = yes
+					OR = {
+						pa_imp_recoverable_ailments_trigger = yes
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			if = {
+				limit = {
+					pa_imp_is_important_person_medical = yes
+				}
+				save_scope_as = recovered_personage
+				root = {
+					trigger_event_non_silently = { id = traits.16 } # employer = { trigger_event = traits.16 }
+				}
+			}
+			else = {
+				pa_imp_recover_from_affliction_effect = yes
+			}
+		}
+	}
+}
+
+# A ruler or heir recovers from an illness (fired by traits.15).
+traits.16 = {
+	type = country_event
+	title = traits.16.t
+	desc = traits.16.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		exists = scope:recovered_personage
+	}
+
+	immediate = {
+		scope:recovered_personage = {
+			employer ?= {
+				ruler ?= {
+					save_scope_as = current_ruler # left_portrait = scope:recovered_personage.employer.current_ruler
+				}
+			}
+			pa_imp_recover_from_affliction_effect = yes
+		}
+		# right_portrait = scope:recovered_personage (already saved by traits.15)
+	}
+
+	option = {
+		name = traits.16.a
+	}
+}
+
+# A character stops being stressed (yearly medical pulse).
+traits.18 = {
+	type = country_event
+	title = traits.18.t
+	desc = traits.18.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_alive = yes # added: the character must still be alive
+				# has_trait = stressed
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_alive = yes
+				# has_trait = stressed
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event only removes the "stressed" trait, which EU5 does not have
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_alive = yes
+				}
+				save_scope_as = pa_character # right_portrait = root
+			}
+		}
+		ruler ?= {
+			save_scope_as = current_ruler # left_portrait = root.employer.current_ruler
+		}
+	}
+
+	option = {
+		name = traits.18.a
+		# scope:pa_character = { remove_trait = stressed }
+		#P:A TODO No EU5 equivalent: removes the "stressed" trait
+	}
+}

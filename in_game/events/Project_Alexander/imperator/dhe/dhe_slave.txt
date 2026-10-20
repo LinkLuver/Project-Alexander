@@ -62,7 +62,7 @@ dhe_slave.1 = { # Incendiary Slave Speaks in X
 				female = no
 				culture = root.culture
 				religion = root.religion
-				estate = estate_type:peasants_estate #P:A TODO Approximate: Imperator created a plain character; EU5 characters need an estate and slaves have none, so the ex-slave agitator joins the peasants
+				estate = estate_type:peasants_estate #P:A TODO Approximate: Imperator created a character with no social class; slaves are no EU5 estate, so the ex-slave agitator joins the peasants
 				add_trait = trait:silver_tongue
 				save_scope_as = incendiary_slave_scope
 			}
@@ -333,7 +333,7 @@ dhe_slave.2 = { # Excellent Conditions in X
 		exclusive = yes
 		trigger = {
 			ruler ?= {
-				has_trait = trait:corrupt
+				has_trait = corrupt
 			}
 		}
 		# if = {
@@ -347,5 +347,1969 @@ dhe_slave.2 = { # Excellent Conditions in X
 		# }
 		#P:A TODO No EU5 equivalent: the ruler pockets 2.5 months of income as personal gold and gains +5 corruption (EU5 characters have no personal wealth or corruption)
 		custom_tooltip = corrupt_bad_tooltip
+	}
+}
+
+dhe_slave.3 = { # X the Slave
+	type = country_event
+	title = dhe_slave.3.t
+	desc = dhe_slave.3.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		NOT = {
+			has_variable = dhe_slave_politics_cooldown
+		}
+		# NOT = { has_law = republican_citizen_4 }
+		# NOT = { has_law = lex_aelia_sentia }
+		#P:A TODO No EU5 equivalent: Imperator excluded republics with the citizenship law republican_citizen_4 or the Lex Aelia Sentia (EU5 laws differ)
+		any_owned_location = {
+			is_capital = no
+			population >= 5 #P:A TODO Approximate: Imperator total_population >= 5 counted pops; EU5 population is in thousands (1 pop = 1 thousand)
+			num_pop_type:slaves >= 1 #P:A TODO Approximate: Imperator num_of_slaves >= 1 counted slave pops; EU5 counts slaves in thousands
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = dhe_slave_politics_cooldown
+			days = 9125 # 25 years
+		}
+		random_owned_location = {
+			limit = {
+				is_capital = no
+				population >= 5 #P:A TODO Approximate: Imperator total_population >= 5 counted pops; EU5 population is in thousands
+				num_pop_type:slaves >= 1 #P:A TODO Approximate: Imperator num_of_slaves >= 1 counted slave pops; EU5 counts slaves in thousands
+			}
+			save_scope_as = dhe_slave_politician_birthplace_scope
+		}
+		ruler = {
+			save_scope_as = dhe_slave_politician_ruler # left portrait
+		}
+		hidden_effect = {
+			create_character = {
+				female = no
+				birth_location = scope:dhe_slave_politician_birthplace_scope
+				culture = root.culture
+				religion = root.religion
+				estate = estate_type:peasants_estate #P:A TODO Approximate: Imperator created a character with no social class; slaves are no EU5 estate, so the freedman joins the peasants
+				save_scope_as = dhe_slave_politician_scope
+			}
+			scope:dhe_slave_politician_scope = {
+				add_adm = 5 # Imperator add_finesse = 1 (skills x5)
+				pa_imp_character_democratic_party_conviction_effect = {
+					VALUE = 30
+				}
+				add_character_modifier = {
+					modifier = ex_slave_cmod
+					days = -1
+				}
+			}
+		}
+	}
+
+	option = { # He will go further yet
+		name = dhe_slave.3.a
+		# current_ruler = {
+		# 	add_popularity = subtract_popularity_medium
+		# 	add_corruption = corruption_medium
+		# }
+		#P:A TODO No EU5 equivalent: -10 popularity and +5 corruption for the ruler (EU5 characters have no popularity or corruption)
+		scope:dhe_slave_politician_scope = {
+			hidden_effect = {
+				pa_imp_republic_job_giver_effect = yes
+			}
+			custom_tooltip = dhe_slave.3.at #P:A TODO pa_imp_republic_job_giver_effect gives no office in EU5 (no republican offices), so this tooltip promises nothing that happens
+			# add_loyalty = loyalty_supported_politician
+			#P:A TODO No EU5 equivalent: loyalty for the freedman politician (EU5 characters have no loyalty)
+		}
+		add_country_modifier = {
+			modifier = dhe_slave_supported_cm
+			days = 3650 # 10 years
+		}
+		pa_imp_democratic_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+
+		ai_chance = {
+			base = 0
+		}
+	}
+
+	option = { # No slaves on the senate floor
+		name = dhe_slave.3.b
+		# current_ruler = {
+		# 	add_popularity = popularity_medium
+		# 	add_corruption = corruption_medium
+		# }
+		#P:A TODO No EU5 equivalent: +10 popularity and +5 corruption for the ruler (EU5 characters have no popularity or corruption)
+		# scope:dhe_slave_politician_scope = { add_loyalty = loyalty_opposed_politician }
+		#P:A TODO No EU5 equivalent: loyalty loss for the freedman politician (EU5 characters have no loyalty)
+		add_country_modifier = {
+			modifier = dhe_slave_scuppered_cm
+			days = 3650 # 10 years
+		}
+		pa_imp_traditionalist_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+
+		ai_chance = {
+			base = 0
+		}
+	}
+
+	option = { # Never interfere in politics
+		name = dhe_slave.3.c
+		# if = {
+		# 	limit = { current_ruler = { corruption > 0 } }
+		# 	current_ruler = { add_corruption = subtract_corruption_medium }
+		# }
+		# current_ruler = { add_popularity = subtract_popularity_medium }
+		#P:A TODO No EU5 equivalent: -5 corruption (if any) and -10 popularity for the ruler (EU5 characters have no corruption or popularity)
+		custom_tooltip = dhe_slave.3.ct
+		hidden_effect = {
+			random_list = {
+				33 = {
+					scope:dhe_slave_politician_scope = {
+						pa_imp_republic_job_giver_effect = yes
+					}
+					modifier = {
+						factor = 33
+						scope:dhe_slave_politician_scope = {
+							OR = {
+								mil >= 35 # Imperator martial >= 7
+								adm >= 35 # Imperator finesse >= 7
+								dip >= 35 # Imperator charisma >= 7
+								# zeal >= 7 #P:A TODO No EU5 equivalent: zeal skill
+							}
+						}
+					}
+				}
+				66 = {}
+			}
+		}
+		# add_political_influence = influence_medium
+		#P:A TODO No EU5 equivalent: +15 political influence (EU5 has no political influence)
+	}
+
+	option = { # This situation is very easily solved (wealthy, indecent rulers only)
+		name = dhe_slave.3.d
+		# highlight = yes (no EU5 option field; it only highlighted the option)
+		trigger = {
+			ruler ?= {
+				# wealth >= 100 #P:A TODO No EU5 equivalent: ruler personal wealth of 100+ (EU5 characters have no wealth)
+				NOT = {
+					pa_imp_char_is_decent_trigger = yes
+				}
+			}
+		}
+		# current_ruler = {
+		# 	add_gold = { subtract = 100 }
+		# 	add_corruption = corruption_large
+		# }
+		#P:A TODO No EU5 equivalent: the ruler pays 100 gold of personal wealth and gains +10 corruption (EU5 characters have no wealth or corruption)
+		hidden_effect = {
+			kill_character = {
+				target = scope:dhe_slave_politician_scope
+				killer = root.ruler
+				reason = assassination # Imperator death_internal_assassination
+			}
+		}
+		custom_tooltip = dhe_slave.3.dt1
+		# add_tyranny = tyranny_large
+		#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		custom_tooltip = dhe_slave.3.dt2
+	}
+}
+
+dhe_slave.4 = { # Accident in X
+	type = country_event
+	title = dhe_slave.4.t
+	desc = dhe_slave.4.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+	# right_portrait = scope:dhe_slave_accident_city_scope.governor #P:A TODO No EU5 equivalent: portrait of the governor of the location's province (EU5 has no governors)
+
+	trigger = {
+		any_owned_location = {
+			num_pop_type:slaves >= 5 #P:A TODO Approximate: Imperator num_of_slaves >= 5 counted slave pops; EU5 counts slaves in thousands (1 pop = 1 thousand)
+			OR = {
+				AND = {
+					raw_material = goods:salt
+					is_coastal = no
+				}
+				raw_material = goods:stone
+				raw_material = goods:marble
+				raw_material = goods:goods_gold #P:A TODO Approximate: Imperator precious_metals -> EU5 goods_gold and silver
+				raw_material = goods:silver
+				raw_material = goods:iron
+				raw_material = goods:copper #P:A TODO Approximate: Imperator base_metals -> EU5 copper, tin and lead
+				raw_material = goods:tin
+				raw_material = goods:lead
+				raw_material = goods:gems
+			}
+			NOT = {
+				is_capital = yes
+			}
+		}
+		NOT = {
+			has_variable = dhe_slave_accident_cooldown
+		}
+	}
+
+	immediate = {
+		random_owned_location = {
+			limit = {
+				num_pop_type:slaves >= 5 #P:A TODO Approximate: Imperator num_of_slaves >= 5 counted slave pops; EU5 counts slaves in thousands
+				OR = {
+					AND = {
+						raw_material = goods:salt
+						is_coastal = no
+					}
+					raw_material = goods:stone
+					raw_material = goods:marble
+					raw_material = goods:goods_gold #P:A TODO Approximate: Imperator precious_metals -> EU5 goods_gold and silver
+					raw_material = goods:silver
+					raw_material = goods:iron
+					raw_material = goods:copper #P:A TODO Approximate: Imperator base_metals -> EU5 copper, tin and lead
+					raw_material = goods:tin
+					raw_material = goods:lead
+					raw_material = goods:gems
+				}
+				NOT = {
+					is_capital = yes
+				}
+			}
+			save_scope_as = dhe_slave_accident_city_scope
+		}
+		set_variable = {
+			name = dhe_slave_accident_cooldown
+			days = 9125 # 25 years
+		}
+		ruler = {
+			save_scope_as = dhe_slave_accident_ruler # left portrait
+		}
+		scope:dhe_slave_accident_city_scope = {
+			random_pop = {
+				limit = {
+					pop_type = pop_type:slaves
+				}
+				save_scope_as = accident_pop
+			}
+		}
+		scope:accident_pop = {
+			add_pop_size = { #P:A TODO Approximate: Imperator kill_pop removed 1 whole slave pop; EU5 removes up to 1 (thousand) people from a slave pop
+				value = pop_size
+				multiply = -1
+				min = -1
+			}
+		}
+	}
+
+	option = { # Compensate the owners and ensure decent working conditions
+		name = dhe_slave.4.a
+		# current_ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+		# if = {
+		# 	limit = {
+		# 		exists = scope:dhe_slave_accident_city_scope.governor
+		# 		NOT = { root.current_ruler = scope:dhe_slave_accident_city_scope.governor }
+		# 	}
+		# 	scope:dhe_slave_accident_city_scope.governor = { add_loyalty = loyalty_state_compensation }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty for the governor of the location's province, if he is not the ruler (EU5 has no governors or character loyalty)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -4.6
+			min = -6000
+		}
+		scope:dhe_slave_accident_city_scope = {
+			province = {
+				add_province_modifier = {
+					modifier = dhe_slave_accident_compensate_owners_sm
+					days = 3650 # 10 years
+				}
+			}
+		}
+	}
+
+	option = { # Only cover the repair costs
+		name = dhe_slave.4.b
+		# if = {
+		# 	limit = {
+		# 		exists = scope:dhe_slave_accident_city_scope.governor
+		# 		NOT = { root.current_ruler = scope:dhe_slave_accident_city_scope.governor }
+		# 	}
+		# 	scope:dhe_slave_accident_city_scope.governor = { add_loyalty = loyalty_state_costs }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty for the governor of the location's province, if he is not the ruler (EU5 has no governors or character loyalty)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -2.4
+			min = -6000
+		}
+		scope:dhe_slave_accident_city_scope = {
+			province = {
+				add_province_modifier = {
+					modifier = dhe_slave_accident_repair_sm
+					days = 3650 # 10 years
+				}
+			}
+		}
+
+		ai_chance = {
+			base = 0
+		}
+	}
+
+	option = { # No handouts
+		name = dhe_slave.4.c
+		# current_ruler = { add_popularity = subtract_popularity_medium }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+		# if = {
+		# 	limit = {
+		# 		exists = scope:dhe_slave_accident_city_scope.governor
+		# 		NOT = { root.current_ruler = scope:dhe_slave_accident_city_scope.governor }
+		# 	}
+		# 	scope:dhe_slave_accident_city_scope.governor = { add_loyalty = loyalty_state_nothing }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty for the governor of the location's province, if he is not the ruler (EU5 has no governors or character loyalty)
+		scope:dhe_slave_accident_city_scope = {
+			add_location_modifier = {
+				modifier = dhe_slave_accident_inaction_city_pm
+				days = 3650 # 10 years
+			}
+		}
+		scope:dhe_slave_accident_city_scope = {
+			province = {
+				add_province_modifier = {
+					modifier = dhe_slave_accident_inaction_province_sm
+					days = 3650 # 10 years
+				}
+			}
+		}
+
+		ai_chance = {
+			base = 0
+		}
+	}
+
+	option = { # Seize their property and compensate the slaves (decent rulers only)
+		name = dhe_slave.4.d
+		# highlight = yes (no EU5 option field; it only highlighted the option)
+		trigger = {
+			ruler ?= {
+				pa_imp_char_is_decent_trigger = yes
+			}
+		}
+		custom_tooltip = dhe_slave.4.dt
+		# current_ruler = { add_popularity = subtract_popularity_small }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+		# if = {
+		# 	limit = {
+		# 		exists = scope:dhe_slave_accident_city_scope.governor
+		# 		NOT = { root.current_ruler = scope:dhe_slave_accident_city_scope.governor }
+		# 	}
+		# 	scope:dhe_slave_accident_city_scope.governor = { add_loyalty = loyalty_state_seized }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty for the governor of the location's province, if he is not the ruler (EU5 has no governors or character loyalty)
+		# add_tyranny = tyranny_medium
+		#P:A TODO No EU5 equivalent: +3 tyranny (EU5 has no tyranny)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -3.2
+			min = -6000
+		}
+		scope:dhe_slave_accident_city_scope = {
+			province = {
+				add_province_modifier = {
+					modifier = dhe_slave_accident_compensate_slaves_sm
+					days = 3650 # 10 years
+				}
+			}
+		}
+	}
+}
+
+dhe_slave.5 = { # Harsh Treatment
+	type = country_event
+	title = dhe_slave.5.t
+	desc = dhe_slave.5.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		# NOT = { has_law = republican_citizen_2 }
+		# NOT = { has_law = lex_aelia_sentia }
+		#P:A TODO No EU5 equivalent: Imperator excluded republics with the citizenship law republican_citizen_2 or the Lex Aelia Sentia (EU5 laws differ)
+		# civic_tech >= 9
+		#P:A TODO No EU5 equivalent: civic technology 9+ (EU5 advances are not numbered tech levels)
+		any_owned_location = {
+			is_capital = no
+			num_pop_type:slaves >= 5 #P:A TODO Approximate: Imperator num_of_slaves >= 5 counted slave pops; EU5 counts slaves in thousands (1 pop = 1 thousand)
+		}
+		any_character = {
+			is_alive = yes
+			is_ruler = no
+			#P:A Removed: prisoner = no is always true in EU5
+			pa_imp_character_democratic_party_trigger = yes
+		}
+		pa_imp_country_slave_party_trigger = yes
+		NOT = {
+			has_variable = dhe_slave_harsh_treatment_cooldown
+		}
+	}
+
+	immediate = {
+		random_owned_location = {
+			limit = {
+				is_capital = no
+				num_pop_type:slaves >= 5 #P:A TODO Approximate: Imperator num_of_slaves >= 5 counted slave pops; EU5 counts slaves in thousands
+			}
+			save_scope_as = dhe_slave_harsh_treatment_city_scope
+		}
+		random_character = { #P:A TODO Approximate: Imperator took the qualifying character with the highest power base; EU5 has no power base, a random one is taken
+			limit = {
+				is_alive = yes
+				is_ruler = no
+				#P:A Removed: prisoner = no is always true in EU5
+				pa_imp_character_democratic_party_trigger = yes
+			}
+			save_scope_as = dhe_slave_populist_politican
+		}
+		ruler = {
+			save_scope_as = dhe_slave_harsh_treatment_ruler # left portrait
+		}
+		set_variable = {
+			name = dhe_slave_harsh_treatment_cooldown
+			days = 7300 # 20 years
+		}
+	}
+
+	option = { # This must not be allowed to continue
+		name = dhe_slave.5.a
+		# current_ruler = { add_popularity = subtract_popularity_medium }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+		# scope:dhe_slave_populist_politican = {
+		# 	add_popularity = popularity_medium
+		# 	add_loyalty = loyalty_supported_slave_reform
+		# }
+		#P:A TODO No EU5 equivalent: +10 popularity and loyalty for the populist politician (EU5 characters have no popularity or loyalty)
+		pa_imp_dhe_slave_harsh_treatment_law_effect = yes
+		add_country_modifier = {
+			modifier = dhe_slave_harsh_reform_cm
+			days = 3650 # 10 years
+		}
+		pa_imp_democratic_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		# add_political_influence = subtract_influence_medium
+		#P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+	}
+
+	option = { # They will get used to the way the world works
+		name = dhe_slave.5.b
+		# current_ruler = { add_corruption = corruption_medium }
+		#P:A TODO No EU5 equivalent: +5 corruption for the ruler (EU5 characters have no corruption)
+		# scope:dhe_slave_populist_politican = { add_loyalty = loyalty_refused_slave_reform }
+		#P:A TODO No EU5 equivalent: loyalty loss for the populist politician (EU5 characters have no loyalty)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 4.8
+			max = 5000
+		}
+		add_country_modifier = {
+			modifier = dhe_slave_harsh_corrupt_cm
+			days = 3650 # 10 years
+		}
+		# add_tyranny = tyranny_large
+		#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		pa_imp_remove_stability_effect = yes
+
+		ai_chance = {
+			base = 0
+		}
+	}
+
+	option = { # The situation seems to be under control
+		name = dhe_slave.5.c
+		# current_ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+		# scope:dhe_slave_populist_politican = { add_loyalty = loyalty_ignored_slave_reform }
+		#P:A TODO No EU5 equivalent: loyalty for the populist politician (EU5 characters have no loyalty)
+		add_country_modifier = {
+			modifier = dhe_slave_harsh_inaction_cm
+			days = 3650 # 10 years
+		}
+		# add_political_influence = influence_medium
+		#P:A TODO No EU5 equivalent: +15 political influence (EU5 has no political influence)
+
+		ai_chance = {
+			base = 0
+		}
+	}
+}
+
+dhe_slave.6 = { # Debt Bondage Scandal
+	type = country_event
+	title = dhe_slave.6.t
+	desc = dhe_slave.6.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		OR = {
+			government_type = government_type:republic
+			# AND = {
+			# 	is_monarchy = yes
+			# 	has_law = increased_citizenship_quotas
+			# }
+			#P:A TODO No EU5 equivalent: monarchies with the law increased_citizenship_quotas also qualified (EU5 laws differ); only republics qualify here
+		}
+		NOT = {
+			has_variable = dhe_slave_debt_bondage_cooldown
+		}
+		pa_imp_slave_population_proportion_svalue > { # Slaves are over half of the population (the Invictus comment said 40%)
+			value = pa_imp_slave_proportion_total_population_svalue
+		}
+		any_character = {
+			is_alive = yes
+			employer = root
+			#P:A Removed: prisoner = no is always true in EU5
+			is_ruler = no
+			trigger_if = {
+				limit = {
+					employer = {
+						NOT = { modifier:gender_equality = yes } # Imperator gender_equality = no
+					}
+				}
+				is_female = no
+			}
+			NOR = {
+				# wealth < 10 #P:A TODO No EU5 equivalent: characters with under 10 personal wealth were excluded (EU5 characters have no wealth)
+				trigger_if = {
+					limit = {
+						root.ruler ?= {
+							has_dynasty = yes #P:A TODO Approximate: Imperator is_minor_character = no (the ruler has a family)
+						}
+					}
+					has_dynasty = yes
+					dynasty = root.ruler.dynasty # Imperator from_ruler_family = yes
+				}
+				pa_imp_character_democratic_party_trigger = yes
+			}
+			save_temporary_scope_as = debt_supporter_scope_temp
+		}
+		any_character = {
+			is_alive = yes
+			employer = root
+			#P:A Removed: prisoner = no is always true in EU5
+			is_ruler = no
+			trigger_if = {
+				limit = {
+					employer = {
+						NOT = { modifier:gender_equality = yes } # Imperator gender_equality = no
+					}
+				}
+				is_female = no
+			}
+			pa_imp_character_democratic_party_trigger = yes
+			NOR = {
+				# wealth < 10 #P:A TODO No EU5 equivalent: characters with under 10 personal wealth were excluded (EU5 characters have no wealth)
+				trigger_if = {
+					limit = {
+						root.ruler ?= {
+							has_dynasty = yes #P:A TODO Approximate: Imperator is_minor_character = no (the ruler has a family)
+						}
+					}
+					has_dynasty = yes
+					dynasty = root.ruler.dynasty # Imperator from_ruler_family = yes
+				}
+				this = scope:debt_supporter_scope_temp
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = dhe_slave_debt_bondage_cooldown
+			days = 18250 # 50 years
+		}
+		random_character = {
+			limit = {
+				is_alive = yes
+				employer = root
+				#P:A Removed: prisoner = no is always true in EU5
+				is_ruler = no
+				trigger_if = {
+					limit = {
+						employer = {
+							NOT = { modifier:gender_equality = yes } # Imperator gender_equality = no
+						}
+					}
+					is_female = no
+				}
+				NOR = {
+					# wealth < 10 #P:A TODO No EU5 equivalent: characters with under 10 personal wealth were excluded (EU5 characters have no wealth)
+					trigger_if = {
+						limit = {
+							root.ruler ?= {
+								has_dynasty = yes #P:A TODO Approximate: Imperator is_minor_character = no (the ruler has a family)
+							}
+						}
+						has_dynasty = yes
+						dynasty = root.ruler.dynasty # Imperator from_ruler_family = yes
+					}
+					pa_imp_character_democratic_party_trigger = yes
+				}
+			}
+			# weight = { title_importance_modifier = yes }
+			#P:A TODO No EU5 equivalent: Imperator weighted the pick by the character's title importance (scripted modifier); EU5 picks at random
+			save_scope_as = debt_supporter_scope
+		}
+		random_character = {
+			limit = {
+				is_alive = yes
+				employer = root
+				#P:A Removed: prisoner = no is always true in EU5
+				is_ruler = no
+				trigger_if = {
+					limit = {
+						employer = {
+							NOT = { modifier:gender_equality = yes } # Imperator gender_equality = no
+						}
+					}
+					is_female = no
+				}
+				pa_imp_character_democratic_party_trigger = yes
+				NOR = {
+					# wealth < 10 #P:A TODO No EU5 equivalent: characters with under 10 personal wealth were excluded (EU5 characters have no wealth)
+					trigger_if = {
+						limit = {
+							root.ruler ?= {
+								has_dynasty = yes #P:A TODO Approximate: Imperator is_minor_character = no (the ruler has a family)
+							}
+						}
+						has_dynasty = yes
+						dynasty = root.ruler.dynasty # Imperator from_ruler_family = yes
+					}
+					this = scope:debt_supporter_scope
+				}
+			}
+			# weight = { title_importance_modifier = yes }
+			#P:A TODO No EU5 equivalent: Imperator weighted the pick by the character's title importance (scripted modifier); EU5 picks at random
+			save_scope_as = debt_reformer_scope
+		}
+		ruler = {
+			save_scope_as = debt_bondage_ruler # left portrait
+		}
+	}
+
+	option = { # We need freemen
+		name = dhe_slave.6.a
+		# current_ruler = { add_popularity = subtract_popularity_medium }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+		# scope:debt_reformer_scope = { add_loyalty = loyalty_supported_bondage_reform_1 }
+		# scope:debt_supporter_scope = { add_loyalty = loyalty_supported_bondage_reform_2 }
+		#P:A TODO No EU5 equivalent: loyalty changes for the reformer and the supporter of debt bondage (EU5 characters have no loyalty)
+		add_country_modifier = {
+			modifier = dhe_slave_debt_reform_cm
+			days = 3650 # 10 years
+		}
+		pa_imp_democratic_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		# if = { limit = { is_monarchy = yes } change_law = established_courts_for_landholders }
+		#P:A TODO No EU5 equivalent: a monarchy adopted the law established_courts_for_landholders (EU5 laws differ)
+		hidden_effect = {
+			every_owned_location = {
+				limit = {
+					num_pop_type:slaves > 4 #P:A TODO Approximate: Imperator num_of_slaves > 4 counted slave pops; EU5 counts slaves in thousands
+				}
+				random_pop = {
+					limit = {
+						pop_type = pop_type:slaves
+						pop_size >= 1
+					}
+					#P:A TODO Approximate: Imperator set_pop_type turned 1 slave pop into a freemen pop; EU5 moves 1 (thousand) people of that slave pop into a new peasants pop of the same culture and religion
+					save_temporary_scope_as = dhe_slave_freed_pop
+					location = {
+						add_pop = {
+							type = pop_type:peasants
+							size = 1
+							culture = scope:dhe_slave_freed_pop.culture
+							religion = scope:dhe_slave_freed_pop.religion
+						}
+					}
+					add_pop_size = -1
+				}
+			}
+		}
+		custom_tooltip = dhe_slave.6.at
+		# add_political_influence = subtract_influence_large
+		#P:A TODO No EU5 equivalent: -25 political influence (EU5 has no political influence)
+	}
+
+	option = { # Slaves form the backbone of any successful economy
+		name = dhe_slave.6.b
+		# current_ruler = {
+		# 	add_popularity = popularity_large
+		# 	add_corruption = corruption_medium
+		# }
+		#P:A TODO No EU5 equivalent: +15 popularity and +5 corruption for the ruler (EU5 characters have no popularity or corruption)
+		# scope:debt_reformer_scope = { add_loyalty = loyalty_refused_bondage_reform_1 }
+		# scope:debt_supporter_scope = { add_loyalty = loyalty_refused_bondage_reform_2 }
+		#P:A TODO No EU5 equivalent: loyalty changes for the reformer and the supporter of debt bondage (EU5 characters have no loyalty)
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 1.7
+			max = 5000
+		}
+		# add_tyranny = tyranny_large
+		#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		add_country_modifier = {
+			modifier = dhe_slave_debt_supported_cm
+			days = 3650 # 10 years
+		}
+
+		ai_chance = {
+			base = 0
+		}
+	}
+
+	option = { # No need to interfere
+		name = dhe_slave.6.c
+		# current_ruler = { add_popularity = subtract_popularity_small }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+		# scope:debt_reformer_scope = { add_loyalty = loyalty_dismissed_concerns }
+		# scope:debt_supporter_scope = { add_loyalty = loyalty_dismissed_concerns }
+		#P:A TODO No EU5 equivalent: loyalty loss for the reformer and the supporter of debt bondage (EU5 characters have no loyalty)
+		add_country_modifier = {
+			modifier = dhe_slave_debt_inaction_cm
+			days = 3650 # 10 years
+		}
+		pa_imp_remove_stability_effect = yes
+
+		ai_chance = {
+			base = 0
+		}
+	}
+}
+
+dhe_slave.7 = { # Slave Family Emerges
+	type = country_event
+	title = dhe_slave.7.t
+	desc = dhe_slave.7.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic
+		# NOT = { has_law = republican_citizen_4 }
+		# NOT = { has_law = lex_aelia_sentia }
+		#P:A TODO No EU5 equivalent: Imperator excluded republics with the citizenship law republican_citizen_4 or the Lex Aelia Sentia (EU5 laws differ)
+		NOT = {
+			has_variable = dhe_slave_family_cooldown
+		}
+		# civic_tech >= 9
+		#P:A TODO No EU5 equivalent: civic technology 9+ (EU5 advances are not numbered tech levels)
+		any_owned_location = {
+			is_capital = no
+			population <= 15 #P:A TODO Approximate: Imperator total_population <= 15 counted pops; EU5 population is in thousands (1 pop = 1 thousand)
+		}
+		any_neighbor_country = {
+			exists = capital # Imperator has_land = yes
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = dhe_slave_family_cooldown
+			days = 9125 # 25 years
+		}
+		random_owned_location = {
+			limit = {
+				is_capital = no
+				population <= 15 #P:A TODO Approximate: Imperator total_population <= 15 counted pops; EU5 population is in thousands
+			}
+			save_scope_as = slave_family_birthplace_scope
+		}
+		ruler = {
+			save_scope_as = dhe_slave_family_ruler # left portrait
+		}
+		hidden_effect = {
+			create_character = {
+				age = 45
+				female = no # the loc calls him "he"
+				culture = root.culture
+				religion = root.religion
+				estate = estate_type:peasants_estate #P:A TODO Approximate: Imperator created a character with no social class; slaves are no EU5 estate, so the freedman joins the peasants
+				save_scope_as = slave_family_1
+			}
+			create_character = {
+				age = 21
+				father = scope:slave_family_1
+				culture = root.culture
+				religion = root.religion
+				estate = estate_type:peasants_estate #P:A TODO Approximate: Imperator created a character with no social class; the freedman's child joins the peasants like him
+				save_scope_as = slave_family_2
+			}
+			create_character = {
+				age = 17
+				father = scope:slave_family_1
+				culture = root.culture
+				religion = root.religion
+				estate = estate_type:peasants_estate #P:A TODO Approximate: Imperator created a character with no social class; the freedman's child joins the peasants like him
+				save_scope_as = slave_family_3
+			}
+			scope:slave_family_1 = {
+				pa_imp_character_democratic_party_conviction_effect = {
+					VALUE = 30
+				}
+				add_character_modifier = {
+					modifier = ex_slave_cmod
+					days = -1
+				}
+			}
+			scope:slave_family_2 = {
+				pa_imp_character_democratic_party_conviction_effect = {
+					VALUE = 30
+				}
+				add_character_modifier = {
+					modifier = ex_slave_cmod
+					days = -1
+				}
+			}
+			scope:slave_family_3 = {
+				pa_imp_character_democratic_party_conviction_effect = {
+					VALUE = 30
+				}
+				add_character_modifier = {
+					modifier = ex_slave_cmod
+					days = -1
+				}
+			}
+		}
+		random_neighbor_country = {
+			limit = {
+				exists = capital # Imperator has_land = yes
+			}
+			save_scope_as = dhe_slave_family_country
+		}
+	}
+
+	option = { # New blood in the senate
+		name = dhe_slave.7.a
+		# current_ruler = { add_popularity = subtract_popularity_huge }
+		#P:A TODO No EU5 equivalent: -25 popularity for the ruler (EU5 characters have no popularity)
+		pa_imp_new_family_generation_effect = { # Scripted effect that passes on the saved scope
+			FAMILY_CANDIDATE = slave_family_1
+		}
+		# scope:slave_family_1 = { add_loyalty = loyalty_welcomed_slave_family }
+		# scope:slave_family_2 = { add_loyalty = loyalty_welcomed_slave_family }
+		# scope:slave_family_3 = { add_loyalty = loyalty_welcomed_slave_family }
+		#P:A TODO No EU5 equivalent: loyalty for the three members of the freedman family (EU5 characters have no loyalty)
+		pa_imp_democratic_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 3.1
+			max = 5000
+		}
+		pa_imp_remove_stability_effect = yes
+	}
+
+	option = { # Not welcome
+		name = dhe_slave.7.b
+		# current_ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+		# scope:slave_family_1 = { add_loyalty = loyalty_unwelcomed_slave_family }
+		# scope:slave_family_2 = { add_loyalty = loyalty_unwelcomed_slave_family }
+		# scope:slave_family_3 = { add_loyalty = loyalty_unwelcomed_slave_family }
+		#P:A TODO No EU5 equivalent: loyalty loss for the three members of the freedman family (EU5 characters have no loyalty)
+	}
+
+	option = { # A dangerous precedent
+		name = dhe_slave.7.c
+		# current_ruler = { add_popularity = popularity_large }
+		#P:A TODO No EU5 equivalent: +15 popularity for the ruler (EU5 characters have no popularity)
+		hidden_effect = {
+			scope:slave_family_1 = {
+				move_country = scope:dhe_slave_family_country #P:A TODO Approximate: Imperator banish exiled the character to the country; EU5 moves him there
+			}
+			scope:slave_family_2 = {
+				move_country = scope:dhe_slave_family_country #P:A TODO Approximate: Imperator banish exiled the character to the country; EU5 moves him there
+			}
+			scope:slave_family_3 = {
+				move_country = scope:dhe_slave_family_country #P:A TODO Approximate: Imperator banish exiled the character to the country; EU5 moves him there
+			}
+		}
+		custom_tooltip = dhe_slave.7.ct
+		# if = { limit = { tag = ROM } change_law = lex_aelia_sentia }
+		# else = { change_law = republican_citizen_4 }
+		#P:A TODO No EU5 equivalent: adopted the citizenship law republican_citizen_4 (Rome: the Lex Aelia Sentia) restricting manumission (EU5 laws differ)
+		# add_political_influence = subtract_influence_medium
+		#P:A TODO No EU5 equivalent: -15 political influence (EU5 has no political influence)
+	}
+
+	option = { # Only gossip
+		name = dhe_slave.7.d
+		# current_ruler = { add_popularity = subtract_popularity_small }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+		# scope:slave_family_1 = { add_loyalty = loyalty_dismissed_slave_family }
+		# scope:slave_family_2 = { add_loyalty = loyalty_dismissed_slave_family }
+		# scope:slave_family_3 = { add_loyalty = loyalty_dismissed_slave_family }
+		#P:A TODO No EU5 equivalent: loyalty loss for the three members of the freedman family (EU5 characters have no loyalty)
+		# add_political_influence = subtract_influence_small
+		#P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+	}
+}
+
+dhe_slave.8 = { # Unethical Dominus 1
+	type = country_event
+	title = dhe_slave.8.t
+	desc = dhe_slave.8.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		NOT = {
+			has_variable = dhe_slave_unethical_dominus_cooldown
+		}
+		OR = {
+			government_type = government_type:republic
+			government_type = government_type:monarchy
+		}
+		any_character = {
+			is_ruler = no
+			is_alive = yes
+			age_in_years >= 25
+			# wealth > 100 #P:A TODO No EU5 equivalent: the character needed over 100 personal wealth (EU5 characters have no wealth)
+			#P:A Removed: prisoner = no is always true in EU5
+			employer = root
+			NOR = {
+				has_character_modifier = foreign_citizen
+				pa_imp_char_is_religious_trigger = yes
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = dhe_slave_unethical_dominus_cooldown
+			days = 9125 # 25 years
+		}
+		capital = {
+			ordered_neighbor_location = {
+				limit = {
+					has_owner = yes
+				}
+				order_by = num_pop_type:slaves
+				save_scope_as = dhe_slave_scandal_market_flavor_scope
+			}
+		}
+		random_character = {
+			limit = {
+				is_ruler = no
+				is_alive = yes
+				age_in_years >= 25
+				# wealth > 100 #P:A TODO No EU5 equivalent: the character needed over 100 personal wealth (EU5 characters have no wealth)
+				#P:A Removed: prisoner = no is always true in EU5
+				employer = root
+				NOR = {
+					has_character_modifier = foreign_citizen
+					pa_imp_char_is_religious_trigger = yes
+				}
+			}
+			weight = {
+				factor = 1
+				modifier = {
+					factor = 50
+					is_female = no
+				}
+			}
+			save_scope_as = unethical_dominus_scope
+		}
+		ruler = {
+			save_scope_as = unethical_dominus_ruler # left portrait
+		}
+	}
+
+	option = { # A full and fair investigation
+		name = dhe_slave.8.a
+		scope:unethical_dominus_scope = {
+			# if = { limit = { has_any_office = yes } remove_all_offices = yes }
+			#P:A TODO No EU5 equivalent: the accused lost all his offices (EU5 has no offices)
+			# add_loyalty = loyalty_scandal_investigation
+			#P:A TODO No EU5 equivalent: loyalty loss for the accused (EU5 characters have no loyalty)
+			add_character_modifier = {
+				modifier = under_investigation_cmod
+				days = -1
+			}
+			# if = {
+			# 	limit = { is_minor_character = no }
+			# 	scope:unethical_dominus_scope.family = {
+			# 		hidden_effect = {
+			# 			every_family_member = {
+			# 				limit = { NOT = { this = scope:unethical_dominus_scope } age >= 16 employer = ROOT }
+			# 				add_loyalty = loyalty_scandal_investigation
+			# 			}
+			# 		}
+			# 		custom_tooltip = dhe_slave.8.at
+			# 	}
+			# }
+			#P:A TODO No EU5 equivalent: every adult member of the accused's family at court lost loyalty (EU5 characters have no loyalty)
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = -1
+			min = -6000
+		}
+		# add_political_influence = influence_small
+		#P:A TODO No EU5 equivalent: +10 political influence (EU5 has no political influence)
+		hidden_effect = {
+			random_list = {
+				20 = {
+					set_variable = dhe_slave_scandal_innocent_flag
+				}
+				80 = {}
+			}
+		}
+		trigger_event_non_silently = {
+			id = dhe_slave.9
+			days = { 20 30 }
+		}
+	}
+
+	option = { # A token inquiry
+		name = dhe_slave.8.b
+		scope:unethical_dominus_scope = {
+			# add_loyalty = loyalty_token_investigation
+			#P:A TODO No EU5 equivalent: loyalty for the accused (EU5 characters have no loyalty)
+			add_character_modifier = {
+				modifier = under_investigation_cmod
+				days = -1
+			}
+		}
+		set_variable = dhe_slave_scandal_coverup_flag
+		hidden_effect = {
+			random_list = {
+				20 = {
+					set_variable = dhe_slave_scandal_innocent_flag
+				}
+				80 = {}
+			}
+		}
+		trigger_event_non_silently = {
+			id = dhe_slave.9
+			days = { 20 30 }
+		}
+	}
+
+	option = { # Why waste our time on this
+		name = dhe_slave.8.c
+		# current_ruler = { add_corruption = corruption_medium }
+		#P:A TODO No EU5 equivalent: +5 corruption for the ruler (EU5 characters have no corruption)
+		# scope:unethical_dominus_scope = {
+		# 	add_loyalty = loyalty_no_investigation
+		# 	if = {
+		# 		limit = { is_minor_character = no }
+		# 		scope:unethical_dominus_scope.family = {
+		# 			hidden_effect = {
+		# 				every_family_member = {
+		# 					limit = { NOT = { this = scope:unethical_dominus_scope } age >= 16 employer = ROOT }
+		# 					add_loyalty = loyalty_no_investigation
+		# 				}
+		# 			}
+		# 			custom_tooltip = dhe_slave.8.ct
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: loyalty for the accused and every adult member of his family at court (EU5 characters have no loyalty)
+		add_country_modifier = {
+			modifier = dhe_slave_scandal_ignored_cm
+			days = 3650 # 10 years
+		}
+
+		ai_chance = {
+			base = 0
+		}
+	}
+}
+
+dhe_slave.9 = { # Unethical Dominus 2
+	type = country_event
+	title = dhe_slave.9.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Guilty Investigation
+				trigger = {
+					NOR = {
+						has_variable = dhe_slave_scandal_coverup_flag
+						has_variable = dhe_slave_scandal_innocent_flag
+					}
+				}
+				desc = dhe_slave.9.desc_1
+			}
+			triggered_desc = { # Guilty Cover-up
+				trigger = {
+					has_variable = dhe_slave_scandal_coverup_flag
+					NOT = { has_variable = dhe_slave_scandal_innocent_flag }
+				}
+				desc = dhe_slave.9.desc_2
+			}
+			triggered_desc = { # Innocent Investigation
+				trigger = {
+					NOT = { has_variable = dhe_slave_scandal_coverup_flag }
+					has_variable = dhe_slave_scandal_innocent_flag
+				}
+				desc = dhe_slave.9.desc_3
+			}
+			triggered_desc = { # Innocent Cover-up
+				desc = dhe_slave.9.desc_4
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		exists = scope:unethical_dominus_scope
+		scope:unethical_dominus_scope = {
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			employer = root
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = unethical_dominus_ruler # left portrait
+		}
+	}
+
+	option = { # Leave no stone unturned
+		name = dhe_slave.9.a
+		trigger = {
+			NOT = { has_variable = dhe_slave_scandal_coverup_flag }
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_variable = dhe_slave_scandal_innocent_flag
+				}
+			}
+			# scope:unethical_dominus_scope = {
+			# 	add_popularity = subtract_popularity_medium
+			# 	add_loyalty = loyalty_rigorous_investigation_1
+			# }
+			#P:A TODO No EU5 equivalent: -10 popularity and loyalty loss for the accused (EU5 characters have no popularity or loyalty)
+			# scope:unethical_dominus_scope = { if = { limit = { is_minor_character = no } scope:unethical_dominus_scope.family = { add_prestige = subtract_prestige_medium } } }
+			#P:A TODO No EU5 equivalent: -15 prestige for the accused's family (EU5 dynasties have no prestige)
+			hidden_effect = {
+				random_list = {
+					25 = {
+						set_variable = dhe_slave_scandal_flight_flag
+					}
+					75 = {}
+				}
+			}
+		}
+		else = {
+			# current_ruler = { add_popularity = popularity_small }
+			#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+			# scope:unethical_dominus_scope = {
+			# 	add_loyalty = loyalty_rigorous_investigation_2
+			# 	if = { limit = { is_minor_character = no } family = { add_prestige = prestige_small } }
+			# }
+			#P:A TODO No EU5 equivalent: loyalty for the accused and +10 prestige for his family (EU5 characters have no loyalty, dynasties no prestige)
+		}
+		trigger_event_non_silently = {
+			id = dhe_slave.11
+			days = { 20 30 }
+		}
+	}
+
+	option = { # Scale of problem exaggerated
+		name = dhe_slave.9.b
+		trigger = {
+			has_variable = dhe_slave_scandal_coverup_flag
+		}
+		# current_ruler = { add_popularity = popularity_small }
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+		# if = {
+		# 	limit = { NOT = { has_variable = dhe_slave_scandal_innocent_flag } }
+		# 	scope:unethical_dominus_scope = {
+		# 		add_popularity = subtract_popularity_medium
+		# 		if = { limit = { is_minor_character = no } family = { add_prestige = subtract_prestige_large } }
+		# 	}
+		# }
+		# else = {
+		# 	scope:unethical_dominus_scope = {
+		# 		add_popularity = popularity_medium
+		# 		if = { limit = { is_minor_character = no } family = { add_prestige = prestige_small } }
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: if guilty -10 popularity for the accused and -35 prestige for his family, if innocent +10 popularity and +10 family prestige (EU5 characters have no popularity, dynasties no prestige)
+		trigger_event_non_silently = {
+			id = dhe_slave.11
+			days = { 20 30 }
+		}
+	}
+
+	option = { # Precautionary imprisonment
+		name = dhe_slave.9.c
+		trigger = {
+			NOR = {
+				has_variable = dhe_slave_scandal_coverup_flag
+				has_variable = dhe_slave_scandal_innocent_flag
+			}
+		}
+		# scope:unethical_dominus_scope = {
+		# 	add_popularity = subtract_popularity_large
+		# 	if = {
+		# 		limit = { is_minor_character = no }
+		# 		scope:unethical_dominus_scope.family = {
+		# 			hidden_effect = {
+		# 				every_family_member = {
+		# 					limit = { NOT = { this = scope:unethical_dominus_scope } age >= 16 employer = ROOT }
+		# 					add_loyalty = loyalty_precautionary_imprisonment
+		# 				}
+		# 			}
+		# 			add_prestige = subtract_prestige_large
+		# 			custom_tooltip = dhe_slave.9.ct
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: -15 popularity for the accused, loyalty loss for every adult member of his family at court and -35 prestige for the family (EU5 characters have no popularity or loyalty, dynasties no prestige)
+		set_variable = dhe_slave_scandal_imprisoned_flag
+		# imprison = { target = scope:unethical_dominus_scope }
+		#P:A TODO No EU5 equivalent: the accused was imprisoned (EU5 has no imprisoned characters); the flag above still steers the trial outcome
+		# add_tyranny = tyranny_medium
+		#P:A TODO No EU5 equivalent: +3 tyranny (EU5 has no tyranny)
+		trigger_event_non_silently = {
+			id = dhe_slave.11
+			days = { 20 30 }
+		}
+	}
+
+	option = { # Smear innocent defendant
+		name = dhe_slave.9.d
+		trigger = {
+			has_variable = dhe_slave_scandal_innocent_flag
+		}
+		# current_ruler = { add_corruption = corruption_medium }
+		#P:A TODO No EU5 equivalent: +5 corruption for the ruler (EU5 characters have no corruption)
+		# scope:unethical_dominus_scope = {
+		# 	add_loyalty = loyalty_smeared_defendent
+		# 	add_popularity = subtract_popularity_medium
+		# 	if = { limit = { is_minor_character = no } scope:unethical_dominus_scope.family = { add_prestige = subtract_prestige_large } }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty loss and -10 popularity for the accused, -35 prestige for his family (EU5 characters have no loyalty or popularity, dynasties no prestige)
+		set_variable = dhe_slave_scandal_smear_flag
+		trigger_event_non_silently = {
+			id = dhe_slave.11
+			days = { 20 30 }
+		}
+	}
+
+	option = { # Tamper with evidence
+		name = dhe_slave.9.e
+		trigger = {
+			has_variable = dhe_slave_scandal_coverup_flag
+			NOT = {
+				has_variable = dhe_slave_scandal_innocent_flag
+			}
+		}
+		# current_ruler = { add_popularity = subtract_popularity_small }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+		# scope:unethical_dominus_scope = {
+		# 	add_loyalty = loyalty_evidence_tampering
+		# 	add_popularity = subtract_popularity_small
+		# 	if = { limit = { is_minor_character = no } scope:unethical_dominus_scope.family = { add_prestige = subtract_prestige_small } }
+		# }
+		#P:A TODO No EU5 equivalent: loyalty and -5 popularity for the accused, -10 prestige for his family (EU5 characters have no loyalty or popularity, dynasties no prestige)
+		set_variable = dhe_slave_scandal_tamper_flag
+		trigger_event_non_silently = {
+			id = dhe_slave.11
+			days = { 20 30 }
+		}
+	}
+
+	option = { # Extort the defendant for leniency (indecent rulers, guilty defendant)
+		name = dhe_slave.9.f
+		# highlight = yes (no EU5 option field; it only highlighted the option)
+		trigger = {
+			NOR = {
+				ruler ?= {
+					pa_imp_char_is_decent_trigger = yes
+				}
+				has_variable = dhe_slave_scandal_innocent_flag
+			}
+		}
+		# current_ruler = { add_corruption = corruption_small }
+		#P:A TODO No EU5 equivalent: +2 corruption for the ruler (EU5 characters have no corruption)
+		# scope:unethical_dominus_scope = {
+		# 	add_popularity = subtract_popularity_small
+		# 	if = { limit = { is_minor_character = no } family = { add_prestige = subtract_prestige_small } }
+		# }
+		#P:A TODO No EU5 equivalent: -5 popularity for the accused and -10 prestige for his family (EU5 characters have no popularity, dynasties no prestige)
+		custom_tooltip = dhe_slave.9.ft
+		trigger_event_non_silently = {
+			id = dhe_slave.10
+			days = { 3 5 }
+		}
+	}
+}
+
+dhe_slave.10 = { # Slave Scandal - Extort
+	type = country_event
+	title = dhe_slave.10.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Refused
+				trigger = {
+					NOT = { has_variable = dhe_slave_scandal_extort_success_flag }
+				}
+				desc = dhe_slave.10.desc_1
+			}
+			triggered_desc = { # Accepted
+				desc = dhe_slave.10.desc_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:unethical_dominus_scope
+		scope:unethical_dominus_scope = {
+			is_alive = yes
+			#P:A Removed: prisoner = no is always true in EU5
+			employer = root
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = unethical_dominus_ruler # left portrait
+		}
+		hidden_effect = {
+			random_list = {
+				50 = {
+					set_variable = dhe_slave_scandal_extort_success_flag
+				}
+				50 = {
+				}
+			}
+		}
+	}
+
+	option = { # Extortion succeeds
+		name = dhe_slave.10.a
+		trigger = {
+			has_variable = dhe_slave_scandal_extort_success_flag
+		}
+		# scope:unethical_dominus_scope = { add_gold = { value = wealth multiply = -0.5 } }
+		# current_ruler = {
+		# 	add_gold = { value = scope:unethical_dominus_scope.wealth multiply = 0.5 }
+		# 	add_corruption = corruption_medium
+		# }
+		# scope:unethical_dominus_scope = { add_corruption = corruption_medium }
+		#P:A TODO No EU5 equivalent: half of the accused's personal wealth went to the ruler, and both gained +5 corruption (EU5 characters have no wealth or corruption)
+		set_variable = dhe_slave_scandal_tamper_flag
+		trigger_event_non_silently = {
+			id = dhe_slave.11
+			days = { 15 20 }
+		}
+		remove_variable = dhe_slave_scandal_extort_success_flag
+	}
+
+	option = { # Extortion fails
+		name = dhe_slave.10.b
+		trigger = {
+			NOT = { has_variable = dhe_slave_scandal_extort_success_flag }
+		}
+		# if = {
+		# 	limit = {
+		# 		current_ruler = { can_get_rivals = yes }
+		# 		scope:unethical_dominus_scope = { NOT = { is_rival = root.current_ruler } can_get_rivals = yes }
+		# 	}
+		# 	current_ruler = { add_rival = scope:unethical_dominus_scope }
+		# }
+		#P:A TODO No EU5 equivalent: the ruler and the accused became rivals (EU5 characters have no rivals)
+		# add_political_influence = subtract_influence_small
+		#P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		trigger_event_non_silently = {
+			id = dhe_slave.11
+			days = { 15 20 }
+		}
+	}
+}
+
+dhe_slave.11 = { # Unethical Dominus 3
+	type = country_event
+	title = dhe_slave.11.t
+	desc = {
+		first_valid = {
+			triggered_desc = { # Flight
+				trigger = {
+					has_variable = dhe_slave_scandal_flight_flag
+					NOT = { has_variable = dhe_slave_scandal_innocent_flag }
+				}
+				desc = dhe_slave.11.desc_1
+			}
+			triggered_desc = { # Innocent investigation
+				trigger = {
+					has_variable = dhe_slave_scandal_innocent_flag
+					NOR = {
+						has_variable = dhe_slave_scandal_coverup_flag
+						has_variable = dhe_slave_scandal_smear_flag
+					}
+				}
+				desc = dhe_slave.11.desc_2
+			}
+			triggered_desc = { # Innocent Cover up
+				trigger = {
+					has_variable = dhe_slave_scandal_innocent_flag
+					has_variable = dhe_slave_scandal_coverup_flag
+					NOT = {
+						has_variable = dhe_slave_scandal_smear_flag
+					}
+				}
+				desc = dhe_slave.11.desc_3
+			}
+			triggered_desc = { # Smear
+				trigger = {
+					has_variable = dhe_slave_scandal_innocent_flag
+					has_variable = dhe_slave_scandal_smear_flag
+				}
+				desc = dhe_slave.11.desc_4
+			}
+			triggered_desc = { # Tamper
+				trigger = {
+					has_variable = dhe_slave_scandal_tamper_flag
+				}
+				desc = dhe_slave.11.desc_5
+			}
+			triggered_desc = { # Guilty Cover up
+				trigger = {
+					NOR = {
+						has_variable = dhe_slave_scandal_innocent_flag
+						has_variable = dhe_slave_scandal_tamper_flag
+						has_variable = dhe_slave_scandal_flight_flag
+					}
+					has_variable = dhe_slave_scandal_coverup_flag
+				}
+				desc = dhe_slave.11.desc_6
+			}
+			triggered_desc = { # Guilty investigation
+				desc = dhe_slave.11.desc_7
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = ruler
+		exists = capital # Imperator has_land = yes
+		exists = scope:unethical_dominus_scope
+		scope:unethical_dominus_scope = {
+			is_alive = yes
+			employer = root
+			is_ruler = no
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = unethical_dominus_ruler # left portrait
+		}
+		hidden_effect = {
+			scope:unethical_dominus_scope = {
+				remove_character_modifier = under_investigation_cmod
+			}
+		}
+		if = {
+			limit = {
+				any_country_in_diplomatic_range = { # Imperator any_country with in_diplomatic_range = ROOT
+					NOT = { this = root } # the accused flees abroad
+					NOT = { is_subject_of = root }
+				}
+			}
+			random_country_in_diplomatic_range = {
+				limit = {
+					NOT = { this = root }
+					NOT = { is_subject_of = root }
+				}
+				weight = {
+					factor = 1
+					modifier = {
+						factor = 50
+						culture = root.culture # Imperator primary_culture
+					}
+					modifier = {
+						factor = 50
+						religion = root.religion
+					}
+				}
+				save_scope_as = dhe_slave_flight_country_scope
+			}
+		}
+	}
+
+	option = { # Innocent
+		name = dhe_slave.11.a
+		trigger = {
+			has_variable = dhe_slave_scandal_innocent_flag
+			NOR = {
+				has_variable = dhe_slave_scandal_imprisoned_flag
+				has_variable = dhe_slave_scandal_smear_flag
+			}
+		}
+		if = {
+			limit = {
+				has_variable = dhe_slave_scandal_coverup_flag
+			}
+			# scope:unethical_dominus_scope = {
+			# 	add_loyalty = loyalty_found_innocent
+			# 	add_popularity = popularity_large
+			# 	if = { limit = { is_minor_character = no } scope:unethical_dominus_scope.family = { add_prestige = prestige_medium } }
+			# }
+			#P:A TODO No EU5 equivalent: loyalty and +15 popularity for the acquitted, +15 prestige for his family (EU5 characters have no loyalty or popularity, dynasties no prestige)
+			add_country_modifier = {
+				modifier = dhe_slave_scandal_unfair_innocent_cm
+				days = 3650 # 10 years
+			}
+			remove_variable = dhe_slave_scandal_innocent_flag
+			remove_variable = dhe_slave_scandal_coverup_flag
+		}
+		else = {
+			# current_ruler = { add_popularity = popularity_medium }
+			#P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+			# scope:unethical_dominus_scope = {
+			# 	add_loyalty = loyalty_found_innocent
+			# 	add_popularity = popularity_large
+			# 	if = { limit = { is_minor_character = no } scope:unethical_dominus_scope.family = { add_prestige = prestige_medium } }
+			# }
+			#P:A TODO No EU5 equivalent: loyalty and +15 popularity for the acquitted, +15 prestige for his family (EU5 characters have no loyalty or popularity, dynasties no prestige)
+			add_country_modifier = {
+				modifier = dhe_slave_scandal_fair_trial_cm
+				days = 3650 # 10 years
+			}
+			remove_variable = dhe_slave_scandal_innocent_flag
+		}
+	}
+
+	option = { # Guilty slap on wrist
+		name = dhe_slave.11.b
+		trigger = {
+			NOT = { has_variable = dhe_slave_scandal_tamper_flag }
+			AND = {
+				has_variable = dhe_slave_scandal_coverup_flag
+				NOT = {
+					has_variable = dhe_slave_scandal_innocent_flag
+				}
+			}
+		}
+		# current_ruler = { add_popularity = subtract_popularity_medium }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+		# scope:unethical_dominus_scope = {
+		# 	add_popularity = subtract_popularity_medium
+		# 	add_loyalty = loyalty_trial_fine
+		# 	if = { limit = { is_minor_character = no } family = { add_prestige = subtract_prestige_small } }
+		# }
+		# scope:unethical_dominus_scope.family = {
+		# 	hidden_effect = {
+		# 		every_family_member = {
+		# 			limit = { NOT = { this = scope:unethical_dominus_scope } age >= 16 employer = ROOT }
+		# 			add_loyalty = loyalty_tarnished_family
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: -10 popularity and loyalty loss for the convicted, -10 prestige for his family and loyalty loss for its adult members at court (EU5 characters have no popularity or loyalty, dynasties no prestige)
+		# add_treasury = { value = scope:unethical_dominus_scope.wealth multiply = 0.2 max = 50 }
+		# hidden_effect = { scope:unethical_dominus_scope = { add_gold = { value = wealth multiply = -0.2 min = -50 } } }
+		#P:A TODO No EU5 equivalent: the convicted paid 20% of his personal wealth (at most 50 gold) into the treasury (EU5 characters have no wealth)
+		add_country_modifier = {
+			modifier = dhe_slave_scandal_unfair_trial_cm
+			days = 3650 # 10 years
+		}
+	}
+
+	option = { # Guilty
+		name = dhe_slave.11.c
+		trigger = {
+			NOR = {
+				has_variable = dhe_slave_scandal_coverup_flag
+				has_variable = dhe_slave_scandal_innocent_flag
+				has_variable = dhe_slave_scandal_flight_flag
+				has_variable = dhe_slave_scandal_tamper_flag
+			}
+		}
+		scope:unethical_dominus_scope = {
+			# add_loyalty = loyalty_found_guilty
+			#P:A TODO No EU5 equivalent: loyalty loss for the convicted (EU5 characters have no loyalty)
+			add_character_modifier = {
+				modifier = disgraced_cmod
+				days = 5475 # 15 years
+			}
+			# if = { limit = { is_minor_character = no } scope:unethical_dominus_scope.family = { add_prestige = subtract_prestige_large } }
+			#P:A TODO No EU5 equivalent: -35 prestige for the convicted's family (EU5 dynasties have no prestige)
+		}
+		# if = {
+		# 	limit = { scope:unethical_dominus_scope = { employer = root prisoner = yes } }
+		# 	release_prisoner = { target = scope:unethical_dominus_scope }
+		# }
+		#P:A TODO No EU5 equivalent: an imprisoned convict was released (EU5 has no imprisoned characters)
+		# scope:unethical_dominus_scope.family = {
+		# 	hidden_effect = {
+		# 		every_family_member = {
+		# 			limit = { NOT = { this = scope:unethical_dominus_scope } age >= 16 employer = ROOT }
+		# 			add_loyalty = loyalty_tarnished_family
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: loyalty loss for the adult members of the convicted's family at court (EU5 characters have no loyalty)
+		# add_treasury = { value = scope:unethical_dominus_scope.wealth multiply = 0.25 max = 50 }
+		# hidden_effect = { scope:unethical_dominus_scope = { add_gold = { value = wealth multiply = -0.25 min = -50 } } }
+		#P:A TODO No EU5 equivalent: the convicted paid 25% of his personal wealth (at most 50 gold) into the treasury (EU5 characters have no wealth)
+		add_country_modifier = {
+			modifier = dhe_slave_scandal_fair_trial_cm
+			days = 3650 # 10 years
+		}
+	}
+
+	option = { # Guilty harsh - imprisonment
+		name = dhe_slave.11.d
+		trigger = {
+			#P:A Removed: scope:unethical_dominus_scope = { prisoner = no } is always true in EU5
+			NOR = {
+				has_variable = dhe_slave_scandal_imprisoned_flag
+				has_variable = dhe_slave_scandal_innocent_flag
+				has_variable = dhe_slave_scandal_coverup_flag
+				has_variable = dhe_slave_scandal_flight_flag
+				has_variable = dhe_slave_scandal_tamper_flag
+			}
+		}
+		scope:unethical_dominus_scope = {
+			# employer = { imprison = { target = scope:unethical_dominus_scope } }
+			#P:A TODO No EU5 equivalent: the convicted was imprisoned (EU5 has no imprisoned characters)
+			# add_loyalty = loyalty_guilty_imprisoned
+			#P:A TODO No EU5 equivalent: loyalty loss for the convicted (EU5 characters have no loyalty)
+			add_character_modifier = {
+				modifier = completely_disgraced_cmod
+				days = 5475 # 15 years
+			}
+			# if = {
+			# 	limit = { is_minor_character = no }
+			# 	scope:unethical_dominus_scope.family = {
+			# 		custom_tooltip = dhe_slave.11.dt
+			# 		add_prestige = subtract_prestige_huge
+			# 		hidden_effect = {
+			# 			every_family_member = {
+			# 				limit = { NOT = { this = scope:unethical_dominus_scope } age >= 16 employer = ROOT }
+			# 				add_loyalty = loyalty_tarnished_family
+			# 			}
+			# 		}
+			# 	}
+			# }
+			#P:A TODO No EU5 equivalent: -100 prestige for the convicted's family and loyalty loss for its adult members at court (EU5 dynasties have no prestige, characters no loyalty)
+		}
+		# add_tyranny = tyranny_small
+		#P:A TODO No EU5 equivalent: +1 tyranny (EU5 has no tyranny)
+		add_country_modifier = {
+			modifier = dhe_slave_scandal_fair_trial_harsh_cm
+			days = 3650 # 10 years
+		}
+	}
+
+	option = { # Imprisoned - execute
+		name = dhe_slave.11.e
+		# highlight = yes (no EU5 option field; it only highlighted the option)
+		trigger = {
+			NOT = { has_variable = dhe_slave_scandal_smear_flag }
+			OR = {
+				# AND = {
+				# 	exists = current_ruler
+				# 	root.current_ruler = { is_rival = scope:unethical_dominus_scope }
+				# }
+				#P:A TODO No EU5 equivalent: also available when the ruler was the accused's rival (EU5 characters have no rivals)
+				AND = {
+					exists = ruler
+					has_variable = dhe_slave_scandal_imprisoned_flag
+					root.ruler = {
+						pa_imp_char_is_decent_trigger = yes
+					}
+				}
+			}
+			scope:unethical_dominus_scope = {
+				is_alive = yes
+			}
+		}
+		hidden_effect = {
+			kill_character = {
+				target = scope:unethical_dominus_scope
+				killer = root.ruler
+				reason = execution # Imperator death_execution
+			}
+		}
+		# scope:unethical_dominus_scope = {
+		# 	if = {
+		# 		limit = { is_minor_character = no }
+		# 		scope:unethical_dominus_scope.family = {
+		# 			custom_tooltip = dhe_slave.11.et1
+		# 			add_prestige = subtract_prestige_huge
+		# 			hidden_effect = {
+		# 				every_family_member = {
+		# 					limit = { NOT = { this = scope:unethical_dominus_scope } age >= 16 employer = ROOT }
+		# 					add_loyalty = loyalty_executed_family
+		# 				}
+		# 			}
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: -100 prestige for the executed's family and loyalty loss for its adult members at court (EU5 dynasties have no prestige, characters no loyalty)
+		# add_tyranny = tyranny_large
+		#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		add_country_modifier = {
+			modifier = dhe_slave_scandal_trial_execute_cm
+			days = 3650 # 10 years
+		}
+		if = {
+			limit = {
+				ruler ?= {
+					pa_imp_char_is_decent_trigger = yes
+				}
+			}
+			custom_tooltip = dhe_slave.11.et2
+		}
+		else = {
+			custom_tooltip = dhe_slave.11.et3
+		}
+		remove_variable = dhe_slave_scandal_imprisoned_flag
+	}
+
+	option = { # Flight
+		name = dhe_slave.11.f
+		trigger = {
+			has_variable = dhe_slave_scandal_flight_flag
+			NOT = { has_variable = dhe_slave_scandal_imprisoned_flag }
+		}
+		# current_ruler = { add_popularity = subtract_popularity_small }
+		#P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+		if = {
+			limit = {
+				exists = scope:dhe_slave_flight_country_scope # Imperator any_country = { this = scope:dhe_slave_flight_country_scope }
+			}
+			scope:unethical_dominus_scope = {
+				move_country = scope:dhe_slave_flight_country_scope #P:A TODO Approximate: Imperator banish exiled the character to the country; EU5 moves him there
+				add_character_modifier = {
+					modifier = fugitive_cmod
+					days = -1
+				}
+			}
+		}
+		else = {
+			hidden_effect = {
+				kill_character = { #P:A TODO Approximate: Imperator death reason "obscurity"; EU5 vanished used
+					target = scope:unethical_dominus_scope
+					killer = root.ruler
+					reason = vanished
+				}
+			}
+		}
+		# add_treasury = { value = scope:unethical_dominus_scope.wealth multiply = 0.33 }
+		# hidden_effect = { scope:unethical_dominus_scope = { add_gold = { value = wealth multiply = -0.33 } } }
+		#P:A TODO No EU5 equivalent: a third of the fugitive's personal wealth went to the treasury (EU5 characters have no wealth)
+		add_country_modifier = {
+			modifier = dhe_slave_scandal_escaped_trial_cm
+			days = 3650 # 10 years
+		}
+		# add_political_influence = subtract_influence_small
+		#P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		remove_variable = dhe_slave_scandal_flight_flag
+	}
+
+	option = { # Flight charity
+		name = dhe_slave.11.g
+		trigger = {
+			has_variable = dhe_slave_scandal_flight_flag
+			NOT = { has_variable = dhe_slave_scandal_imprisoned_flag }
+		}
+		# current_ruler = { add_popularity = popularity_medium }
+		#P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+		if = {
+			limit = {
+				exists = scope:dhe_slave_flight_country_scope # Imperator any_country = { this = scope:dhe_slave_flight_country_scope }
+			}
+			scope:unethical_dominus_scope = {
+				move_country = scope:dhe_slave_flight_country_scope #P:A TODO Approximate: Imperator banish exiled the character to the country; EU5 moves him there
+				add_character_modifier = {
+					modifier = fugitive_cmod
+					days = -1
+				}
+			}
+		}
+		else = {
+			hidden_effect = {
+				kill_character = { #P:A TODO Approximate: Imperator death reason "obscurity"; EU5 vanished used
+					target = scope:unethical_dominus_scope
+					killer = root.ruler
+					reason = vanished
+				}
+			}
+		}
+		hidden_effect = {
+			create_character = {
+				female = no
+				culture = root.culture
+				religion = root.religion
+				estate = estate_type:peasants_estate #P:A TODO Approximate: Imperator created a character with no social class; slaves are no EU5 estate, so the freed slave joins the peasants
+				save_scope_as = dhe_slave_freed_slave_scope
+			}
+			scope:dhe_slave_freed_slave_scope = {
+				# set_as_minor_character = THIS
+				#P:A TODO Approximate: Imperator made the freed slave a minor character (no family); EU5 create_character without a dynasty is assumed to do the same
+				pa_imp_character_democratic_party_conviction_effect = {
+					VALUE = 30
+				}
+				add_character_modifier = {
+					modifier = ex_slave_cmod
+					days = -1
+				}
+			}
+			# scope:unethical_dominus_scope = { add_gold = { value = wealth multiply = -0.33 } }
+			#P:A TODO No EU5 equivalent: the fugitive lost a third of his personal wealth to his freed slaves (EU5 characters have no wealth)
+		}
+		custom_tooltip = dhe_slave.11.gt
+		add_country_modifier = {
+			modifier = dhe_slave_scandal_escaped_charity_cm
+			days = 3650 # 10 years
+		}
+		# add_political_influence = subtract_influence_small
+		#P:A TODO No EU5 equivalent: -10 political influence (EU5 has no political influence)
+		remove_variable = dhe_slave_scandal_flight_flag
+	}
+
+	option = { # Smeared
+		name = dhe_slave.11.h
+		trigger = {
+			has_variable = dhe_slave_scandal_smear_flag
+			NOT = { has_variable = dhe_slave_scandal_imprisoned_flag }
+		}
+		# current_ruler = { add_popularity = popularity_small }
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+		scope:unethical_dominus_scope = {
+			# add_popularity = subtract_popularity_medium
+			# add_loyalty = loyalty_trial_smeared
+			#P:A TODO No EU5 equivalent: -10 popularity and loyalty loss for the smeared defendant (EU5 characters have no popularity or loyalty)
+			add_character_modifier = {
+				modifier = disgraced_cmod
+				days = 5475 # 15 years
+			}
+		}
+		# if = {
+		# 	limit = {
+		# 		current_ruler = { can_get_rivals = yes }
+		# 		scope:unethical_dominus_scope = { NOT = { is_rival = root.current_ruler } can_get_rivals = yes }
+		# 	}
+		# 	scope:unethical_dominus_scope = { add_rival = root.current_ruler }
+		# }
+		#P:A TODO No EU5 equivalent: the defendant became the ruler's rival (EU5 characters have no rivals)
+		# scope:unethical_dominus_scope = { if = { limit = { is_minor_character = no } family = { add_prestige = subtract_prestige_medium } } }
+		# scope:unethical_dominus_scope.family = {
+		# 	hidden_effect = {
+		# 		every_family_member = {
+		# 			limit = { NOT = { this = scope:unethical_dominus_scope } age >= 16 employer = ROOT }
+		# 			add_loyalty = loyalty_tarnished_family
+		# 		}
+		# 	}
+		# }
+		# custom_tooltip = dhe_slave.11.ht
+		#P:A TODO No EU5 equivalent: -15 prestige for the defendant's family and loyalty loss for its adult members at court (EU5 dynasties have no prestige, characters no loyalty)
+		# add_treasury = { value = scope:unethical_dominus_scope.wealth multiply = 0.2 }
+		# hidden_effect = { scope:unethical_dominus_scope = { add_gold = { value = wealth multiply = -0.2 } } }
+		#P:A TODO No EU5 equivalent: the defendant paid 20% of his personal wealth into the treasury (EU5 characters have no wealth)
+		add_country_modifier = {
+			modifier = dhe_slave_scandal_smeared_cm
+			days = 3650 # 10 years
+		}
+		if = {
+			limit = {
+				has_variable = dhe_slave_scandal_coverup_flag
+			}
+			remove_variable = dhe_slave_scandal_coverup_flag
+		}
+	}
+
+	option = { # Tampered
+		name = dhe_slave.11.i
+		trigger = {
+			has_variable = dhe_slave_scandal_tamper_flag
+			NOT = { has_variable = dhe_slave_scandal_flight_flag }
+		}
+		# if = {
+		# 	limit = {
+		# 		current_ruler = { can_get_friends = yes NOT = { is_friend = scope:unethical_dominus_scope } }
+		# 		scope:unethical_dominus_scope = { can_get_friends = yes }
+		# 	}
+		# 	scope:unethical_dominus_scope = { add_friend = root.current_ruler }
+		# }
+		#P:A TODO No EU5 equivalent: the acquitted became the ruler's friend (EU5 characters have no friends)
+		# current_ruler = { add_popularity = subtract_popularity_medium }
+		#P:A TODO No EU5 equivalent: -10 popularity for the ruler (EU5 characters have no popularity)
+		# scope:unethical_dominus_scope = {
+		# 	add_popularity = popularity_medium
+		# 	add_loyalty = loyalty_trial_tampered
+		# 	if = { limit = { is_minor_character = no } family = { add_prestige = subtract_prestige_medium } }
+		# }
+		# scope:unethical_dominus_scope.family = {
+		# 	hidden_effect = {
+		# 		every_family_member = {
+		# 			limit = { NOT = { this = scope:unethical_dominus_scope } age >= 16 employer = ROOT }
+		# 			add_loyalty = loyalty_trial_helped
+		# 		}
+		# 	}
+		# }
+		# custom_tooltip = dhe_slave.11.it
+		#P:A TODO No EU5 equivalent: +10 popularity and loyalty for the acquitted, -15 prestige for his family and loyalty for its adult members at court (EU5 characters have no popularity or loyalty, dynasties no prestige)
+		add_country_modifier = {
+			modifier = dhe_slave_scandal_unfair_trial_cm
+			days = 3650 # 10 years
+		}
+		if = {
+			limit = {
+				has_variable = dhe_slave_scandal_coverup_flag
+			}
+			remove_variable = dhe_slave_scandal_coverup_flag
+		}
+		remove_variable = dhe_slave_scandal_tamper_flag
 	}
 }

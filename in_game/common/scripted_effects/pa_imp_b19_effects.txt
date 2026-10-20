@@ -1,0 +1,636 @@
+﻿# Imperator scripted effects for batch b19 of the Invictus/Indomita event import (2026-10-20).
+
+#P:A Imported from Invictus: good_zeal_trait_effect (common/scripted_effects/00_character_traits_effects.txt). Character scope.
+# Gives the character a random zeal-related personality trait it does not have yet.
+pa_imp_good_zeal_trait_effect = {
+	random_list = {
+		# 100 = { trigger = { NOR = { number_of_personality_traits > max_number_of_traits_svalue has_trait = obsessive } } add_trait = obsessive }
+		#P:A TODO No EU5 equivalent: trait "obsessive" (EU5 has no such trait)
+		100 = {
+			trigger = {
+				NOR = {
+					num_of_traits_of_category = { type = ruler value > 4 } #P:A TODO Approximate: Imperator number_of_personality_traits > max_number_of_traits_svalue (4); EU5 counts ruler-category traits
+					has_trait = pious
+				}
+			}
+			add_trait = trait:pious
+		}
+		# 100 = { trigger = { NOR = { number_of_personality_traits > max_number_of_traits_svalue has_trait = self_controlled } } add_trait = self_controlled }
+		#P:A TODO No EU5 equivalent: trait "self_controlled" (EU5 has no such trait)
+		100 = {
+			trigger = {
+				NOR = {
+					num_of_traits_of_category = { type = ruler value > 4 } #P:A TODO Approximate: Imperator number_of_personality_traits > max_number_of_traits_svalue (4); EU5 counts ruler-category traits
+					has_trait = zealot
+				}
+			}
+			add_trait = trait:zealot # Imperator zealous
+		}
+		# 100 = { trigger = { NOR = { number_of_personality_traits > max_number_of_traits_svalue has_trait = xenophobic } } add_trait = xenophobic }
+		#P:A TODO No EU5 equivalent: trait "xenophobic" (EU5 has no such trait)
+		1 = { # Fallback
+			trigger = {
+				num_of_traits_of_category = { type = ruler value > 4 }
+			}
+			# add_zeal = 1
+			#P:A TODO No EU5 equivalent: +1 zeal (EU5 characters have no zeal)
+		}
+	}
+}
+
+#P:A Imported from Invictus: character_remove_a_bad_leader_trait_effect (vanilla Imperator common/scripted_effects/00_event_effects.txt). Character scope.
+# Removes the first bad leadership trait found.
+pa_imp_character_remove_a_bad_leader_trait_effect = {
+	# if = { limit = { has_trait = tactically_inflexible } remove_trait = tactically_inflexible }
+	# else_if = { limit = { has_trait = arbitrary } remove_trait = arbitrary }
+	#P:A TODO No EU5 equivalent: Imperator traits "tactically_inflexible" and "arbitrary" (checked first in Imperator)
+	if = {
+		limit = {
+			has_trait = cruel
+		}
+		remove_trait = trait:cruel
+	}
+	else_if = {
+		limit = {
+			has_trait = corrupt
+		}
+		remove_trait = trait:corrupt
+	}
+	# else_if = { limit = { has_trait = selfish } remove_trait = selfish }
+	#P:A TODO No EU5 equivalent: Imperator trait "selfish"
+	else_if = {
+		limit = {
+			has_trait = deceitful
+		}
+		remove_trait = trait:deceitful
+	}
+	else_if = {
+		limit = {
+			has_trait = lazy
+		}
+		remove_trait = trait:lazy
+	}
+	# else_if = { limit = { has_trait = foolish } remove_trait = foolish }
+	#P:A TODO No EU5 equivalent: Imperator trait "foolish"
+	else_if = {
+		limit = {
+			has_trait = greedy # Imperator miserly
+		}
+		remove_trait = trait:greedy
+	}
+}
+
+############################################################################################################
+# Release effects of the Achaean (00_achaea_effects.txt) and Arcadian (00_arkadia_effects.txt) city states.
+# Their events (dhe_achaean_league.7, flavor_arcadia.1) were not imported (tag-bound); the effects are kept for reuse.
+############################################################################################################
+
+#P:A Imported from Invictus: release_AIG_effect (common/scripted_effects/00_achaea_effects.txt). Country scope.
+# Releases Aigion (Imperator p:444) as its own country if we own it.
+pa_imp_release_AIG_effect = {
+	if = {
+		limit = {
+			#NOT = { exists = c:AIG }
+			owns = location:vostitsa # Imperator p:444 Aigion
+		}
+		custom_tooltip = dhe_achaean_league.7.AIG.TT
+		hidden_effect = {
+			location:vostitsa = {
+				create_country_from_location = { #P:A TODO Approximate: Imperator created the country with tag AIG (change_country_tag, its flag, colour and heritage aigion_heritage); EU5 creates a new country named with the mod's AIG loc
+					name = {
+						name = AIG
+						adjective = AIG_ADJ
+					}
+					save_scope_as = aigion_country
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek cities)
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: release_DYM_effect (common/scripted_effects/00_achaea_effects.txt). Country scope.
+# Releases Dyme (Imperator p:7890) as its own country if we own it.
+pa_imp_release_DYM_effect = {
+	if = {
+		limit = {
+			#NOT = { exists = c:DYM }
+			owns = location:chalandritsa # Imperator p:7890 Dyme
+		}
+		custom_tooltip = dhe_achaean_league.7.DYM.TT
+		hidden_effect = {
+			location:chalandritsa = {
+				create_country_from_location = { #P:A TODO Approximate: Imperator created the country with tag DYM (change_country_tag, its flag, colour and heritage dyme_heritage); EU5 creates a new country named with the mod's DYM loc
+					name = {
+						name = DYM
+						adjective = DYM_ADJ
+					}
+					save_scope_as = dyme_country
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek cities)
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: release_PLE_effect (common/scripted_effects/00_achaea_effects.txt). Country scope.
+# Releases Pellene (Imperator p:7893) as its own country if we own it.
+pa_imp_release_PLE_effect = {
+	if = {
+		limit = {
+			NOT = { country_exists = c:PLE }
+			owns = location:xylokastro # Imperator p:7893 Pellene
+		}
+		custom_tooltip = dhe_achaean_league.7.PLE.TT
+		hidden_effect = {
+			location:xylokastro = {
+				create_country_from_location = { #P:A TODO Approximate: Imperator created the country with tag PLE (change_country_tag, its flag, colour and heritage pellene_heritage); EU5 creates a new country named with the mod's PLE loc
+					name = {
+						name = PLE
+						adjective = PLE_ADJ
+					}
+					save_scope_as = pellene_country
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek cities)
+					change_government_type = government_type:monarchy #P:A TODO Approximate: Imperator despotic_monarchy
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: release_SIC_effect (common/scripted_effects/00_achaea_effects.txt). Country scope.
+# Releases Sikyon (Imperator p:8003) as its own country if we own it (Invictus SIC = Sikyon = mod tag SIK).
+pa_imp_release_SIC_effect = {
+	if = {
+		limit = {
+			NOT = { country_exists = c:SIK }
+			owns = location:enghien # Imperator p:8003 Sikyon
+		}
+		custom_tooltip = dhe_achaean_league.7.SIC.TT
+		hidden_effect = {
+			location:enghien = {
+				create_country_from_location = { #P:A TODO Approximate: Imperator created the country with tag SIC (change_country_tag, its flag, colour and heritage sikyon_heritage); EU5 creates a new country named with the mod's SIK loc
+					name = {
+						name = SIK
+						adjective = SIK_ADJ
+					}
+					save_scope_as = sicyon_country
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek cities)
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator aristocratic_republic
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: release_PTA_effect (common/scripted_effects/00_achaea_effects.txt). Country scope.
+# Releases Patrai (Imperator p:434) as its own country if we own it.
+pa_imp_release_PTA_effect = {
+	if = {
+		limit = {
+			#NOT = { exists = c:PTA }
+			owns = location:patras # Imperator p:434 Patrai
+		}
+		custom_tooltip = dhe_achaean_league.7.PTA.TT
+		hidden_effect = {
+			location:patras = {
+				create_country_from_location = { #P:A TODO Approximate: Imperator created the country with tag PTA (change_country_tag, its flag, colour and heritage patrai_heritage); EU5 creates a new country named with the mod's PTA loc
+					name = {
+						name = PTA
+						adjective = PTA_ADJ
+					}
+					save_scope_as = patrae_country
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek cities)
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: release_AZA_effect (common/scripted_effects/00_arkadia_effects.txt). Country scope.
+# Releases Kleitor (Imperator p:449) as its own country if we own it.
+pa_imp_release_AZA_effect = {
+	if = {
+		limit = {
+			#NOT = { exists = c:AZA }
+			owns = location:kalavryta # Imperator p:449 Kleitor
+		}
+		custom_tooltip = flavor_arcadia.1.AZA.TT
+		hidden_effect = {
+			location:kalavryta = {
+				create_country_from_location = { #P:A TODO Approximate: Imperator created the country with tag AZA (change_country_tag, its flag, colour and heritage azania_heritage); EU5 creates a new country named with the mod's AZA loc
+					name = {
+						name = AZA
+						adjective = AZA_ADJ
+					}
+					save_scope_as = azania_country
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek cities)
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: release_TPA_effect (common/scripted_effects/00_arkadia_effects.txt). Country scope.
+# Releases Lepreon (Imperator p:433) as its own country if we own it.
+pa_imp_release_TPA_effect = {
+	if = {
+		limit = {
+			#NOT = { exists = c:TPA }
+			owns = location:andritsaina # Imperator p:433 Lepreon
+		}
+		custom_tooltip = flavor_arcadia.1.TPA.TT
+		hidden_effect = {
+			location:andritsaina = {
+				create_country_from_location = { #P:A TODO Approximate: Imperator created the country with tag TPA (change_country_tag, its flag, colour and heritage triphylia_heritage); EU5 creates a new country named with the mod's TPA loc
+					name = {
+						name = TPA
+						adjective = TPA_ADJ
+					}
+					save_scope_as = triphylia_country
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek cities)
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: release_HRA_effect (common/scripted_effects/00_arkadia_effects.txt). Country scope.
+# Releases Heraia (Imperator p:435) as its own country if we own it.
+pa_imp_release_HRA_effect = {
+	if = {
+		limit = {
+			#NOT = { exists = c:HRA }
+			owns = location:karytaina # Imperator p:435 Heraia
+		}
+		custom_tooltip = flavor_arcadia.1.HRA.TT
+		hidden_effect = {
+			location:karytaina = {
+				create_country_from_location = { #P:A TODO Approximate: Imperator created the country with tag HRA (change_country_tag, its flag, colour and heritage heraia_heritage); EU5 creates a new country named with the mod's HRA loc
+					name = {
+						name = HRA
+						adjective = HRA_ADJ
+					}
+					save_scope_as = heraia_country
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek cities)
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: release_MTE_effect (common/scripted_effects/00_arkadia_effects.txt). Country scope.
+# Releases Mantinea (Imperator p:438) as its own country if we own it.
+pa_imp_release_MTE_effect = {
+	if = {
+		limit = {
+			#NOT = { exists = c:MTE }
+			owns = location:tripolitsa # Imperator p:438 Mantinea #P:A TODO Approximate location: Imperator Mantinea (p:438) mapped to tripolitsa
+		}
+		custom_tooltip = flavor_arcadia.1.MTE.TT
+		hidden_effect = {
+			location:tripolitsa = {
+				create_country_from_location = { #P:A TODO Approximate: Imperator created the country with tag MTE (change_country_tag, its flag, colour and heritage mantineia_heritage); EU5 creates a new country named with the mod's MTE loc
+					name = {
+						name = MTE
+						adjective = MTE_ADJ
+					}
+					save_scope_as = mantineia_country
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek cities)
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus: release_STP_effect (common/scripted_effects/00_arkadia_effects.txt). Country scope.
+# Releases Stymphalos (Imperator p:448) as its own country if we own it.
+pa_imp_release_STP_effect = {
+	if = {
+		limit = {
+			#NOT = { exists = c:STP }
+			owns = location:ath # Imperator p:448 Stymphalos
+		}
+		custom_tooltip = flavor_arcadia.1.STP.TT
+		hidden_effect = {
+			location:ath = {
+				create_country_from_location = { #P:A TODO Approximate: Imperator created the country with tag STP (change_country_tag, its flag, colour and heritage stymphalia_heritage); EU5 creates a new country named with the mod's STP loc
+					name = {
+						name = STP
+						adjective = STP_ADJ
+					}
+					save_scope_as = stymphalos_scope
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek cities)
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator oligarchic_republic
+				}
+			}
+		}
+	}
+}
+
+#P:A Imported from Indomita: change_mandate_effect (common/scripted_effects/ti_mandate_effects.txt). Country scope.
+# Changes the Mandate of Heaven ("Harmony", var:mandate_variable, set when China is formed in chinese_flavor.2 of batch b10).
+pa_imp_change_mandate_effect = {
+	if = {
+		limit = {
+			has_variable = mandate_variable
+		}
+		change_variable = {
+			name = mandate_variable
+			add = $amount$
+		}
+	}
+}
+
+############################################################################################################
+# Imperial power (Indomita common/scripted_effects/EE_scripted_effects.txt).
+############################################################################################################
+
+#P:A Imported from Indomita: set_imperial_power (common/scripted_effects/EE_scripted_effects.txt). Country scope.
+# Applies the imperial modifier of the chosen focus (var:imperial_power = flag:political / flag:warfare / flag:economic).
+pa_imp_set_imperial_power = {
+	if = {
+		limit = {
+			has_variable = imperial_power
+		}
+		if = {
+			limit = {
+				var:imperial_power = flag:political
+			}
+			pa_imp_add_imperial_political_mods = yes
+		}
+		if = {
+			limit = {
+				var:imperial_power = flag:warfare
+			}
+			pa_imp_add_imperial_military_mods = yes
+		}
+		if = {
+			limit = {
+				var:imperial_power = flag:economic
+			}
+			pa_imp_add_imperial_economic_mods = yes
+		}
+	}
+}
+
+#P:A Imported from Indomita: add_imperial_economic_mods (common/scripted_effects/EE_scripted_effects.txt). Country scope.
+pa_imp_add_imperial_economic_mods = {
+	pa_imp_remove_all_imperial_modifier = yes
+	if = {
+		limit = {
+			num_locations >= 3000 #P:A TODO Approximate: Imperator num_of_cities (territories); EU5 owned locations
+		}
+		add_country_modifier = {
+			modifier = imperial_economic_mod_1
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 5
+		}
+	}
+	else_if = {
+		limit = {
+			num_locations >= 2000
+			num_locations < 3000
+		}
+		add_country_modifier = {
+			modifier = imperial_economic_mod_2
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 4
+		}
+	}
+	else_if = {
+		limit = {
+			num_locations >= 1500
+			num_locations < 2000
+		}
+		add_country_modifier = {
+			modifier = imperial_economic_mod_3
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 3
+		}
+	}
+	else_if = {
+		limit = {
+			num_locations >= 1000
+			num_locations < 1500
+		}
+		add_country_modifier = {
+			modifier = imperial_economic_mod_4
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 2
+		}
+	}
+	else = {
+		add_country_modifier = {
+			modifier = imperial_economic_mod_5
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 1
+		}
+	}
+}
+
+#P:A Imported from Indomita: remove_all_imperial_modifier (common/scripted_effects/EE_scripted_effects.txt). Country scope.
+pa_imp_remove_all_imperial_modifier = {
+	remove_country_modifier = imperial_military_mod_1
+	remove_country_modifier = imperial_military_mod_2
+	remove_country_modifier = imperial_military_mod_3
+	remove_country_modifier = imperial_military_mod_4
+	remove_country_modifier = imperial_military_mod_5
+	remove_country_modifier = imperial_economic_mod_1
+	remove_country_modifier = imperial_economic_mod_2
+	remove_country_modifier = imperial_economic_mod_3
+	remove_country_modifier = imperial_economic_mod_4
+	remove_country_modifier = imperial_economic_mod_5
+	remove_country_modifier = imperial_political_mod_1
+	remove_country_modifier = imperial_political_mod_2
+	remove_country_modifier = imperial_political_mod_3
+	remove_country_modifier = imperial_political_mod_4
+	remove_country_modifier = imperial_political_mod_5
+}
+
+#P:A Imported from Indomita: add_imperial_military_mods (common/scripted_effects/EE_scripted_effects.txt). Country scope.
+pa_imp_add_imperial_military_mods = {
+	pa_imp_remove_all_imperial_modifier = yes
+	if = {
+		limit = {
+			num_locations >= 3000 #P:A TODO Approximate: Imperator num_of_cities (territories); EU5 owned locations
+		}
+		add_country_modifier = {
+			modifier = imperial_military_mod_1
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 5
+		}
+	}
+	else_if = {
+		limit = {
+			num_locations >= 2000
+			num_locations < 3000
+		}
+		add_country_modifier = {
+			modifier = imperial_military_mod_2
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 4
+		}
+	}
+	else_if = {
+		limit = {
+			num_locations >= 1500
+			num_locations < 2000
+		}
+		add_country_modifier = {
+			modifier = imperial_military_mod_3
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 3
+		}
+	}
+	else_if = {
+		limit = {
+			num_locations >= 1000
+			num_locations < 1500
+		}
+		add_country_modifier = {
+			modifier = imperial_military_mod_4
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 2
+		}
+	}
+	else = {
+		add_country_modifier = {
+			modifier = imperial_military_mod_5
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 1
+		}
+	}
+}
+
+#P:A Imported from Indomita: add_imperial_political_mods (common/scripted_effects/EE_scripted_effects.txt). Country scope.
+pa_imp_add_imperial_political_mods = {
+	pa_imp_remove_all_imperial_modifier = yes
+	if = {
+		limit = {
+			num_locations >= 3000 #P:A TODO Approximate: Imperator num_of_cities (territories); EU5 owned locations
+		}
+		add_country_modifier = {
+			modifier = imperial_political_mod_1
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 5
+		}
+	}
+	else_if = {
+		limit = {
+			num_locations >= 2000
+			num_locations < 3000
+		}
+		add_country_modifier = {
+			modifier = imperial_political_mod_2
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 4
+		}
+	}
+	else_if = {
+		limit = {
+			num_locations >= 1500
+			num_locations < 2000
+		}
+		add_country_modifier = {
+			modifier = imperial_political_mod_3
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 3
+		}
+	}
+	else_if = {
+		limit = {
+			num_locations >= 1000
+			num_locations < 1500
+		}
+		add_country_modifier = {
+			modifier = imperial_political_mod_4
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 2
+		}
+	}
+	else = {
+		add_country_modifier = {
+			modifier = imperial_political_mod_5
+			years = -1
+		}
+		remove_variable = imperial_power_level
+		set_variable = {
+			name = imperial_power_level
+			value = 1
+		}
+	}
+}
+
+#P:A Imported from Indomita: change_imperial_power_cost (common/scripted_effects/EE_scripted_effects.txt). Country scope.
+pa_imp_change_imperial_power_cost = {
+	# add_political_influence = -75
+	#P:A TODO No EU5 equivalent: -75 political influence (EU5 has no political influence)
+	add_legitimacy = -10
+	add_stability = -10
+	# add_tyranny = 5
+	#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+}

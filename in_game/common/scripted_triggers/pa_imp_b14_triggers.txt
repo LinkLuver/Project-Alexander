@@ -1,0 +1,160 @@
+﻿# Imperator scripted triggers for batch b14 of the Invictus/Indomita event import (2026-10-19).
+
+# Batch-local helper (not an Imperator trigger): Imperator storms.txt "terrain = ocean", i.e. an open sea zone.
+# Location scope.
+#P:A TODO Approximate: Imperator had one open-sea terrain (ocean); EU5 splits open water into ocean, deep_ocean, inland_sea (the Mediterranean, Red Sea, Caspian) and narrows (straits, the Aegean)
+pa_imp_b14_open_sea_trigger = {
+	is_land = no
+	OR = {
+		topography = ocean
+		topography = deep_ocean
+		topography = inland_sea
+		topography = narrows
+	}
+}
+
+# Batch-local helper (not an Imperator trigger): Imperator storms.txt "OR = { terrain = desert terrain = desert_hills }".
+# Location scope.
+#P:A TODO Approximate: Imperator desert / desert_hills terrain -> EU5 desert vegetation (any topography)
+pa_imp_b14_desert_trigger = {
+	is_land = yes
+	vegetation = desert
+}
+
+# Batch-local helper (not an Imperator trigger): Imperator storms.txt "has_winter = yes" on a land province.
+# Location scope. Same winter test as vanilla EU5 little_ice_age.txt.
+pa_imp_b14_winter_trigger = {
+	is_land = yes
+	OR = {
+		winter_level = mild
+		winter_level = normal
+		winter_level = severe
+	}
+}
+
+#P:A Imported from Invictus: marriage approval triggers of the seek a spouse scheme (common/scripted_triggers)
+# Evaluated in scheme.21 at root (the country, which holds the variables suitor_age and love_target_age);
+# scope:negotiator = head of the target family, scope:love_target = the proposed partner.
+#P:A TODO Approximate: EU5 characters have no loyalty; every character counts as loyal (Imperator loyalty >= 50), so the *_disapproves_loyalty triggers are always false and the *_approves triggers only check the age gap
+
+pa_imp_hof_disapproves_loyalty = {
+	exists = scope:negotiator
+	# scope:negotiator = { loyalty < 50 }
+	always = no #P:A TODO No EU5 equivalent: the head of family has loyalty below 50 (EU5 characters have no loyalty)
+}
+
+pa_imp_hof_disapproves_age = {
+	exists = scope:negotiator
+	var:suitor_age >= pa_imp_get_love_target_age_svalue
+}
+
+pa_imp_self_disapproves_loyalty = {
+	NOT = {
+		exists = scope:negotiator
+	}
+	# scope:love_target = { loyalty < 50 }
+	always = no #P:A TODO No EU5 equivalent: the proposed partner has loyalty below 50 (EU5 characters have no loyalty)
+}
+
+pa_imp_self_disapproves_age = {
+	NOT = {
+		exists = scope:negotiator
+	}
+	var:suitor_age >= pa_imp_get_love_target_age_svalue
+}
+
+pa_imp_hof_approves = {
+	exists = scope:negotiator
+	# scope:negotiator = { loyalty >= 50 } #P:A TODO Approximate: loyalty >= 50 of the head of family dropped (EU5 characters have no loyalty)
+	var:suitor_age < pa_imp_get_love_target_age_svalue
+}
+
+pa_imp_self_approves = {
+	NOT = {
+		exists = scope:negotiator
+	}
+	# scope:love_target = { loyalty >= 50 } #P:A TODO Approximate: loyalty >= 50 of the proposed partner dropped (EU5 characters have no loyalty)
+	var:suitor_age < pa_imp_get_love_target_age_svalue
+}
+
+# Batch-local helper (not an Imperator trigger): Imperator disasters_inv.txt "terrain = flood_plain".
+# Location scope.
+#P:A TODO Approximate: EU5 has no flood plain terrain; a flat or wetland location on a river stands in
+pa_imp_b14_flood_plain_trigger = {
+	is_land = yes
+	has_river = yes
+	OR = {
+		topography = flatland
+		topography = wetlands
+	}
+}
+
+# Batch-local helper (not an Imperator trigger): the snowstorm regions disasters_inv.11 repeats ("merged the vanilla snowstorm areas from 3 events").
+# Location scope. Invictus wrote is_in_region = bohemia_area (a region of that name exists in the geography triggers).
+pa_imp_b14_snowstorm_region_trigger = {
+	OR = {
+		pa_imp_in_region_scandinavia_region = yes
+		pa_imp_in_region_germania_region = yes
+		pa_imp_in_region_bohemia_area = yes
+		pa_imp_in_region_vistulia_region = yes
+		pa_imp_in_region_belgica_region = yes
+		pa_imp_in_region_germania_superior_region = yes
+		pa_imp_in_region_rhaetia_region = yes
+		pa_imp_in_region_armorica_region = yes
+		pa_imp_in_region_caledonia_region = yes
+		pa_imp_in_region_himalayan_region = yes
+		pa_imp_in_region_sogdiana_region = yes
+		pa_imp_in_region_tibet_region = yes
+		pa_imp_in_region_bactriana_region = yes
+	}
+}
+
+#P:A Imported from Invictus: is_in_nubia_trigger (common/scripted_triggers). Location scope.
+pa_imp_is_in_nubia_trigger = {
+	OR = {
+		pa_imp_in_region_nubia_region = yes
+		pa_imp_in_region_punt_region = yes
+	}
+}
+
+#P:A Imported from Invictus: is_in_arabia_trigger (common/scripted_triggers). Location scope.
+pa_imp_is_in_arabia_trigger = {
+	OR = {
+		pa_imp_in_region_arabia_region = yes
+		pa_imp_in_region_arabia_felix_region = yes
+	}
+}
+
+#P:A Imported from Invictus: is_in_egypt_trigger (common/scripted_triggers). Location scope.
+pa_imp_is_in_egypt_trigger = {
+	OR = {
+		pa_imp_in_region_lower_egypt_region = yes
+		pa_imp_in_region_upper_egypt_region = yes
+	}
+}
+
+#P:A Imported from Invictus: locust_target_trigger (common/scripted_triggers). Location scope.
+# Plant based trade goods in Africa/Arabia.
+pa_imp_locust_target_trigger = { #plant based trade goods
+	OR = {
+		raw_material = goods:wheat # Imperator grain
+		raw_material = goods:legumes # Imperator vegetables
+		raw_material = goods:sugar
+		raw_material = goods:wine
+		raw_material = goods:fiber_crops #P:A TODO Approximate: Imperator hemp -> EU5 fiber_crops
+		raw_material = goods:pepper #P:A TODO Approximate: Imperator spices -> EU5 pepper
+		raw_material = goods:olives # Imperator olive
+		raw_material = goods:fruit # Imperator fruits; also Imperator dates (#P:A TODO Approximate: dates -> fruit)
+		raw_material = goods:dyes #P:A TODO Approximate: Imperator woad -> EU5 dyes
+		raw_material = goods:medicaments #P:A TODO Approximate: Imperator silphium -> EU5 medicaments (EU5 has no silphium)
+	}
+	OR = {
+		pa_imp_is_in_arabia_trigger = yes
+		pa_imp_is_in_nubia_trigger = yes
+		pa_imp_is_in_egypt_trigger = yes
+		pa_imp_in_region_cyrenaica_region = yes
+		# is_in_area = omana_area #P:A TODO No EU5 geography for Imperator area omana_area
+		# is_in_area = east_omana_area #P:A TODO No EU5 geography for Imperator area east_omana_area
+	}
+}
+

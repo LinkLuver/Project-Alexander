@@ -1,0 +1,253 @@
+﻿# Script values imported from Imperator: Invictus / Terra Indomita for the event import, batch b16 (2026-10-19).
+
+#P:A Imported from Invictus: tribal_duel_winner_svalue (common/script_values)
+# Country scope (the duel's challenger country holds the duel variables). Reads scope:fighter_of_duel.
+# The duel roll (1-20) is compared with this value, so Imperator martial is kept on its 0-20 scale (EU5 mil / 5).
+pa_imp_tribal_duel_winner_svalue = {
+	value = scope:fighter_of_duel.mil #Start with the fighters martial
+	divide = 5 # Imperator martial (EU5 mil is x5)
+	if = {
+		limit = { has_variable = duel_rounds_count }
+		#Factor in the choice of weapon and each weapon's effectiveness against each other
+		##If weapon is the same only determine winner by each fighters martial
+		if = {
+			limit = { has_variable = random_effects_1 } 	#Opponent chooses axe
+			if = {
+				limit = { has_variable = spear_combat }
+				add = {
+					integer_range = {
+						max = 3
+						min = -2
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = sword_combat }
+				add = {
+					integer_range = {
+						max = 3
+						min = -3
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = horse_combat }
+				add = {
+					integer_range = {
+						max = 2
+						min = -3
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = hands_combat }
+				add = {
+					integer_range = {
+						max = 1
+						min = -5
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { has_variable = random_effects_2 } 	#Opponent chooses spear
+			if = {
+				limit = { has_variable = axe_combat }
+				add = {
+					integer_range = {
+						max = 3
+						min = -2
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = sword_combat }
+				add = {
+					integer_range = {
+						max = 1
+						min = -2
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = horse_combat }
+				add = {
+					integer_range = {
+						max = 3
+						min = -2
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = hands_combat }
+				add = {
+					integer_range = {
+						max = 1
+						min = -5
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { has_variable = random_effects_3 }	#Opponent chooses sword
+			if = { 
+				limit = { has_variable = axe_combat }
+				add = {
+					integer_range = {
+						max = 3
+						min = -3
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = spear_combat }
+				add = {
+					integer_range = {
+						max = 2
+						min = -1
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = horse_combat }
+				add = {
+					integer_range = {
+						max = 1
+						min = -3
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = hands_combat }
+				add = {
+					integer_range = {
+						max = 1
+						min = -5
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { has_variable = random_effects_4 }	#Opponent chooses horseback
+			if = { 
+				limit = { has_variable = axe_combat }
+				add = {
+					integer_range = {
+						max = 3
+						min = -2
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = spear_combat }
+				add = {
+					integer_range = {
+						max = 1
+						min = -3
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = sword_combat }
+				add = {
+					integer_range = {
+						max = 3
+						min = 1
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = hands_combat }
+				add = {
+					integer_range = {
+						max = 1
+						min = -5
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { has_variable = random_effects_5 }	#Opponent chooses hands...what an idiot
+			if = { 
+				limit = { has_variable = axe_combat }
+				add = {
+					integer_range = {
+						max = 3
+						min = -2
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = spear_combat }
+				add = {
+					integer_range = {
+						max = 1
+						min = -3
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = sword_combat }
+				add = {
+					integer_range = {
+						max = 3
+						min = 1
+					}
+				}
+			}
+			else_if = {
+				limit = { has_variable = hands_combat }
+				add = {
+					integer_range = {
+						max = 1
+						min = -5
+					}
+				}
+			}
+		}
+	}
+	max = 20
+	min = 1
+}
+
+#P:A Imported from Invictus: tribal_duel_target_health_svalue (common/script_values)
+# Health loss of the fighter. Only used by a commented-out add_health (EU5 characters have no health value).
+pa_imp_tribal_duel_target_health_svalue = {
+	value = 0
+	if = {
+		limit = {
+			has_variable = duel_rounds_count
+		}
+		add = {
+			value = scope:target.mil
+			divide = 5 # Imperator martial (EU5 mil is x5)
+		}
+		multiply = 2
+		subtract = {
+			value = scope:fighter_of_duel.mil
+			divide = 5
+		}
+	}
+	max = 45
+}
+
+#P:A Imported from Invictus: tribal_duel_fighter_health_svalue (common/script_values)
+# Health loss of the opponent. Only used by a commented-out add_health (EU5 characters have no health value).
+pa_imp_tribal_duel_fighter_health_svalue = {
+	value = 0
+	if = {
+		limit = {
+			has_variable = duel_rounds_count
+		}
+		add = {
+			value = scope:fighter_of_duel.mil
+			divide = 5 # Imperator martial (EU5 mil is x5)
+		}
+		multiply = 2
+		subtract = {
+			value = scope:target.mil
+			divide = 5
+		}
+	}
+	max = 45
+}

@@ -1,0 +1,1197 @@
+﻿#P:A Imported from Invictus: events/character_interactions_inv.txt
+namespace = character_interactions_inv
+namespace = ambitions_inv
+
+# Events .1-.6 were fired by Invictus character interactions (force_divorce, get_divorced, force_retirement,
+# offer_citizenship, offer_protection), which are not imported. They expect the interaction's scopes:
+# scope:actor = the acting country (root), scope:target = the character acted upon, scope:recipient = optional
+# country (force_retirement: the holding recipient). An EU5 interaction firing them must save its recipient
+# character as scope:target (EU5 interactions name it scope:recipient).
+
+character_interactions_inv.1 = {	#Forced Divorce
+	type = country_event
+	title = character_interactions_inv_1_title
+	desc = character_interactions_inv_1_desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:target
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		scope:target = {
+			random_spouse = {
+				save_scope_as = target_spouse
+			}
+		}
+	}
+
+	option = {
+		name = character_interactions_inv_1.a
+		scope:target = {
+			if = {
+				limit = { exists = scope:target_spouse }
+				divorce_character = scope:target_spouse
+			}
+			# add_loyalty = forced_to_divorce
+			#P:A TODO No EU5 equivalent: forced_to_divorce loyalty malus for the target (EU5 characters have no loyalty)
+			# if = { limit = { is_minor_character = no } hidden_effect = { family = { every_family_member = { limit = { employer = scope:actor is_ruler = no } add_loyalty = family_forced_to_divorce } } } }
+			#P:A TODO No EU5 equivalent: family_forced_to_divorce loyalty malus for every non-ruler member of the target's family at court
+		}
+		# scope:target.spouse = { add_loyalty = forced_to_divorce }
+		#P:A TODO No EU5 equivalent: forced_to_divorce loyalty malus for the former spouse
+		# if = { limit = { scope:target = { is_minor_character = no } } custom_tooltip = character_interactions_1_tooltip show_as_tooltip = { random_character = { limit = { has_same_family = scope:target } add_loyalty = family_forced_to_divorce } } }
+		#P:A TODO No EU5 equivalent: tooltip for the family loyalty malus above
+		scope:actor ?= {
+			# add_tyranny = { value = scope:target.power_base divide = 2 add = 5 min = 5 max = 20 }
+			#P:A TODO No EU5 equivalent: +5..20 tyranny scaled by the target's power base (EU5 has no tyranny or power base)
+			# pay_price = price_force_divorce
+			#P:A TODO No EU5 equivalent: price_force_divorce cost 35 political influence
+		}
+	}
+}
+
+character_interactions_inv.2 = {	#Got Divorced (ruler)
+	type = country_event
+	title = character_interactions_inv_2_title
+	desc = character_interactions_inv_2_desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:target
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+	}
+
+	option = {
+		name = character_interactions_inv_2.a
+		# if = { limit = { scope:target = { is_minor_character = no } } custom_tooltip = character_interactions_1_tooltip random_character = { limit = { has_same_family = scope:target } add_loyalty = family_forced_to_divorce } }
+		#P:A TODO No EU5 equivalent: family_forced_to_divorce loyalty malus for a member of the target's family (EU5 characters have no loyalty)
+		show_as_tooltip = {
+			scope:target = {
+				if = {
+					limit = { exists = root.ruler }
+					divorce_character = root.ruler #P:A TODO Approximate: Imperator divorced the target from its spouse; in this interaction that spouse is the ruler
+				}
+			}
+			# add_tyranny = { value = scope:target.power_base divide = 2 min = 5 max = 20 }
+			#P:A TODO No EU5 equivalent: +5..20 tyranny scaled by the target's power base (shown only)
+			# add_political_influence = -25
+			#P:A TODO No EU5 equivalent: -25 political influence (shown only)
+			# current_ruler = { add_popularity = -30 }
+			#P:A TODO No EU5 equivalent: -30 ruler popularity (shown only)
+		}
+	}
+}
+
+# Forcing a character into retirement (fired by the Invictus force_retirement interaction)
+character_interactions_inv.3 = {
+	type = country_event
+	title = character_interactions_inv_3_title
+	desc = character_interactions_inv_3_desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:target
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+	}
+
+	option = {	#Scope:target will be forced to retire
+		name = character_interactions_inv_3.a
+		# show_as_tooltip = { pay_price = price_force_retirement }
+		show_as_tooltip = {
+			add_gold = -50 # gold part of price_force_retirement
+		}
+		#P:A TODO No EU5 equivalent: price_force_retirement also cost 30 political influence
+		scope:target = {
+			custom_tooltip = character_interactions_inv_3_A_tooltip
+			show_as_tooltip = {
+				# add_loyalty = forced_to_retire
+				add_character_modifier = {
+					modifier = forced_into_retirement
+					days = -1
+				}
+				# if = { limit = { exists = scope:recipient } scope:target = { add_holding = scope:recipient } }
+			}
+			custom_tooltip = character_interactions_inv_3_B_tooltip
+			# show_as_tooltip = { add_loyalty = refused_retirement }
+			#P:A TODO No EU5 equivalent: the accept/refuse tooltips listed loyalty changes (EU5 characters have no loyalty)
+			hidden_effect = {
+				random_list = {
+					90 = {
+						set_variable = accepted_retirement
+						# add_loyalty = forced_to_retire
+						#P:A TODO No EU5 equivalent: forced_to_retire loyalty change (EU5 characters have no loyalty)
+						add_character_modifier = {
+							modifier = forced_into_retirement
+							days = -1
+						}
+						# if = { limit = { exists = scope:recipient } scope:target = { add_holding = scope:recipient } }
+						#P:A TODO No EU5 equivalent: the retiree received a holding in scope:recipient's lands (EU5 has no holdings)
+						if = {
+							limit = {
+								scope:target = {
+									OR = {
+										is_general = yes
+										is_admiral = yes
+									}
+								}
+							}
+							remove_commander = scope:target
+						}
+						# else_if = { limit = { scope:target = { is_governor = yes } } remove_as_governor = yes }
+						# else_if = { limit = { scope:target = { OR = { has_tech_office = yes has_any_office = yes } } } remove_all_offices = yes }
+						#P:A TODO No EU5 equivalent: a retiring governor or office holder lost the governorship/offices (EU5 has no governors or offices)
+					}
+					15 = {
+						set_variable = rejected_retirement
+						# add_loyalty = refused_retirement
+						#P:A TODO No EU5 equivalent: refused_retirement loyalty change (EU5 characters have no loyalty)
+					}
+				}
+			}
+			# add_gold = 50
+			#P:A TODO No EU5 equivalent: +50 personal wealth for the target (EU5 characters have no wealth)
+		}
+		trigger_event_non_silently = {
+			id = character_interactions_inv.4
+			days = 5
+		}
+	}
+	option = {	#On second thought this isn't a good idea
+		name = character_interactions_inv_3.b
+	}
+}
+
+# The outcome of the retirement request
+character_interactions_inv.4 = {
+	type = country_event
+	title = character_interactions_4_title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:target = { has_variable = accepted_retirement }
+				}
+				desc = character_interactions_4_desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					scope:target = { has_variable = rejected_retirement }
+				}
+				desc = character_interactions_4_desc_2
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+	interface_lock = no
+
+	trigger = {
+		exists = scope:target
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+	}
+
+	option = {	#Scope:target has retired from public life
+		name = character_interactions_4.a
+		trigger = {
+			scope:target = { has_variable = accepted_retirement }
+		}
+		# pay_price = price_force_retirement
+		add_gold = -50 # gold part of price_force_retirement
+		#P:A TODO No EU5 equivalent: price_force_retirement also cost 30 political influence
+		show_as_tooltip = {
+			scope:target = {
+				# add_loyalty = forced_to_retire
+				add_character_modifier = {
+					modifier = forced_into_retirement
+					days = -1
+				}
+			}
+			# if = { limit = { exists = scope:recipient } scope:target = { add_holding = scope:recipient } }
+			#P:A TODO No EU5 equivalent: tooltip for the loyalty change and the holding in scope:recipient's lands
+		}
+	}
+	option = {	#Scope:target has not retired from public life
+		name = character_interactions_4.b
+		trigger = {
+			scope:target = { has_variable = rejected_retirement }
+		}
+		# show_as_tooltip = { scope:target = { add_loyalty = refused_retirement } }
+		#P:A TODO No EU5 equivalent: tooltip for the refused_retirement loyalty change
+	}
+}
+
+# A new citizen arrives at court (fired by the Invictus offer_citizenship interaction)
+character_interactions_inv.5 = {
+	type = country_event
+	title = character_interactions_inv_5_title
+	desc = character_interactions_inv_5_desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:target
+		ruler ?= { has_dynasty = yes }
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+			dynasty = { save_scope_as = ruler_family }
+		}
+		hidden_effect = {
+			scope:target = {
+				remove_character_modifier = foreign_citizen
+			}
+		}
+	}
+
+	option = {	#scope:target will join the ruling family
+		name = character_interactions_inv_5.a
+		scope:target = {
+			change_dynasty = scope:ruler_family
+			# hidden_effect = { adapt_family_name = yes }
+			#P:A TODO No EU5 equivalent: adapt_family_name (Imperator adapted the dynasty name to the character's culture)
+		}
+	}
+	option = {	#That won't be necessary
+		name = character_interactions_inv_5.b
+	}
+}
+
+character_interactions_inv.6 = {	#Offering Support (fired by the Invictus offer_protection interaction; scope:target = a foreign ruler)
+	type = country_event
+	title = character_interactions_inv_6_title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					has_variable = accepted_support
+				}
+				desc = character_interactions_inv_6_desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					has_variable = rejected_support
+				}
+				desc = character_interactions_inv_6_desc_2
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:target
+		scope:target = { exists = employer }
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		scope:target.employer = { save_scope_as = target_employer }
+		hidden_effect = {
+			random_list = {
+				5 = {
+					modifier = { # Imperator charisma 8-9
+						factor = 1
+						ruler ?= {
+							dip >= 40
+							dip < 50
+						}
+					}
+					modifier = {
+						factor = 1
+						scope:target_employer = {
+							any_neighbor_country = {
+								NOR = {
+									this = root
+									has_mutual_scripted_relation = {
+										type = relation_type:alliance
+										target = scope:target_employer
+									}
+								}
+								is_subject_of = scope:target_employer
+								num_locations > scope:target_employer.num_locations #P:A TODO Approximate: Imperator num_of_cities counted cities; EU5 counts all owned locations
+							}
+						}
+					}
+					modifier = { # Imperator charisma 10-12
+						factor = 2
+						ruler ?= {
+							dip >= 50
+							dip < 65
+						}
+					}
+					modifier = { # Imperator charisma 13+
+						factor = 3
+						ruler ?= {
+							dip >= 65
+						}
+					}
+					set_variable = {
+						name = accepted_support
+						days = 180
+					}
+				}
+				5 = {
+					modifier = {
+						factor = 2
+						scope:target_employer = {
+							NOT = {
+								any_neighbor_country = {
+									NOR = {
+										this = root
+										has_mutual_scripted_relation = {
+											type = relation_type:alliance
+											target = scope:target_employer
+										}
+									}
+									is_subject_of = scope:target_employer
+									num_locations > scope:target_employer.num_locations
+								}
+							}
+						}
+					}
+					modifier = { # Imperator charisma 6-7
+						factor = 1
+						ruler ?= {
+							dip < 40
+							dip >= 30
+						}
+					}
+					modifier = { # Imperator charisma below 5
+						factor = 3
+						ruler ?= {
+							dip < 25
+						}
+					}
+					set_variable = {
+						name = rejected_support
+						days = 180
+					}
+				}
+			}
+		}
+	}
+
+	option = {	#scope:target.employer has accepted
+		name = character_interactions_inv_6.a
+		trigger = { has_variable = accepted_support }
+		scope:target_employer = {
+			make_subject_of = {
+				target = root
+				type = subject_type:client_state
+			}
+		}
+		scope:target = {
+			add_character_modifier = { #P:A TODO Approximate: Imperator triggered modifier ended itself when the character died or stopped being ruler; EU5 static modifier stays
+				modifier = ruler_being_supported
+				days = -1
+			}
+			employer = { set_variable = accepted_vassalage_1 }
+		}
+	}
+	option = {	#scope:target.employer has declined
+		name = character_interactions_inv_6.b
+		trigger = { has_variable = rejected_support }
+		# current_ruler = { add_popularity = -10 }
+		#P:A TODO No EU5 equivalent: -10 ruler popularity (EU5 characters have no popularity)
+	}
+}
+
+character_interactions_inv.7 = {	#The future of [get country] (overlord; fired by .8 with scope:supported_country and scope:dead_supported_ruler)
+	type = country_event
+	title = character_interactions_inv_7_title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					has_variable = accepted_servitude
+				}
+				desc = character_interactions_inv_7_desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					has_variable = rejected_servitude
+				}
+				desc = character_interactions_inv_7_desc_2
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:supported_country
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = pa_ruler }
+		hidden_effect = {
+			random_list = {
+				5 = {
+					modifier = {
+						factor = 1
+						ruler ?= { dip > scope:supported_country.ruler.dip }
+					}
+					modifier = {
+						factor = 2
+						opinion = {
+							target = scope:supported_country
+							value >= 150
+						}
+					}
+					modifier = {
+						factor = 1
+						opinion = {
+							target = scope:supported_country
+							value > 100
+						}
+						opinion = {
+							target = scope:supported_country
+							value < 150
+						}
+					}
+					set_variable = {
+						name = accepted_servitude
+						days = 180
+					}
+				}
+				5 = {
+					modifier = {
+						factor = 1
+						ruler ?= { dip < scope:supported_country.ruler.dip }
+					}
+					modifier = {
+						factor = 2
+						opinion = {
+							target = scope:supported_country
+							value < 50
+						}
+					}
+					modifier = {
+						factor = 1
+						opinion = {
+							target = scope:supported_country
+							value > 50
+						}
+						opinion = {
+							target = scope:supported_country
+							value < 100
+						}
+					}
+					set_variable = {
+						name = rejected_servitude
+						days = 180
+					}
+				}
+			}
+		}
+	}
+
+	option = {	#supported_country will remain a client_state
+		name = character_interactions_inv_7.a
+		trigger = { has_variable = accepted_servitude }
+		add_legitimacy = 5
+	}
+	option = {	#supported_country claims they are independent!
+		name = character_interactions_inv_7.b
+		trigger = { has_variable = rejected_servitude }
+		cancel_subject = scope:supported_country
+		add_truce_with = {
+			target = scope:supported_country
+			days = 1825 # 5 years
+		}
+		# scope:supported_country.capital_scope = { add_claim = ROOT }
+		#P:A TODO No EU5 equivalent: claim on the former subject's capital (EU5 has no location claims)
+	}
+	after = {
+		scope:supported_country = {
+			remove_variable = accepted_vassalage_1
+		}
+	}
+}
+
+# Hidden: the ruler of a supported client state changed (Imperator on_ruler_change; EU5 on_new_ruler:
+# root = country, scope:old_ruler, scope:new_ruler). Imperator's on_action only fired it for countries with
+# accepted_vassalage_1 and saved scope:supported_country / scope:dead_supported_ruler; done here instead.
+character_interactions_inv.8 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		has_variable = accepted_vassalage_1
+	}
+
+	immediate = {
+		save_scope_as = supported_country
+		scope:old_ruler ?= { save_scope_as = dead_supported_ruler }
+		if = {
+			limit = {
+				is_subject = yes
+				NOT = {
+					ruler ?= {
+						has_character_modifier = ruler_being_supported
+					}
+				}
+			}
+			overlord = { trigger_event_non_silently = character_interactions_inv.7 }
+		}
+		else = {
+			remove_variable = accepted_vassalage_1
+		}
+	}
+}
+
+# Hidden: clears the Mauryan Collapse modifier (Invictus had no caller for it)
+character_interactions_inv.999 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		remove_country_modifier = mauryan_collapse
+	}
+}
+
+########################################################################################################
+# ambitions_inv: Imperator character events of the ruler's "gain popularity" (.1-.5) and "reduce corruption" (.6-.10)
+# ambitions, fired monthly by the ambition scheme on_actions. Converted to country events: root = the ruler's country,
+# scope:pa_character = the ruler (falls back to the current ruler when nothing saved it).
+# EU5 has no ambitions, popularity or corruption; those effects are TODO comments.
+########################################################################################################
+
+ambitions_inv.1 = { #Martial
+	type = country_event
+	title = ambitions_inv_1_title
+	desc = ambitions_inv_1_desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = { is_married = yes }
+			any_character = {
+				mil >= scope:pa_character.mil
+				is_adult = yes
+				is_ruler = no
+				#P:A Removed: prisoner = no is always true in EU5
+			}
+		}
+		trigger_else = {
+			ruler ?= { is_married = yes }
+			any_character = {
+				mil >= root.ruler.mil
+				is_adult = yes
+				is_ruler = no
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		random_character = {
+			limit = {
+				mil >= scope:pa_character.mil
+				is_adult = yes
+				is_ruler = no
+			}
+			save_scope_as = scheme_target
+		}
+		random_owned_location = {
+			limit = { is_capital = no }
+			save_scope_as = your_province_scope
+		}
+	}
+
+	option = {
+		name = ambitions_inv_1.a
+		# add_gold = -50
+		#P:A TODO No EU5 equivalent: the ruler paid 50 from personal wealth (EU5 characters have no wealth)
+		# add_popularity = 5
+		#P:A TODO No EU5 equivalent: +5 ruler popularity
+		# scope:scheme_target = { add_loyalty = more_drinks }
+		#P:A TODO No EU5 equivalent: more_drinks loyalty bonus for the host (EU5 characters have no loyalty)
+	}
+	option = {
+		name = ambitions_inv_1.b
+		# add_popularity = 5
+		#P:A TODO No EU5 equivalent: +5 ruler popularity
+		# scope:scheme_target = { add_loyalty = dishonored_by_ruler }
+		#P:A TODO No EU5 equivalent: dishonored_by_ruler loyalty malus for the host
+	}
+	option = {	#Fight to the death
+		name = ambitions_inv_1.c
+		trigger = {
+			scope:pa_character = { mil > 45 } # Imperator martial > 9
+		}
+		custom_tooltip = ambitions_inv_1_tt
+		hidden_effect = {
+			random_list = {
+				1 = {
+					kill_character = {
+						target = scope:pa_character
+						reason = combat # Imperator death_battle
+					}
+				}
+				1 = {
+					kill_character = {
+						target = scope:scheme_target
+						reason = combat # Imperator death_battle
+					}
+				}
+			}
+		}
+	}
+}
+
+ambitions_inv.2 = {	#Finesse
+	type = country_event
+	title = ambitions_inv_2_title
+	desc = ambitions_inv_2_desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			any_character = {
+				adm >= scope:pa_character.adm
+				is_adult = yes
+				is_ruler = no
+				# is_governor = yes #P:A TODO No EU5 equivalent: the target had to be a governor (EU5 has no governors)
+			}
+		}
+		trigger_else = {
+			exists = ruler
+			any_character = {
+				adm >= root.ruler.adm
+				is_adult = yes
+				is_ruler = no
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		random_character = {
+			limit = {
+				adm >= scope:pa_character.adm
+				is_adult = yes
+				is_ruler = no
+				# is_governor = yes
+			}
+			save_scope_as = scheme_target
+		}
+		random_owned_location = {
+			limit = { is_capital = no }
+			save_scope_as = your_province_scope
+		}
+	}
+
+	option = {
+		name = ambitions_inv_2.a
+		# add_popularity = -5
+		#P:A TODO No EU5 equivalent: -5 ruler popularity
+		add_country_modifier = {
+			modifier = governor_support
+			days = 730
+		}
+		# scope:scheme_target = { add_loyalty = gesture_accepted }
+		#P:A TODO No EU5 equivalent: gesture_accepted loyalty bonus for the commander (EU5 characters have no loyalty)
+	}
+	option = {
+		name = ambitions_inv_2.b
+		# add_popularity = 10
+		#P:A TODO No EU5 equivalent: +10 ruler popularity
+		# scope:scheme_target = { add_loyalty = gesture_denied }
+		#P:A TODO No EU5 equivalent: gesture_denied loyalty malus for the commander
+	}
+}
+
+ambitions_inv.3 = {	#Zeal
+	type = country_event
+	title = ambitions_inv_3_title
+	desc = ambitions_inv_3_desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		any_character = {
+			# zeal >= root.zeal #P:A TODO No EU5 equivalent: the target needed at least the ruler's zeal (EU5 characters have no zeal)
+			is_adult = yes
+			is_ruler = no
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		random_character = {
+			limit = {
+				# zeal >= root.zeal
+				is_adult = yes
+				is_ruler = no
+			}
+			save_scope_as = scheme_target
+		}
+		# hidden_effect = { scope:scheme_target = { add_gold = 200 } }
+		#P:A TODO No EU5 equivalent: the eccentric magistrate got 200 personal wealth (EU5 characters have no wealth)
+		random_owned_location = {
+			limit = { is_capital = no }
+			save_scope_as = your_province_scope
+		}
+	}
+
+	option = {
+		name = ambitions_inv_3.a
+		# scope:scheme_target = { add_gold = -200 add_popularity = 10 }
+		#P:A TODO No EU5 equivalent: the magistrate spent his 200 wealth and gained 10 popularity
+		add_stability = 5
+	}
+	option = {
+		name = ambitions_inv_3.b
+		# add_popularity = -5
+		# add_corruption = 5
+		#P:A TODO No EU5 equivalent: -5 ruler popularity and +5 ruler corruption
+		# scope:scheme_target = { add_gold = -200 add_loyalty = gesture_denied }
+		#P:A TODO No EU5 equivalent: the magistrate lost 200 wealth and gained the gesture_denied loyalty malus
+		add_gold = 200
+	}
+}
+
+ambitions_inv.4 = {	#Zeal
+	type = country_event
+	title = ambitions_inv_4_title
+	desc = ambitions_inv_4_desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		any_character = {
+			# zeal >= root.zeal #P:A TODO No EU5 equivalent: the target needed at least the ruler's zeal (EU5 characters have no zeal)
+			is_adult = yes
+			is_ruler = no
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		random_character = {
+			limit = {
+				# zeal >= root.zeal
+				is_adult = yes
+				is_ruler = no
+			}
+			save_scope_as = scheme_target
+		}
+		random_owned_location = {
+			limit = { is_capital = no }
+			save_scope_as = your_province_scope
+		}
+		random_neighbor_country = {
+			save_scope_as = new_mystic_home
+		}
+		hidden_effect = {
+			create_character = {
+				first_name = Nabu
+				last_name = Kullani
+				age = 45
+				culture = culture:pasargadi
+				religion = religion:zoroastrian
+				save_scope_as = mystic_man
+			}
+			# scope:mystic_man = { add_zeal = 3 }
+			#P:A TODO No EU5 equivalent: the astrologer had +3 zeal (EU5 characters have no zeal)
+		}
+	}
+
+	option = {
+		name = ambitions_inv_4.a
+		# add_zeal = 1
+		# add_popularity = -5
+		#P:A TODO No EU5 equivalent: +1 ruler zeal and -5 ruler popularity
+	}
+	option = {
+		name = ambitions_inv_4.b
+		# add_popularity = 5
+		#P:A TODO No EU5 equivalent: +5 ruler popularity
+		if = {
+			limit = { exists = scope:new_mystic_home }
+			scope:mystic_man = {
+				move_country = scope:new_mystic_home
+			}
+		}
+	}
+}
+
+ambitions_inv.5 = {	#Charisma
+	type = country_event
+	title = ambitions_inv_5_title
+	desc = ambitions_inv_5_desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		exists = ruler
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		random_character = {
+			limit = {
+				dip >= scope:pa_character.dip
+				is_adult = yes
+				is_ruler = no
+			}
+			save_scope_as = scheme_target
+		}
+		random_owned_location = {
+			limit = { is_capital = no }
+			save_scope_as = your_province_scope
+		}
+	}
+
+	option = {
+		name = ambitions_inv_5.a
+		# add_popularity = 10
+		#P:A TODO No EU5 equivalent: +10 ruler popularity
+	}
+	option = {
+		name = ambitions_inv_5.b
+		scope:pa_character = {
+			add_dip = -5 # Imperator add_charisma = -1 (x5)
+		}
+	}
+}
+
+ambitions_inv.6 = {	#martial
+	type = country_event
+	title = ambitions_inv_6_title
+	desc = ambitions_inv_6_desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		exists = ruler
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		random_character = {
+			limit = {
+				mil >= scope:pa_character.mil
+				is_adult = yes
+				is_ruler = no
+			}
+			save_scope_as = scheme_target
+		}
+	}
+
+	option = {
+		name = ambitions_inv_6.a
+		# add_treasury = { value = scope:scheme_target.wealth divide = 4 min = 20 max = 200 }
+		add_gold = 20 #P:A TODO Approximate: Imperator took a quarter of the embezzler's personal wealth (20-200); EU5 characters have no wealth, so the minimum is used
+		# scope:scheme_target = { add_loyalty = dishonored_by_ruler add_gold = { value = THIS.wealth divide = 4 min = 20 max = 200 } }
+		#P:A TODO No EU5 equivalent: dishonored_by_ruler loyalty malus and the wealth change of the embezzler (EU5 characters have no loyalty or wealth)
+	}
+	option = {
+		name = ambitions_inv_6.b
+		# add_corruption = 10
+		#P:A TODO No EU5 equivalent: +10 ruler corruption
+		# imprison = { target = scope:scheme_target }
+		#P:A TODO No EU5 equivalent: the embezzler is imprisoned (EU5 has no imprisonment)
+	}
+	option = {
+		name = ambitions_inv_6.c
+		trigger = {
+			scope:pa_character = { has_trait = cruel }
+		}
+		# highlight = yes # Imperator trait-option highlight; EU5 options have no such field
+		# add_corruption = 15
+		#P:A TODO No EU5 equivalent: +15 ruler corruption
+		scope:pa_character = {
+			add_mil = 10 # Imperator add_martial = 2 (x5)
+		}
+		kill_character = {
+			target = scope:scheme_target
+			reason = execution
+		}
+	}
+}
+
+ambitions_inv.7 = {	#Charisma
+	type = country_event
+	title = ambitions_inv_7_title
+	desc = ambitions_inv_7_desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = ruler
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		random_character = {
+			limit = {
+				dip >= scope:pa_character.dip
+				is_adult = yes
+				is_ruler = no
+			}
+			save_scope_as = scheme_target
+		}
+	}
+
+	option = {
+		name = ambitions_inv_7.a
+		scope:pa_character = {
+			add_dip = 5 # Imperator add_charisma = 1 (x5)
+		}
+		# add_popularity = -10
+		#P:A TODO No EU5 equivalent: -10 ruler popularity
+	}
+	option = {
+		name = ambitions_inv_7.b
+		# add_corruption = 10
+		#P:A TODO No EU5 equivalent: +10 ruler corruption
+		# imprison = { target = scope:scheme_target }
+		#P:A TODO No EU5 equivalent: the corrupt judge is arrested (EU5 has no imprisonment)
+	}
+}
+
+ambitions_inv.8 = {	#finesse
+	type = country_event
+	title = ambitions_inv_8_title
+	desc = ambitions_inv_8_desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = ruler
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		random_character = {
+			limit = {
+				adm >= scope:pa_character.adm
+				is_adult = yes
+				is_ruler = no
+			}
+			save_scope_as = scheme_target
+		}
+	}
+
+	option = {
+		name = ambitions_inv_8.a
+		# add_treasury = { value = scope:scheme_target.wealth divide = 4 max = 150 min = 50 }
+		add_gold = 50 #P:A TODO Approximate: Imperator recovered a quarter of the fraudster's personal wealth (50-150); EU5 characters have no wealth, so the minimum is used
+		# scope:scheme_target = { add_gold = -100 add_loyalty = dishonored_by_ruler }
+		#P:A TODO No EU5 equivalent: the fraudster lost 100 wealth and gained the dishonored_by_ruler loyalty malus
+	}
+	option = {
+		name = ambitions_inv_8.c
+		trigger = {
+			scope:pa_character = { has_trait = cruel }
+		}
+		# highlight = yes # Imperator trait-option highlight; EU5 options have no such field
+		# add_corruption = 10
+		#P:A TODO No EU5 equivalent: +10 ruler corruption
+		# imprison = { target = scope:scheme_target }
+		#P:A TODO No EU5 equivalent: the fraudster is thrown into the dungeon (EU5 has no imprisonment)
+	}
+	option = {
+		name = ambitions_inv_8.d
+		trigger = {
+			# has_trait = content
+			always = no #P:A TODO No EU5 equivalent: option only for rulers with the "content" trait, which EU5 lacks
+		}
+		# highlight = yes
+		# add_popularity = -5
+		#P:A TODO No EU5 equivalent: -5 ruler popularity
+		scope:pa_character = {
+			add_adm = 5 # Imperator add_finesse = 1 (x5)
+		}
+	}
+}
+
+ambitions_inv.9 = {	#finesse
+	type = country_event
+	title = ambitions_inv_9_title
+	desc = ambitions_inv_9_desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = ruler
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		random_character = {
+			limit = {
+				adm >= scope:pa_character.adm
+				is_adult = yes
+				is_ruler = no
+			}
+			save_scope_as = scheme_target
+		}
+	}
+
+	option = {
+		name = ambitions_inv_9.a
+		add_gold = -50
+		# imprison = { target = scope:scheme_target }
+		#P:A TODO No EU5 equivalent: the tax collector is imprisoned (EU5 has no imprisonment)
+	}
+	option = {
+		name = ambitions_inv_9.b
+		add_gold = -50
+		# add_popularity = -5
+		#P:A TODO No EU5 equivalent: -5 ruler popularity
+	}
+}
+
+ambitions_inv.10 = {	#Zeal
+	type = country_event
+	title = ambitions_inv_10_title
+	desc = ambitions_inv_10_desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = ruler
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		random_character = {
+			limit = {
+				# zeal >= root.zeal #P:A TODO No EU5 equivalent: the target needed at least the ruler's zeal (EU5 characters have no zeal)
+				is_adult = yes
+				is_ruler = no
+			}
+			save_scope_as = scheme_target
+		}
+	}
+
+	option = {
+		name = ambitions_inv_10.a
+		# add_treasury = { value = scope:scheme_target.wealth divide = 4 max = 150 min = 50 }
+		add_gold = 50 #P:A TODO Approximate: Imperator confiscated a quarter of the thief's personal wealth (50-150); EU5 characters have no wealth, so the minimum is used
+		# scope:scheme_target = { add_gold = -100 add_loyalty = dishonored_by_ruler }
+		#P:A TODO No EU5 equivalent: the thief lost 100 wealth and gained the dishonored_by_ruler loyalty malus
+	}
+	option = {
+		name = ambitions_inv_10.b
+		# add_zeal = -1
+		#P:A TODO No EU5 equivalent: -1 ruler zeal
+		kill_character = {
+			target = scope:scheme_target
+			reason = execution
+		}
+	}
+	option = {
+		name = ambitions_inv_10.c
+		# add_corruption = 10
+		#P:A TODO No EU5 equivalent: +10 ruler corruption
+		scope:pa_character = {
+			add_trait = trait:corrupt
+		}
+		add_gold = 50
+	}
+}

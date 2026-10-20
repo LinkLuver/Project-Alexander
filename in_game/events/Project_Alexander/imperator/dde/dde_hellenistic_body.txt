@@ -1,0 +1,830 @@
+﻿#P:A Imported from Invictus: events/dde/dde_hellenistic_body.txt
+namespace = dhe_body
+
+# Alexander's tomb (Hellenistic World Flavor Pack content of Invictus "Diadochi Dynamic Events").
+#P:A TODO The chain needs the tomb's starting location: Imperator dhe_body.4 (a tag-bound EGY startup event, not imported) set the location variables alexander_body_location and mausoleum_constructed and the modifier dde_alexander_mausoleum_built on p:516 Alexandria (EU5 location:alexandria). The orchestrator must decide how to set alexander_body_location at game start; until then nothing in this file fires.
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+
+# Hidden: the location holding Alexander's tomb changed hands; tell the new owner (Imperator on_ownership_change -> EU5 on_location_changed_owner, root = location).
+dhe_body.3 = { #Event to inform 3rd party countries if alexander's tomb is in a stolen province.
+	type = location_event
+	hidden = yes
+
+	trigger = {
+		has_variable = alexander_body_location
+		has_owner = yes
+	}
+
+	immediate = {
+		save_scope_as = body_province
+		owner = {
+			trigger_event_non_silently = {
+				id = dhe_body.5
+				days = { 30 60 }
+			}
+		}
+	}
+}
+
+# Our new conquest holds the tomb of Alexander: keep it, move it to one of our cities, or worse.
+dhe_body.5 = { #Event to inform 3rd party countries if alexander's tomb is in a stolen province.
+	type = country_event
+	title = dhe_body.5.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					OR = {
+						tag = ROM
+						culture = { has_culture_group = culture_group:greek_group } # Imperator country_culture_group = hellenic
+					}
+				}
+				desc = dhe_body.5.desc_hellenic
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = dhe_body.5.desc
+			}
+		}
+	}
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:body_province
+		scope:body_province = {
+			has_variable = alexander_body_location
+		}
+		owns = scope:body_province
+	}
+
+	immediate = {
+		hidden_effect = {
+			# Imperator ran this loop 3 times (while = { count = 3 ... }); one pass already saves every candidate location
+			every_owned_location = {
+				pa_imp_body_is_ready_effect = yes
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.a #Keep body here.
+		# current_ruler = { add_popularity = popularity_huge } #P:A TODO No EU5 equivalent: +25 popularity for the ruler (EU5 characters have no popularity)
+		pa_imp_add_stability_effect = yes
+	}
+
+	option = {
+		name = dhe_body.5.b
+		custom_tooltip = body_transit_location_eboracum
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:eboracum
+			scope:eboracum = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:eboracum = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 299
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = gods_own_county
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.c
+		custom_tooltip = body_transit_location_stockholm
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:stockholm
+			scope:stockholm = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:stockholm = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = alexander_of_the_north
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.d
+		custom_tooltip = body_transit_location_lavinium
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:lavinium
+			scope:lavinium = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:lavinium = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = roman_alexander
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.e
+		custom_tooltip = body_transit_location_alexandria
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:alexandria
+			scope:alexandria = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:alexandria = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = final_resting_place_alexander
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.f
+		custom_tooltip = body_transit_location_aegae
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:aegae
+			scope:aegae = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:aegae = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = burial_of_kings
+				days = -1
+			}
+		}
+		if = {
+			limit = {
+				government_type = government_type:monarchy # Imperator is_monarchy = yes
+			}
+			add_legitimacy = 20
+		}
+	}
+
+	option = {
+		name = dhe_body.5.g
+		custom_tooltip = body_transit_location_babylon
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:babylon
+			scope:babylon = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:babylon = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = alexander_in_babylon
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.h
+		custom_tooltip = body_transit_location_kafir
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:kafir
+			scope:kafir = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:kafir = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = alexander_in_kafir
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.i
+		custom_tooltip = body_transit_location_antigonia
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:antigonia
+			scope:antigonia = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:antigonia = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = alexander_in_antigonia
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.j
+		custom_tooltip = body_transit_location_lysimacheia
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:lysimacheia
+			scope:lysimacheia = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:lysimacheia = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = alexander_in_lysimacheia
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.k
+		custom_tooltip = body_transit_location_shushan
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:shushan
+			scope:shushan = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:shushan = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = alexander_in_shushan
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.l
+		custom_tooltip = body_transit_location_niniveh
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:niniveh
+			scope:niniveh = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:niniveh = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = alexander_in_niniveh
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.m
+		custom_tooltip = body_transit_location_athens
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:athens
+			scope:athens = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:athens = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = alexander_in_athens
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.n
+		custom_tooltip = body_transit_location_rhodos
+		custom_tooltip = body_transit_duration_tooltip
+		trigger = {
+			exists = scope:rhodos
+			scope:rhodos = {
+				owner = root
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		scope:rhodos = {
+			set_variable = {
+				name = alexander_body_location
+			}
+			hidden_effect = {
+				owner = {
+					set_variable = {
+						name = body_in_transit
+						days = 300
+					}
+					trigger_event_non_silently = {
+						id = dhe_body.6
+						days = 300
+					}
+				}
+			}
+			add_location_modifier = {
+				modifier = alexander_in_rhodos
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.5.o
+		custom_tooltip = to_the_hungriest_tooltip
+		# highlight = yes #P:A Removed: EU5 event options have no highlight field
+		trigger = {
+			ruler ?= {
+				always = no #P:A TODO No EU5 equivalent: Imperator has_trait = cannibal_trait (no such trait in the mod)
+			}
+		}
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		# add_political_influence = influence_huge #P:A TODO No EU5 equivalent: +50 political influence
+		ruler = {
+			add_mil = 15 # Imperator add_martial = 3
+		}
+		# trigger_event = { id = zorgo_event.122 } #P:A TODO No EU5 equivalent: zorgo_event.122 (Invictus cannibal ruler follow-up) is not part of the import
+		hidden_effect = {
+			every_country = {
+				limit = {
+					culture = { has_culture_group = culture_group:greek_group } # Imperator country_culture_group = hellenic
+					NOT = {
+						this = root
+					}
+				}
+				add_opinion = {
+					modifier = cannibal_ate_alexander
+					target = root
+				}
+				# trigger_event = { id = olympic.3 } #P:A TODO No EU5 equivalent: olympic.3 (Olympic Games reaction) is not part of the import
+			}
+		}
+		ai_chance = {
+			factor = 0
+		}
+	}
+
+	option = {
+		name = dhe_body.5.p
+		custom_tooltip = lost_to_time_dde_tooltip
+		scope:body_province = {
+			pa_imp_remove_alexander_province_variables_effect = yes
+		}
+		pa_imp_remove_stability_effect = yes
+		# add_political_influence = influence_huge #P:A TODO No EU5 equivalent: +50 political influence
+		ruler = {
+			if = {
+				limit = {
+					mil <= 60 # Imperator martial <= 12
+				}
+				add_mil = 5 # Imperator add_martial = 1
+			}
+		}
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+
+# Alexander's remains arrive at their new resting place (fired 300 days after a transfer option of dhe_body.5).
+dhe_body.6 = {
+	type = country_event
+	title = dhe_body.6.t
+	desc = dhe_body.6.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	option = { #Build Mausoleum option available
+		name = dhe_body.6.a
+		custom_tooltip = mausoleum_building_available
+		#P:A TODO No EU5 equivalent: the tooltip announces the Imperator mausoleum decision, which is not part of the import
+	}
+}
+
+# A strange visitor disrespects the mausoleum of Alexander.
+#P:A TODO dhe_body.7-.9 need a location with the variable mausoleum_constructed, set in Imperator by dhe_body.4 (Egypt's start, not imported) and the mausoleum decision (not part of the import); until something sets it they cannot fire
+dhe_body.7 = {
+	type = country_event
+	title = dhe_body.7.t
+	desc = dhe_body.7.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = alexandrine_visitor_toggle
+		}
+		any_owned_location = {
+			has_variable = mausoleum_constructed
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = alexandrine_visitor_toggle
+			days = 18250
+		}
+		ruler ?= { save_scope_as = pa_ruler } # Imperator left_portrait = current_ruler
+		hidden_effect = {
+			create_character = {
+				culture = root.culture # Imperator default: the country's culture
+				religion = root.religion
+				female = no
+				age = 26
+				save_scope_as = alexandrine_visitor
+			}
+			scope:alexandrine_visitor = {
+				add_dip = 20 # Imperator add_charisma = 4
+				add_adm = 20 # Imperator add_finesse = 4
+				add_mil = 20 # Imperator add_martial = 4
+				# add_zeal = 4 #P:A TODO No EU5 equivalent: character zeal
+			}
+		}
+	}
+
+	option = {
+		name = dhe_body.7.a
+		scope:alexandrine_visitor = {
+			found_dynasty = random # Imperator create_family = scope:alexandrine_visitor
+			# add_prominence = 30 #P:A TODO No EU5 equivalent: +30 prominence (EU5 characters have no prominence)
+			# add_loyalty = loyalty_inducted_visitor #P:A TODO No EU5 equivalent: character loyalty
+		}
+	}
+
+	option = {
+		name = dhe_body.7.b
+		# imprison = { target = scope:alexandrine_visitor } #P:A TODO No EU5 equivalent: EU5 has no imprisoned characters
+		# add_tyranny = 2 #P:A TODO No EU5 equivalent: tyranny
+		# current_ruler = { add_popularity = popularity_medium } #P:A TODO No EU5 equivalent: +10 popularity for the ruler
+	}
+
+	option = {
+		name = dhe_body.7.c
+		kill_character = { #P:A TODO Approximate: Imperator death_crucified -> EU5 execution
+			target = scope:alexandrine_visitor
+			reason = execution
+		}
+		# add_tyranny = 5 #P:A TODO No EU5 equivalent: tyranny
+		# current_ruler = { add_popularity = popularity_huge } #P:A TODO No EU5 equivalent: +25 popularity for the ruler
+	}
+}
+
+# A Greek official finds forgotten documents of Alexander at the mausoleum.
+dhe_body.8 = {
+	type = country_event
+	title = dhe_body.8.t
+	desc = dhe_body.8.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = dhe_body_8_toggle
+		}
+		any_owned_location = {
+			has_variable = mausoleum_constructed
+		}
+		any_character = {
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office = yes -> in the cabinet
+			culture = { has_culture_group = culture_group:greek_group } # Imperator has_culture_group = hellenic
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = dhe_body_8_toggle
+			days = 18250
+		}
+		ruler ?= { save_scope_as = pa_ruler } # Imperator left_portrait = current_ruler
+		random_character = {
+			limit = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office = yes -> in the cabinet
+				culture = { has_culture_group = culture_group:greek_group } # Imperator has_culture_group = hellenic
+			}
+			save_scope_as = government_officer
+		}
+	}
+
+	option = {
+		name = dhe_body.8.a
+		add_country_modifier = {
+			modifier = alexanders_legacy_cmod
+			days = 7300
+		}
+	}
+
+	option = {
+		name = dhe_body.8.b
+		every_neighbor_country = {
+			add_opinion = {
+				target = root
+				modifier = alexandrine_claims_renounced
+			}
+		}
+	}
+}
+
+# Research at the mausoleum's library reveals a Greek family descended from the Argeads.
+dhe_body.9 = {
+	type = country_event
+	title = dhe_body.9.t
+	desc = dhe_body.9.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		NOT = {
+			has_variable = dhe_body_9_toggle
+		}
+		government_type = government_type:monarchy # Imperator is_monarchy = yes
+		any_owned_location = {
+			has_variable = mausoleum_constructed
+		}
+		any_character = {
+			culture = { has_culture_group = culture_group:greek_group } # Imperator has_culture_group = hellenic
+			# trigger_if = { limit = { employer.current_ruler = { is_minor_character = no } } from_ruler_family = no } #P:A TODO No EU5 equivalent: Imperator excluded the ruler's family (from_ruler_family)
+			# family = { prestige > 2000 } #P:A TODO No EU5 equivalent: EU5 dynasties have no prestige
+			# NOT = { has_trait = argeads } #P:A TODO No EU5 equivalent: Invictus Argead bloodline trait
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about the Invictus Argead bloodline trait (argeads), which the mod lacks, granted to a family with 2000+ prestige (EU5 dynasties have no prestige)
+	}
+
+	immediate = {
+		set_variable = {
+			name = dhe_body_9_toggle
+		}
+		ruler ?= { save_scope_as = pa_ruler } # Imperator left_portrait = current_ruler
+		random_character = {
+			limit = {
+				exists = dynasty
+				culture = { has_culture_group = culture_group:greek_group } # Imperator has_culture_group = hellenic
+				# family = { prestige >= 2000 } from_ruler_family = no NOT = { has_trait = argeads } #P:A TODO No EU5 equivalent: see the trigger
+			}
+			# weight = { modifier = { factor = 50 martial > 10 } finesse > 10, charisma > 10, zeal > 10 (factor 50 each) }
+			#P:A TODO No EU5 equivalent: Imperator weighted the pick towards characters with a skill above 10
+			save_scope_as = relative_of_alexander
+		}
+	}
+
+	option = {
+		name = dhe_body.9.a
+		add_legitimacy = -25
+		# scope:relative_of_alexander.family = { every_family_member = { limit = { is_male = yes employer = root NOT = { has_trait = argeads } NOT = { this = scope:relative_of_alexander } } add_trait = argeads add_loyalty = loyalty_argead_blood } }
+		# scope:relative_of_alexander = { add_trait = argeads }
+		#P:A TODO No EU5 equivalent: every male member of the family gains the Argead bloodline trait (not in the mod) and loyalty (EU5 characters have no loyalty)
+		custom_tooltip = argead_and_loyalty_tooltip
+	}
+
+	option = {
+		name = dhe_body.9.b
+		# add_tyranny = 10 #P:A TODO No EU5 equivalent: tyranny
+		scope:relative_of_alexander.dynasty = { # Imperator family
+			every_character_in_dynasty = {
+				limit = {
+					employer = root
+				}
+				kill_character = { #P:A TODO Approximate: Imperator death_murder -> EU5 assassination
+					target = this
+					reason = assassination
+				}
+			}
+		}
+	}
+}

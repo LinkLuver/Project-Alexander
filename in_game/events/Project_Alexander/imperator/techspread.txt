@@ -1,0 +1,68 @@
+﻿#P:A Imported from Invictus: events/techspread.txt
+# Ideas spread to tribes from a civilized trade partner. Invictus fired techspread.1 from its custom on_action tech_spread_pulse
+# (a periodic country pulse); in EU5 a yearly country pulse would suit it.
+namespace = techspread
+
+# Hidden: a tribe with little oratory technology finds a civilized trade partner.
+techspread.1 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		government_type = government_type:tribe # Imperator is_tribal = yes
+		# oratory_tech < 5 #P:A TODO No EU5 equivalent: oratory technology below 5 (EU5 has no technology levels)
+	}
+
+	immediate = {
+		random_country = {
+			limit = {
+				NOT = { government_type = government_type:tribe } # Imperator is_tribal = no
+				OR = { #P:A TODO Approximate: Imperator required a trade route between the two (exports_to/imports_from root); EU5 trade is market-based, a trade treaty or a shared border stands in
+					has_trade_treaty_with = root
+					root = { has_trade_treaty_with = prev }
+					is_neighbor_of = root
+				}
+			}
+			save_scope_as = techtarget
+		}
+		if = {
+			limit = {
+				exists = scope:techtarget
+			}
+			trigger_event_non_silently = {
+				id = techspread.2
+			}
+		}
+	}
+}
+
+# Spread of Ideas
+techspread.2 = {
+	type = country_event
+	title = techspread.2.t
+	desc = techspread.2.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		exists = scope:techtarget # guard added: set by techspread.1
+	}
+
+	immediate = {
+		scope:techtarget.ruler ?= {
+			save_scope_as = pa_techtarget_ruler
+		}
+		# add_research = { technology = military_tech value = 10 }
+		# add_research = { technology = civic_tech value = 10 }
+		# add_research = { technology = oratory_tech value = 10 }
+		# add_research = { technology = religious_tech value = 10 }
+		add_research_progress = research_progress_severe_bonus #P:A TODO Approximate: Imperator gave 10 research points in each of its four technologies; EU5 has one research pool
+	}
+
+	option = {
+		name = techspread.2.a
+	}
+}

@@ -1,0 +1,79 @@
+﻿#P:A Imported from Invictus: events/tribal_fun.txt
+# Invictus fired tribal_fun_inv.1 from on_province_occupied (on_province_occupied_inv.txt) for the occupier (controller) when
+# a tribal country occupied a large civilized city (by date: 30-40+ pops or a metropolis or a capital, civilization >= 20-30),
+# 20% chance, not while the occupier had var:tribal_looting_cooldown (1 day); the province also got the disturbed_circles modifier.
+# Here: root = the occupying country, for EU5 on_location_occupied (scope:target = the location).
+namespace = tribal_fun_inv
+
+# A Noteworthy Find
+tribal_fun_inv.1 = {
+	type = country_event
+	title = tribal_fun_inv.1.t
+	desc = tribal_fun_inv.1.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		government_type = government_type:tribe # guard from the Invictus caller (controller is_tribal = yes)
+		any_character = { # guard added: the texts need scope:not_bruce_lee
+			mil >= 40 # Imperator martial >= 8
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				mil >= 40 # Imperator martial >= 8
+			}
+			save_scope_as = not_bruce_lee
+		}
+	}
+
+	option = { # Pay the warriors off
+		name = tribal_fun_inv.1.a
+		add_research_progress = research_progress_mild_bonus #P:A TODO Approximate: Imperator add_innovation = 1 (one invention point); EU5 research progress
+		add_gold = {
+			value = 0
+			subtract = monthly_income_total # Imperator has_monthly_income
+			max = -25
+			min = -500
+		}
+	}
+
+	option = { # convince them
+		name = tribal_fun_inv.1.b
+		trigger = {
+			ruler = {
+				OR = {
+					# has_trait = orator #P:A TODO No EU5 equivalent: the "orator" trait does not exist in EU5
+					has_trait = silver_tongue # Imperator silver_tongued
+					dip >= 35 # Imperator charisma >= 7
+				}
+			}
+		}
+		add_research_progress = research_progress_mild_bonus #P:A TODO Approximate: Imperator add_innovation = 1 (one invention point); EU5 research progress
+		# add_political_influence = -10 #P:A TODO No EU5 equivalent: -10 political influence
+		# current_ruler = { add_popularity = -5 } #P:A TODO No EU5 equivalent: -5 ruler popularity (EU5 characters have no popularity)
+	}
+
+	option = { # support the warrior's claim
+		name = tribal_fun_inv.1.c
+		add_country_modifier = {
+			modifier = wreck_the_circles
+			days = 3650 # 10 yrs
+		}
+		capital = {
+			add_pop = { #P:A TODO Approximate: Imperator create_state_pop = slaves twice (2 pops) -> size 2 slaves with the capital's dominant culture and religion
+				type = pop_type:slaves
+				size = 2
+				culture = dominant_culture
+				religion = dominant_religion
+			}
+		}
+	}
+}

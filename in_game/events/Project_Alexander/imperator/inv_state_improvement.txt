@@ -1,0 +1,124 @@
+﻿#P:A Imported from Invictus: events/inv_state_improvement.txt (inv_state_improvement.10, .11, .16, .17)
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+# Kush (KSH) variants of the Imperator state investments (state_improvement.txt, batch b18). Imperator states are EU5 provinces;
+# the Imperator state events are location events on the province capital, with scope:state_improvement_target = the province.
+#P:A TODO No EU5 caller: Invictus has no caller for inv_state_improvement.10/.11 either (the "invest in state" GUI fires state_improvement.10/.11); dormant.
+namespace = inv_state_improvement
+
+# Hidden: civic investment (Kush variant) in a province (Imperator state).
+inv_state_improvement.10 = { #Civic KSH
+	type = location_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:state_improvement_target
+	}
+
+	immediate = {
+		province = {
+			add_province_modifier = {
+				modifier = state_improvement_civic_KSH
+				days = -1
+				mode = add
+			}
+		}
+		owner = {
+			trigger_event_non_silently = { id = inv_state_improvement.16 }
+		}
+		province = {
+			pa_imp_increment_state_investment_count = yes
+		}
+	}
+}
+
+# Hidden: religious investment (Kush variant) in a province (Imperator state).
+inv_state_improvement.11 = { #Religious KSH
+	type = location_event
+	hidden = yes
+
+	trigger = {
+		exists = scope:state_improvement_target
+	}
+
+	immediate = {
+		province = {
+			add_province_modifier = {
+				modifier = state_improvement_religious_KSH
+				days = -1
+				mode = add
+			}
+		}
+		owner = {
+			trigger_event_non_silently = { id = inv_state_improvement.17 }
+		}
+		province = {
+			pa_imp_increment_state_investment_count = yes
+		}
+	}
+}
+
+# Civic investment (Kush variant) made (notification from inv_state_improvement.10).
+inv_state_improvement.16 = { #Civic KSH
+	type = country_event
+	title = inv_state_improvement.16.t
+	desc = inv_state_improvement.16.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:state_improvement_target
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:state_improvement_target.governor_or_ruler (EU5 has no governors)
+		}
+		show_as_tooltip = {
+			scope:state_improvement_target = {
+				add_province_modifier = {
+					modifier = state_improvement_civic_KSH
+					days = -1
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = { name = state_improvement.16.a }
+}
+
+# Religious investment (Kush variant) made (notification from inv_state_improvement.11).
+inv_state_improvement.17 = { #Religious KSH
+	type = country_event
+	title = inv_state_improvement.17.t
+	desc = inv_state_improvement.17.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:state_improvement_target
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:state_improvement_target.governor_or_ruler (EU5 has no governors)
+		}
+		show_as_tooltip = {
+			scope:state_improvement_target = {
+				add_province_modifier = {
+					modifier = state_improvement_religious_KSH
+					days = -1
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = { name = inv_state_improvement.17.a }
+}

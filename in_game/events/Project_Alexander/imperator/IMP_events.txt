@@ -1,0 +1,239 @@
+﻿#P:A Imported from Indomita: events/IMP_events.txt
+# Imperial power for very large countries. imperial_events.1 was in Indomita's monthly_country_pulse; imperial_events.2
+# was fired by the scripted GUI button change_imperial_power_button (no EU5 equivalent; the orchestrator decides).
+namespace = imperial_events
+
+# A great empire chooses its imperial focus.
+imperial_events.1 = {
+	type = country_event
+	title = imperial_events.1.t
+	desc = imperial_events.1.desc
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		num_locations >= 600 #P:A TODO Approximate: Imperator num_of_cities >= 600 (territories); EU5 owned locations, which are smaller and more numerous
+		NOT = { has_variable = imperial_power }
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = imperial_ruler }
+	}
+
+	option = {
+		# political
+		name = imperial_events.1.a
+		set_variable = {
+			name = imperial_power
+			value = flag:political
+		}
+		show_as_tooltip = {
+			add_country_modifier = {
+				modifier = imperial_political_mod_5
+				years = -1
+			}
+		}
+	}
+	option = {
+		# warfare
+		name = imperial_events.1.b
+		set_variable = {
+			name = imperial_power
+			value = flag:warfare
+		}
+		show_as_tooltip = {
+			add_country_modifier = {
+				modifier = imperial_military_mod_5
+				years = -1
+			}
+		}
+	}
+	option = {
+		# economic
+		name = imperial_events.1.c
+		set_variable = {
+			name = imperial_power
+			value = flag:economic
+		}
+		show_as_tooltip = {
+			add_country_modifier = {
+				modifier = imperial_economic_mod_5
+				years = -1
+			}
+		}
+	}
+	after = {
+		pa_imp_set_imperial_power = yes
+	}
+}
+
+# Change the imperial focus (Indomita: scripted GUI button change_imperial_power_button).
+imperial_events.2 = {
+	type = country_event
+	title = imperial_events.2.t
+	desc = imperial_events.2.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		has_variable = imperial_power
+		has_variable = imperial_power_level
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = imperial_ruler }
+	}
+
+	option = {
+		# political
+		trigger = {
+			NOT = { var:imperial_power = flag:political }
+		}
+		name = imperial_events.2.a
+		pa_imp_change_imperial_power_cost = yes
+		remove_variable = imperial_power
+		set_variable = {
+			name = recently_changed_imperial_power
+			days = 1825
+		}
+		set_variable = {
+			name = imperial_power
+			value = flag:political
+		}
+		#custom_tooltip = imperial_events_2_tt_political
+		if = {
+			limit = {
+				var:imperial_power_level = 5
+			}
+			custom_tooltip = imperial_power_level_political_one_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 4
+			}
+			custom_tooltip = imperial_power_level_political_two_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 3
+			}
+			custom_tooltip = imperial_power_level_political_three_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 2
+			}
+			custom_tooltip = imperial_power_level_political_four_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 1
+			}
+			custom_tooltip = imperial_power_level_political_five_tt
+		}
+	}
+	option = {
+		# warfare
+		trigger = {
+			NOT = { var:imperial_power = flag:warfare }
+		}
+		name = imperial_events.2.b
+		pa_imp_change_imperial_power_cost = yes
+		remove_variable = imperial_power
+		set_variable = {
+			name = recently_changed_imperial_power
+			days = 1825
+		}
+		set_variable = {
+			name = imperial_power
+			value = flag:warfare
+		}
+		#custom_tooltip = imperial_events_2_tt_warfare
+		if = {
+			limit = {
+				var:imperial_power_level = 5
+			}
+			custom_tooltip = imperial_power_level_mil_one_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 4
+			}
+			custom_tooltip = imperial_power_level_mil_two_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 3
+			}
+			custom_tooltip = imperial_power_level_mil_three_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 2
+			}
+			custom_tooltip = imperial_power_level_mil_four_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 1
+			}
+			custom_tooltip = imperial_power_level_mil_five_tt
+		}
+	}
+	option = {
+		# economic
+		trigger = {
+			NOT = { var:imperial_power = flag:economic }
+		}
+		name = imperial_events.2.c
+		pa_imp_change_imperial_power_cost = yes
+		remove_variable = imperial_power
+		set_variable = {
+			name = imperial_power
+			value = flag:economic
+		}
+		#custom_tooltip = imperial_events_2_tt_economic
+		if = {
+			limit = {
+				var:imperial_power_level = 5
+			}
+			custom_tooltip = imperial_power_level_economic_one_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 4
+			}
+			custom_tooltip = imperial_power_level_economic_two_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 3
+			}
+			custom_tooltip = imperial_power_level_economic_three_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 2
+			}
+			custom_tooltip = imperial_power_level_economic_four_tt
+		}
+		if = {
+			limit = {
+				var:imperial_power_level = 1
+			}
+			custom_tooltip = imperial_power_level_economic_five_tt
+		}
+	}
+	option = {
+		name = imperial_events.2.d
+	}
+	after = {
+		hidden_effect = {
+			pa_imp_set_imperial_power = yes
+		}
+	}
+}

@@ -1,0 +1,443 @@
+﻿#P:A Imported from Invictus: events/religion_flavor/temple_state_event.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+# Temple states (Anatolian / Near Eastern priest-ruled subjects, subject type temple_state).
+# temple_state_event.1: Imperator character interaction grant_temple_state (scopes: scope:new_temple_state = the temple
+#   state, scope:temple_estate_province = its temple location). The caller must save both.
+# temple_state_event.2: Imperator invention religious_1 (no scopes needed).
+# temple_state_event.3: Imperator character interaction put_dynasty_temple_state (scope:temple_state_scope = the temple state).
+namespace = temple_state_event
+
+# A new temple state asks for more land.
+temple_state_event.1 = {
+	type = country_event
+	title = temple_state_event.1.t
+	desc = temple_state_event.1.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:new_temple_state
+		exists = scope:temple_estate_province
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = temple_state_overlord_ruler }
+		scope:new_temple_state = {
+			ruler ?= { save_scope_as = temple_state_ruler }
+		}
+		show_as_tooltip = {
+			scope:new_temple_state = {
+				make_subject_of = {
+					target = root
+					type = subject_type:temple_state
+				}
+			}
+		}
+		scope:temple_estate_province = {
+			if = {
+				limit = {
+					NOT = {
+						has_location_modifier = temple_state_modifier
+					}
+				}
+				add_location_modifier = {
+					modifier = temple_state_modifier
+					years = -1
+				}
+			}
+		}
+
+		scope:temple_estate_province = {
+			random_neighbor_location = {
+				limit = {
+					owner = root
+					NOT = { this = scope:temple_estate_province }
+				}
+				save_scope_as = temple_estate_neighbor_province
+			}
+		}
+	}
+
+	option = {
+		name = temple_state_event.1.a
+		ai_chance = { factor = 30 }
+	}
+	option = {
+		name = temple_state_event.1.b
+		trigger = { exists = scope:temple_estate_neighbor_province }
+		add_gold = 50
+		scope:temple_estate_province = {
+			pa_imp_create_3_slaves_effect = yes
+		}
+		scope:temple_estate_neighbor_province = { change_location_owner = scope:new_temple_state }
+		ai_chance = { factor = 50 }
+	}
+
+	option = {
+		name = temple_state_event.1.c
+		trigger = {
+			exists = scope:temple_estate_neighbor_province
+			scope:temple_estate_province = {
+				any_neighbor_location = {
+					owner = root
+					NOT = { this = scope:temple_estate_neighbor_province }
+				}
+			}
+		}
+		add_gold = 100
+		scope:temple_estate_province = {
+			pa_imp_create_3_slaves_effect = yes
+		}
+		scope:temple_estate_province = {
+			every_neighbor_location = {
+				limit = {
+					owner = root
+				}
+				change_location_owner = scope:new_temple_state
+				every_neighbor_location = {
+					limit = {
+						owner = root
+						is_coastal = yes
+					}
+					change_location_owner = scope:new_temple_state
+				}
+			}
+		}
+		ai_chance = { factor = 20 }
+	}
+}
+
+# The priests of a holy location ask for autonomy as a temple state.
+temple_state_event.2 = {
+	type = country_event
+	title = temple_state_event.2.t
+	desc = temple_state_event.2.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		pa_imp_can_make_temple_state = yes
+#		NOT = {
+#			has_variable = temple_state_event_cooldown
+#		}
+		any_owned_location = {
+			is_capital = no
+			OR = {
+				location_num_holy_sites > 0 #P:A TODO Approximate: Imperator is_holy_site (the territory holds a deity's holy site); EU5 holy sites of any religion
+				pa_imp_own_religious_center_province_trigger = yes
+				has_location_modifier = temple_state_modifier
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = temple_state_overlord_ruler }
+		set_variable = { #can make variable longer to prevent AI spam if that is an issue
+			name = make_temple_state_cooldown
+			days = 18250
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					any_owned_location = {
+						has_location_modifier = temple_state_modifier
+					}
+				}
+				random_owned_location = {
+					limit = {
+						has_location_modifier = temple_state_modifier
+					}
+					save_scope_as = temple_estate_province
+				}
+			}
+			else = {
+				random_owned_location = {
+					limit = {
+						is_capital = no
+						OR = {
+							location_num_holy_sites > 0 #P:A TODO Approximate: Imperator is_holy_site; EU5 holy sites of any religion
+							pa_imp_own_religious_center_province_trigger = yes
+							has_location_modifier = temple_state_modifier
+						}
+					}
+					save_scope_as = temple_estate_province
+				}
+			}
+			create_character = {
+				culture = scope:temple_estate_province.dominant_culture
+				religion = scope:temple_estate_province.dominant_religion
+				age = 30
+				save_scope_as = temple_state_high_priest
+			}
+			scope:temple_state_high_priest = {
+				pa_imp_good_zeal_trait_effect = yes
+				# add_zeal = 3
+				#P:A TODO No EU5 equivalent: +3 zeal for the new high priest (EU5 characters have no zeal)
+			}
+		}
+	}
+
+	option = {
+		name = temple_state_event.2.a
+		add_gold = {
+			value = monthly_income_total
+			multiply = -3
+			max = -20
+			min = -2000
+		}
+		scope:temple_estate_province = {
+			pa_imp_create_3_slaves_effect = yes
+			if = {
+				limit = {
+					NOT = {
+						has_location_modifier = temple_state_modifier
+					}
+				}
+				add_location_modifier = {
+					modifier = temple_state_modifier
+					years = -1
+				}
+			}
+			add_location_modifier = {
+				modifier = temple_state_placated_modifier
+				days = 3650
+			}
+		}
+		ai_chance = { factor = 20 }
+	}
+	option = {
+		name = temple_state_event.2.b
+		trigger = {
+			OR = {
+				scope:temple_estate_province = { has_location_modifier = temple_state_modifier }
+				NOT = {
+					any_subject = {
+						is_subject_type = temple_state
+						capital.region = scope:temple_estate_province.region #P:A TODO Approximate: Imperator compared the subject's capital region with the province itself (always false, so this NOT always passed); written as the intended same-region check
+					}
+				}
+			}
+		}
+		custom_tooltip = temple_state_event.2.bt
+		ruler = {
+			add_trait = trait:pious
+		}
+		hidden_effect = {
+			scope:temple_estate_province = {
+				create_country_from_location = {
+					overlord = root
+					subject_type = subject_type:temple_state
+					# set_country_heritage = religious_enclave_heritage
+					#P:A TODO No EU5 equivalent: the temple state got the "religious enclave" heritage (EU5 has no heritages)
+					add_manpower = 5
+					pa_imp_add_stability_effect = yes
+					add_gold = 600
+					change_government_type = government_type:theocracy #P:A TODO Approximate: Imperator theocratic_republic (if the overlord was a republic) or theocratic_monarchy; EU5 has one theocracy type
+					save_scope_as = temple_estate_country
+					capital = {
+						pa_imp_create_3_slaves_effect = yes
+						pa_imp_create_2_nobles_effect = yes
+						if = {
+							limit = {
+								NOT = {
+									has_location_modifier = temple_state_modifier
+								}
+							}
+							add_location_modifier = {
+								modifier = temple_state_modifier
+								years = -1
+							}
+						}
+					}
+				}
+			}
+		}
+		# scope:temple_state_high_priest = { force_add_trait = priest_king }
+		#P:A TODO No EU5 equivalent: the high priest gets the "Priest-King" trait (EU5 has no such trait)
+		hidden_effect = {
+			scope:temple_state_high_priest = {
+				# remove_all_offices = yes
+				# remove_as_governor = yes
+				#P:A TODO No EU5 equivalent: removed the high priest from all offices and governorships (EU5 has no offices or governors)
+				move_country = scope:temple_estate_country # Imperator: move_country/set_home_country = scope:temple_state_scope, which is never set in this event; the new temple state is meant
+				# remove_character_modifier = foreign_citizen
+				#P:A TODO No EU5 equivalent: foreign_citizen is an Imperator citizenship modifier; EU5 has no citizenship
+			}
+			scope:temple_estate_country = {
+				set_new_ruler = scope:temple_state_high_priest
+			}
+		}
+		ai_chance = { factor = 10 }
+	}
+
+	option = {
+		name = temple_state_event.2.c
+		scope:temple_state_high_priest = {
+			add_character_modifier = {
+				modifier = house_arrest_charmod
+				years = -1
+			}
+		}
+		# add_political_influence = -25
+		#P:A TODO No EU5 equivalent: -25 political influence (subtract_influence_large; EU5 has no political influence)
+		# add_tyranny = 5
+		#P:A TODO No EU5 equivalent: +5 tyranny (EU5 has no tyranny)
+		ai_chance = { factor = 20 }
+	}
+
+	option = {
+		name = temple_state_event.2.d
+		add_gold = {
+			value = monthly_income_total
+			multiply = 6
+			ceiling = yes
+			max = 500
+			min = 5
+		}
+		# add_tyranny = 15
+		#P:A TODO No EU5 equivalent: +15 tyranny (EU5 has no tyranny)
+		scope:temple_estate_province = {
+			if = {
+				limit = {
+					has_location_modifier = temple_state_modifier
+				}
+				remove_location_modifier = temple_state_modifier
+			}
+			add_location_modifier = {
+				modifier = temple_state_unrest_modifier
+				days = 3650
+			}
+		}
+		ai_chance = { factor = 0 }
+	}
+}
+
+temple_state_event.3 = { #Swap dynasty
+	type = country_event
+	title = temple_state_event.3.t
+	desc = temple_state_event.3.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:temple_state_scope
+	}
+
+	immediate = {
+		ruler ?= { save_scope_as = temple_state_overlord_ruler }
+		heir ?= { save_scope_as = temple_state_overlord_heir }
+		scope:temple_state_scope = {
+			ruler ?= { save_scope_as = temple_state_ruler }
+		}
+		ruler.dynasty ?= {
+			every_character_in_dynasty = {
+				limit = {
+					is_alive = yes
+					is_adult = yes
+					is_female = no
+					is_heir = no #P:A TODO Approximate: Imperator is_primary_heir = no (the dynasty member is not the primary heir of a country); EU5 is_heir
+					NOT = { this = root.ruler }
+				}
+				add_to_list = choose_from_ruler
+			}
+		}
+		random_in_list = {
+			list = choose_from_ruler
+			save_scope_as = candidate_1
+		}
+		random_in_list = {
+			list = choose_from_ruler
+			limit = {
+				NOT = { this = scope:candidate_1 }
+			}
+			save_scope_as = candidate_2
+		}
+		random_in_list = {
+			list = choose_from_ruler
+			limit = {
+				NOR = {
+					this = scope:candidate_1
+					this = scope:candidate_2
+				}
+			}
+			save_scope_as = candidate_3
+		}
+	}
+
+	option = {
+		name = temple_state_event.3.a
+		trigger = { exists = scope:candidate_1 }
+		# scope:candidate_1 = { force_add_trait = priest_king }
+		#P:A TODO No EU5 equivalent: the candidate gets the "Priest-King" trait (EU5 has no such trait)
+		hidden_effect = {
+			scope:candidate_1 = {
+				# remove_all_offices = yes
+				# remove_as_governor = yes
+				#P:A TODO No EU5 equivalent: removed the candidate from all offices and governorships (EU5 has no offices or governors)
+				move_country = scope:temple_state_scope
+				# set_home_country = scope:temple_state_scope
+				# remove_character_modifier = foreign_citizen
+				#P:A TODO No EU5 equivalent: home country and foreign_citizen are Imperator citizenship mechanics (EU5 has no citizenship)
+			}
+		}
+		scope:temple_state_scope = {
+			set_new_ruler = scope:candidate_1
+			set_variable = deposed_priest
+		}
+	}
+
+	option = {
+		name = temple_state_event.3.b
+		trigger = { exists = scope:candidate_2 }
+		# scope:candidate_2 = { force_add_trait = priest_king }
+		#P:A TODO No EU5 equivalent: the candidate gets the "Priest-King" trait (EU5 has no such trait)
+		hidden_effect = {
+			scope:candidate_2 = {
+				# remove_all_offices = yes
+				# remove_as_governor = yes
+				#P:A TODO No EU5 equivalent: removed the candidate from all offices and governorships (EU5 has no offices or governors)
+				move_country = scope:temple_state_scope
+				# set_home_country = scope:temple_state_scope
+				# remove_character_modifier = foreign_citizen
+				#P:A TODO No EU5 equivalent: home country and foreign_citizen are Imperator citizenship mechanics (EU5 has no citizenship)
+			}
+		}
+		scope:temple_state_scope = {
+			set_new_ruler = scope:candidate_2
+			set_variable = deposed_priest
+		}
+	}
+
+	option = {
+		name = temple_state_event.3.c
+		trigger = { exists = scope:candidate_3 }
+		# scope:candidate_3 = { force_add_trait = priest_king }
+		#P:A TODO No EU5 equivalent: the candidate gets the "Priest-King" trait (EU5 has no such trait)
+		hidden_effect = {
+			scope:candidate_3 = {
+				# remove_all_offices = yes
+				# remove_as_governor = yes
+				#P:A TODO No EU5 equivalent: removed the candidate from all offices and governorships (EU5 has no offices or governors)
+				move_country = scope:temple_state_scope
+				# set_home_country = scope:temple_state_scope
+				# remove_character_modifier = foreign_citizen
+				#P:A TODO No EU5 equivalent: home country and foreign_citizen are Imperator citizenship mechanics (EU5 has no citizenship)
+			}
+		}
+		scope:temple_state_scope = {
+			set_new_ruler = scope:candidate_3
+			set_variable = deposed_priest
+		}
+	}
+
+	option = {
+		name = temple_state_event.3.d
+		custom_tooltip = temple_state_event.3.dt
+	}
+}

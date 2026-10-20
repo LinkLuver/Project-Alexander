@@ -1,0 +1,115 @@
+﻿#P:A Imported from Invictus: events/on_office_gained.txt (office_gain.3 and .4 only)
+# office_gain.3 was an Imperator character event on monthly_job_pulse (every character holding an office); here it is a
+# country event: root = the employer, the character is scope:pa_character (or found by the trigger when no on_action saved it).
+#P:A TODO No EU5 caller: written for a monthly country pulse; Imperator research ("tech") offices -> EU5 cabinet members (Approximate).
+namespace = office_gain
+
+# Hidden: a scholarly researcher makes a breakthrough.
+office_gain.3 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		NOT = { has_variable = given_innovation_country }
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				exists = employer
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_tech_office = yes (holds a research office); EU5 has no offices, a cabinet member stands in
+				OR = {
+					# has_trait = obsessive
+					# has_trait = intelligent
+					# has_trait = polymath
+					has_trait = scholar
+					# has_trait = eccentric
+					#P:A TODO No EU5 equivalent: the obsessive, intelligent, polymath and eccentric traits do not exist in EU5
+					employer = { is_ai = yes }
+				}
+				NOT = { has_variable = given_innovation_recently }
+			}
+		}
+		trigger_else = {
+			any_character = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_tech_office = yes; a cabinet member stands in
+				OR = {
+					has_trait = scholar
+					employer = { is_ai = yes }
+				}
+				NOT = { has_variable = given_innovation_recently }
+			}
+		}
+	}
+
+	weight_multiplier = {
+		base = 1
+		# modifier = { factor = 1.25 has_trait = obsessive } (also intelligent, polymath, eccentric: x1.25 each; no such EU5 traits)
+		modifier = {
+			factor = 1.25
+			scope:pa_character ?= { has_trait = scholar }
+		}
+		modifier = {
+			factor = 0.8
+			is_ai = yes
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					in_cabinet = yes
+					OR = {
+						has_trait = scholar
+						employer = { is_ai = yes }
+					}
+					NOT = { has_variable = given_innovation_recently }
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			save_scope_as = innovation_giver
+			set_variable = {
+				name = given_innovation_recently
+				days = 1825
+			}
+		}
+		set_variable = {
+			name = given_innovation_country
+			days = 730
+		}
+		trigger_event_non_silently = {
+			id = office_gain.4
+		}
+	}
+}
+
+# Breakthrough! (from office_gain.3)
+office_gain.4 = {
+	type = country_event
+	title = office_gain.4.t
+	desc = office_gain.4.desc
+	interface_lock = no
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = scope:innovation_giver # guard added: the text and option use the researcher
+	}
+
+	immediate = {
+		scope:innovation_giver = {
+			save_scope_as = innovation_giver # portrait
+		}
+	}
+
+	option = {
+		name = office_gain.4.a
+		# scope:innovation_giver = { add_character_experience = 5 } #P:A TODO No EU5 equivalent: +5 character experience (EU5 characters have no experience)
+		add_research_progress = research_progress_mild_bonus #P:A TODO Approximate: Imperator add_innovation = 1 (one invention point); EU5 research progress
+	}
+}

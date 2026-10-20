@@ -1,0 +1,86 @@
+﻿#P:A Imported from Invictus: events/nation_forming.txt (only nation_forming.3 and .4 are generic; the rest were not imported)
+namespace = nation_forming
+# Invictus fired nation_forming.3/.4 only from the AI-only decisions become_despotic_monarchy_tribal /
+# become_democracy_tribal (decisions/conversions.txt: tribal federation or kingdom with at least one city,
+# absolute_authority / increased_council_powers law, no disloyal clan chief; cost 100 political influence).
+# Those decisions are not imported - see the batch report.
+
+# Hidden: an AI tribe reforms into a despotic monarchy.
+nation_forming.3 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		is_ai = yes
+	}
+
+	immediate = {
+		change_government_type = government_type:monarchy #P:A TODO Approximate: Imperator despotic_monarchy (EU5 has no government sub-forms)
+		pa_imp_switch_government_type_event_clearup_effect = yes
+		add_country_modifier = {
+			modifier = civilized_tribe
+			days = 3650
+		}
+		capital = {
+			if = {
+				limit = {
+					NOT = {
+						has_location_modifier = civilized_tribe_ppmod
+					}
+				}
+				add_location_modifier = {
+					modifier = civilized_tribe_ppmod
+					days = -1
+				}
+			}
+			else = {
+				root = {
+					add_stability = 5
+				}
+			}
+		}
+		pa_imp_add_2_free_province_investments = yes
+	}
+}
+
+# Hidden: an AI tribe reforms into a democratic republic.
+nation_forming.4 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		exists = capital # Imperator has_land = yes
+		is_ai = yes
+	}
+
+	immediate = {
+		change_government_type = government_type:republic #P:A TODO Approximate: Imperator democratic_republic (EU5 has no government sub-forms)
+		pa_imp_switch_government_type_event_clearup_effect = yes
+		# if = { limit = { is_iron_man = yes is_ai = no NOT = { has_variable = ach_tribal_assembly_var } } set_variable = ach_tribal_assembly_var }
+		# Imperator achievement flag dropped: dead code in this AI-only event (is_ai = no never holds here)
+		add_country_modifier = {
+			modifier = civilized_tribe
+			days = 3650
+		}
+		capital = {
+			if = {
+				limit = {
+					NOT = {
+						has_location_modifier = civilized_tribe_republic_ppmod
+					}
+				}
+				add_location_modifier = {
+					modifier = civilized_tribe_republic_ppmod
+					days = -1
+				}
+			}
+			else = {
+				root = {
+					add_stability = 5
+				}
+			}
+		}
+		pa_imp_add_2_free_province_investments = yes
+	}
+}

@@ -1,0 +1,107 @@
+﻿# Imperator scripted effects for batch b14 of the Invictus/Indomita event import (2026-10-19).
+
+#P:A Imported from Imperator: demand_office_skill_tooltip_effect (common/scripted_effects/00_event_effects.txt)
+# Any scope: tooltip naming the skill the office scope:demand_office_event_scope wants needs (value set by pa_imp_demand_office_skill_effect).
+pa_imp_demand_office_skill_tooltip_effect = {
+	if = {
+		limit = { scope:demand_office_event_scope.var:demand_office_skill = 1 }
+		custom_tooltip = scheme.8.martialtooltip
+	}
+	else_if = {
+		limit = { scope:demand_office_event_scope.var:demand_office_skill = 2 }
+		custom_tooltip = scheme.8.finessetooltip
+	}
+	else_if = {
+		limit = { scope:demand_office_event_scope.var:demand_office_skill = 3 }
+		custom_tooltip = scheme.8.charismatooltip
+	}
+	else_if = {
+		limit = { scope:demand_office_event_scope.var:demand_office_skill = 4 }
+		custom_tooltip = scheme.8.zealtooltip
+	}
+}
+
+#P:A Imported from Invictus: add_bloodline_effect (common/scripted_effects/00_event_effects_inv_1_0.txt)
+# Character scope, parameter BLOODLINE (an Imperator bloodline trait): $BLOODLINE$
+pa_imp_add_bloodline_effect = {
+	# add_trait = $BLOODLINE$
+	# if = { limit = { num_of_children > 0 } every_child = { limit = { is_alive = yes } add_trait = $BLOODLINE$ if = { limit = { num_of_children > 0 } every_child = { limit = { is_alive = yes } add_trait = $BLOODLINE$ } } } }
+	#P:A TODO No EU5 equivalent: gave the bloodline trait to the character, their living children and grandchildren (EU5 has no bloodline traits)
+}
+
+# Batch-local helper (not an Imperator effect): the "remove one level of a random building" random_list repeated in disasters_inv.txt.
+# Location scope. Each building with weight 1, nothing with weight NOTHING (Imperator used 8, 1 or no empty entry = 0).
+pa_imp_b14_disaster_building_damage_effect = {
+	random_list = {
+		1 = {
+			trigger = { has_building = building_type:marketplace } # Imperator commerce_building
+			change_building_level_in_location = {
+				building = building_type:marketplace
+				value = -1
+			}
+		}
+		1 = {
+			trigger = { has_building = building_type:library } # Imperator library_building
+			change_building_level_in_location = {
+				building = building_type:library
+				value = -1
+			}
+		}
+		1 = {
+			trigger = { has_building = building_type:theater } # Imperator theathre_building
+			change_building_level_in_location = {
+				building = building_type:theater
+				value = -1
+			}
+		}
+		1 = {
+			trigger = { has_building = building_type:academy } # Imperator academy_building
+			change_building_level_in_location = {
+				building = building_type:academy
+				value = -1
+			}
+		}
+		1 = {
+			trigger = { has_building = building_type:granary } #P:A TODO Approximate: Imperator population_building (commented "granary" in the source) -> EU5 granary
+			change_building_level_in_location = {
+				building = building_type:granary
+				value = -1
+			}
+		}
+		1 = {
+			trigger = { has_building = building_type:forums } # Imperator forum_building
+			change_building_level_in_location = {
+				building = building_type:forums
+				value = -1
+			}
+		}
+		# 1 = { trigger = { has_building = workshop_building } remove_building_level = workshop_building } #P:A TODO No EU5 equivalent: Imperator workshop building
+		1 = {
+			trigger = { has_building = building_type:dock } #P:A TODO Approximate: Imperator port_building -> EU5 dock
+			change_building_level_in_location = {
+				building = building_type:dock
+				value = -1
+			}
+		}
+		$NOTHING$ = {}
+	}
+}
+
+#P:A Imported from Imperator: reduce_province_rank_effect (common/scripted_effects/00_city_rank_effects.txt)
+# Location scope: lowers the location one rank.
+#P:A TODO Approximate: Imperator city -> settlement and metropolis -> city mapped to EU5 town -> rural_settlement and city -> town
+pa_imp_reduce_province_rank_effect = {
+	if = {
+		limit = {
+			location_rank = location_rank:town # Imperator has_province_rank = city
+		}
+		change_location_rank = location_rank:rural_settlement # Imperator set_city_status = settlement
+	}
+	else_if = {
+		limit = {
+			location_rank = location_rank:city # Imperator has_province_rank = city_metropolis
+		}
+		change_location_rank = location_rank:town # Imperator set_city_status = city
+	}
+}
+

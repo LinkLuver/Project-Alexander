@@ -1,0 +1,1513 @@
+﻿#P:A Imported from Invictus: events/disasters_inv.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = disasters_inv
+
+# Invictus fired the disaster events from its yearly_invictus_disaster_pulse (countries with 5+ cities, after 480.1.1 AUC; random_events
+# 3000 = nothing, 4 = .1, 2 = .4, 3 = .5, 4 = .7, 5 = .9, 5 = .10, 5 = .11, 3 = .12).
+
+###Floods
+# A river floods one of our flood plains.
+disasters_inv.1 = { #flood in flood_plain
+	type = country_event
+	title = disasters_inv.1.t
+	desc = disasters_inv.1.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			pa_imp_b14_flood_plain_trigger = yes # Imperator terrain = flood_plain
+		}
+		NOT = {
+			has_variable = floods_cooldown
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_owned_location = {
+			limit = {
+				pa_imp_b14_flood_plain_trigger = yes # Imperator terrain = flood_plain
+				population >= 4 #P:A TODO Approximate: Imperator total_population >= 4 pops, read as 4 (thousand) EU5 population
+			}
+			save_scope_as = the_day_after
+			add_location_modifier = {
+				modifier = flood_initial_damage
+				days = 730
+			}
+			# ordered_pops_in_province = { order_by = pop_hapiness max = { value = total_population multiply = 0.15 } kill_pop = yes }
+			every_pop = { #P:A TODO Approximate: Imperator killed the 15% unhappiest pops; EU5 shrinks every pop by 15%
+				add_pop_size = {
+					value = pop_size
+					multiply = -0.15
+				}
+			}
+			custom_tooltip = disasters_inv_destroyed_building
+			hidden_effect = {
+				pa_imp_b14_disaster_building_damage_effect = { NOTHING = 8 }
+			}
+		}
+	}
+
+	option = { #secure the area
+		name = disasters_inv.1.a
+		# ruler = { add_popularity = 5 } #P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+		add_gold = {
+			value = monthly_income_total # Imperator subtract = has_monthly_income
+			multiply = -6
+			floor = yes
+			max = -50
+			min = -200
+		}
+		trigger_event_non_silently = {
+			id = disasters_inv.3
+			days = { 10 20 }
+		}
+	}
+
+	option = { #greedy bastard
+		name = disasters_inv.1.b
+		hidden_effect = {
+			if = {
+				limit = {
+					scope:the_day_after = {
+						any_neighbor_location = {
+							exists = owner
+							owner = root
+							OR = {
+								pa_imp_b14_flood_plain_trigger = yes # Imperator terrain = flood_plain
+								vegetation = farmland # Imperator terrain = farmland
+								topography = flatland # Imperator terrain = plains
+							}
+						}
+					}
+				}
+				random = {
+					chance = 50
+					trigger_event_non_silently = {
+						id = disasters_inv.2
+						days = { 1 7 }
+					}
+				}
+			}
+		}
+	}
+
+	after = {
+		set_variable = {
+			name = floods_cooldown
+			days = 9125 #25yrs
+		}
+	}
+}
+
+# The flood spreads to the neighbouring locations (fired by disasters_inv.1 option b; scope:the_day_after carries over).
+disasters_inv.2 = { #spread of the flood
+	type = country_event
+	title = disasters_inv.2.t
+	desc = disasters_inv.2.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:the_day_after
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = {
+			limit = {
+				scope:the_day_after = {
+					any_neighbor_location = {
+						exists = owner
+						owner = root
+						OR = {
+							pa_imp_b14_flood_plain_trigger = yes # Imperator terrain = flood_plain
+							vegetation = farmland # Imperator terrain = farmland
+							topography = flatland # Imperator terrain = plains
+						}
+					}
+				}
+			}
+			scope:the_day_after = {
+				every_neighbor_location = {
+					add_location_modifier = {
+						modifier = flood_reduced_damage
+						days = 365
+					}
+					hidden_effect = {
+						pa_imp_b14_disaster_building_damage_effect = { NOTHING = 8 }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = disasters_inv.2.a
+		trigger_event_non_silently = {
+			id = disasters_inv.3
+			days = { 1 7 }
+		}
+	}
+}
+
+# The flood recedes (fired by disasters_inv.1 option a and disasters_inv.2).
+disasters_inv.3 = { #flood receding
+	type = country_event
+	title = disasters_inv.3.t
+	desc = disasters_inv.3.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:the_day_after
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = disasters_inv.3.a
+	}
+}
+
+###Avalanche
+# An avalanche hits a mountain location; it may set off another one nearby.
+disasters_inv.4 = { #Avalanche
+	type = country_event
+	title = disasters_inv.4.t
+	desc = disasters_inv.4.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			topography = mountains # Imperator terrain = mountain
+		}
+		NOT = {
+			has_variable = avalanche_cooldown
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_owned_location = {
+			limit = {
+				topography = mountains # Imperator terrain = mountain
+				population >= 4 #P:A TODO Approximate: Imperator total_population >= 4 pops, read as 4 (thousand) EU5 population
+			}
+			if = {
+				limit = {
+					NOT = {
+						has_variable = starting_point
+					}
+				}
+				set_variable = {
+					name = starting_point
+					days = 2
+				}
+			}
+			# Imperator switch = { trigger = has_variable starting_point = { save_scope_as = snowball } recurring_disaster = {} }
+			if = {
+				limit = {
+					has_variable = starting_point
+				}
+				save_scope_as = snowball
+			}
+			add_location_modifier = {
+				modifier = hit_by_avalanche
+				days = 730
+			}
+			# ordered_pops_in_province = { order_by = pop_hapiness max = { value = total_population multiply = 0.35 } kill_pop = yes }
+			every_pop = { #P:A TODO Approximate: Imperator killed the 35% unhappiest pops; EU5 shrinks every pop by 35%
+				add_pop_size = {
+					value = pop_size
+					multiply = -0.35
+				}
+			}
+			every_unit_in_location = { # Imperator wrapped this in if = { limit = { any_unit_in_province = { exists = yes } } }, a no-op check
+				damage_unit_percent = 0.06
+				damage_unit_morale_percent = 0.12
+			}
+			custom_tooltip = disasters_inv_destroyed_building
+			hidden_effect = {
+				pa_imp_b14_disaster_building_damage_effect = { NOTHING = 8 }
+			}
+		}
+	}
+
+	option = {
+		name = disasters_inv.4.a
+	}
+
+	after = {
+		if = {
+			limit = {
+				exists = scope:snowball
+				scope:snowball = {
+					any_neighbor_location = {
+						topography = mountains # Imperator terrain = mountain
+						NOT = {
+							has_location_modifier = hit_by_avalanche
+						}
+					}
+				}
+			}
+			scope:snowball = {
+				clear_saved_scope = snowball
+				random_neighbor_location = {
+					limit = {
+						topography = mountains # Imperator terrain = mountain
+						NOT = {
+							has_location_modifier = hit_by_avalanche
+						}
+					}
+					save_scope_as = snowball
+					set_variable = {
+						name = recurring_disaster
+						days = 7
+					}
+					random = {
+						chance = 50
+						owner ?= {
+							trigger_event_non_silently = {
+								id = disasters_inv.4
+								days = { 3 5 }
+							}
+						}
+					}
+				}
+			}
+		}
+		else = {
+			set_variable = {
+				name = avalanche_cooldown
+				days = 9125 #25 yrs
+			}
+		}
+	}
+}
+
+###Landslide
+# A landslide hits a hill location; preparing for a second one costs money (disasters_inv.6 follows).
+disasters_inv.5 = { #landslide
+	type = country_event
+	title = disasters_inv.5.t
+	desc = disasters_inv.5.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			topography = hills # Imperator terrain = hills
+		}
+		NOT = {
+			has_variable = hills_cooldown
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_owned_location = {
+			limit = {
+				topography = hills # Imperator terrain = hills
+				population >= 4 #P:A TODO Approximate: Imperator total_population >= 4 pops, read as 4 (thousand) EU5 population
+			}
+			save_scope_as = mudstick
+			add_location_modifier = {
+				modifier = the_land_slides_into_your_dms
+				days = 730
+			}
+			every_unit_in_location = { # Imperator wrapped this in if = { limit = { any_unit_in_province = { exists = yes } } }, a no-op check
+				damage_unit_percent = 0.06
+				damage_unit_morale_percent = 0.12
+			}
+			if = {
+				limit = {
+					has_building = building_type:city_walls #P:A TODO Approximate: Imperator fortress_ramparts_building -> EU5 city_walls
+				}
+				every_pop = { #P:A TODO Approximate: Imperator killed the 5% unhappiest pops; EU5 shrinks every pop by 5%
+					add_pop_size = {
+						value = pop_size
+						multiply = -0.05
+					}
+				}
+			}
+			else = {
+				every_pop = { #P:A TODO Approximate: Imperator killed the 15% unhappiest pops; EU5 shrinks every pop by 15%
+					add_pop_size = {
+						value = pop_size
+						multiply = -0.15
+					}
+				}
+			}
+			custom_tooltip = disasters_inv_destroyed_building
+			hidden_effect = {
+				pa_imp_b14_disaster_building_damage_effect = { NOTHING = 8 }
+			}
+		}
+	}
+
+	option = { #Prepare for further damage
+		name = disasters_inv.5.a
+		ruler ?= {
+			# add_popularity = 5 #P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+			# add_trait = disciplined #P:A TODO No EU5 equivalent: the ruler gains the disciplined trait (not in EU5)
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator subtract = has_monthly_income
+			multiply = -12
+			floor = yes
+			max = -50
+			min = -300
+		}
+		set_variable = {
+			name = money_money_money
+			days = 14
+		}
+	}
+
+	option = { #Run the risk of further damage
+		name = disasters_inv.5.b
+		set_variable = {
+			name = must_be_funny
+			days = 14
+			value = 0
+		}
+		ruler ?= {
+			# add_trait = uncaring #P:A TODO No EU5 equivalent: the ruler gains the uncaring trait (not in EU5)
+		}
+	}
+
+	after = {
+		trigger_event_non_silently = {
+			id = disasters_inv.6
+			days = { 3 10 }
+		}
+	}
+}
+
+# A second landslide: harmless if we prepared, worse if we did not (fired by disasters_inv.5; scope:mudstick carries over).
+disasters_inv.6 = {
+	type = country_event
+	title = disasters_inv.6.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					has_variable = money_money_money
+				}
+				desc = disasters_inv.6.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					has_variable = must_be_funny
+				}
+				desc = disasters_inv.6.desc_2
+			}
+		}
+	}
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:mudstick
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = {
+			limit = {
+				has_variable = must_be_funny
+			}
+			random = { #Landslide gets worse
+				chance = 50
+				change_variable = {
+					name = must_be_funny
+					add = 1
+				}
+			}
+			if = {
+				limit = {
+					var:must_be_funny = 1
+				}
+				scope:mudstick = {
+					pa_imp_reduce_province_rank_effect = yes
+					# if = { limit = { is_holy_site = yes } remove_province_deity = yes } #P:A TODO No EU5 equivalent: a holy site loses its deity (EU5 has no province deities)
+					if = {
+						limit = {
+							has_building = building_type:city_walls #P:A TODO Approximate: Imperator fortress_ramparts_building -> EU5 city_walls
+						}
+						every_pop = { #P:A TODO Approximate: Imperator killed the 5% unhappiest pops; EU5 shrinks every pop by 5%
+							add_pop_size = {
+								value = pop_size
+								multiply = -0.05
+							}
+						}
+					}
+					else = {
+						every_pop = { #P:A TODO Approximate: Imperator killed the 15% unhappiest pops; EU5 shrinks every pop by 15%
+							add_pop_size = {
+								value = pop_size
+								multiply = -0.15
+							}
+						}
+					}
+					pa_imp_b14_disaster_building_damage_effect = { NOTHING = 0 } # Imperator: no empty entry, a building always goes if there is one
+				}
+			}
+			else = {
+				scope:mudstick = {
+					pa_imp_b14_disaster_building_damage_effect = { NOTHING = 1 }
+				}
+				# add_political_influence = -10 #P:A TODO No EU5 equivalent: -10 political influence
+			}
+		}
+	}
+
+	option = { #prepared
+		name = disasters_inv.6.a
+		trigger = {
+			has_variable = money_money_money
+		}
+		exclusive = yes
+	}
+
+	option = { #unprepared
+		name = disasters_inv.6.b
+		trigger = {
+			has_variable = must_be_funny
+		}
+		exclusive = yes
+	}
+
+	after = {
+		set_variable = {
+			name = hills_cooldown
+			days = 9125 #25 yrs
+		}
+	}
+}
+
+###Drought - May turn into a famine
+# A province with no food reserves suffers a drought; we can share the water of the neighbouring areas or let it spread (disasters_inv.8).
+# Imperator states are EU5 provinces: scope:i_am_thirsty is a province.
+#P:A TODO Approximate: Imperator state food amounts (add_state_food) are applied 1:1 to the EU5 province food stockpile (change_province_food); the scales are not known to match
+disasters_inv.7 = { #drought
+	type = country_event
+	title = disasters_inv.7.t
+	desc = disasters_inv.7.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_province = { # Imperator any_country_state
+			OR = {
+				# state_monthly_food_income < 0 #P:A TODO No EU5 equivalent: the province's monthly food balance is negative (EU5 has no province food balance trigger)
+				province_food <= 0 # Imperator has_state_food <= 0
+			}
+		}
+		any_owned_location = {
+			pa_imp_b14_desert_trigger = yes # Imperator terrain = desert / desert_hills
+		}
+		NOT = {
+			has_variable = drought_cooldown
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_province = { # Imperator random_country_state
+			limit = {
+				OR = {
+					# state_monthly_food_income < 0 #P:A TODO No EU5 equivalent: negative monthly food balance of the province
+					province_food <= 0 # Imperator has_state_food <= 0
+				}
+			}
+			save_scope_as = i_am_thirsty
+			add_province_modifier = {
+				modifier = grow_a_pear
+				days = 1825 #5 yrs
+			}
+		}
+	}
+
+	option = { #try to save and feed your people
+		name = disasters_inv.7.a
+		scope:i_am_thirsty = {
+			area = {
+				every_neighbor_area = {
+					every_province_in_area = { # Imperator every_area_state
+						change_province_food = -100 # Imperator add_state_food = -100
+						add_province_modifier = {
+							modifier = i_bet_you_wish_you_had_my_water
+							days = 365
+						}
+					}
+				}
+			}
+			change_province_food = 200 # Imperator add_state_food = { value = 100 multiply = 2 } #count neighboring states
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator subtract = has_monthly_income
+			multiply = -16
+			min = -300
+			max = -50
+		}
+		ruler ?= {
+			# add_trait = benefactor #P:A TODO No EU5 equivalent: the ruler gains the benefactor trait (not in EU5)
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					scope:i_am_thirsty.area = {
+						any_neighbor_area = {
+							any_province_in_area = { # Imperator any_area_state
+								province_food <= 0 # Imperator has_state_food <= 0
+							}
+						}
+					}
+				}
+				scope:i_am_thirsty.area = {
+					every_neighbor_area = {
+						every_province_in_area = { # Imperator every_area_state
+							limit = {
+								province_food <= 0 # Imperator has_state_food <= 0
+							}
+							add_province_modifier = {
+								modifier = grow_a_pear
+								days = 1825 # 5yrs
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = { #ignore the area
+		name = disasters_inv.7.b
+		ruler ?= {
+			# add_trait = harsh #P:A TODO No EU5 equivalent: the ruler gains the harsh trait (not in EU5)
+		}
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = disasters_inv.8 #drought spreads
+				days = { 30 100 }
+			}
+			scope:i_am_thirsty.area = {
+				every_neighbor_area = {
+					every_province_in_area = { # Imperator every_area_state
+						limit = {
+							owner = root
+						}
+						change_province_food = -150 # Imperator add_state_food = -150
+					}
+				}
+			}
+		}
+	}
+}
+
+# Famine: the ignored drought spreads to the neighbouring areas and may keep spreading (fired by disasters_inv.7 option b and by itself;
+# scope:i_am_thirsty (a province) carries over).
+disasters_inv.8 = {
+	type = country_event
+	title = disasters_inv.8.t
+	desc = disasters_inv.8.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:i_am_thirsty
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		set_variable = {
+			name = drought_spread
+			days = 500
+			value = 5
+		}
+		scope:i_am_thirsty.area = {
+			every_neighbor_area = {
+				every_province_in_area = { # Imperator every_area_state
+					add_province_modifier = {
+						modifier = grow_a_pear
+						days = 1825 # 5yrs
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = disasters_inv.8.a
+		random_list = {
+			25 = {
+				modifier = {
+					factor = var:drought_spread
+				}
+				custom_tooltip = disasters_inv_8_a_1
+				trigger_event_non_silently = {
+					id = disasters_inv.8
+					days = { 30 100 }
+				}
+			}
+			75 = {
+				custom_tooltip = disasters_inv_8_a_2
+				set_variable = {
+					name = drought_cooldown
+					days = 9125 #25 yrs
+				}
+			}
+		}
+	}
+
+	option = {
+		name = disasters_inv.8.b
+		custom_tooltip = disasters_inv_8_b
+		trigger = {
+			ruler ?= {
+				OR = {
+					has_trait = kind_hearted # Imperator merciful
+					# has_trait = lunatic #P:A TODO No EU5 equivalent: lunatic trait
+					# has_trait = lapsed #P:A TODO No EU5 equivalent: lapsed trait
+					# has_trait = arbitrary #P:A TODO No EU5 equivalent: arbitrary trait
+					# has_trait = easygoing #P:A TODO No EU5 equivalent: easygoing trait
+				}
+			}
+			var:drought_spread >= 1
+		}
+		add_gold = {
+			value = monthly_income_total # Imperator subtract = has_monthly_income
+			multiply = -32
+			min = -500
+			max = -50
+		}
+		# highlight = yes #P:A Removed: Imperator option highlighting has no EU5 equivalent
+	}
+
+	after = {
+		if = {
+			limit = {
+				var:drought_spread >= 2 # Imperator OR = { var:drought_spread = 5 / 4 / 3 / 2 }
+				var:drought_spread <= 5
+			}
+			change_variable = {
+				name = drought_spread
+				add = -1
+			}
+		}
+		scope:i_am_thirsty = {
+			remove_province_modifier = grow_a_pear
+			add_province_modifier = {
+				modifier = grow_a_pear
+				days = 3650 #10 yrs
+			}
+			clear_saved_scope = i_am_thirsty
+			set_variable = {
+				name = thirsty_bois
+				days = 500
+			}
+			area = {
+				random_neighbor_area = {
+					random_province_in_area = { # Imperator random_area_state
+						limit = {
+							has_province_modifier = grow_a_pear
+							NOT = {
+								has_variable = thirsty_bois
+							}
+						}
+						save_scope_as = i_am_thirsty
+					}
+				}
+			}
+		}
+	}
+}
+
+###Storms
+# The Storm of the Century: one of the sea storms of storms.txt reaches one of our coastal locations.
+disasters_inv.9 = { #Seastorm hitting coast - using vanilla events as base for location
+	type = country_event
+	title = disasters_inv.9.t
+	desc = disasters_inv.9.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			is_coastal = yes
+			any_neighbor_location = {
+				OR = {
+					has_location_modifier = ravaged_by_storms
+					has_location_modifier = stormy_seas
+				}
+				is_land = no
+				OR = { # Imperator terrain = coastal_terrain / ocean
+					topography = coastal_ocean
+					pa_imp_b14_open_sea_trigger = yes
+				}
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_location_in_the_world = { # Imperator random_province
+			limit = {
+				is_land = no
+				OR = { # Imperator terrain = coastal_terrain / ocean
+					topography = coastal_ocean
+					pa_imp_b14_open_sea_trigger = yes
+				}
+				OR = {
+					has_location_modifier = ravaged_by_storms
+					has_location_modifier = stormy_seas
+				}
+				any_neighbor_location = { #P:A Fix: Invictus picked any stormy sea in the world, so usually none of its neighbours was ours and the event had no location; limited to seas next to our land, as the trigger intends
+					owner ?= root
+				}
+			}
+			random_neighbor_location = {
+				limit = {
+					owner ?= root
+				}
+				save_scope_as = stormy_daniels
+				# if = { limit = { has_building = port_building } } # empty block in Invictus
+				every_unit_in_location = { # Imperator wrapped this in if = { limit = { any_unit_in_province = { exists = yes } } }, a no-op check
+					damage_unit_percent = 0.06
+					damage_unit_morale_percent = 0.12
+				}
+				add_vfx = {
+					name = "seastorm"
+					duration = 90
+				}
+				add_location_modifier = {
+					modifier = stormy_seas
+					days = 90
+				}
+				every_pop = { #P:A TODO Approximate: Imperator killed the 15% unhappiest pops; EU5 shrinks every pop by 15%
+					add_pop_size = {
+						value = pop_size
+						multiply = -0.15
+					}
+				}
+			}
+			save_scope_as = stormy_mommy
+			hidden_effect = {
+				every_neighbor_location = {
+					limit = {
+						is_land = no
+						OR = { # Imperator terrain = ocean / coastal_terrain
+							pa_imp_b14_open_sea_trigger = yes
+							topography = coastal_ocean
+						}
+						NOT = { has_location_modifier = stormy_seas }
+					}
+					add_vfx = {
+						name = "seastorm"
+						duration = 60
+					}
+					add_location_modifier = {
+						modifier = stormy_seas
+						days = 60
+					}
+					every_neighbor_location = { # Invictus as written: owned AND sea, which no location is, so this never applies
+						limit = {
+							has_owner = yes
+							NOT = { has_location_modifier = stormy_seas }
+							OR = { # Imperator terrain = ocean / coastal_terrain
+								pa_imp_b14_open_sea_trigger = yes
+								topography = coastal_ocean
+							}
+						}
+						add_location_modifier = {
+							modifier = ravaged_by_storms
+							days = 90
+						}
+						add_vfx = {
+							name = "seastorm"
+							duration = 90
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = disasters_inv.9.a
+	}
+}
+
+# The Wind of Gods: one of the sandstorms of storms.txt hits one of our desert locations, and may spread further.
+disasters_inv.10 = { #Sandstorm Extreme - using vanilla events as base for location
+	type = country_event
+	title = disasters_inv.10.t
+	desc = disasters_inv.10.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			pa_imp_b14_desert_trigger = yes # Imperator terrain = desert / desert_hills (oasis: no EU5 terrain, covered by the desert vegetation test)
+			any_neighbor_location = {
+				has_location_modifier = desert_storm
+				pa_imp_b14_desert_trigger = yes # Imperator terrain = desert / desert_hills / oasis
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_location_in_the_world = { # Imperator random_province
+			limit = {
+				pa_imp_b14_desert_trigger = yes # Imperator terrain = desert / desert_hills
+				has_location_modifier = desert_storm
+				any_neighbor_location = { #P:A Fix: Invictus picked any sandstorm location in the world, so usually none of its neighbours was ours and the event had no location; limited to storms next to our land, as the trigger intends
+					owner ?= root
+				}
+			}
+			random_neighbor_location = {
+				limit = {
+					owner ?= root
+				}
+				if = {
+					limit = {
+						NOT = {
+							has_variable = starting_point
+						}
+					}
+					set_variable = {
+						name = starting_point
+						days = 2
+					}
+				}
+				# Imperator switch = { trigger = has_variable starting_point = { save_scope_as = sandman } recurring_disaster = {} }
+				if = {
+					limit = {
+						has_variable = starting_point
+					}
+					save_scope_as = sandman
+				}
+				every_pop = { #P:A TODO Approximate: Imperator killed the 10% unhappiest pops; EU5 shrinks every pop by 10%
+					add_pop_size = {
+						value = pop_size
+						multiply = -0.1
+					}
+				}
+				every_unit_in_location = { # Imperator wrapped this in if = { limit = { any_unit_in_province = { exists = yes } } }, a no-op check
+					damage_unit_percent = 0.12
+					damage_unit_morale_percent = 0.3
+				}
+				add_location_modifier = {
+					modifier = sand_up_comedy
+					days = 120
+				}
+				add_vfx = {
+					name = "desert_sandstorm"
+					duration = 120
+				}
+			}
+			save_scope_as = sandman_daddy
+			hidden_effect = {
+				every_neighbor_location = {
+					limit = {
+						pa_imp_b14_desert_trigger = yes # Imperator terrain = desert / desert_hills / oasis
+						NOT = { has_location_modifier = desert_storm }
+					}
+					add_vfx = {
+						name = "desert_sandstorm"
+						duration = 90
+					}
+					add_location_modifier = {
+						modifier = sand_up_comedy
+						days = 90
+					}
+					every_neighbor_location = {
+						limit = {
+							has_owner = yes
+							pa_imp_b14_desert_trigger = yes # Imperator terrain = desert / desert_hills / oasis
+							NOT = { has_location_modifier = desert_storm }
+						}
+						add_location_modifier = {
+							modifier = sand_up_comedy
+							days = 90
+						}
+						add_vfx = {
+							name = "desert_sandstorm"
+							duration = 90
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = disasters_inv.10.a
+	}
+
+	after = {
+		custom_tooltip = disaster_spread_chance_tt
+		hidden_effect = {
+			random = {
+				chance = 50
+				scope:sandman ?= {
+					clear_saved_scope = sandman
+				}
+				random_owned_location = {
+					limit = {
+						has_location_modifier = sand_up_comedy
+						any_neighbor_location = {
+							NOT = {
+								has_location_modifier = sand_up_comedy
+							}
+						}
+					}
+					random_neighbor_location = {
+						limit = {
+							NOT = {
+								has_location_modifier = sand_up_comedy
+							}
+						}
+						save_scope_as = sandman
+						set_variable = {
+							name = recurring_disaster
+							days = 7
+						}
+					}
+				}
+				scope:sandman ?= {
+					owner ?= {
+						trigger_event_non_silently = {
+							id = disasters_inv.10
+							days = { 2 6 }
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Snowstorm of the Ages: a great snowstorm hits one of our northern or mountain locations, and may spread further.
+disasters_inv.11 = { #Snowstorm Extreme
+	type = country_event
+	title = disasters_inv.11.t
+	desc = disasters_inv.11.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			pa_imp_b14_winter_trigger = yes # Imperator has_winter = yes
+			pa_imp_b14_snowstorm_region_trigger = yes #merged the vanilla snowstorm areas from 3 events
+			NOT = { has_location_modifier = snow_storm }
+			any_neighbor_location = {
+				owner ?= prev.owner
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_owned_location = {
+			limit = {
+				pa_imp_b14_winter_trigger = yes # Imperator has_winter = yes
+				pa_imp_b14_snowstorm_region_trigger = yes #merged the vanilla snowstorm areas from 3 events
+				#NOT = { has_province_modifier = snow_storm }
+				any_neighbor_location = {
+					owner ?= prev.owner
+				}
+			}
+			save_scope_as = snow_daddy
+			random_neighbor_location = {
+				limit = {
+					owner ?= root
+					pa_imp_b14_winter_trigger = yes # Imperator has_winter = yes
+					pa_imp_b14_snowstorm_region_trigger = yes
+					NOT = { has_location_modifier = snow_storm }
+				}
+				if = {
+					limit = {
+						NOT = {
+							has_variable = starting_point
+						}
+					}
+					set_variable = {
+						name = starting_point
+						days = 2
+					}
+				}
+				# Imperator switch = { trigger = has_variable starting_point = { save_scope_as = not_snowden } recurring_disaster = {} }
+				if = {
+					limit = {
+						has_variable = starting_point
+					}
+					save_scope_as = not_snowden
+				}
+				every_pop = { #P:A TODO Approximate: Imperator killed the 15% unhappiest pops; EU5 shrinks every pop by 15%
+					add_pop_size = {
+						value = pop_size
+						multiply = -0.15
+					}
+				}
+				every_unit_in_location = { # Imperator wrapped this in if = { limit = { any_unit_in_province = { exists = yes } } }, a no-op check
+					damage_unit_percent = 0.12
+					damage_unit_morale_percent = 0.3
+				}
+				add_vfx = {
+					name = "snowstorm"
+					duration = 90
+				}
+				add_location_modifier = {
+					modifier = jizz_storm
+					days = 90
+				}
+				every_neighbor_location = {
+					limit = {
+						pa_imp_b14_winter_trigger = yes # Imperator has_winter = yes
+						pa_imp_b14_snowstorm_region_trigger = yes
+						NOT = { has_location_modifier = jizz_storm }
+					}
+					add_vfx = {
+						name = "snowstorm"
+						duration = 90
+					}
+					add_location_modifier = {
+						modifier = jizz_storm
+						days = 90
+					}
+					every_neighbor_location = {
+						limit = {
+							pa_imp_b14_winter_trigger = yes # Imperator has_winter = yes
+							pa_imp_b14_snowstorm_region_trigger = yes
+							NOT = { has_location_modifier = jizz_storm }
+						}
+						add_vfx = {
+							name = "snowstorm"
+							duration = 90
+						}
+						add_location_modifier = {
+							modifier = jizz_storm
+							days = 90
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = disasters_inv.11.a
+	}
+
+	after = {
+		custom_tooltip = disaster_spread_chance_tt
+		hidden_effect = {
+			random = {
+				chance = 50
+				scope:not_snowden ?= {
+					clear_saved_scope = not_snowden
+				}
+				random_owned_location = {
+					limit = {
+						has_location_modifier = jizz_storm
+						any_neighbor_location = {
+							NOT = {
+								has_location_modifier = jizz_storm
+							}
+						}
+					}
+					random_neighbor_location = {
+						limit = {
+							NOT = {
+								has_location_modifier = jizz_storm
+							}
+						}
+						save_scope_as = not_snowden
+						set_variable = {
+							name = recurring_disaster
+							days = 7
+						}
+					}
+				}
+				scope:not_snowden ?= {
+					owner ?= {
+						trigger_event_non_silently = {
+							id = disasters_inv.11
+							days = { 2 6 }
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+###Locusts
+# A locust swarm is sighted over one of our crop locations in Africa or Arabia; acting now may stop it.
+disasters_inv.12 = { #first sightings of bigger swarms of locusts. Can try to squash
+	type = country_event
+	title = disasters_inv.12.t
+	desc = disasters_inv.12.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			pa_imp_locust_target_trigger = yes #plant based trade_goods in Africa/Arabia
+		}
+		NOT = {
+			has_variable = locusts_ate_everything_cooldown
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_owned_location = {
+			limit = {
+				pa_imp_locust_target_trigger = yes
+			}
+			add_location_modifier = {
+				modifier = light_locust_plague
+				days = 200
+			}
+			save_scope_as = we_are_hungry
+		}
+	}
+
+	option = { #act against
+		name = disasters_inv.12.a
+		custom_tooltip = anti_locust_power_tt
+		add_gold = {
+			value = monthly_income_total # Imperator subtract = has_monthly_income
+			multiply = -24
+			min = -500
+			max = -50
+		}
+		set_variable = {
+			name = act_against_locusts
+			days = 1
+		}
+	}
+
+	option = { #don't do anything
+		name = disasters_inv.12.b
+	}
+
+	after = {
+		hidden_effect = {
+			random_list = {
+				10 = {
+					trigger = {
+						has_variable = act_against_locusts
+					}
+					set_variable = {
+						name = locusts_ate_everything_cooldown
+						days = 9125 #25 yrs
+					}
+					trigger_event_non_silently = {
+						id = disasters_inv.15
+						days = { 30 60 }
+					}
+				}
+				5 = {
+					trigger_event_non_silently = {
+						id = disasters_inv.13
+						days = { 14 35 } #2-5 weeks
+					}
+				}
+			}
+		}
+	}
+}
+
+# The locust swarm grows into the neighbouring locations (fired by disasters_inv.12; scope:we_are_hungry carries over).
+disasters_inv.13 = { #locusts getting worse
+	type = country_event
+	title = disasters_inv.13.t
+	desc = disasters_inv.13.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:we_are_hungry
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:we_are_hungry = {
+			every_neighbor_location = {
+				add_location_modifier = {
+					modifier = light_locust_plague
+					days = 180
+				}
+			}
+		}
+	}
+
+	option = { #act against
+		name = disasters_inv.13.a
+		custom_tooltip = anti_locust_power_tt
+		add_gold = {
+			value = monthly_income_total # Imperator subtract = has_monthly_income
+			multiply = -36
+			min = -600
+			max = -50
+		}
+		set_variable = {
+			name = act_against_locusts
+			days = 1
+		}
+	}
+
+	option = { #don't do anything
+		name = disasters_inv.13.b
+	}
+
+	after = {
+		hidden_effect = {
+			random_list = {
+				10 = {
+					trigger = {
+						has_variable = act_against_locusts
+					}
+					set_variable = {
+						name = locusts_ate_everything_cooldown
+						days = 9125 #25 yrs
+					}
+					trigger_event_non_silently = {
+						id = disasters_inv.15
+						days = { 30 60 }
+					}
+				}
+				10 = {
+					trigger_event_non_silently = {
+						id = disasters_inv.14
+						days = { 14 21 } #2-3 Weeks
+					}
+				}
+			}
+		}
+	}
+}
+
+# The Locust Plague: every swarm-hit location of ours becomes a plague location and the swarm spreads on (fired by disasters_inv.13).
+disasters_inv.14 = {
+	type = country_event
+	title = disasters_inv.14.t
+	desc = disasters_inv.14.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:we_are_hungry
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		custom_tooltip = locusts_spreading_tt
+		hidden_effect = {
+			every_owned_location = {
+				limit = {
+					has_location_modifier = light_locust_plague
+				}
+				remove_location_modifier = light_locust_plague
+				if = {
+					limit = {
+						pa_imp_locust_target_trigger = yes
+						NOT = {
+							has_location_modifier = locust_plague
+						}
+					}
+					add_location_modifier = {
+						modifier = locust_plague
+						days = 365
+					}
+					every_neighbor_location = {
+						limit = {
+							NOT = {
+								has_location_modifier = locust_plague_non_plant
+							}
+						}
+						add_location_modifier = {
+							modifier = light_locust_plague
+							days = 180
+						}
+					}
+				}
+				else = {
+					add_location_modifier = {
+						modifier = locust_plague_non_plant
+						days = 365
+					}
+					every_neighbor_location = {
+						add_location_modifier = {
+							modifier = light_locust_plague
+							days = 180
+						}
+					}
+				}
+			}
+		}
+		show_as_tooltip = {
+			scope:we_are_hungry = {
+				add_location_modifier = {
+					modifier = locust_plague
+					days = 365
+				}
+			}
+		}
+		custom_tooltip = locusts_spreading_2_tt
+		show_as_tooltip = {
+			scope:we_are_hungry = {
+				add_location_modifier = {
+					modifier = locust_plague_non_plant
+					days = 365
+				}
+			}
+		}
+		custom_tooltip = locusts_spreading_3_tt
+		show_as_tooltip = {
+			scope:we_are_hungry = {
+				add_location_modifier = {
+					modifier = light_locust_plague
+					days = 180
+				}
+			}
+		}
+	}
+
+	option = { #act against
+		name = disasters_inv.14.a
+		custom_tooltip = anti_locust_power_tt
+		add_gold = {
+			value = monthly_income_total # Imperator subtract = has_monthly_income
+			multiply = -15
+			min = -300
+			max = -50
+		}
+	}
+
+	option = { #don't do anything
+		name = disasters_inv.14.b
+	}
+
+	after = {
+		hidden_effect = {
+			set_variable = {
+				name = locusts_ate_everything_cooldown
+				days = 9125 #25 yrs
+			}
+			trigger_event_non_silently = {
+				id = disasters_inv.15
+				days = { 30 60 }
+			}
+		}
+	}
+}
+
+# The locusts are gone (fired by disasters_inv.12, .13 and .14).
+disasters_inv.15 = { #locusts over
+	type = country_event
+	title = disasters_inv.15.t
+	desc = disasters_inv.15.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:we_are_hungry
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = disasters_inv.15.a
+		# random_list = { 3 = { current_ruler = { add_trait = wise } } 12 = { } }
+		#P:A TODO No EU5 equivalent: 20% chance the ruler gains the wise trait (not in EU5)
+	}
+}
+

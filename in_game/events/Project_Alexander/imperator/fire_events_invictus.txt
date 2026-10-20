@@ -1,0 +1,299 @@
+﻿#P:A Imported from Invictus: events/fire_events_invictus.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+# A fire in a crowded city (scope:en_fuego). Invictus has no caller for fire_events.2 (the chain start), so it is dormant until hooked up.
+namespace = fire_events
+
+# A fire breaks out in one of our crowded cities.
+fire_events.2 = {
+	type = country_event # Imperator: country_event (a province_event in vanilla)
+	title = fire_events.2.t
+	desc = fire_events.2.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		any_owned_location = {
+			NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+			# OR = {
+			# 	AND = { any_pops_in_province = { count > 20 } any_pops_in_province = { count >= population_cap } }
+			#P:A TODO No EU5 equivalent: "more than 20 pops and at the population cap" (EU5 locations have no pop cap)
+			population > 30 #P:A TODO Approximate: Imperator more than 30 pops, read as 30 (thousand) EU5 population
+			# }
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_owned_location = {
+			limit = {
+				NOT = { location_rank = location_rank:rural_settlement }
+				population > 30 #P:A TODO Approximate: Imperator more than 30 pops (or more than 20 at the pop cap), read as 30 (thousand) EU5 population
+			}
+			save_scope_as = en_fuego
+		}
+	}
+
+	option = {
+		name = fire_events.2.a
+		trigger = {
+			# invention = global_freemen_output_inv_4 # fire_brigade
+			always = no #P:A TODO No EU5 equivalent: needs the Invictus invention "fire brigade" (global_freemen_output_inv_4); EU5 has no inventions
+		}
+		add_gold = -50
+	}
+
+	option = {
+		name = fire_events.2.b
+		scope:en_fuego = {
+			random_pop = {
+				random_list = {
+					50 = {
+						add_pop_size = { #P:A TODO Approximate: Imperator kill_pop removed 1 whole pop; EU5 removes up to 1 (thousand) people from a random pop
+							value = pop_size
+							multiply = -1
+							min = -1
+						}
+					}
+					50 = {}
+				}
+			}
+		}
+		hidden_effect = {
+			random_list = {
+				50 = {
+					trigger_event_non_silently = {
+						id = fire_events.3
+						days = 1
+					}
+				}
+				50 = {
+					trigger_event_non_silently = {
+						id = fire_events.5
+						days = 1
+					}
+				}
+			}
+		}
+	}
+}
+
+# The fire spreads.
+fire_events.3 = {
+	type = country_event # Imperator: country_event (a province_event in vanilla)
+	title = fire_events.3.t
+	desc = fire_events.3.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = fire_events.3.a
+		trigger = {
+			# invention = global_freemen_output_inv_3 # water pumps
+			always = no #P:A TODO No EU5 equivalent: needs the Invictus invention "water pumps" (global_freemen_output_inv_3); EU5 has no inventions
+		}
+		add_gold = -100
+	}
+
+	option = {
+		name = fire_events.3.b
+		scope:en_fuego = {
+			random_list = {
+				1 = {
+					trigger = { has_building = building_type:granary } #P:A TODO Approximate: Imperator granary (population_building) -> EU5 granary
+					change_building_level_in_location = {
+						building = building_type:granary
+						value = -1
+					}
+				}
+				1 = {
+					trigger = { has_building = building_type:marketplace } #P:A TODO Approximate: Imperator commerce_building -> EU5 marketplace
+					change_building_level_in_location = {
+						building = building_type:marketplace
+						value = -1
+					}
+				}
+				1 = {
+					trigger = { has_building = building_type:theater } # Imperator theathre_building
+					change_building_level_in_location = {
+						building = building_type:theater
+						value = -1
+					}
+				}
+				1 = {
+					trigger = { has_building = building_type:forums } # Imperator forum_building
+					change_building_level_in_location = {
+						building = building_type:forums
+						value = -1
+					}
+				}
+				# 1 = {
+					# trigger = { has_building = library_building }
+					# remove_building_level = library_building
+				# }
+				# 1 = {
+					# trigger = { has_building = workshop_building }
+					# remove_building_level = workshop_building
+				# }
+				# 1 = {
+					# trigger = { has_building = port_building }
+					# remove_building_level = port_building
+				# }
+			}
+			every_pop = {
+				random_list = {
+					10 = {
+						add_pop_size = { #P:A TODO Approximate: Imperator kill_pop removed 1 whole pop (10% chance each); EU5 removes up to 1 (thousand) people from the pop
+							value = pop_size
+							multiply = -1
+							min = -1
+						}
+					}
+					90 = {}
+				}
+			}
+		}
+		hidden_effect = {
+			random_list = {
+				50 = {
+					trigger_event_non_silently = {
+						id = fire_events.4
+						days = 1
+					}
+				}
+				50 = {
+					trigger_event_non_silently = {
+						id = fire_events.5
+						days = 1
+					}
+				}
+			}
+		}
+	}
+}
+
+# Conflagration: the city burns down.
+fire_events.4 = {
+	type = country_event # Imperator: country_event (a province_event in vanilla)
+	title = fire_events.4.t
+	desc = fire_events.4.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	# option = {
+		# name = fire_events.4.a
+		# add_treasury = -200
+	# }
+
+	option = {
+		name = fire_events.4.a
+		scope:en_fuego = {
+			random_list = {
+				1 = {
+					trigger = { has_building = building_type:marketplace } #P:A TODO Approximate: Imperator commerce_building -> EU5 marketplace
+					change_building_level_in_location = {
+						building = building_type:marketplace
+						value = -1
+					}
+				}
+				1 = {
+					trigger = { has_building = building_type:library } # Imperator library_building
+					change_building_level_in_location = {
+						building = building_type:library
+						value = -1
+					}
+				}
+				1 = {
+					trigger = { has_building = building_type:theater } # Imperator theathre_building
+					change_building_level_in_location = {
+						building = building_type:theater
+						value = -1
+					}
+				}
+				1 = {
+					trigger = { has_building = building_type:academy } # Imperator academy_building
+					change_building_level_in_location = {
+						building = building_type:academy
+						value = -1
+					}
+				}
+				# 1 = {
+					# trigger = { has_building = population_building } # granary
+					# remove_building_level = population_building
+				# }
+				# 1 = {
+					# trigger = { has_building = forum_building }
+					# remove_building_level = forum_building
+				# }
+				# 1 = {
+					# trigger = { has_building = workshop_building }
+					# remove_building_level = workshop_building
+				# }
+				# 1 = {
+					# trigger = { has_building = port_building }
+					# remove_building_level = port_building
+				# }
+				# 1 = { }
+			}
+			every_pop = {
+				random_list = {
+					20 = {
+						add_pop_size = { #P:A TODO Approximate: Imperator kill_pop removed 1 whole pop (20% chance each); EU5 removes up to 1 (thousand) people from the pop
+							value = pop_size
+							multiply = -1
+							min = -1
+						}
+					}
+					80 = {}
+				}
+			}
+		}
+		trigger_event_non_silently = {
+			id = fire_events.5
+			days = 1
+		}
+	}
+}
+
+# The fires come to an end.
+fire_events.5 = {
+	type = country_event
+	title = fire_events.5.t
+	desc = fire_events.5.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = fire_events.5.a
+	}
+}

@@ -1,0 +1,798 @@
+﻿#P:A Imported from Invictus: events/religion_flavor/rel_flavor_buddhist.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = rel_flavor_buddhist
+
+# A Buddhist country sends teachers from the capital to a city with no Buddhists.
+rel_flavor_buddhist.1 = {
+	type = country_event
+	title = rel_flavor_buddhist.1.t
+	desc = rel_flavor_buddhist.1.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		religion = religion:buddhism
+		NOT = { has_variable = rel_flavor_buddhist_1_cooldown }
+		any_owned_location = {
+			is_capital = no
+			NOR = {
+				dominant_religion = religion:buddhism # Imperator dominant_province_religion
+				any_pop = {
+					religion = religion:buddhism
+				}
+			}
+			population > 3 #P:A TODO Approximate: Imperator total_population > 3 counted pops; EU5 population is in thousands (1 pop = 1 thousand)
+			NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+		}
+		capital = {
+			dominant_religion = religion:buddhism
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_buddhist_1_cooldown
+			days = 3650
+		}
+		random_owned_location = {
+			limit = {
+				is_capital = no
+				NOR = {
+					dominant_religion = root.religion
+					any_pop = {
+						religion = religion:buddhism
+					}
+				}
+				population > 3 #P:A TODO Approximate: Imperator total_population > 3 counted pops; EU5 population is in thousands
+				NOT = { location_rank = location_rank:rural_settlement }
+			}
+			save_scope_as = country_province
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.1.a
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence
+		capital = {
+			random_pop = { #P:A TODO Approximate: Imperator move_pop moved one whole Buddhist pop to the city; EU5 splits off size 1 and moves it (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					religion = religion:buddhism
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 10
+						OR = {
+							pop_type = pop_type:burghers # Imperator citizen
+							pop_type = pop_type:peasants # Imperator freemen
+						}
+					}
+				}
+				split_pop = {
+					size = 1
+					location = scope:country_province
+				}
+			}
+			random_pop = { #P:A TODO Approximate: second moved pop, as above
+				limit = {
+					religion = religion:buddhism
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 10
+						OR = {
+							pop_type = pop_type:burghers
+							pop_type = pop_type:peasants
+						}
+					}
+				}
+				split_pop = {
+					size = 1
+					location = scope:country_province
+				}
+			}
+		}
+		scope:country_province = {
+			ordered_pop = { #P:A TODO Approximate: Imperator converted the 3 happiest non-Buddhist pops; EU5 converts size 1 of each of the 3 most satisfied (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					NOT = { religion = religion:buddhism }
+				}
+				order_by = pop_satisfaction # Imperator pop_hapiness
+				max = 3
+				check_range_bounds = no
+				if = {
+					limit = { pop_size > 1 }
+					split_pop = {
+						size = 1
+						religion = religion:buddhism
+					}
+				}
+				else = {
+					change_pop_religion = religion:buddhism
+				}
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.1.b
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# A Buddhist guru is found; he may teach the ruler or stay and convert his town.
+rel_flavor_buddhist.2 = {
+	type = country_event
+	title = rel_flavor_buddhist.2.t
+	desc = rel_flavor_buddhist.2.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		religion = religion:buddhism
+		NOT = { has_variable = rel_flavor_buddhist_2_cooldown }
+		exists = ruler
+		ruler = {
+			num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4); EU5 counts ruler traits
+			OR = {
+				# NOT = { has_trait = modest }
+				NOT = { has_trait = just }
+				NOT = { has_trait = righteous }
+				NOT = { has_trait = alms_giver } #P:A TODO Approximate: Imperator trait "generous"; EU5 alms_giver
+				NOT = { has_trait = scholar }
+				# NOT = { has_trait = energetic }
+				# NOT = { has_trait = wise }
+				#P:A TODO No EU5 equivalent: Imperator traits modest, energetic, wise (their branches are disabled below)
+			}
+		}
+		any_owned_location = {
+			any_pop = {
+				religion = religion:buddhism
+			}
+			any_pop = {
+				NOT = { religion = religion:buddhism }
+			}
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_buddhist_2_cooldown
+			days = 7300
+		}
+		random_owned_location = {
+			limit = {
+				any_pop = {
+					religion = religion:buddhism
+				}
+				any_pop = {
+					NOT = { religion = religion:buddhism }
+				}
+			}
+			save_scope_as = country_province
+		}
+		hidden_effect = {
+			ruler = {
+				random_list = {
+					# 20 = { trigger = { NOT = { has_trait = modest } } set_variable = { name = modest_flag } } # Modest
+					#P:A TODO No EU5 equivalent: Imperator trait "modest"
+					20 = { # Just
+						trigger = {
+							NOT = { has_trait = just }
+						}
+						set_variable = {
+							name = just_flag
+						}
+					}
+					20 = { # Righteous
+						trigger = {
+							NOT = { has_trait = righteous }
+						}
+						set_variable = {
+							name = righteous_flag
+						}
+					}
+					20 = { # Generous
+						trigger = {
+							NOT = { has_trait = alms_giver } #P:A TODO Approximate: Imperator trait "generous"; EU5 alms_giver
+						}
+						set_variable = {
+							name = generous_flag
+						}
+					}
+					20 = { # Scholar
+						trigger = {
+							NOT = { has_trait = scholar }
+						}
+						set_variable = {
+							name = scholar_flag
+						}
+					}
+					# 20 = { trigger = { NOT = { has_trait = energetic } } set_variable = { name = energetic_flag } } # Energetic
+					# 20 = { trigger = { NOT = { has_trait = wise } } set_variable = { name = wise_flag } } # Wise
+					#P:A TODO No EU5 equivalent: Imperator traits "energetic" and "wise"
+				}
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.2.a
+		ruler = {
+			switch = {
+				trigger = has_variable
+				# modest_flag = { remove_variable = modest_flag if = { limit = { has_trait = arrogant } remove_trait = arrogant } add_trait = modest root = { create_character = { female = no age = 40 add_trait = modest } } }
+				#P:A TODO No EU5 equivalent: Imperator trait "modest" (the branch is never picked above)
+				just_flag = {
+					remove_variable = just_flag
+					# if = { limit = { has_trait = arbitrary } remove_trait = arbitrary } #P:A TODO No EU5 equivalent: Imperator trait "arbitrary"
+					add_trait = trait:just
+					root = {
+						create_character = {
+							female = no
+							age = 40
+							add_trait = trait:just
+						}
+					}
+				}
+				righteous_flag = {
+					remove_variable = righteous_flag
+					if = {
+						limit = {
+							has_trait = corrupt
+						}
+						remove_trait = trait:corrupt
+					}
+					add_trait = trait:righteous
+					root = {
+						create_character = {
+							female = no
+							age = 40
+							add_trait = trait:righteous
+						}
+					}
+				}
+				generous_flag = {
+					remove_variable = generous_flag
+					# if = { limit = { has_trait = selfish } remove_trait = selfish } #P:A TODO No EU5 equivalent: Imperator trait "selfish"
+					if = {
+						limit = {
+							has_trait = greedy # Imperator miserly
+						}
+						remove_trait = trait:greedy
+					}
+					add_trait = trait:alms_giver #P:A TODO Approximate: Imperator trait "generous"; EU5 alms_giver is a religious-figure trait
+					root = {
+						create_character = {
+							female = no
+							age = 40
+							add_trait = trait:alms_giver
+						}
+					}
+				}
+				scholar_flag = {
+					remove_variable = scholar_flag
+					# if = { limit = { has_trait = narrowminded } remove_trait = narrowminded } #P:A TODO No EU5 equivalent: Imperator trait "narrowminded"
+					add_trait = trait:scholar
+					root = {
+						create_character = {
+							female = no
+							age = 40
+							add_trait = trait:scholar
+						}
+					}
+				}
+				# energetic_flag = { remove_variable = energetic_flag if = { limit = { has_trait = lazy } remove_trait = lazy } add_trait = energetic root = { create_character = { female = no age = 40 add_trait = energetic } } }
+				# wise_flag = { remove_variable = wise_flag if = { limit = { has_trait = rash } remove_trait = rash } add_trait = wise root = { create_character = { female = no age = 40 add_trait = wise } } }
+				#P:A TODO No EU5 equivalent: Imperator traits "energetic" and "wise" (the branches are never picked above)
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.2.b
+		scope:country_province = {
+			add_location_modifier = {
+				modifier = province_improvement_buddhism_guru_teacher
+				days = 1825
+			}
+			random_pop = { #P:A TODO Approximate: Imperator converted one whole pop; EU5 converts size 1 of it (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					NOT = { religion = religion:buddhism }
+				}
+				if = {
+					limit = { pop_size > 1 }
+					split_pop = {
+						size = 1
+						religion = religion:buddhism
+					}
+				}
+				else = {
+					change_pop_religion = religion:buddhism
+				}
+			}
+			random_pop = { #P:A TODO Approximate: second converted pop, as above
+				limit = {
+					NOT = { religion = religion:buddhism }
+				}
+				if = {
+					limit = { pop_size > 1 }
+					split_pop = {
+						size = 1
+						religion = religion:buddhism
+					}
+				}
+				else = {
+					change_pop_religion = religion:buddhism
+				}
+			}
+		}
+	}
+}
+
+# The young heir claims to remember a previous life (starts the reborn heir chain).
+rel_flavor_buddhist.4 = {
+	type = country_event
+	title = rel_flavor_buddhist.4.t
+	desc = rel_flavor_buddhist.4.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		religion = religion:buddhism
+		exists = heir
+		heir = {
+			age_in_years > 5
+			age_in_years < 10
+			religion = religion:buddhism
+		}
+		exists = ruler
+		ruler = {
+			religion = religion:buddhism
+		}
+		NOT = { has_variable = rel_flavor_buddhist_4_cooldown }
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_buddhist_4_cooldown
+			days = 36500
+		}
+		heir = {
+			save_scope_as = reborn_heir
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.4.a
+		pa_imp_remove_stability_effect_small = yes
+		scope:reborn_heir = {
+			# add_prominence = prominence_huge #P:A TODO No EU5 equivalent: +20 prominence for the heir (EU5 characters have no prominence)
+			# add_popularity = popularity_huge #P:A TODO No EU5 equivalent: +25 popularity for the heir (EU5 characters have no popularity)
+		}
+		trigger_event_silently = {
+			id = rel_flavor_buddhist.5
+			days = { 50 100 }
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.4.b
+		# scope:reborn_heir = { add_loyalty = loyalty_reincarnation_dismissed } #P:A TODO No EU5 equivalent: loyalty penalty for the dismissed heir (EU5 characters have no loyalty)
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Hidden: the reborn heir's upbringing. Until age 15 picks one of the upbringing events every 1-2 years, then the heir is recognised as reborn (rel_flavor_buddhist.15).
+rel_flavor_buddhist.5 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		religion = religion:buddhism
+		exists = scope:reborn_heir
+		OR = {
+			heir ?= { this = scope:reborn_heir }
+			ruler ?= { this = scope:reborn_heir }
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				scope:reborn_heir = { age_in_years <= 15 }
+			}
+			random_list = {
+				20 = {
+					trigger = {
+						# scope:reborn_heir = { number_of_personality_traits < max_number_of_traits_svalue OR = { NOT = { has_trait = original_thinker } NOT = { has_trait = confident } NOT = { has_trait = disciplined } } }
+						always = no #P:A TODO No EU5 equivalent: rel_flavor_buddhist.6 exists to give the heir the Imperator trait original_thinker, confident or disciplined (EU5 has none of them)
+					}
+					# modifier = { factor = 0.25 scope:reborn_heir = { OR = { has_trait = original_thinker has_trait = confident has_trait = disciplined } } }
+					trigger_event_non_silently = {
+						id = rel_flavor_buddhist.6
+					}
+				}
+				30 = {
+					trigger = {
+						scope:reborn_heir = {
+							NAND = { #P:A TODO Approximate: Imperator also required zeal > 12 inside the NAND (EU5 characters have no zeal); skills 12 -> 60 (x5)
+								adm > 60 # Imperator finesse > 12
+								# zeal > 12
+								mil > 60 # Imperator martial > 12
+								dip > 60 # Imperator charisma > 12
+							}
+						}
+					}
+					modifier = {
+						factor = 0.75
+						scope:reborn_heir = { adm > 30 } # Imperator finesse > 6
+					}
+					# modifier = { factor = 0.75 scope:reborn_heir = { zeal > 6 } } #P:A TODO No EU5 equivalent: zeal (EU5 characters have no zeal)
+					modifier = {
+						factor = 0.75
+						scope:reborn_heir = { mil > 30 } # Imperator martial > 6
+					}
+					modifier = {
+						factor = 0.75
+						scope:reborn_heir = { dip > 30 } # Imperator charisma > 6
+					}
+					trigger_event_non_silently = {
+						id = rel_flavor_buddhist.7
+					}
+				}
+				20 = {
+					trigger = {
+						scope:reborn_heir = {
+							num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4); EU5 counts ruler traits
+							OR = {
+								NOT = { has_trait = zealot } # Imperator zealous
+								# NOT = { has_trait = chaste } #P:A TODO No EU5 equivalent: Imperator trait chaste
+								NOT = { has_trait = pious } # Imperator devout
+							}
+						}
+					}
+					modifier = {
+						factor = 0.25
+						scope:reborn_heir = {
+							OR = {
+								has_trait = zealot
+								# has_trait = chaste
+								has_trait = pious
+							}
+						}
+					}
+					trigger_event_non_silently = {
+						id = rel_flavor_buddhist.8
+					}
+				}
+				80 = {
+					trigger = {
+						scope:reborn_heir = {
+							age_in_years > 12
+							NOR = {
+								has_character_modifier = character_improvement_buddhist_reborn_wiseman
+								has_character_modifier = character_improvement_buddhist_reborn_reformer
+								has_character_modifier = character_improvement_buddhist_reborn_general
+								has_character_modifier = character_improvement_buddhist_reborn_philosopher
+							}
+						}
+					}
+					trigger_event_non_silently = {
+						id = rel_flavor_buddhist.9
+					}
+				}
+			}
+			trigger_event_silently = {
+				id = rel_flavor_buddhist.5
+				days = { 365 730 }
+			}
+		}
+		else = {
+			trigger_event_non_silently = {
+				id = rel_flavor_buddhist.15
+			}
+		}
+	}
+}
+
+# Reborn heir: stories of war (the heir gains a military personality trait).
+rel_flavor_buddhist.6 = {
+	type = country_event
+	title = rel_flavor_buddhist.6.t
+	desc = rel_flavor_buddhist.6.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the heir the Imperator trait original_thinker, confident or disciplined (EU5 has none of them); its caller entry in rel_flavor_buddhist.5 is disabled too
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:current_ruler
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.6.a
+		# trigger = { scope:reborn_heir = { NOT = { has_trait = original_thinker } } }
+		# scope:reborn_heir = { add_trait = original_thinker } #P:A TODO No EU5 equivalent: Imperator trait original_thinker
+	}
+
+	option = {
+		name = rel_flavor_buddhist.6.b
+		# trigger = { scope:reborn_heir = { NOT = { has_trait = confident } } }
+		# scope:reborn_heir = { add_trait = confident } #P:A TODO No EU5 equivalent: Imperator trait confident
+	}
+
+	option = {
+		name = rel_flavor_buddhist.6.c
+		# trigger = { scope:reborn_heir = { NOT = { has_trait = disciplined } } }
+		# scope:reborn_heir = { add_trait = disciplined } #P:A TODO No EU5 equivalent: Imperator trait disciplined
+	}
+}
+
+# Reborn heir: stories of old (choose which skill the heir's upbringing focuses on).
+rel_flavor_buddhist.7 = {
+	type = country_event
+	title = rel_flavor_buddhist.7.t
+	desc = rel_flavor_buddhist.7.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:current_ruler
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.7.a
+		trigger = {
+			scope:reborn_heir = { dip < 60 } # Imperator charisma < 12
+		}
+		scope:reborn_heir = { add_dip = 5 } # Imperator add_charisma = 1
+	}
+
+	option = {
+		name = rel_flavor_buddhist.7.b
+		trigger = {
+			# scope:reborn_heir = { zeal < 12 }
+			always = no #P:A TODO No EU5 equivalent: zeal (EU5 characters have no zeal); the option only raised it
+		}
+		# scope:reborn_heir = { add_zeal = 1 } #P:A TODO No EU5 equivalent: +1 zeal for the heir
+	}
+
+	option = {
+		name = rel_flavor_buddhist.7.c
+		trigger = {
+			scope:reborn_heir = { adm < 60 } # Imperator finesse < 12
+		}
+		scope:reborn_heir = { add_adm = 5 } # Imperator add_finesse = 1
+	}
+
+	option = {
+		name = rel_flavor_buddhist.7.d
+		trigger = {
+			scope:reborn_heir = { mil < 60 } # Imperator martial < 12
+		}
+		scope:reborn_heir = { add_mil = 5 } # Imperator add_martial = 1
+	}
+}
+
+# Reborn heir: stories of faith (the heir gains a religious personality trait).
+rel_flavor_buddhist.8 = {
+	type = country_event
+	title = rel_flavor_buddhist.8.t
+	desc = rel_flavor_buddhist.8.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:current_ruler
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.8.a
+		trigger = {
+			scope:reborn_heir = { NOT = { has_trait = zealot } } # Imperator zealous
+		}
+		scope:reborn_heir = { add_trait = trait:zealot }
+	}
+
+	option = {
+		name = rel_flavor_buddhist.8.b
+		trigger = {
+			# scope:reborn_heir = { NOT = { has_trait = chaste } }
+			always = no #P:A TODO No EU5 equivalent: Imperator trait chaste; the option only added it
+		}
+		# scope:reborn_heir = { add_trait = chaste }
+	}
+
+	option = {
+		name = rel_flavor_buddhist.8.c
+		trigger = {
+			scope:reborn_heir = { NOT = { has_trait = pious } } # Imperator devout
+		}
+		scope:reborn_heir = { add_trait = trait:pious }
+	}
+}
+
+# Reborn heir: a vision of the past reveals who the heir once was (permanent character modifier).
+rel_flavor_buddhist.9 = {
+	type = country_event
+	title = rel_flavor_buddhist.9.t
+	desc = rel_flavor_buddhist.9.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:current_ruler
+		}
+		hidden_effect = {
+			random_list = {
+				1 = {
+					# modifier = { factor = 3 scope:reborn_heir = { zeal > 8 } }
+					# modifier = { factor = 0.25 scope:reborn_heir = { zeal < 5 } }
+					#P:A TODO No EU5 equivalent: the wiseman weight scaled with the heir's zeal (EU5 characters have no zeal)
+					set_variable = {
+						name = rel_flavor_buddhist_9_zeal
+					}
+				}
+				1 = {
+					modifier = {
+						factor = 3
+						scope:reborn_heir = { adm > 40 } # Imperator finesse > 8
+					}
+					modifier = {
+						factor = 0.25
+						scope:reborn_heir = { adm > 25 } # Imperator finesse > 5 (as in Invictus; the other entries use < 5)
+					}
+					set_variable = {
+						name = rel_flavor_buddhist_9_finesse
+					}
+				}
+				1 = {
+					modifier = {
+						factor = 3
+						scope:reborn_heir = { mil > 40 } # Imperator martial > 8
+					}
+					modifier = {
+						factor = 0.25
+						scope:reborn_heir = { mil < 25 } # Imperator martial < 5
+					}
+					set_variable = {
+						name = rel_flavor_buddhist_9_martial
+					}
+				}
+				1 = {
+					modifier = {
+						factor = 3
+						scope:reborn_heir = { dip > 40 } # Imperator charisma > 8
+					}
+					modifier = {
+						factor = 0.25
+						scope:reborn_heir = { dip < 25 } # Imperator charisma < 5
+					}
+					set_variable = {
+						name = rel_flavor_buddhist_9_charisma
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.9.a
+		trigger = {
+			has_variable = rel_flavor_buddhist_9_zeal
+		}
+		remove_variable = rel_flavor_buddhist_9_zeal
+		scope:reborn_heir = {
+			add_character_modifier = {
+				modifier = character_improvement_buddhist_reborn_wiseman
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.9.b
+		trigger = {
+			has_variable = rel_flavor_buddhist_9_finesse
+		}
+		remove_variable = rel_flavor_buddhist_9_finesse
+		scope:reborn_heir = {
+			add_character_modifier = {
+				modifier = character_improvement_buddhist_reborn_reformer
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.9.c
+		trigger = {
+			has_variable = rel_flavor_buddhist_9_martial
+		}
+		remove_variable = rel_flavor_buddhist_9_martial
+		scope:reborn_heir = {
+			add_character_modifier = {
+				modifier = character_improvement_buddhist_reborn_general
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.9.d
+		trigger = {
+			has_variable = rel_flavor_buddhist_9_charisma
+		}
+		remove_variable = rel_flavor_buddhist_9_charisma
+		scope:reborn_heir = {
+			add_character_modifier = {
+				modifier = character_improvement_buddhist_reborn_philosopher
+				days = -1
+			}
+		}
+	}
+}
+
+# Reborn heir: the grown heir is accepted as a reborn leader.
+rel_flavor_buddhist.15 = {
+	type = country_event
+	title = rel_flavor_buddhist.15.t
+	desc = rel_flavor_buddhist.15.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:current_ruler
+		}
+	}
+
+	option = {
+		name = rel_flavor_buddhist.15.a
+		scope:reborn_heir = {
+			# add_popularity = popularity_medium #P:A TODO No EU5 equivalent: +10 popularity (EU5 characters have no popularity)
+			# add_prominence = prominence_large #P:A TODO No EU5 equivalent: +10 prominence (EU5 characters have no prominence)
+			# add_zeal = 1 #P:A TODO No EU5 equivalent: +1 zeal (EU5 characters have no zeal)
+			add_mil = 5 # Imperator add_martial = 1
+			add_adm = 5 # Imperator add_finesse = 1
+			add_dip = 5 # Imperator add_charisma = 1
+		}
+	}
+}

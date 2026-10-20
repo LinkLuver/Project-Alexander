@@ -1,0 +1,52 @@
+﻿#P:A Imported from Invictus: events/argead_dynasty_events.txt
+# Fired by the Invictus decision restore_argead_dynasty (decisions/mac_decisions.txt: Macedonian culture, a ruler with the
+# Imperator "argeads" trait, owns Pella, 100 gold, once per country via var:mac_argead_restored).
+#P:A TODO No EU5 caller: the decision is not imported (it needs the Imperator "argeads" trait, which EU5 lacks).
+namespace = argead_dynasty_events
+
+# Hidden: the ruler's family becomes the Argead dynasty.
+argead_dynasty_events.1 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		ruler = {
+			save_scope_as = the_important_guy
+		}
+		# scope:the_important_guy = { set_variable = { name = prestige_family value = scope:the_important_guy.family.prestige } }
+		# create_character = { first_name = "Arkerios" family_name = "Argead" culture = "macedonian" religion = "roman_pantheon" no_stats = yes no_traits = yes save_scope_as = argead_man }
+		# create_family = scope:argead_man
+		# scope:argead_man = { family = { add_prestige = { value = scope:the_important_guy.var:prestige_family } } }
+		# ... scope:argead_man = { death = { death_reason = death_obscurity } }
+		#P:A TODO Approximate: Imperator created a throwaway "Arkerios Argead" to found a new Argead family and gave it the old family's prestige; the mod already has dynasty:argead_dynasty (main_menu/setup/start/04_dynasties.txt), which is used directly, and EU5 has no family prestige to carry over
+		if = {
+			limit = {
+				exists = scope:the_important_guy.dynasty
+			}
+			scope:the_important_guy.dynasty = {
+				every_character_in_dynasty = {
+					add_character_modifier = { # Imperator marks the family members to move with this modifier
+						modifier = family_reorganisation
+						days = -1
+					}
+				}
+			}
+			every_country = {
+				every_character = {
+					limit = {
+						has_character_modifier = family_reorganisation
+					}
+					# set_as_minor_character = this #P:A TODO No EU5 equivalent: minor characters
+					change_dynasty = dynasty:argead_dynasty # Imperator set_family + adapt_family_name
+					# set_home_country = ROOT #P:A TODO No EU5 equivalent: home country of a character
+					remove_character_modifier = family_reorganisation
+				}
+			}
+		}
+		else = {
+			scope:the_important_guy = {
+				change_dynasty = dynasty:argead_dynasty
+			}
+		}
+	}
+}

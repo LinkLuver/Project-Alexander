@@ -1,0 +1,1132 @@
+﻿#P:A Imported from Invictus: events/war_council.txt
+namespace = war_council
+# Imperator fired these events from scripted GUI buttons (assemble_war_council_button, assemble_war_council_republic_button);
+# EU5 has no such button, so they need a starter (decision or pulse) - see the batch report.
+# Imperator claims on a whole state are approximated with an EU5 conquer-province casus belli (EU5 "claims" are
+# casus belli on provinces: has_claim_on_province).
+
+# The war council assembles and proposes targets for the next war.
+war_council.1 = {
+	type = country_event
+	title = war_council.1.t
+	desc = {
+		random_valid = {
+			triggered_desc = {
+				trigger = {
+					OR = { # Imperator is_monarchy (theocratic monarchies are EU5 theocracies)
+						government_type = government_type:monarchy
+						government_type = government_type:theocracy
+					}
+				}
+				desc = war_council_assembles_monarchy
+			}
+			triggered_desc = {
+				trigger = {
+					OR = { # Imperator is_monarchy (theocratic monarchies are EU5 theocracies)
+						government_type = government_type:monarchy
+						government_type = government_type:theocracy
+					}
+				}
+				desc = war_council_assembles_monarchy_2
+			}
+			triggered_desc = {
+				trigger = {
+					government_type = government_type:republic
+				}
+				desc = war_council_assembles_republic
+			}
+			triggered_desc = {
+				trigger = {
+					government_type = government_type:republic
+				}
+				desc = war_council_assembles_republic_2
+			}
+			triggered_desc = {
+				trigger = {
+					government_type = government_type:tribe
+				}
+				desc = war_council_assembles_tribal
+			}
+			triggered_desc = {
+				trigger = {
+					government_type = government_type:tribe
+				}
+				desc = war_council_assembles_tribal_2
+			}
+		}
+		random_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:target_country_1 = scope:target_country_2
+					scope:target_country_1 = scope:target_country_3
+				}
+				desc = war_council_all_three_agree_1
+			}
+			triggered_desc = {
+				trigger = {
+					scope:target_country_1 = scope:target_country_2
+					scope:target_country_1 = scope:target_country_3
+				}
+				desc = war_council_all_three_agree_2
+			}
+			triggered_desc = {
+				trigger = {
+					scope:target_country_1 = scope:target_country_2
+					NOT = {
+						scope:target_country_1 = scope:target_country_3
+					}
+				}
+				desc = war_council_1_and_2_agree
+			}
+			triggered_desc = {
+				trigger = {
+					scope:target_country_1 = scope:target_country_3
+					NOT = {
+						scope:target_country_2 = scope:target_country_1
+					}
+				}
+				desc = war_council_1_and_3_agree
+			}
+			triggered_desc = {
+				trigger = {
+					scope:target_country_2 = scope:target_country_3
+					NOT = {
+						scope:target_country_1 = scope:target_country_2
+					}
+				}
+				desc = war_council_2_and_3_agree
+			}
+			triggered_desc = {
+				trigger = {
+					NOR = {
+						scope:target_country_1 = scope:target_country_2
+						scope:target_country_1 = scope:target_country_3
+						scope:target_country_2 = scope:target_country_3
+					}
+				}
+				desc = war_council_all_3_different_1
+			}
+			triggered_desc = {
+				trigger = {
+					NOR = {
+						scope:target_country_1 = scope:target_country_2
+						scope:target_country_1 = scope:target_country_3
+						scope:target_country_2 = scope:target_country_3
+					}
+				}
+				desc = war_council_all_3_different_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = armed
+	}
+
+	trigger = {
+		OR = { # Imperator countries were always monarchies, republics or tribes
+			government_type = government_type:monarchy
+			government_type = government_type:theocracy
+			government_type = government_type:republic
+			government_type = government_type:tribe
+		}
+		any_neighbor_country = {
+			NOR = {
+				has_mutual_scripted_relation = { # alliance_with = root
+					type = relation_type:alliance
+					target = root
+				}
+				is_subject_of = root
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		if = {
+			limit = {
+				OR = { # Imperator is_monarchy
+					government_type = government_type:monarchy
+					government_type = government_type:theocracy
+				}
+			}
+			random_character = {
+				limit = { is_alive = yes }
+				weight = {
+					base = 1
+					modifier = { #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership used
+						factor = 50
+						in_cabinet = yes
+					}
+					# modifier = { factor = 10000 has_office = office_marshal } #P:A TODO No EU5 equivalent: Imperator office of marshal
+				}
+				save_scope_as = marshal
+			}
+			random_character = {
+				limit = {
+					is_alive = yes
+					NOT = {
+						this = scope:marshal
+					}
+				}
+				weight = {
+					base = 1
+					modifier = { #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership used
+						factor = 50
+						in_cabinet = yes
+					}
+					# modifier = { factor = 10000 has_office = office_master_of_the_guard } #P:A TODO No EU5 equivalent: Imperator office of master of the guard
+				}
+				save_scope_as = guard
+			}
+			random_character = {
+				limit = {
+					is_alive = yes
+					NOR = {
+						this = scope:marshal
+						this = scope:guard
+					}
+				}
+				weight = {
+					base = 1
+					modifier = { #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership used
+						factor = 10000
+						in_cabinet = yes
+					}
+				}
+				save_scope_as = third_party
+			}
+		}
+		else_if = {
+			limit = {
+				government_type = government_type:republic
+			}
+			random_character = {
+				limit = { is_alive = yes }
+				weight = {
+					base = 1
+					modifier = { #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership used
+						factor = 50
+						in_cabinet = yes
+					}
+					# modifier = { factor = 10000 has_office = office_tribune_of_the_soldiers } #P:A TODO No EU5 equivalent: Imperator office of tribune of the soldiers
+				}
+				save_scope_as = marshal
+			}
+			random_character = {
+				limit = {
+					is_alive = yes
+					NOT = {
+						this = scope:marshal
+					}
+				}
+				weight = {
+					base = 1
+					modifier = { #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership used
+						factor = 50
+						in_cabinet = yes
+					}
+					# modifier = { factor = 10000 has_office = office_tribune_of_the_treasury } #P:A TODO No EU5 equivalent: Imperator office of tribune of the treasury
+				}
+				save_scope_as = guard
+			}
+			random_character = {
+				limit = {
+					is_alive = yes
+					NOR = {
+						this = scope:marshal
+						this = scope:guard
+					}
+				}
+				weight = {
+					base = 1
+					modifier = { #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership used
+						factor = 10000
+						in_cabinet = yes
+					}
+				}
+				save_scope_as = third_party
+			}
+		}
+		else_if = {
+			limit = {
+				government_type = government_type:tribe
+			}
+			random_character = {
+				limit = {
+					is_alive = yes
+					is_ruler = no
+				}
+				weight = {
+					base = 1
+					# modifier = { factor = 10000 is_clan_chief = yes } #P:A TODO No EU5 equivalent: Imperator clan chiefs
+					modifier = { #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership used
+						factor = 50
+						in_cabinet = yes
+					}
+				}
+				save_scope_as = marshal
+			}
+			random_character = {
+				limit = {
+					is_alive = yes
+					NOT = {
+						this = scope:marshal
+					}
+					is_ruler = no
+				}
+				weight = {
+					base = 1
+					# modifier = { factor = 10000 is_clan_chief = yes } #P:A TODO No EU5 equivalent: Imperator clan chiefs
+					modifier = { #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership used
+						factor = 50
+						in_cabinet = yes
+					}
+				}
+				save_scope_as = guard
+			}
+			random_character = {
+				limit = {
+					is_alive = yes
+					NOR = {
+						this = scope:marshal
+						this = scope:guard
+					}
+					is_ruler = no
+				}
+				weight = {
+					base = 1
+					# modifier = { factor = 10000 is_clan_chief = yes } #P:A TODO No EU5 equivalent: Imperator clan chiefs
+					modifier = { #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership used
+						factor = 50
+						in_cabinet = yes
+					}
+				}
+				save_scope_as = third_party
+			}
+		}
+		random_neighbor_country = {
+			limit = {
+				NOR = {
+					has_mutual_scripted_relation = { # alliance_with = root
+						type = relation_type:alliance
+						target = root
+					}
+					is_subject_of = root
+				}
+				any_owned_location = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } } # Imperator: NOT = { root = { has_claim = prev } }
+					}
+				}
+			}
+			save_scope_as = target_country_1
+			random_owned_location = {
+				limit = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } }
+					}
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 100
+						any_neighbor_location = {
+							owner ?= root
+						}
+					}
+				}
+				save_scope_as = target_province_1
+			}
+		}
+		random_neighbor_country = {
+			limit = {
+				NOR = {
+					has_mutual_scripted_relation = { # alliance_with = root
+						type = relation_type:alliance
+						target = root
+					}
+					is_subject_of = root
+				}
+				any_owned_location = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } }
+					}
+				}
+			}
+			save_scope_as = target_country_2
+			random_owned_location = {
+				limit = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } }
+					}
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 100
+						any_neighbor_location = {
+							owner ?= root
+						}
+					}
+				}
+				save_scope_as = target_province_2
+			}
+		}
+		random_neighbor_country = {
+			limit = {
+				NOR = {
+					has_mutual_scripted_relation = { # alliance_with = root
+						type = relation_type:alliance
+						target = root
+					}
+					is_subject_of = root
+				}
+				any_owned_location = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } }
+					}
+				}
+			}
+			save_scope_as = target_country_3
+			random_owned_location = {
+				limit = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } }
+					}
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 100
+						any_neighbor_location = {
+							owner ?= root
+						}
+					}
+				}
+				save_scope_as = target_province_3
+			}
+		}
+	}
+
+	option = { #All three agree
+		name = war_council_all_3_agree
+		trigger = {
+			scope:target_country_1 = scope:target_country_2
+			scope:target_country_1 = scope:target_country_3
+		}
+		# scope:marshal = { add_loyalty = loyalty_war_council_agrees }
+		# scope:guard = { add_loyalty = loyalty_war_council_agrees }
+		# scope:third_party = { add_loyalty = loyalty_war_council_agrees }
+		#P:A TODO No EU5 equivalent: all three councillors gain the "war council agrees" loyalty modifier (EU5 characters have no loyalty)
+		custom_tooltip = war_council_target_province_1_area_tt
+		hidden_effect = {
+			# scope:target_province_1 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_1.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_1.province
+			}
+		}
+	}
+
+	option = { #One and Two agree
+		name = war_council_one_and_two
+		trigger = {
+			scope:target_country_1 = scope:target_country_2
+			NOT = {
+				scope:target_country_1 = scope:target_country_3
+			}
+		}
+		# scope:marshal = { add_loyalty = loyalty_war_council_picked }
+		# scope:guard = { add_loyalty = loyalty_war_council_picked }
+		# scope:third_party = { add_loyalty = loyalty_war_council_ignored }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the marshal and the guard, "ignored" loyalty for the third councillor (EU5 characters have no loyalty)
+		custom_tooltip = war_council_target_province_1_area_tt
+		hidden_effect = {
+			# scope:target_province_1 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_1.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_1.province
+			}
+		}
+	}
+
+	option = { #One and Three agree
+		name = war_council_one_and_three
+		trigger = {
+			scope:target_country_1 = scope:target_country_3
+			NOT = {
+				scope:target_country_2 = scope:target_country_1
+			}
+		}
+		# scope:marshal = { add_loyalty = loyalty_war_council_picked }
+		# scope:guard = { add_loyalty = loyalty_war_council_ignored }
+		# scope:third_party = { add_loyalty = loyalty_war_council_picked }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the marshal and the third councillor, "ignored" loyalty for the guard (EU5 characters have no loyalty)
+		custom_tooltip = war_council_target_province_1_area_tt
+		hidden_effect = {
+			# scope:target_province_1 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_1.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_1.province
+			}
+		}
+	}
+
+	option = { #Side with One
+		name = war_council_one
+		trigger = {
+			OR = {
+				AND = {
+					scope:target_country_2 = scope:target_country_3
+					NOT = {
+						scope:target_country_1 = scope:target_country_2
+					}
+				}
+				AND = {
+					NOT = {
+						scope:target_country_1 = scope:target_country_2
+					}
+					NOT = {
+						scope:target_country_1 = scope:target_country_3
+					}
+					NOT = {
+						scope:target_country_2 = scope:target_country_3
+					}
+				}
+			}
+		}
+		# scope:marshal = { add_loyalty = loyalty_war_council_picked }
+		# scope:guard = { add_loyalty = loyalty_war_council_ignored }
+		# scope:third_party = { add_loyalty = loyalty_war_council_ignored }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the marshal, "ignored" loyalty for the other two councillors (EU5 characters have no loyalty)
+		custom_tooltip = war_council_target_province_1_area_tt
+		hidden_effect = {
+			# scope:target_province_1 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_1.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_1.province
+			}
+		}
+	}
+
+	option = { #Two and Three agree
+		name = war_council_two_and_three
+		trigger = {
+			scope:target_country_2 = scope:target_country_3
+			NOT = {
+				scope:target_country_1 = scope:target_country_2
+			}
+		}
+		# scope:marshal = { add_loyalty = loyalty_war_council_ignored }
+		# scope:guard = { add_loyalty = loyalty_war_council_picked }
+		# scope:third_party = { add_loyalty = loyalty_war_council_picked }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the guard and the third councillor, "ignored" loyalty for the marshal (EU5 characters have no loyalty)
+		custom_tooltip = war_council_target_province_2_area_tt
+		hidden_effect = {
+			# scope:target_province_2 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_2.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_2.province
+			}
+		}
+	}
+
+	option = { #Side with Second
+		name = war_council_two
+		trigger = {
+			OR = {
+				AND = {
+					scope:target_country_1 = scope:target_country_3
+					NOT = {
+						scope:target_country_2 = scope:target_country_1
+					}
+				}
+				AND = {
+					NOT = {
+						scope:target_country_1 = scope:target_country_2
+					}
+					NOT = {
+						scope:target_country_1 = scope:target_country_3
+					}
+					NOT = {
+						scope:target_country_2 = scope:target_country_3
+					}
+				}
+			}
+		}
+		# scope:marshal = { add_loyalty = loyalty_war_council_ignored }
+		# scope:guard = { add_loyalty = loyalty_war_council_picked }
+		# scope:third_party = { add_loyalty = loyalty_war_council_ignored }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the guard, "ignored" loyalty for the other two councillors (EU5 characters have no loyalty)
+		custom_tooltip = war_council_target_province_2_area_tt
+		hidden_effect = {
+			# scope:target_province_2 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_2.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_2.province
+			}
+		}
+	}
+
+	option = { #Side with Third
+		name = war_council_three
+		trigger = {
+			OR = {
+				AND = {
+					scope:target_country_1 = scope:target_country_2
+					NOT = {
+						scope:target_country_1 = scope:target_country_3
+					}
+				}
+				AND = {
+					NOT = {
+						scope:target_country_1 = scope:target_country_2
+					}
+					NOT = {
+						scope:target_country_1 = scope:target_country_3
+					}
+					NOT = {
+						scope:target_country_2 = scope:target_country_3
+					}
+				}
+			}
+		}
+		# scope:marshal = { add_loyalty = loyalty_war_council_ignored }
+		# scope:guard = { add_loyalty = loyalty_war_council_ignored }
+		# scope:third_party = { add_loyalty = loyalty_war_council_picked }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the third councillor, "ignored" loyalty for the marshal and the guard (EU5 characters have no loyalty)
+		custom_tooltip = war_council_target_province_3_area_tt
+		hidden_effect = {
+			# scope:target_province_3 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_3.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_3.province
+			}
+		}
+	}
+
+	option = {
+		name = war_council_nope
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Republic version: the senate's faction leaders propose targets for the next war.
+war_council.2 = { #Republic version
+	type = country_event
+	title = war_council.2.t
+	desc = {
+		random_valid = {
+			triggered_desc = {
+				trigger = {
+					government_type = government_type:republic
+				}
+				desc = war_council_assembles_republic
+			}
+			triggered_desc = {
+				trigger = {
+					government_type = government_type:republic
+				}
+				desc = war_council_assembles_republic_2
+			}
+		}
+		random_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:target_country_1 = scope:target_country_2
+					scope:target_country_1 = scope:target_country_3
+				}
+				desc = war_council_all_three_agree_1
+			}
+			triggered_desc = {
+				trigger = {
+					scope:target_country_1 = scope:target_country_2
+					scope:target_country_1 = scope:target_country_3
+				}
+				desc = war_council_all_three_agree_2
+			}
+			triggered_desc = {
+				trigger = {
+					scope:target_country_1 = scope:target_country_2
+					scope:target_country_1 = scope:target_country_3
+					root = {
+						government_type = government_type:republic
+					}
+				}
+				desc = war_council_all_three_agree_republic
+			}
+			triggered_desc = {
+				trigger = {
+					scope:target_country_1 = scope:target_country_2
+					NOT = {
+						scope:target_country_1 = scope:target_country_3
+					}
+				}
+				desc = war_council_1_and_2_agree
+			}
+			triggered_desc = {
+				trigger = {
+					scope:target_country_1 = scope:target_country_2
+					NOT = {
+						scope:target_country_1 = scope:target_country_3
+					}
+					root = {
+						government_type = government_type:republic
+					}
+				}
+				desc = war_council_1_and_2_agree_republic
+			}
+			triggered_desc = {
+				trigger = {
+					scope:target_country_1 = scope:target_country_3
+					NOT = {
+						scope:target_country_2 = scope:target_country_1
+					}
+				}
+				desc = war_council_1_and_3_agree
+			}
+			triggered_desc = {
+				trigger = {
+					scope:target_country_2 = scope:target_country_3
+					NOT = {
+						scope:target_country_1 = scope:target_country_2
+					}
+				}
+				desc = war_council_2_and_3_agree
+			}
+			triggered_desc = {
+				trigger = {
+					NOR = {
+						scope:target_country_1 = scope:target_country_2
+						scope:target_country_1 = scope:target_country_3
+						scope:target_country_2 = scope:target_country_3
+					}
+				}
+				desc = war_council_all_3_different_1
+			}
+			triggered_desc = {
+				trigger = {
+					NOR = {
+						scope:target_country_1 = scope:target_country_2
+						scope:target_country_1 = scope:target_country_3
+						scope:target_country_2 = scope:target_country_3
+					}
+				}
+				desc = war_council_all_3_different_2
+			}
+		}
+	}
+	illustration_tags = {
+		10 = interior
+		10 = armed
+	}
+
+	trigger = {
+		government_type = government_type:republic # Imperator fired it only from the republic war council button
+		any_neighbor_country = {
+			NOR = {
+				has_mutual_scripted_relation = { # alliance_with = root
+					type = relation_type:alliance
+					target = root
+				}
+				is_subject_of = root
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				is_adult = yes
+				#P:A Removed: prisoner = no is always true in EU5
+				trigger_if = {
+					limit = {
+						root = { modifier:gender_equality = no } # Imperator: ROOT = { gender_equality = no }
+					}
+					is_female = no
+				}
+			}
+			weight = {
+				base = 1
+				modifier = { #P:A TODO Approximate: Imperator party leaders (is_party_leader); EU5 cabinet members used
+					factor = 10000
+					in_cabinet = yes
+					is_ruler = no
+				}
+			}
+			save_scope_as = marshal
+		}
+		random_character = {
+			limit = {
+				is_adult = yes
+				#P:A Removed: prisoner = no is always true in EU5
+				NOT = { this = scope:marshal } # Imperator: NAND = { this = scope:marshal is_same_party_as = scope:marshal }
+				trigger_if = {
+					limit = {
+						root = { modifier:gender_equality = no }
+					}
+					is_female = no
+				}
+			}
+			weight = {
+				base = 1
+				modifier = { #P:A TODO Approximate: Imperator party leaders (is_party_leader); EU5 cabinet members used
+					factor = 10000
+					in_cabinet = yes
+					is_ruler = no
+				}
+			}
+			save_scope_as = guard
+		}
+		random_character = {
+			limit = {
+				is_adult = yes
+				#P:A Removed: prisoner = no is always true in EU5
+				# exists = character_party #P:A TODO No EU5 equivalent: the character had to belong to a senate party (EU5 has no parties)
+				NOR = { # Imperator: also checked is_same_party_as for each (EU5 has no parties)
+					this = scope:marshal
+					this = scope:guard
+				}
+				trigger_if = {
+					limit = {
+						root = { modifier:gender_equality = no }
+					}
+					is_female = no
+				}
+			}
+			weight = {
+				base = 1
+				modifier = { #P:A TODO Approximate: Imperator party leaders (is_party_leader); EU5 cabinet members used
+					factor = 10000
+					in_cabinet = yes
+					is_ruler = no
+				}
+			}
+			save_scope_as = third_party
+		}
+		random_neighbor_country = {
+			limit = {
+				NOR = {
+					has_mutual_scripted_relation = { # alliance_with = root
+						type = relation_type:alliance
+						target = root
+					}
+					is_subject_of = root
+				}
+				any_owned_location = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } } # Imperator: NOT = { root = { has_claim = prev } }
+					}
+				}
+			}
+			save_scope_as = target_country_1
+			random_owned_location = {
+				limit = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } }
+					}
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 100
+						any_neighbor_location = {
+							owner ?= root
+						}
+					}
+				}
+				save_scope_as = target_province_1
+			}
+		}
+		random_neighbor_country = {
+			limit = {
+				NOR = {
+					has_mutual_scripted_relation = { # alliance_with = root
+						type = relation_type:alliance
+						target = root
+					}
+					is_subject_of = root
+				}
+				any_owned_location = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } }
+					}
+				}
+			}
+			save_scope_as = target_country_2
+			random_owned_location = {
+				limit = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } }
+					}
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 100
+						any_neighbor_location = {
+							owner ?= root
+						}
+					}
+				}
+				save_scope_as = target_province_2
+			}
+		}
+		random_neighbor_country = {
+			limit = {
+				NOR = {
+					has_mutual_scripted_relation = { # alliance_with = root
+						type = relation_type:alliance
+						target = root
+					}
+					is_subject_of = root
+				}
+				any_owned_location = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } }
+					}
+				}
+			}
+			save_scope_as = target_country_3
+			random_owned_location = {
+				limit = {
+					province ?= {
+						NOT = { root = { has_claim_on_province = prev } }
+					}
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 100
+						any_neighbor_location = {
+							owner ?= root
+						}
+					}
+				}
+				save_scope_as = target_province_3
+			}
+		}
+	}
+
+	option = { #All three agree
+		name = war_council_all_3_agree_republic
+		trigger = {
+			scope:target_country_1 = scope:target_country_2
+			scope:target_country_1 = scope:target_country_3
+		}
+		# scope:marshal = { add_loyalty = loyalty_war_council_agrees }
+		# scope:guard = { add_loyalty = loyalty_war_council_agrees }
+		# scope:third_party = { add_loyalty = loyalty_war_council_agrees }
+		#P:A TODO No EU5 equivalent: all three councillors gain the "war council agrees" loyalty modifier (EU5 characters have no loyalty)
+		custom_tooltip = war_council_target_province_1_area_tt
+		hidden_effect = {
+			# scope:target_province_1 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_1.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_1.province
+			}
+		}
+	}
+
+	option = { #One and Two agree
+		name = war_council_one_and_two_republic
+		trigger = {
+			scope:target_country_1 = scope:target_country_2
+			NOT = {
+				scope:target_country_1 = scope:target_country_3
+			}
+		}
+		# scope:marshal = { add_loyalty = loyalty_council_republic_picked }
+		# scope:guard = { add_loyalty = loyalty_council_republic_picked }
+		# add_party_approval = { party = scope:third_party.character_party value = party_disapproval_medium }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the marshal and the guard, -10 approval (party_disapproval_medium) for the third councillor's party (EU5 has no character loyalty or parties)
+		custom_tooltip = war_council_target_province_1_area_tt
+		hidden_effect = {
+			# scope:target_province_1 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_1.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_1.province
+			}
+		}
+	}
+
+	option = { #One and Three agree
+		name = war_council_one_and_three_republic
+		trigger = {
+			scope:target_country_1 = scope:target_country_3
+			NOT = {
+				scope:target_country_2 = scope:target_country_1
+			}
+		}
+		# scope:marshal = { add_loyalty = loyalty_council_republic_picked }
+		# scope:third_party = { add_loyalty = loyalty_council_republic_picked }
+		# add_party_approval = { party = scope:guard.character_party value = party_disapproval_medium }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the marshal and the third councillor, -10 approval (party_disapproval_medium) for the guard's party (EU5 has no character loyalty or parties)
+		custom_tooltip = war_council_target_province_1_area_tt
+		hidden_effect = {
+			# scope:target_province_1 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_1.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_1.province
+			}
+		}
+	}
+
+	option = { #Side with One
+		name = war_council_one_republic
+		trigger = {
+			OR = {
+				AND = {
+					scope:target_country_2 = scope:target_country_3
+					NOT = {
+						scope:target_country_1 = scope:target_country_2
+					}
+				}
+				AND = {
+					NOT = {
+						scope:target_country_1 = scope:target_country_2
+					}
+					NOT = {
+						scope:target_country_1 = scope:target_country_3
+					}
+					NOT = {
+						scope:target_country_2 = scope:target_country_3
+					}
+				}
+			}
+		}
+		# scope:marshal = { add_loyalty = loyalty_war_council_picked }
+		# add_party_approval = { party = scope:guard.character_party value = party_disapproval_small }
+		# add_party_approval = { party = scope:third_party.character_party value = party_disapproval_small }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the marshal, -5 approval (party_disapproval_small) for the parties of the guard and the third councillor (EU5 has no character loyalty or parties)
+		custom_tooltip = war_council_target_province_1_area_tt
+		hidden_effect = {
+			# scope:target_province_1 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_1.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_1.province
+			}
+		}
+	}
+
+	option = { #Two and Three agree
+		name = war_council_two_and_three_republic
+		trigger = {
+			scope:target_country_2 = scope:target_country_3
+			NOT = {
+				scope:target_country_1 = scope:target_country_2
+			}
+		}
+		# scope:guard = { add_loyalty = loyalty_council_republic_picked }
+		# scope:third_party = { add_loyalty = loyalty_council_republic_picked }
+		# add_party_approval = { party = scope:marshal.character_party value = party_disapproval_medium }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the guard and the third councillor, -10 approval (party_disapproval_medium) for the marshal's party (EU5 has no character loyalty or parties)
+		custom_tooltip = war_council_target_province_2_area_tt
+		hidden_effect = {
+			# scope:target_province_2 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_2.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_2.province
+			}
+		}
+	}
+
+	option = { #Side with Second
+		name = war_council_two_republic
+		trigger = {
+			OR = {
+				AND = {
+					scope:target_country_1 = scope:target_country_3
+					NOT = {
+						scope:target_country_2 = scope:target_country_1
+					}
+				}
+				AND = {
+					NOT = {
+						scope:target_country_1 = scope:target_country_2
+					}
+					NOT = {
+						scope:target_country_1 = scope:target_country_3
+					}
+					NOT = {
+						scope:target_country_2 = scope:target_country_3
+					}
+				}
+			}
+		}
+		# scope:guard = { add_loyalty = loyalty_war_council_picked }
+		# add_party_approval = { party = scope:marshal.character_party value = party_disapproval_small }
+		# add_party_approval = { party = scope:third_party.character_party value = party_disapproval_small }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the guard, -5 approval (party_disapproval_small) for the parties of the marshal and the third councillor (EU5 has no character loyalty or parties)
+		custom_tooltip = war_council_target_province_2_area_tt
+		hidden_effect = {
+			# scope:target_province_2 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_2.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_2.province
+			}
+		}
+	}
+
+	option = { #Side with Third
+		name = war_council_three_republic
+		trigger = {
+			OR = {
+				AND = {
+					scope:target_country_1 = scope:target_country_2
+					NOT = {
+						scope:target_country_1 = scope:target_country_3
+					}
+				}
+				AND = {
+					NOT = {
+						scope:target_country_1 = scope:target_country_2
+					}
+					NOT = {
+						scope:target_country_1 = scope:target_country_3
+					}
+					NOT = {
+						scope:target_country_2 = scope:target_country_3
+					}
+				}
+			}
+		}
+		# scope:third_party = { add_loyalty = loyalty_war_council_picked }
+		# add_party_approval = { party = scope:marshal.character_party value = party_disapproval_small }
+		# add_party_approval = { party = scope:guard.character_party value = party_disapproval_small }
+		#P:A TODO No EU5 equivalent: "picked" loyalty for the third councillor, -5 approval (party_disapproval_small) for the parties of the marshal and the guard (EU5 has no character loyalty or parties)
+		custom_tooltip = war_council_target_province_3_area_tt
+		hidden_effect = {
+			# scope:target_province_3 = { state = { every_state_province = { add_claim = root } } }
+			add_casus_belli = { #P:A TODO Approximate: Imperator claims on every territory of the target state; EU5 conquer-province casus belli on the location's province
+				target = scope:target_province_3.owner
+				type = casus_belli:cb_conquer_province
+				province = scope:target_province_3.province
+			}
+		}
+	}
+
+	option = {
+		name = war_council_nope_republic
+		custom_tooltip = no_effect_tooltip
+	}
+}

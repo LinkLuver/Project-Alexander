@@ -1,0 +1,507 @@
+﻿#P:A Imported from Invictus: events/religion_flavor/rel_flavor_northern.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = rel_flavor_northern
+
+# The seers claim the ancestors decreed more freedom for the priests.
+rel_flavor_northern.1 = {
+	type = country_event
+	title = rel_flavor_northern.1.t
+	desc = rel_flavor_northern.1.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		pa_imp_country_northern_religion_trigger = yes
+		NOT = { has_variable = rel_flavor_northern_1_cooldown }
+		any_character = {
+			pa_imp_has_priest_office_trigger = yes
+			religion = root.religion
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_northern_1_cooldown
+			days = 7300
+		}
+		random_character = {
+			limit = {
+				pa_imp_has_priest_office_trigger = yes
+				religion = root.religion
+			}
+			save_scope_as = random_advisor
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.1.a
+		# add_political_influence = subtract_influence_large #P:A TODO No EU5 equivalent: -25 political influence
+		if = {
+			limit = {
+				government_type = government_type:monarchy
+			}
+			add_legitimacy = 5 # legitimacy_medium
+		}
+		pa_imp_positive_religious_caste_effect = yes
+		# ruler = { add_popularity = popularity_medium } #P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+		# scope:random_advisor = { add_loyalty = loyalty_priest_allowed } #P:A TODO No EU5 equivalent: loyalty gain for the priest (EU5 characters have no loyalty)
+
+		# ai_chance = { modifier = { factor = 0 is_tribal = yes has_law = syncretization_law_tribal } } #P:A TODO No EU5 equivalent: AI tribes with the syncretization law never picked this (EU5 laws differ)
+	}
+
+	option = {
+		name = rel_flavor_northern.1.b
+		# add_political_influence = influence_large #P:A TODO No EU5 equivalent: +25 political influence
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total # Imperator has_monthly_income
+			multiply = 4
+			min = -6000
+		}
+		# scope:random_advisor = { add_loyalty = loyalty_priest_refused } #P:A TODO No EU5 equivalent: loyalty loss for the priest (EU5 characters have no loyalty)
+	}
+}
+
+# A priest wants a foreign-faith prisoner sacrificed to the gods and ancestors.
+rel_flavor_northern.2 = {
+	type = country_event
+	title = rel_flavor_northern.2.t
+	desc = rel_flavor_northern.2.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		pa_imp_country_northern_religion_trigger = yes
+		NOT = { has_variable = rel_flavor_northern_2_cooldown }
+		# any_character = { prisoner = yes NOT = { has_religion = root.religion } }
+		always = no #P:A TODO No EU5 equivalent: the event needs an imprisoned character of another faith (EU5 has no imprisoned characters)
+		any_character = {
+			pa_imp_has_priest_office_trigger = yes
+			religion = root.religion
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_northern_2_cooldown
+			days = 1825
+		}
+		random_character = {
+			limit = {
+				# prisoner = yes #P:A TODO No EU5 equivalent: imprisoned character (EU5 has no prisoners)
+				NOT = { religion = root.religion }
+			}
+			save_scope_as = prisoner_character
+		}
+		random_character = {
+			limit = {
+				pa_imp_has_priest_office_trigger = yes
+				religion = root.religion
+			}
+			save_scope_as = random_advisor
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.2.a
+		# add_political_influence = influence_medium #P:A TODO No EU5 equivalent: +15 political influence
+		# scope:random_advisor = { add_loyalty = loyalty_priest_allowed } #P:A TODO No EU5 equivalent: loyalty gain for the priest (EU5 characters have no loyalty)
+		kill_character = {
+			target = scope:prisoner_character
+			killer = scope:random_advisor
+			reason = sacrifice # Imperator death_sacrifice
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.2.b
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence
+		# scope:random_advisor = { add_loyalty = loyalty_priest_refused } #P:A TODO No EU5 equivalent: loyalty loss for the priest (EU5 characters have no loyalty)
+		# scope:prisoner_character = { add_rival = scope:random_advisor } #P:A TODO No EU5 equivalent: the prisoner becomes the priest's rival (EU5 characters have no rivals)
+	}
+}
+
+# The youth of one of our locations take part in old fertility rites; a priest wants them stopped.
+rel_flavor_northern.3 = {
+	type = country_event
+	title = rel_flavor_northern.3.t
+	desc = rel_flavor_northern.3.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		pa_imp_country_northern_religion_trigger = yes
+		NOT = { has_variable = rel_flavor_northern_3_cooldown }
+		any_owned_location = {
+			dominant_religion = root.religion # Imperator dominant_province_religion
+		}
+		any_character = {
+			pa_imp_has_priest_office_trigger = yes
+			religion = root.religion
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		set_variable = {
+			name = rel_flavor_northern_3_cooldown
+			days = 3650
+		}
+		random_owned_location = {
+			limit = {
+				dominant_religion = root.religion
+			}
+			save_scope_as = country_province
+		}
+		random_character = {
+			limit = {
+				pa_imp_has_priest_office_trigger = yes
+				religion = root.religion
+			}
+			save_scope_as = random_advisor
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.3.a
+		# add_political_influence = subtract_influence_medium #P:A TODO No EU5 equivalent: -15 political influence
+		scope:country_province = {
+			add_location_modifier = {
+				modifier = province_improvement_northern_fertility_rites
+				days = 3650
+			}
+		}
+		# scope:random_advisor = { add_loyalty = loyalty_priest_refused } #P:A TODO No EU5 equivalent: loyalty loss for the priest (EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = rel_flavor_northern.3.b
+		# add_political_influence = influence_small #P:A TODO No EU5 equivalent: +10 political influence
+		# scope:random_advisor = { add_loyalty = loyalty_priest_allowed } #P:A TODO No EU5 equivalent: loyalty gain for the priest (EU5 characters have no loyalty)
+	}
+}
+
+# An advisor plans a bloody conversion of the people of another faith in one of our locations; the priest objects.
+rel_flavor_northern.4 = {
+	type = country_event
+	title = rel_flavor_northern.4.t
+	desc = rel_flavor_northern.4.desc
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		pa_imp_country_northern_religion_trigger = yes
+		any_owned_location = {
+			dominant_religion = root.religion # Imperator dominant_province_religion
+			any_pop = {
+				count >= 2 #P:A TODO Approximate: Imperator counted at least 2 pops; EU5 counts pop groups
+				NOT = { religion = root.religion }
+			}
+		}
+		any_character = {
+			pa_imp_has_priest_office_trigger = yes
+			NOT = { has_trait = zealot } # Imperator zealous
+		}
+		any_character = {
+			in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 has no offices, cabinet membership stands in
+			NOT = { pa_imp_has_priest_office_trigger = yes }
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		random_owned_location = {
+			limit = {
+				dominant_religion = root.religion
+				any_pop = {
+					count >= 2 #P:A TODO Approximate: Imperator counted at least 2 pops; EU5 counts pop groups
+					NOT = { religion = root.religion }
+				}
+			}
+			save_scope_as = country_province
+		}
+		random_character = {
+			limit = {
+				pa_imp_has_priest_office_trigger = yes
+				NOT = { has_trait = zealot }
+			}
+			save_scope_as = random_priest
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office; EU5 cabinet membership
+				NOT = { pa_imp_has_priest_office_trigger = yes }
+			}
+			save_scope_as = random_advisor
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.4.a
+		# add_tyranny = 5 / 3 / 1 when at least 10 / at least 5 / fewer pops of other faiths live there #P:A TODO No EU5 equivalent: tyranny
+		scope:country_province = {
+			random_pop = { #P:A TODO Approximate: Imperator killed one whole pop of another faith; EU5 removes size 1 of it (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					NOT = { religion = root.religion }
+				}
+				if = {
+					limit = { pop_size > 1 }
+					add_pop_size = -1
+				}
+				else = {
+					destroy_pop = this
+				}
+			}
+			every_pop = {
+				limit = {
+					NOT = { religion = root.religion }
+				}
+				change_pop_religion = root.religion
+			}
+		}
+		# scope:random_advisor = { add_loyalty = loyalty_conversion_effort_approved_1 } #P:A TODO No EU5 equivalent: loyalty gain for the advisor (EU5 characters have no loyalty)
+		# scope:random_priest = { add_loyalty = loyalty_conversion_effort_approved_2 } #P:A TODO No EU5 equivalent: loyalty loss for the priest (EU5 characters have no loyalty)
+	}
+
+	option = {
+		name = rel_flavor_northern.4.b
+		pa_imp_add_stability_effect_small = yes
+		# scope:random_priest = { add_loyalty = loyalty_conversion_effort_denied_1 } #P:A TODO No EU5 equivalent: loyalty change for the priest (EU5 characters have no loyalty)
+		# scope:random_advisor = { add_loyalty = loyalty_conversion_effort_denied_2 } #P:A TODO No EU5 equivalent: loyalty change for the advisor (EU5 characters have no loyalty)
+	}
+}
+
+# A friendly neighbour holds a religious festival too; invite them to celebrate together (rel_flavor_northern.6).
+rel_flavor_northern.5 = {
+	type = country_event
+	title = rel_flavor_northern.5.t
+	desc = rel_flavor_northern.5.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		NOT = { has_variable = rel_flavor_northern_religious_festival_cooldown }
+		pa_imp_country_northern_religion_trigger = yes
+		any_neighbor_country = {
+			NOT = { has_variable = rel_flavor_northern_religious_festival_cooldown }
+			#religion = root.religion
+			opinion = {
+				target = root
+				value >= 50
+			}
+		}
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		save_scope_as = original_country
+		set_variable = {
+			name = rel_flavor_northern_religious_festival_cooldown
+			days = 3650
+		}
+		random_neighbor_country = {
+			limit = {
+				NOT = { has_variable = rel_flavor_northern_religious_festival_cooldown }
+				#religion = root.religion
+				opinion = {
+					target = root
+					value >= 50
+				}
+			}
+			save_scope_as = neighbor_country
+			ruler ?= {
+				save_scope_as = neighbor_ruler # Imperator right_portrait = scope:neighbor_country.current_ruler
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.5.a
+		custom_tooltip = rel_flavor_northern.5.a.tt
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total # Imperator has_monthly_income
+			multiply = 6
+			floor = yes
+			max = -30
+			min = -300
+		}
+		scope:neighbor_country = {
+			set_variable = {
+				name = rel_flavor_northern_religious_festival_cooldown
+				days = 3650
+			}
+		}
+		scope:neighbor_country = {
+			trigger_event_non_silently = {
+				id = rel_flavor_northern.6
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.5.b
+		pa_imp_add_stability_effect = yes
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total # Imperator has_monthly_income
+			multiply = 3
+			max = -10
+			min = -100
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.5.c
+		# ruler = { add_popularity = subtract_popularity_small } #P:A TODO No EU5 equivalent: -5 popularity for the ruler (EU5 characters have no popularity)
+	}
+}
+
+# A friendly neighbour invites us to a joint religious festival (from rel_flavor_northern.5).
+rel_flavor_northern.6 = {
+	type = country_event
+	title = rel_flavor_northern.6.t
+	desc = rel_flavor_northern.6.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		scope:original_country = {
+			ruler ?= {
+				save_scope_as = original_ruler # Imperator right_portrait = scope:original_country.current_ruler
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.6.a
+		# add_political_influence = influence_medium #P:A TODO No EU5 equivalent: +15 political influence
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total # Imperator has_monthly_income
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		add_opinion = {
+			target = scope:original_country
+			modifier = northern_flavor_religious_cooperation
+		}
+		scope:original_country = {
+			add_opinion = {
+				target = root
+				modifier = northern_flavor_religious_cooperation
+			}
+			trigger_event_non_silently = {
+				id = rel_flavor_northern.7
+				days = { 3 5 }
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.6.b
+		custom_tooltip = no_effect_tooltip
+		scope:original_country = {
+			trigger_event_non_silently = {
+				id = rel_flavor_northern.8
+				days = { 3 5 }
+			}
+		}
+	}
+}
+
+# The neighbour accepted: the joint festival is held (from rel_flavor_northern.6).
+rel_flavor_northern.7 = {
+	type = country_event
+	title = rel_flavor_northern.7.t
+	desc = rel_flavor_northern.7.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		scope:neighbor_country = {
+			ruler ?= {
+				save_scope_as = neighbor_ruler # Imperator right_portrait = scope:neighbor_country.current_ruler
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.7.a
+		# add_political_influence = influence_medium #P:A TODO No EU5 equivalent: +15 political influence
+		show_as_tooltip = {
+			add_opinion = {
+				target = scope:neighbor_country
+				modifier = northern_flavor_religious_cooperation
+			}
+			scope:neighbor_country = {
+				add_opinion = {
+					target = root
+					modifier = northern_flavor_religious_cooperation
+				}
+			}
+		}
+	}
+}
+
+# The neighbour never answered: we hold the festival alone (from rel_flavor_northern.6).
+rel_flavor_northern.8 = {
+	type = country_event
+	title = rel_flavor_northern.8.t
+	desc = rel_flavor_northern.8.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = current_ruler
+		}
+		scope:neighbor_country = {
+			ruler ?= {
+				save_scope_as = neighbor_ruler # Imperator right_portrait = scope:neighbor_country.current_ruler
+			}
+		}
+	}
+
+	option = {
+		name = rel_flavor_northern.8.a
+		pa_imp_add_stability_effect_small = yes
+	}
+}

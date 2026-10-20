@@ -1,0 +1,282 @@
+﻿# Imperator scripted effects for batch b15 of the Invictus/Indomita event import (2026-10-19).
+
+#P:A Imported from Invictus (common/scripted_effects/00_galatian_invasion_effects.txt)
+# Adds 1 to variable $VAR$, or sets it to 1 if it does not exist yet.
+pa_imp_change_or_set_variable_effect = {
+	if = {
+		limit = { has_variable = $VAR$ }
+		change_variable = {
+			name = $VAR$
+			add = 1
+		}
+	}
+	else = {
+		set_variable = {
+			name = $VAR$
+			value = 1
+		}
+	}
+}
+
+#P:A Imported from Imperator (common/scripted_effects/00_event_effects.txt)
+# Location scope (Imperator: province). Rewards for sparing a conquered great city. Needs scope:special_province.
+pa_imp_merciful_ruler_effect = {
+	owner = {
+		if = {
+			limit = {
+				government_type = government_type:monarchy
+				exists = ruler
+			}
+			add_legitimacy = 10 # legitimacy_large
+		}
+		# current_ruler = { add_popularity = popularity_large }
+		#P:A TODO No EU5 equivalent: +15 ruler popularity (EU5 characters have no popularity)
+		scope:special_province = {
+			add_location_modifier = {
+				modifier = province_improvement_merciful_conqueror
+				days = 3650
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus (common/scripted_effects/00_event_effects_inv_1_0.txt)
+# Location scope. Moderate looting of a conquered great city (scope:special_province).
+pa_imp_neutral_conqueror_effect = {
+	owner = {
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 6
+			min = 25
+			max = 2000
+			ceiling = yes
+		}
+		# current_ruler = { add_prominence = prominence_medium add_popularity = subtract_popularity_small }
+		#P:A TODO No EU5 equivalent: +5 ruler prominence and -5 ruler popularity
+		scope:special_province = {
+			if = {
+				limit = {
+					has_location_modifier = province_diminishment_medium_looted
+				}
+				hidden_effect = {
+					remove_location_modifier = province_diminishment_medium_looted
+				}
+			}
+			add_location_modifier = {
+				modifier = province_diminishment_medium_looted
+				days = 3650
+			}
+			custom_tooltip = neutral_conqueror_effect_tooltip
+			hidden_effect = {
+				every_pop = { #P:A TODO Approximate: Imperator killed the least happy eighth of the pops; EU5 shrinks every pop by 12.5%
+					add_pop_size = {
+						value = pop_size
+						multiply = -0.125
+					}
+				}
+			}
+			set_variable = {
+				name = sacked_province
+				days = 3650
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus (common/scripted_effects/00_event_effects_inv_1_0.txt)
+# Location scope. Sacking of a conquered great city (scope:special_province).
+pa_imp_sacking_conqueror_effect = {
+	owner = {
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 16
+			min = 40
+			max = 3000
+			ceiling = yes
+		}
+		# current_ruler = { add_prominence = prominence_large add_popularity = subtract_popularity_medium add_corruption = corruption_medium }
+		#P:A TODO No EU5 equivalent: +10 ruler prominence, -10 ruler popularity, +5 ruler corruption
+		scope:special_province = {
+			pa_imp_reduce_province_rank_effect = yes
+			if = {
+				limit = {
+					OR = {
+						has_location_modifier = province_diminishment_medium_looted
+						has_location_modifier = province_diminishment_super_looted
+					}
+				}
+				hidden_effect = {
+					remove_location_modifier = province_diminishment_medium_looted
+					remove_location_modifier = province_diminishment_super_looted
+				}
+			}
+			add_location_modifier = {
+				modifier = province_diminishment_super_looted
+				days = 7300
+			}
+			custom_tooltip = sacking_conqueror_effect_tooltip
+			hidden_effect = {
+				every_pop = { #P:A TODO Approximate: Imperator killed the least happy third of the pops; EU5 shrinks every pop by a third
+					add_pop_size = {
+						value = pop_size
+						multiply = -0.33
+					}
+				}
+			}
+			set_variable = {
+				name = sacked_province
+				days = 10950
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus (common/scripted_effects/00_event_effects_inv_1_0.txt)
+# Location scope. Salting the earth of a conquered great city (scope:special_province).
+pa_imp_salt_earth_effect = {
+	owner = {
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 20
+			min = 50
+			max = 4000
+			ceiling = yes
+		}
+		# current_ruler = { add_prominence = prominence_large add_popularity = subtract_popularity_huge add_corruption = corruption_large }
+		#P:A TODO No EU5 equivalent: +10 ruler prominence, -25 ruler popularity, +10 ruler corruption
+		scope:special_province = {
+			pa_imp_reduce_province_rank_effect = yes
+			if = {
+				limit = {
+					OR = {
+						has_location_modifier = province_diminishment_medium_looted
+						has_location_modifier = province_diminishment_super_looted
+					}
+				}
+				hidden_effect = {
+					remove_location_modifier = province_diminishment_medium_looted
+					remove_location_modifier = province_diminishment_super_looted
+				}
+			}
+			add_location_modifier = {
+				modifier = rm_4_salted_pmod
+				days = 7300
+			}
+			custom_tooltip = salt_earth_effect_tooltip
+			hidden_effect = {
+				every_pop = { #P:A TODO Approximate: Imperator killed the least happy half of the pops; EU5 shrinks every pop by half
+					add_pop_size = {
+						value = pop_size
+						multiply = -0.5
+					}
+				}
+			}
+			set_variable = {
+				name = sacked_province
+				days = 10950
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus (common/scripted_effects/00_event_effects_inv_1_0.txt)
+# Location scope. Massacre of a conquered great city (scope:special_province).
+pa_imp_mass_murder_effect = {
+	owner = {
+		add_gold = {
+			value = monthly_income_total # Imperator has_monthly_income
+			multiply = 20
+			min = 50
+			max = 4000
+			ceiling = yes
+		}
+		# current_ruler = { add_prominence = prominence_large add_popularity = subtract_popularity_huge add_corruption = corruption_large }
+		#P:A TODO No EU5 equivalent: +10 ruler prominence, -25 ruler popularity, +10 ruler corruption
+		scope:special_province = {
+			pa_imp_reduce_province_rank_effect = yes
+			if = {
+				limit = {
+					OR = {
+						has_location_modifier = province_diminishment_medium_looted
+						has_location_modifier = province_diminishment_super_looted
+						has_location_modifier = province_diminishment_extremely_looted
+					}
+				}
+				hidden_effect = {
+					remove_location_modifier = province_diminishment_medium_looted
+					remove_location_modifier = province_diminishment_super_looted
+					remove_location_modifier = province_diminishment_extremely_looted
+				}
+			}
+			add_location_modifier = {
+				modifier = province_diminishment_extremely_looted
+				days = 7300
+			}
+			custom_tooltip = salt_earth_effect_tooltip
+			hidden_effect = {
+				every_pop = { #P:A TODO Approximate: Imperator killed the least happy half of the pops; EU5 shrinks every pop by half
+					add_pop_size = {
+						value = pop_size
+						multiply = -0.5
+					}
+				}
+			}
+			set_variable = {
+				name = sacked_province
+				days = 10950
+			}
+		}
+	}
+}
+
+#P:A Imported from Invictus (common/scripted_effects/00_galatian_invasion_effects.txt)
+# Country scope (the Galatian attacker). Spawned the Galatian horde army at $LOC$ with $INF$ light infantry, $CHA$ chariots and
+# $FOOD$ food, led by a new adult commander. Only the skipped Anatolian invasion chain (galatian_invasion.40/.50/.60) used it.
+#P:A TODO No EU5 equivalent: EU5 has no script effect that spawns a whole army with chosen regiments, a commander and food
+#   (create_unit/add_subunit do not exist), and no chariots; "is_not_allowed_to_go_broke"/"is_ignoring_ae" were Invictus AI flags.
+#   Kept as an empty stub so the effect exists for a later port of the invasion chain.
+# set_variable = { name = is_not_allowed_to_go_broke days = 9125 }
+# set_variable = { name = is_ignoring_ae days = 3650 }
+# create_character = { culture = current_ruler.culture religion = current_ruler.religion female = no age = adult_character_age_range_svalue save_scope_as = galatian_horde_commander }
+# create_unit = { navy = no location = $LOC$ commander = scope:galatian_horde_commander
+#	while = { count = $INF$ add_subunit = light_infantry } while = { count = $CHA$ add_subunit = chariots } add_food = $FOOD$ add_morale = 2 }
+pa_imp_galatian_horde_effect = {
+}
+
+#P:A Imported from Invictus (common/scripted_effects/00_galatian_invasion_effects.txt)
+# Country scope (the Galatian attacker). After the special peace: move the capital to $CAPITAL$ (an Imperator province id)
+# and start the settlement migration (galatian_invasion.44). Only the skipped peace events (.43/.53/.63) used it.
+#P:A TODO No EU5 equivalent: $CAPITAL$ is an Imperator province id (194 Ankyra, 189 Gordion, 1941 Synnada), which cannot be
+#   turned into an EU5 location inside a scripted effect; galatian_invasion.44 was not imported (tag/date-bound chain).
+# set_capital = $CAPITAL$
+# trigger_event = { id = galatian_invasion.44 days = 1 }
+pa_imp_galatian_peace_conquest_tail_effect = {
+}
+
+#P:A Imported from Invictus (common/scripted_effects/00_galatian_invasion_effects.txt)
+# Country scope (the Galatian attacker). Joined the wars of the defender scope:$DEFENDER$ against Macedon (MAC), Thrace (TRE),
+# the Seleukids (SEL) or Egypt (EGY) with a conquest war goal on scope:$PROVINCE$. Only the skipped invasion chain used it.
+#P:A TODO No EU5 equivalent: declare_war_with_wargoal with Imperator's conquer_wargoal on a province needs a mod casus belli,
+#   and the four Diadochi tags were not checked against the mod's tags (unused, since the invasion chain was skipped).
+# if = { limit = { scope:$DEFENDER$ = { war_with = c:MAC } } declare_war_with_wargoal = { war_goal = conquer_wargoal province = scope:$PROVINCE$ target = c:MAC } }
+# (same for c:TRE, c:SEL, c:EGY)
+pa_imp_galatian_opportunist_wars_effect = {
+}
+
+#P:A Imported from Invictus (common/scripted_effects/00_galatian_invasion_effects.txt)
+# Character scope. Adds $POINTS$ to the character's tournament_points (Galatian tournament, galatian_invasion.100-.112, skipped).
+pa_imp_award_tournament_points_effect = {
+	if = {
+		limit = { has_variable = tournament_points }
+		change_variable = {
+			name = tournament_points
+			add = $POINTS$
+		}
+	}
+	else = {
+		set_variable = {
+			name = tournament_points
+			value = $POINTS$
+		}
+	}
+}

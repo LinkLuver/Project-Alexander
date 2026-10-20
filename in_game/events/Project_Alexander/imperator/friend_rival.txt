@@ -1,0 +1,1177 @@
+﻿#P:A Imported from Indomita: events/friend_rival.txt
+namespace = friend_rival
+
+# Terra Indomita friend/rival and mentor events. Imperator character events are country events here; the character is scope:pa_character.
+# Imperator firing: friend_rival.1/.2/.4/.11 by the custom on_action friend_request and .3/.13 by rival_request (raised by the
+# befriend/rival character interactions, which saved the other character as scope:targeter); .5/.12 by monthly_ruler_pulse;
+# .7-.10/.15 by character_story_events; .6 by .5; .14 had no caller.
+#P:A TODO EU5 characters have no friends or rivals (add_friend, add_rival, is_friend, is_rival, num_of_friends, can_get_friends). Events that exist only to make friends or rivals are kept with always = no; the mentor events .7-.10 work through their mentor/mentee variables.
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+
+# A romance: the character grows close to the one who courted them (friend_request).
+friend_rival.1 = {
+	type = country_event
+	title = friend_rival.1.t
+	desc = friend_rival.1.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = scope:pa_character # Imperator root character, from the befriend interaction
+		exists = scope:targeter
+		scope:targeter = { is_alive = yes }
+		always = no #P:A TODO No EU5 equivalent: the event exists to make the character and scope:targeter friends, and the befriend interaction / friend_request on_action that fired it do not exist in EU5
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			factor = 0.1
+			exists = scope:targeter
+			scope:targeter = { # Imperator is_same_gender = root
+				OR = {
+					AND = {
+						is_female = yes
+						scope:pa_character = { is_female = yes }
+					}
+					AND = {
+						is_female = no
+						scope:pa_character = { is_female = no }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = friend_rival.1.a
+		# scope:pa_character = { add_friend = scope:targeter } #P:A TODO No EU5 equivalent: character friends
+		ai_chance = {
+			factor = 100
+		}
+	}
+	option = {
+		name = friend_rival.1.b
+	}
+}
+
+# Growing friendship between the character and the one who courted them (friend_request).
+friend_rival.2 = {
+	type = country_event
+	title = friend_rival.2.t
+	desc = friend_rival.2.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = scope:pa_character # Imperator root character, from the befriend interaction
+		exists = scope:targeter
+		scope:targeter = {
+			is_alive = yes
+		}
+		scope:pa_character = {
+			is_alive = yes
+		}
+		always = no #P:A TODO No EU5 equivalent: the event exists to make the character and scope:targeter friends, and the befriend interaction / friend_request on_action that fired it do not exist in EU5
+	}
+
+	option = {
+		name = friend_rival.2.a
+		# scope:pa_character = { add_friend = scope:targeter } #P:A TODO No EU5 equivalent: character friends
+		ai_chance = {
+			factor = 100
+		}
+	}
+	option = {
+		name = friend_rival.2.b
+		custom_tooltip = tooltip_no_effect
+	}
+}
+
+# The character starts to resent the one who provoked them (rival_request).
+friend_rival.3 = {
+	type = country_event
+	title = friend_rival.3.t
+	desc = friend_rival.3.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:pa_character # Imperator root character, from the rival interaction
+		scope:pa_character = {
+			is_alive = yes
+		}
+		exists = scope:targeter
+		scope:targeter = { is_alive = yes }
+		always = no #P:A TODO No EU5 equivalent: the event exists to make the character and scope:targeter rivals, and the rival interaction / rival_request on_action that fired it do not exist in EU5
+	}
+
+	immediate = {
+		# scope:pa_character = { add_rival = scope:targeter } #P:A TODO No EU5 equivalent: character rivals
+	}
+
+	option = {
+		name = friend_rival.3.a
+	}
+}
+
+# A tongue-tied speaker: help them out in public and gain a friend (friend_request, republics).
+friend_rival.4 = {
+	type = country_event
+	title = friend_rival.4.t
+	desc = friend_rival.4.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:pa_character # Imperator root character, from the befriend interaction; Imperator exists = employer -> root
+		exists = scope:targeter
+		scope:targeter = { is_alive = yes }
+		government_type = government_type:republic # Imperator employer = { is_republic = yes }
+		always = no #P:A TODO No EU5 equivalent: the event exists to make the character and scope:targeter friends, and the befriend interaction / friend_request on_action that fired it do not exist in EU5
+	}
+
+	immediate = {
+		scope:targeter = { save_scope_as = friend_rival_4_target } #P:A Added: the Imperator loc names the speaker friend_rival_4_target, a scope the event never saved
+	}
+
+	option = {
+		name = friend_rival.4.a
+		# scope:pa_character = { add_friend = scope:targeter } #P:A TODO No EU5 equivalent: character friends
+	}
+
+	option = {
+		name = friend_rival.4.b
+		# scope:targeter = { add_popularity = subtract_popularity_small } #P:A TODO No EU5 equivalent: -5 popularity (EU5 characters have no popularity)
+	}
+}
+
+# Mediation: the ruler settles a dispute over wealth between two courtiers, befriending one (monthly_ruler_pulse).
+friend_rival.5 = {
+	type = country_event
+	title = friend_rival.5.t
+	desc = friend_rival.5.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				pa_imp_char_can_have_friends_trigger = yes
+				NOT = {
+					has_variable = friend_rival_5_toggle
+				}
+			}
+		}
+		trigger_else = {
+			ruler ?= {
+				pa_imp_char_can_have_friends_trigger = yes
+				NOT = {
+					has_variable = friend_rival_5_toggle
+				}
+			}
+		}
+		any_character = {
+			count >= 2
+			pa_imp_char_can_be_friend_trigger = yes
+			NOT = { this = root.ruler }
+			# is_party_leader = no #P:A TODO No EU5 equivalent: Imperator party leaders
+			# prisoner = no #P:A Removed: prisoner = no is always true in EU5
+		}
+		always = no #P:A TODO No EU5 equivalent: every option pays a courtier from personal wealth and/or makes them the ruler's friend; EU5 characters have neither wealth nor friends
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = friend_rival_5_toggle
+				days = 1825
+			}
+		}
+		random_character = {
+			limit = {
+				pa_imp_char_can_be_friend_trigger = yes
+				NOT = { this = scope:pa_character }
+				# is_party_leader = no #P:A TODO No EU5 equivalent: Imperator party leaders
+				# prisoner = no #P:A Removed: prisoner = no is always true in EU5
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighted the pick by office/title importance
+			set_variable = {
+				name = fr_5_first
+				days = 450 #P:A TODO Approximate: Imperator used a random 180-720 days; set_variable takes a fixed duration, the midpoint is used
+			}
+			save_scope_as = friend_rival_5_target_one
+		}
+		random_character = {
+			limit = {
+				pa_imp_char_can_be_friend_trigger = yes
+				NOT = { this = scope:pa_character }
+				# is_party_leader = no #P:A TODO No EU5 equivalent: Imperator party leaders
+				# prisoner = no #P:A Removed: prisoner = no is always true in EU5
+				NOT = { has_variable = fr_5_first }
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighted the pick by office/title importance
+			save_scope_as = friend_rival_5_target_two
+		}
+	}
+
+	option = {
+		name = friend_rival.5.a
+		# scope:friend_rival_5_target_one = { add_gold = { value = root.employer.has_monthly_income multiply = 6 } add_friend = ROOT }
+		#P:A TODO No EU5 equivalent: the first claimant gets 6 months of the country's income as personal wealth and becomes the ruler's friend (EU5 characters have no wealth or friends)
+		hidden_effect = {
+			scope:friend_rival_5_target_two = {
+				save_scope_as = friend_rival_5_spurned
+			}
+			random_list = {
+				50 = {
+					trigger_event_non_silently = {
+						id = friend_rival.6
+						days = { 30 90 }
+					}
+				}
+				50 = {}
+			}
+		}
+	}
+
+	option = {
+		name = friend_rival.5.b
+		# scope:friend_rival_5_target_two = { add_gold = { value = root.employer.has_monthly_income multiply = 6 } add_friend = ROOT }
+		#P:A TODO No EU5 equivalent: the second claimant gets 6 months of the country's income as personal wealth and becomes the ruler's friend
+		hidden_effect = {
+			scope:friend_rival_5_target_one = {
+				save_scope_as = friend_rival_5_spurned
+			}
+			random_list = {
+				50 = {
+					trigger_event_non_silently = {
+						id = friend_rival.6
+						days = 1
+					}
+				}
+				50 = {}
+			}
+		}
+	}
+
+	option = {
+		name = friend_rival.5.c
+		# scope:friend_rival_5_target_one = { add_gold = { value = root.employer.has_monthly_income multiply = 3 } }
+		# scope:friend_rival_5_target_two = { add_gold = { value = root.employer.has_monthly_income multiply = 3 } }
+		#P:A TODO No EU5 equivalent: both claimants get 3 months of the country's income as personal wealth
+		# add_popularity = popularity_small #P:A TODO No EU5 equivalent: +5 popularity for the ruler
+	}
+}
+
+# The courtier spurned in friend_rival.5 harbours a grudge against the ruler.
+friend_rival.6 = {
+	type = country_event
+	title = friend_rival.6.t
+	desc = friend_rival.6.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:friend_rival_5_spurned
+		scope:friend_rival_5_spurned = {
+			is_alive = yes
+			employer = root
+			# NOT = { is_rival = root.current_ruler } #P:A TODO No EU5 equivalent: character rivals
+		}
+		# current_ruler = { can_get_rivals = yes } #P:A TODO No EU5 equivalent: rival slots
+		exists = ruler
+		always = no #P:A TODO No EU5 equivalent: the event makes the spurned courtier the ruler's rival (EU5 has no character rivals); it is only fired by friend_rival.5, which is disabled too
+	}
+
+	immediate = {
+		ruler = { save_scope_as = pa_ruler }
+		# if = { limit = { scope:friend_rival_5_spurned = { can_get_rivals = no } } scope:friend_rival_5_spurned = { random_rival = { remove_rival = scope:friend_rival_5_spurned } } }
+		#P:A TODO No EU5 equivalent: if the courtier had no free rival slot, one of their rivals was dropped first
+	}
+
+	option = {
+		name = friend_rival.6.a
+		# scope:friend_rival_5_spurned = { add_rival = root.current_ruler } #P:A TODO No EU5 equivalent: character rivals
+		if = {
+			limit = {
+				scope:friend_rival_5_spurned = {
+					always = no #P:A TODO No EU5 equivalent: Imperator has_trait = vengeful (no such trait in the mod)
+				}
+			}
+			custom_tooltip = fr_6_vengeful_tooltip
+			random_owned_location = {
+				limit = {
+					controller = root
+				}
+				add_location_modifier = {
+					modifier = sabotage_modifier
+					days = 3650
+				}
+			}
+		}
+	}
+
+	option = {
+		name = friend_rival.6.b
+		custom_tooltip = just_tooltip
+		trigger = {
+			ruler = {
+				has_trait = just
+			}
+		}
+	}
+}
+
+# A young, obscure courtier asks an office holder to become their mentor (character_story_events).
+friend_rival.7 = { #low prominence/age character as mentee
+	type = country_event
+	title = friend_rival.7.t
+	desc = friend_rival.7.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				pa_imp_char_can_have_friends_trigger = yes
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office = yes -> in the cabinet
+				NOR = {
+					has_variable = mentor
+					has_variable = mentee
+				}
+			}
+			any_character = {
+				age_in_years < scope:pa_character.age_in_years
+				# NOR = { is_friend = root is_rival = root } #P:A TODO No EU5 equivalent: character friends/rivals
+				is_ruler = no
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: friend slots
+				# prominence <= 20 #P:A TODO No EU5 equivalent: character prominence (only obscure characters could become mentees)
+				NOR = {
+					has_variable = mentor
+					has_variable = mentee
+				}
+				in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no -> not in the cabinet
+				# trigger_if = { limit = { employer = { gender_equality = no } } is_female = no } #P:A TODO No EU5 equivalent: Imperator gender_equality law (without it only men could be mentees)
+				# trigger_if = { limit = { employer = { is_republic = yes } } is_party_leader = no } #P:A TODO No EU5 equivalent: Imperator party leaders
+			}
+		}
+		trigger_else = {
+			any_character = {
+				pa_imp_char_can_have_friends_trigger = yes
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office = yes -> in the cabinet
+				NOR = {
+					has_variable = mentor
+					has_variable = mentee
+				}
+			}
+			any_character = { #P:A TODO Approximate: without scope:pa_character the age check is made against the oldest possible mentor, chosen in immediate
+				# age_in_years < <mentor> (checked in immediate)
+				# NOR = { is_friend = root is_rival = root } #P:A TODO No EU5 equivalent: character friends/rivals
+				is_ruler = no
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: friend slots
+				# prominence <= 20 #P:A TODO No EU5 equivalent: character prominence (only obscure characters could become mentees)
+				NOR = {
+					has_variable = mentor
+					has_variable = mentee
+				}
+				in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no -> not in the cabinet
+				# trigger_if = { limit = { employer = { gender_equality = no } } is_female = no } #P:A TODO No EU5 equivalent: Imperator gender_equality law (without it only men could be mentees)
+				# trigger_if = { limit = { employer = { is_republic = yes } } is_party_leader = no } #P:A TODO No EU5 equivalent: Imperator party leaders
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ordered_character = {
+				limit = {
+					pa_imp_char_can_have_friends_trigger = yes
+					in_cabinet = yes #P:A TODO Approximate: Imperator has_any_office = yes -> in the cabinet
+					NOR = {
+						has_variable = mentor
+						has_variable = mentee
+					}
+				}
+				order_by = age_in_years
+				save_scope_as = pa_character
+			}
+		}
+		random_character = {
+			limit = {
+				age_in_years < scope:pa_character.age_in_years
+				# NOR = { is_friend = root is_rival = root } #P:A TODO No EU5 equivalent: character friends/rivals
+				is_ruler = no
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: friend slots
+				# prominence <= 20 #P:A TODO No EU5 equivalent: character prominence (only obscure characters could become mentees)
+				NOR = {
+					has_variable = mentor
+					has_variable = mentee
+				}
+				in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no -> not in the cabinet
+				# trigger_if = { limit = { employer = { gender_equality = no } } is_female = no } #P:A TODO No EU5 equivalent: Imperator gender_equality law (without it only men could be mentees)
+				# trigger_if = { limit = { employer = { is_republic = yes } } is_party_leader = no } #P:A TODO No EU5 equivalent: Imperator party leaders
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighted the pick by office/title importance
+			save_scope_as = mentee
+		}
+	}
+
+	option = {
+		name = friend_rival.7.a
+		trigger = { exists = scope:mentee } #P:A Added: the age check could not be made in the trigger when the event fires without scope:pa_character
+		custom_tooltip = mentee_arrangement
+		scope:pa_character = {
+			set_variable = {
+				name = mentee
+				value = scope:mentee
+			}
+		}
+		scope:mentee = {
+			set_variable = {
+				name = mentor
+				value = scope:pa_character
+			}
+		}
+		# scope:pa_character = { add_friend = scope:mentee } #P:A TODO No EU5 equivalent: character friends (the mentor variables carry the relationship)
+		ai_chance = {
+			factor = 2
+		}
+	}
+
+	option = {
+		name = friend_rival.7.b
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+
+# The mentee starts to parrot the mentor (character_story_events, republics).
+friend_rival.8 = { #Mentee sees your way of thinking
+	type = country_event
+	title = friend_rival.8.t
+	desc = friend_rival.8.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:republic # Imperator employer = { is_republic = yes }
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				has_variable = mentee
+				NOT = {
+					has_variable = friend_rival_8_toggle
+				}
+				var:mentee = {
+					# is_friend = root #P:A TODO Approximate: EU5 has no character friends; the mentor/mentee variables stand in for the friendship
+					is_alive = yes
+					is_ruler = no
+					# NOT = { is_same_party_as = root } #P:A TODO No EU5 equivalent: Imperator parties
+					employer = root
+					in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no -> not in the cabinet
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = mentee
+				NOT = {
+					has_variable = friend_rival_8_toggle
+				}
+				var:mentee = {
+					# is_friend = root #P:A TODO Approximate: EU5 has no character friends; the mentor/mentee variables stand in for the friendship
+					is_alive = yes
+					is_ruler = no
+					# NOT = { is_same_party_as = root } #P:A TODO No EU5 equivalent: Imperator parties
+					employer = root
+					in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no -> not in the cabinet
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = mentee
+					NOT = {
+						has_variable = friend_rival_8_toggle
+					}
+					var:mentee = {
+						# is_friend = root #P:A TODO Approximate: EU5 has no character friends; the mentor/mentee variables stand in for the friendship
+						is_alive = yes
+						is_ruler = no
+						# NOT = { is_same_party_as = root } #P:A TODO No EU5 equivalent: Imperator parties
+						employer = root
+						in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no -> not in the cabinet
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			var:mentee = {
+				save_scope_as = mentee
+			}
+			set_variable = {
+				name = friend_rival_8_toggle
+				days = 3600
+			}
+		}
+	}
+
+	option = {
+		name = friend_rival.8.a
+		# scope:mentee = { add_party_conviction = { party = root.character_party value = 10 } }
+		#P:A TODO No EU5 equivalent: +10 conviction of the mentee for the mentor's party (EU5 has no parties)
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 2
+			}
+		}
+	}
+
+	option = {
+		name = friend_rival.8.b
+		scope:mentee = {
+			if = {
+				limit = {
+					num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4); EU5 ruler traits stand in for personality traits
+					NOT = { has_trait = just }
+					# NOT = { has_trait = arbitrary } #P:A TODO No EU5 equivalent: no arbitrary trait in the mod
+				}
+				add_trait = trait:just
+			}
+			else = {
+				# add_prominence = prominence_medium #P:A TODO No EU5 equivalent: +5 prominence (EU5 characters have no prominence)
+			}
+		}
+		ai_chance = {
+			base = 1
+		}
+	}
+}
+
+# The mentee wins a small political victory (character_story_events).
+friend_rival.9 = {
+	type = country_event
+	title = friend_rival.9.t
+	desc = friend_rival.9.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				has_variable = mentee
+				NOT = {
+					has_variable = friend_rival_9_toggle
+				}
+				var:mentee = {
+					# is_friend = root #P:A TODO Approximate: EU5 has no character friends; the mentor/mentee variables stand in for the friendship
+					is_alive = yes
+					is_ruler = no
+					employer = root
+					# prominence < root.prominence #P:A TODO No EU5 equivalent: the mentee had to be less prominent than the mentor (EU5 characters have no prominence)
+					in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no -> not in the cabinet
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = mentee
+				NOT = {
+					has_variable = friend_rival_9_toggle
+				}
+				var:mentee = {
+					# is_friend = root #P:A TODO Approximate: EU5 has no character friends; the mentor/mentee variables stand in for the friendship
+					is_alive = yes
+					is_ruler = no
+					employer = root
+					# prominence < root.prominence #P:A TODO No EU5 equivalent: the mentee had to be less prominent than the mentor (EU5 characters have no prominence)
+					in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no -> not in the cabinet
+				}
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = mentee
+					NOT = {
+						has_variable = friend_rival_9_toggle
+					}
+					var:mentee = {
+						# is_friend = root #P:A TODO Approximate: EU5 has no character friends; the mentor/mentee variables stand in for the friendship
+						is_alive = yes
+						is_ruler = no
+						employer = root
+						# prominence < root.prominence #P:A TODO No EU5 equivalent: the mentee had to be less prominent than the mentor (EU5 characters have no prominence)
+						in_cabinet = no #P:A TODO Approximate: Imperator has_any_office = no -> not in the cabinet
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = friend_rival_9_toggle
+				days = 3600
+			}
+			var:mentee = {
+				save_scope_as = mentee
+			}
+		}
+	}
+
+	option = {
+		name = friend_rival.9.a
+		# scope:mentee = { add_prominence = prominence_large } #P:A TODO No EU5 equivalent: +10 prominence for the mentee (EU5 characters have no prominence)
+	}
+
+	option = {
+		name = friend_rival.9.b
+		scope:mentee = {
+			if = {
+				limit = {
+					num_of_traits_of_category = { type = ruler value < 4 } #P:A TODO Approximate: Imperator number_of_personality_traits < max_number_of_traits_svalue (4); EU5 ruler traits stand in for personality traits
+					NOT = { has_trait = humble }
+					# NOT = { has_trait = proud } #P:A TODO No EU5 equivalent: no proud trait in the mod
+				}
+				add_trait = trait:humble #P:A TODO Approximate: EU5 humble is an artist-category trait
+			}
+			else = {
+				# add_loyalty = loyalty_mentee_lesson #P:A TODO No EU5 equivalent: character loyalty
+			}
+		}
+	}
+}
+
+# The mentee disappoints the mentor; a harsh or a lenient lesson (character_story_events).
+friend_rival.10 = { #Mentee makes a mistake
+	type = country_event
+	title = friend_rival.10.t
+	desc = friend_rival.10.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				has_variable = mentee
+				NOT = {
+					has_variable = friend_rival_10_toggle
+				}
+				var:mentee = {
+					# is_friend = root #P:A TODO Approximate: EU5 has no character friends; the mentor/mentee variables stand in for the friendship
+					is_alive = yes
+					is_ruler = no
+					employer = root
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				has_variable = mentee
+				NOT = {
+					has_variable = friend_rival_10_toggle
+				}
+				var:mentee = {
+					is_alive = yes
+					is_ruler = no
+					employer = root
+				}
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event exists to give the traits vengeful/forgiving (mentor) and assertive/submissive (mentee), none of which exist in the mod; the fallbacks are loyalty, popularity and prominence, which EU5 characters lack too
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					has_variable = mentee
+					NOT = {
+						has_variable = friend_rival_10_toggle
+					}
+					var:mentee = {
+						is_alive = yes
+						is_ruler = no
+						employer = root
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = friend_rival_10_toggle
+				days = 3600
+			}
+			var:mentee = {
+				save_scope_as = mentee
+			}
+		}
+	}
+
+	option = {
+		name = friend_rival.10.a
+		# scope:pa_character: if fewer than max_number_of_traits_svalue (4) personality traits and neither vengeful nor forgiving -> add_trait = vengeful
+		# scope:mentee: if room for a trait and neither assertive nor submissive -> add_trait = assertive, else add_loyalty = loyalty_mentee_lesson
+		#P:A TODO No EU5 equivalent: traits vengeful and assertive do not exist in the mod; character loyalty does not exist in EU5
+	}
+
+	option = {
+		name = friend_rival.10.b
+		# scope:pa_character: if room for a trait and neither vengeful nor forgiving -> add_trait = forgiving, else add_popularity = popularity_small
+		# scope:mentee: if room for a trait and neither submissive nor assertive -> add_trait = submissive, else add_prominence = -10
+		#P:A TODO No EU5 equivalent: traits forgiving and submissive do not exist in the mod; character popularity and prominence do not exist in EU5
+	}
+}
+
+# A friend-to-be challenges the character in open debate: swallow pride or stand on principle (friend_request).
+friend_rival.11 = {
+	type = country_event
+	title = friend_rival.11.t
+	desc = friend_rival.11.desc
+	outcome = neutral
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = scope:pa_character # Imperator root character, from the befriend interaction
+		exists = scope:targeter
+		scope:targeter = { is_alive = yes }
+		always = no #P:A TODO No EU5 equivalent: the event exists to make the character and scope:targeter friends (or cost the targeter loyalty), and the befriend interaction / friend_request on_action that fired it do not exist in EU5
+	}
+
+	option = {
+		name = friend_rival.11.a
+		# if = { limit = { scope:pa_character = { pa_imp_char_can_have_friends_trigger = yes } } scope:pa_character = { add_friend = scope:targeter } }
+		#P:A TODO No EU5 equivalent: character friends
+	}
+
+	option = {
+		name = friend_rival.11.b
+		# if = { limit = { scope:pa_character = { is_ruler = yes } } scope:targeter = { add_loyalty = loyalty_friendship_overruled } }
+		#P:A TODO No EU5 equivalent: character loyalty (the targeter resents being overruled by the ruler)
+	}
+}
+
+# A rival of the ruler courts one of our loyal generals (monthly_ruler_pulse).
+friend_rival.12 = {
+	type = country_event
+	title = friend_rival.12.t
+	desc = friend_rival.12.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				is_ruler = yes
+				NOT = {
+					has_variable = friend_rival_12_toggle
+				}
+			}
+		}
+		trigger_else = {
+			ruler ?= {
+				NOT = {
+					has_variable = friend_rival_12_toggle
+				}
+			}
+		}
+		# num_of_rivals >= 1 #P:A TODO No EU5 equivalent: the ruler needs a rival (EU5 characters have no rivals)
+		any_character = {
+			is_general = yes
+			# loyalty > 70 #P:A TODO No EU5 equivalent: character loyalty
+			is_ruler = no
+			pa_imp_char_can_have_friends_trigger = yes
+		}
+		any_character = {
+			is_general = no
+			is_ruler = no
+			# is_rival = root #P:A TODO No EU5 equivalent: rival of the ruler
+			pa_imp_char_can_have_friends_trigger = yes
+		}
+		always = no #P:A TODO No EU5 equivalent: the event is about a rival of the ruler befriending a loyal general; EU5 has no character rivals, friends or loyalty
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			ruler = { save_scope_as = pa_character }
+		}
+		scope:pa_character = {
+			set_variable = {
+				name = friend_rival_12_toggle
+				days = 3600
+			}
+		}
+		random_character = {
+			limit = {
+				is_general = yes
+				# loyalty > 70 #P:A TODO No EU5 equivalent: character loyalty
+				is_ruler = no
+				pa_imp_char_can_have_friends_trigger = yes
+			}
+			# weight = { title_importance_modifier = yes } #P:A TODO No EU5 equivalent: Imperator weighted the pick by office/title importance
+			save_scope_as = friend_rival_12_general_target
+		}
+		random_character = {
+			limit = {
+				is_general = no
+				is_ruler = no
+				# is_rival = root #P:A TODO No EU5 equivalent: rival of the ruler
+				pa_imp_char_can_have_friends_trigger = yes
+			}
+			save_scope_as = friend_rival_12_rival_target
+		}
+	}
+
+	option = {
+		name = friend_rival.12.a
+		# scope:friend_rival_12_general_target = { add_friend = scope:friend_rival_12_rival_target } (if both can have friends and are not already friends/rivals)
+		# scope:friend_rival_12_general_target = { add_loyalty = loyalty_convinced_against_ruler }
+		#P:A TODO No EU5 equivalent: the general befriends the ruler's rival and loses loyalty (EU5 has no character friends or loyalty)
+	}
+
+	option = {
+		name = friend_rival.12.b
+		# trigger: ruler and general can have rivals and the general is neither the ruler's rival nor friend
+		# scope:friend_rival_12_general_target = { add_friend = scope:friend_rival_12_rival_target add_rival = root }
+		# both targets: add_loyalty = loyalty_denounced_curs; ruler: add_popularity = popularity_medium
+		#P:A TODO No EU5 equivalent: the general befriends the rival and becomes the ruler's rival, both lose loyalty, the ruler gains +10 popularity (EU5 has no character friends, rivals, loyalty or popularity)
+	}
+}
+
+# Xenophobia: a courtier accuses the character of foreign practices in open debate (rival_request).
+friend_rival.13 = {
+	type = country_event
+	title = friend_rival.13.t
+	desc = friend_rival.13.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:pa_character # Imperator root character, from the rival interaction; Imperator exists = employer -> root
+		exists = scope:targeter
+		scope:targeter = { is_alive = yes }
+		any_country = {
+			count >= 2
+			exists = capital # Imperator has_land = yes
+			NOT = {
+				this = root
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: fired only by the Imperator rival interaction (rival_request); its effects are the traits wise/rash (not in the mod), prominence, popularity, loyalty and a character rivalry, none of which exist in EU5
+	}
+
+	immediate = {
+		random_country = {
+			limit = {
+				NOT = {
+					this = root
+				}
+			}
+			save_scope_as = accusation_target
+		}
+		random_country = {
+			limit = {
+				NOR = {
+					this = root
+					this = scope:accusation_target
+				}
+			}
+			save_scope_as = accusation_target_2
+		}
+	}
+
+	option = {
+		name = friend_rival.13.a
+		# scope:pa_character (if ruler, with room for a trait and neither wise nor rash): add_trait = wise
+		# scope:targeter (if the character is the ruler): add_prominence = prominence_large add_popularity = popularity_medium add_loyalty = loyalty_xenophobia_unchecked
+		#P:A TODO No EU5 equivalent: trait wise is not in the mod; character prominence, popularity and loyalty do not exist in EU5
+	}
+
+	option = {
+		name = friend_rival.13.b
+		# scope:pa_character (if ruler, with room for a trait and neither wise nor rash): add_trait = rash
+		# scope:pa_character (if ruler): add_popularity = popularity_medium add_prominence = prominence_large
+		# scope:pa_character = { add_rival = scope:targeter }
+		#P:A TODO No EU5 equivalent: trait rash is not in the mod; character popularity, prominence and rivals do not exist in EU5
+		ai_chance = {
+			factor = 10
+		}
+	}
+}
+
+# Hidden: a courtier with few friends befriends the character (no caller in Indomita).
+friend_rival.14 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				is_ruler = no
+				pa_imp_char_can_have_friends_trigger = yes
+			}
+		}
+		trigger_else = {
+			any_character = {
+				is_ruler = no
+				pa_imp_char_can_have_friends_trigger = yes
+			}
+		}
+		any_character = {
+			pa_imp_char_can_be_friend_trigger = yes
+			# num_of_friends < 4 #P:A TODO No EU5 equivalent: character friends
+		}
+		always = no #P:A TODO No EU5 equivalent: the event only adds a friend to the character (EU5 characters have no friends)
+	}
+
+	# weight_multiplier = { base = 0 modifier = { add = 1 num_of_friends < 1 } ... (one per friend below 4) }
+	#P:A TODO No EU5 equivalent: Imperator weighted the event by how few friends the character had
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					is_ruler = no
+					pa_imp_char_can_have_friends_trigger = yes
+				}
+				save_scope_as = pa_character
+			}
+		}
+		# random_character = { limit = { pa_imp_char_can_be_friend_trigger = yes num_of_friends < 4 } add_friend = scope:pa_character }
+		#P:A TODO No EU5 equivalent: character friends
+	}
+}
+
+# Two children of the court become fast friends (character_story_events).
+friend_rival.15 = {
+	type = country_event
+	title = friend_rival.15.t
+	desc = friend_rival.15.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		exists = ruler # Imperator exists = employer.current_ruler
+		trigger_if = {
+			limit = { exists = scope:pa_character }
+			scope:pa_character = {
+				employer = root
+				any_child = {
+					age_in_years >= 5
+					age_in_years < 14
+					# is_minor_character = no #P:A Removed: EU5 has no minor characters
+					# can_get_friends = yes #P:A TODO No EU5 equivalent: friend slots
+					employer = root
+					NOT = {
+						has_variable = childhood_friend
+					}
+				}
+			}
+			any_character = {
+				# is_minor_character = no #P:A Removed: EU5 has no minor characters
+				age_in_years >= 5
+				age_in_years < 14
+				NOT = { this = scope:pa_character }
+				trigger_if = { # Imperator NOT = { has_same_family = ROOT }
+					limit = {
+						exists = dynasty
+						exists = scope:pa_character.dynasty
+					}
+					NOT = { dynasty = scope:pa_character.dynasty }
+				}
+				NOR = {
+					AND = {
+						exists = mother
+						mother = scope:pa_character
+					}
+					AND = {
+						exists = father
+						father = scope:pa_character
+					}
+				}
+				# trigger_if = { limit = { root.employer.current_ruler = { is_minor_character = no } } from_ruler_family = no } #P:A TODO No EU5 equivalent: Imperator excluded the ruler's family (from_ruler_family)
+				is_ruler = no
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: friend slots
+				NOT = {
+					has_variable = childhood_friend
+				}
+			}
+		}
+		trigger_else = {
+			any_character = {
+				any_child = {
+					age_in_years >= 5
+					age_in_years < 14
+					# is_minor_character = no #P:A Removed: EU5 has no minor characters
+					# can_get_friends = yes #P:A TODO No EU5 equivalent: friend slots
+					employer = root
+					NOT = {
+						has_variable = childhood_friend
+					}
+				}
+			}
+		}
+		always = no #P:A TODO No EU5 equivalent: the event exists to make two children friends (EU5 characters have no friends); it also marks both with the childhood_friend variable
+	}
+
+	immediate = {
+		if = {
+			limit = { NOT = { exists = scope:pa_character } }
+			random_character = {
+				limit = {
+					any_child = {
+						age_in_years >= 5
+						age_in_years < 14
+						# is_minor_character = no #P:A Removed: EU5 has no minor characters
+						# can_get_friends = yes #P:A TODO No EU5 equivalent: friend slots
+						employer = root
+						NOT = {
+							has_variable = childhood_friend
+						}
+					}
+				}
+				save_scope_as = pa_character
+			}
+		}
+		scope:pa_character = {
+			random_child = {
+				limit = {
+					age_in_years >= 5
+					age_in_years < 14
+					# is_minor_character = no #P:A Removed: EU5 has no minor characters
+					# can_get_friends = yes #P:A TODO No EU5 equivalent: friend slots
+					employer = root
+					NOT = {
+						has_variable = childhood_friend
+					}
+				}
+				save_scope_as = fr_15_target_child
+			}
+		}
+		random_character = {
+			limit = {
+				# is_minor_character = no #P:A Removed: EU5 has no minor characters
+				age_in_years >= 5
+				age_in_years < 14
+				NOT = { this = scope:pa_character }
+				trigger_if = { # Imperator NOT = { has_same_family = ROOT }
+					limit = {
+						exists = dynasty
+						exists = scope:pa_character.dynasty
+					}
+					NOT = { dynasty = scope:pa_character.dynasty }
+				}
+				NOR = {
+					AND = {
+						exists = mother
+						mother = scope:pa_character
+					}
+					AND = {
+						exists = father
+						father = scope:pa_character
+					}
+				}
+				# trigger_if = { limit = { root.employer.current_ruler = { is_minor_character = no } } from_ruler_family = no } #P:A TODO No EU5 equivalent: Imperator excluded the ruler's family (from_ruler_family)
+				is_ruler = no
+				# can_get_friends = yes #P:A TODO No EU5 equivalent: friend slots
+				NOT = {
+					has_variable = childhood_friend
+				}
+			}
+			save_scope_as = fr_15_target_child_2
+		}
+		scope:fr_15_target_child = {
+			set_variable = {
+				name = childhood_friend
+				value = scope:fr_15_target_child_2
+			}
+		}
+		scope:fr_15_target_child_2 = {
+			set_variable = {
+				name = childhood_friend
+				value = scope:fr_15_target_child
+			}
+		}
+	}
+
+	option = {
+		name = friend_rival.15.a
+		# scope:fr_15_target_child = { add_friend = scope:fr_15_target_child_2 } #P:A TODO No EU5 equivalent: character friends
+	}
+}

@@ -1,0 +1,937 @@
+﻿#P:A Imported from Invictus: events/iberia_colony.txt
+namespace = iberia_colony
+
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+#P:A TODO Firing: iberia_colony.4, .5 and .1029 have no caller anywhere in Invictus (orphaned content; the Alis Ubbo tag uses alis_ubbo_intro instead). The orchestrator decides whether to fire them.
+
+# Hidden: an Iberian tribe owning Olisipo (Lisbon) is offered a Punic purchase of the harbour.
+iberia_colony.4 = { #hidden event
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		NOT = {
+			has_global_variable = alis_ubbo_created
+		}
+		location:lisbon = {
+			has_owner = yes
+			owner = {
+				culture = {
+					OR = {
+						has_culture_group = culture_group:celtiberian_group
+						has_culture_group = culture_group:iberia_group
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		location:lisbon.owner = { save_scope_as = alis_ubbo_tribe }
+		location:lisbon.owner = {
+			trigger_event_non_silently = {
+				id = iberia_colony.2
+			}
+		}
+	}
+}
+
+iberia_colony.2 = { #Punic Purchase
+	type = country_event
+	title = iberia_colony.2.t
+	desc = iberia_colony.2.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		culture = {
+			OR = {
+				has_culture_group = culture_group:celtiberian_group
+				has_culture_group = culture_group:iberia_group
+			}
+		}
+	}
+
+	immediate = {
+		random_country = {
+			limit = {
+				culture = culture:carthaginian
+				is_subject = no
+			}
+			save_scope_as = alis_ubbo_punic
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:alis_ubbo_punic.ruler ?= {
+			save_scope_as = pa_punic_ruler
+		}
+	}
+
+	option = {
+		name = iberia_colony.2.a
+		custom_tooltip = iberia_colony.2.at
+		add_gold = 50
+		hidden_effect = {
+			location:lisbon = {
+				add_location_modifier = {
+					modifier = founding_city_in_progress
+					days = 730
+				}
+				# trigger_event = { id = state_improvement.6 days = 730 }
+				#P:A TODO No EU5 equivalent: state_improvement.6 (gives the location city status after 2 years) is not part of the import; the construction modifier simply expires
+				add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (2 noble pops); carthaginian_pantheon -> punic_pantheon
+					type = pop_type:nobles
+					size = 2
+					culture = culture:carthaginian
+					religion = religion:punic_pantheon
+				}
+				add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (2 citizen pops -> burghers)
+					type = pop_type:burghers
+					size = 2
+					culture = culture:carthaginian
+					religion = religion:punic_pantheon
+				}
+			}
+		}
+		scope:alis_ubbo_punic ?= {
+			trigger_event_non_silently = {
+				id = iberia_colony.3
+			}
+		}
+		ai_chance = {
+			factor = 90
+		}
+	}
+
+	option = {
+		name = iberia_colony.2.b
+		custom_tooltip = iberia_colony.2.bt
+		ai_chance = {
+			factor = 10
+		}
+	}
+}
+
+iberia_colony.3 = { #Alis Ubbo
+	type = country_event
+	title = iberia_colony.3.t
+	desc = iberia_colony.3.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:alis_ubbo_tribe.ruler ?= {
+			save_scope_as = pa_tribe_ruler
+		}
+	}
+
+	option = {
+		name = iberia_colony.3.a
+		custom_tooltip = iberia_colony.3.at
+		set_global_variable = alis_ubbo_created
+		add_gold = -50
+		hidden_effect = {
+			location:lisbon = {
+				create_country_from_location = {
+					change_country_name = OLS
+					change_country_adjective = OLS_ADJ
+					# change_country_tag = OLS
+					# change_country_flag = OLS
+					# change_country_color = alis_ubbo_color
+					#P:A TODO No EU5 equivalent: Imperator gave the new country the OLS tag, flag and colour (no such tag, flag or map colour in the mod)
+					# set_country_heritage = punic_heritage #P:A TODO No EU5 equivalent: Imperator country heritage
+					change_religion = religion:punic_pantheon #P:A TODO Approximate: carthaginian_pantheon -> punic_pantheon
+					capital = {
+						rename_location = alitz_oppon
+					}
+					if = {
+						limit = {
+							NOT = {
+								culture = culture:carthaginian
+							}
+						}
+						pa_imp_set_primary_culture_cleanup_effect = {
+							NEW_PRIMARY_CULTURE = carthaginian
+							MAKE_OLD_CULTURE_INTEGRATED = yes
+						}
+					}
+					every_character = {
+						limit = {
+							NOT = { culture = culture:carthaginian }
+						}
+						change_character_culture = culture:carthaginian
+						change_character_religion = religion:punic_pantheon
+					}
+					change_religion = religion:punic_pantheon
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator punic_republic; EU5 has no government sub-forms
+					add_gold = 50
+					save_scope_as = allis_ubbo_country
+				}
+			}
+			scope:alis_ubbo_tribe = {
+				add_truce_with = {
+					target = scope:allis_ubbo_country
+					years = 10
+				}
+				add_truce_with = {
+					target = scope:alis_ubbo_punic
+					years = 10
+				}
+			}
+			scope:allis_ubbo_country = {
+				make_subject_of = {
+					target = scope:alis_ubbo_punic
+					type = subject_type:subject_colony
+				}
+			}
+		}
+		ai_chance = {
+			factor = 60
+		}
+	}
+
+	option = {
+		name = iberia_colony.3.b
+		custom_tooltip = iberia_colony.3.bt
+		ai_chance = {
+			factor = 40
+		}
+	}
+
+	option = {
+		name = iberia_colony.3.c
+		# highlight = yes #P:A Removed: EU5 event options have no highlight field
+		custom_tooltip = iberia_colony.3.ct
+		trigger = {
+			is_ai = no
+		}
+		set_global_variable = alis_ubbo_created
+		hidden_effect = {
+			location:lisbon = {
+				create_country_from_location = {
+					change_country_name = OLS
+					change_country_adjective = OLS_ADJ
+					# change_country_tag = OLS
+					# change_country_flag = OLS
+					# change_country_color = alis_ubbo_color
+					#P:A TODO No EU5 equivalent: Imperator gave the new country the OLS tag, flag and colour (no such tag, flag or map colour in the mod)
+					# set_country_heritage = punic_heritage #P:A TODO No EU5 equivalent: Imperator country heritage
+					change_religion = religion:punic_pantheon #P:A TODO Approximate: carthaginian_pantheon -> punic_pantheon
+					capital = {
+						rename_location = alitz_oppon
+					}
+					if = {
+						limit = {
+							NOT = {
+								culture = culture:carthaginian
+							}
+						}
+						pa_imp_set_primary_culture_cleanup_effect = {
+							NEW_PRIMARY_CULTURE = carthaginian
+							MAKE_OLD_CULTURE_INTEGRATED = yes
+						}
+					}
+					every_character = {
+						limit = {
+							NOT = { culture = culture:carthaginian }
+						}
+						change_character_culture = culture:carthaginian
+						change_character_religion = religion:punic_pantheon
+					}
+					change_religion = religion:punic_pantheon
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator punic_republic; EU5 has no government sub-forms
+					add_gold = 50
+					save_scope_as = allis_ubbo_country
+				}
+			}
+			scope:alis_ubbo_tribe = {
+				add_truce_with = {
+					target = scope:allis_ubbo_country
+					years = 10
+				}
+				add_truce_with = {
+					target = scope:alis_ubbo_punic
+					years = 10
+				}
+			}
+			scope:allis_ubbo_country = {
+				make_subject_of = {
+					target = root
+					type = subject_type:tributary
+				}
+			}
+			set_global_variable = alis_ubbo_created
+			change_player = scope:allis_ubbo_country # Imperator: set_player_country
+		}
+		ai_chance = {
+			factor = 0
+		}
+	}
+
+	after = {
+		hidden_effect = {
+			if = {
+				limit = { exists = scope:allis_ubbo_country } #P:A Added guard: Invictus also fired iberia_colony.8 after the "nothing happens" option, with no colony to expand
+				scope:alis_ubbo_tribe = { save_scope_as = iberia_colony_tribe }
+				scope:allis_ubbo_country = { save_scope_as = iberia_colony }
+				location:lisbon = { save_scope_as = iberia_colony_prov_1 }
+				trigger_event_non_silently = {
+					id = iberia_colony.8
+					days = { 1825 3650 }
+				}
+			}
+		}
+	}
+}
+
+# Hidden: Saguntum (AI-owned) is refounded as the Greek-cultured trading republic of Sagointium.
+iberia_colony.1029 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		location:valencia = { #P:A TODO Approximate location: Imperator Saguntum (p:1029) mapped to valencia
+			has_owner = yes
+			owner = {
+				is_ai = yes
+			}
+		}
+	}
+
+	immediate = {
+		location:valencia.owner = {
+			if = {
+				limit = {
+					culture = culture:edetanian
+				}
+				random_list = {
+					20 = {
+						save_scope_as = sagunt_country
+					}
+					40 = {
+						random_list = {
+							20 = {
+							}
+							20 = {
+								change_country_name = EDT
+								change_country_adjective = EDT_ADJ
+								change_country_color = map_EDT
+								# change_country_flag = EDT #P:A TODO No EU5 equivalent: the mod has no EDT coat of arms key to switch to
+								# set_country_heritage = edetanian_heritage #P:A TODO No EU5 equivalent: Imperator country heritage
+							}
+						}
+						location:valencia = {
+							create_country_from_location = {
+								change_country_name = SAGUNT_NAME
+								change_country_adjective = SAGUNT_ADJ
+								save_scope_as = sagunt_country
+							}
+						}
+					}
+				}
+			}
+			else = {
+				save_scope_as = sagunt_old
+				location:valencia = {
+					create_country_from_location = {
+						change_country_name = SAGUNT_NAME
+						change_country_adjective = SAGUNT_ADJ
+						save_scope_as = sagunt_country
+					}
+				}
+			}
+		}
+		scope:sagunt_old ?= {
+			save_temporary_scope_as = pa_sagunt_overlord
+			scope:sagunt_country = {
+				make_subject_of = {
+					target = scope:pa_sagunt_overlord
+					type = subject_type:tributary
+				}
+			}
+		}
+		scope:sagunt_country = {
+			if = {
+				limit = { exists = scope:sagunt_old }
+				add_truce_with = {
+					target = scope:sagunt_old
+					years = 10
+				}
+			}
+			change_country_name = SAGUNT_NAME
+			change_government_type = government_type:republic #P:A TODO Approximate: Imperator plutocratic_republic; EU5 has no government sub-forms
+			# change_country_color = sagunt_color
+			# change_country_flag = SAGUNT_FLAG
+			# set_country_heritage = arseken_heritage
+			#P:A TODO No EU5 equivalent: Imperator gave Sagointium its own map colour, flag and heritage (none exist in the mod)
+			change_country_adjective = SAGUNT_ADJ
+			# p:1235 = { set_owned_by = scope:sagunt_country } #Sebelaci
+			#P:A TODO Approximate location: Imperator Sebelaci (p:1235) also maps to valencia, the new country's capital, so there is no second location to cede
+			location:valencia = {
+				rename_location = sagointium
+				remove_location_modifier = aegis_of_arse_modifier
+				add_location_modifier = {
+					modifier = shield_of_sagointium_modifier
+					days = -1
+				}
+				add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (2 noble pops); Imperator roman_pantheon -> hellenic_pantheon (Massalian Greeks)
+					type = pop_type:nobles
+					size = 2
+					culture = culture:massalian
+					religion = religion:hellenic_pantheon
+				}
+			}
+			if = {
+				limit = {
+					NOT = {
+						culture = culture:massalian
+					}
+				}
+				pa_imp_set_primary_culture_cleanup_effect = {
+					NEW_PRIMARY_CULTURE = massalian
+					MAKE_OLD_CULTURE_INTEGRATED = yes
+				}
+			}
+			change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek culture -> hellenic_pantheon)
+			every_character = {
+				change_character_culture = culture:massalian
+				change_character_religion = religion:hellenic_pantheon
+			}
+			every_owned_location = {
+				limit = {
+					any_neighbor_location = {
+						is_coastal = yes
+					}
+				}
+				ordered_pop = {
+					order_by = pop_satisfaction # Imperator pop_hapiness
+					max = 3
+					check_range_bounds = no
+					change_pop_culture = culture:massalian
+					change_pop_religion = religion:hellenic_pantheon
+				}
+			}
+			every_owned_location = {
+				ordered_pop = {
+					limit = {
+						OR = {
+							religion = religion:hellenic_pantheon
+							religion = religion:roman_pantheon
+						}
+					}
+					order_by = pop_satisfaction # Imperator pop_hapiness
+					max = 10
+					check_range_bounds = no
+					change_pop_culture = culture:massalian
+				}
+			}
+		}
+	}
+}
+
+# Hidden: Greek (Massalian) merchants look for the "Land of Tin" on the coast of north-west Iberia.
+iberia_colony.5 = { #hidden event
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		random_country = {
+			limit = {
+				culture = {
+					OR = {
+						has_culture_group = culture_group:celtiberian_group
+						has_culture_group = culture_group:iberia_group
+					}
+				}
+				any_owned_location = {
+					is_coastal = yes
+					OR = {
+						pa_imp_in_area_aebocosia_area = yes
+						pa_imp_in_region_gallaecia_region = yes
+						pa_imp_in_area_autrigonia_area = yes
+						pa_imp_in_area_vardulia_area = yes
+					}
+				}
+			}
+			save_scope_as = kassiteros_tribe
+		}
+		random_country = {
+			limit = {
+				culture = culture:massalian
+				is_subject = no
+			}
+			save_scope_as = kassiteros_greek
+		}
+		scope:kassiteros_tribe ?= {
+			random_owned_location = {
+				limit = {
+					is_capital = no
+					is_coastal = yes
+					OR = {
+						pa_imp_in_area_aebocosia_area = yes
+						pa_imp_in_region_gallaecia_region = yes
+						pa_imp_in_area_autrigonia_area = yes
+						pa_imp_in_area_vardulia_area = yes
+					}
+				}
+				save_scope_as = kassiteros_prov
+			}
+			trigger_event_non_silently = {
+				id = iberia_colony.6
+			}
+		}
+	}
+}
+
+iberia_colony.6 = { #Land of Tin BAR
+	type = country_event
+	title = iberia_colony.6.t
+	desc = iberia_colony.6.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		culture = {
+			OR = {
+				has_culture_group = culture_group:celtiberian_group
+				has_culture_group = culture_group:iberia_group
+			}
+		}
+	}
+
+	immediate = {
+		random_owned_location = {
+			limit = {
+				is_capital = no
+				is_coastal = yes
+				OR = {
+					pa_imp_in_area_aebocosia_area = yes
+					pa_imp_in_region_gallaecia_region = yes
+					pa_imp_in_area_autrigonia_area = yes
+					pa_imp_in_area_vardulia_area = yes
+				}
+			}
+			save_scope_as = kassiteros_prov
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:kassiteros_greek.ruler ?= {
+			save_scope_as = pa_greek_ruler
+		}
+	}
+
+	option = {
+		name = iberia_colony.6.a
+		custom_tooltip = iberia_colony.6.at
+		add_gold = 50
+		hidden_effect = {
+			scope:kassiteros_prov = {
+				change_raw_material = goods:copper #P:A TODO Approximate: Imperator base_metals -> copper
+				add_location_modifier = {
+					modifier = founding_city_in_progress
+					days = 730
+				}
+				# trigger_event = { id = state_improvement.6 days = 730 }
+				#P:A TODO No EU5 equivalent: state_improvement.6 (gives the location city status after 2 years) is not part of the import; the construction modifier simply expires
+				add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (2 noble pops); Imperator roman_pantheon -> hellenic_pantheon (Massalian Greeks)
+					type = pop_type:nobles
+					size = 2
+					culture = culture:massalian
+					religion = religion:hellenic_pantheon
+				}
+				add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (2 citizen pops -> burghers)
+					type = pop_type:burghers
+					size = 2
+					culture = culture:massalian
+					religion = religion:hellenic_pantheon
+				}
+			}
+		}
+		scope:kassiteros_greek ?= {
+			trigger_event_non_silently = {
+				id = iberia_colony.7
+			}
+		}
+		ai_chance = {
+			factor = 90
+		}
+	}
+
+	option = {
+		name = iberia_colony.6.b
+		custom_tooltip = iberia_colony.6.bt
+		ai_chance = {
+			factor = 10
+		}
+	}
+}
+
+iberia_colony.7 = { #Land of Tin GREEK
+	type = country_event
+	title = iberia_colony.7.t
+	desc = iberia_colony.7.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		scope:kassiteros_tribe = {
+			random_owned_location = {
+				limit = {
+					is_capital = no
+					is_coastal = yes
+					OR = {
+						pa_imp_in_area_aebocosia_area = yes
+						pa_imp_in_region_gallaecia_region = yes
+						pa_imp_in_area_autrigonia_area = yes
+						pa_imp_in_area_vardulia_area = yes
+					}
+				}
+				save_scope_as = kassiteros_prov
+			}
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:kassiteros_tribe.ruler ?= {
+			save_scope_as = pa_tribe_ruler
+		}
+	}
+
+	option = {
+		name = iberia_colony.7.a
+		custom_tooltip = iberia_colony.7.at
+		add_gold = -50
+		pa_imp_oligarchic_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		pa_imp_traditionalist_approval_effect = {
+			VALUE = -10 # party_disapproval_medium
+		}
+		hidden_effect = {
+			scope:kassiteros_prov = {
+				create_country_from_location = {
+					change_country_name = OLZ
+					change_country_adjective = OLZ_ADJ
+					# set_country_heritage = massalian_heritage #P:A TODO No EU5 equivalent: Imperator country heritage
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek culture -> hellenic_pantheon)
+					capital = {
+						rename_location = kassiteros
+					}
+					if = {
+						limit = {
+							NOT = {
+								culture = culture:massalian
+							}
+						}
+						pa_imp_set_primary_culture_cleanup_effect = {
+							NEW_PRIMARY_CULTURE = massalian
+							MAKE_OLD_CULTURE_INTEGRATED = yes
+						}
+					}
+					every_character = {
+						limit = {
+							NOT = { culture = culture:massalian }
+						}
+						change_character_culture = culture:massalian
+						change_character_religion = religion:hellenic_pantheon
+					}
+					change_religion = religion:hellenic_pantheon
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator plutocratic_republic; EU5 has no government sub-forms
+					add_gold = 50
+					save_scope_as = kassiteros_country
+				}
+			}
+			scope:kassiteros_tribe = {
+				add_truce_with = {
+					target = scope:kassiteros_country
+					years = 10
+				}
+				add_truce_with = {
+					target = scope:kassiteros_greek
+					years = 10
+				}
+			}
+			scope:kassiteros_country = {
+				make_subject_of = {
+					target = root
+					type = subject_type:tributary
+				}
+			}
+		}
+		# Imperator saved these three scopes in the event's after block; they are saved here so the delayed iberia_colony.8 receives them
+		hidden_effect = {
+			scope:kassiteros_tribe = { save_scope_as = iberia_colony_tribe }
+			scope:kassiteros_country = { save_scope_as = iberia_colony }
+			scope:kassiteros_prov = { save_scope_as = iberia_colony_prov_1 }
+		}
+		trigger_event_non_silently = {
+			id = iberia_colony.8
+			# days = { 1825 3650 }
+			days = { 5 10 }
+		}
+		ai_chance = {
+			factor = 30
+		}
+	}
+
+	option = {
+		name = iberia_colony.7.b
+		custom_tooltip = iberia_colony.7.bt
+		add_gold = -50
+		add_manpower = -2
+		pa_imp_oligarchic_approval_effect = {
+			VALUE = 15 # party_approval_large
+		}
+		pa_imp_traditionalist_approval_effect = {
+			VALUE = -10 # party_disapproval_medium
+		}
+		hidden_effect = {
+			scope:kassiteros_prov = {
+				create_country_from_location = {
+					change_country_name = OLZ
+					change_country_adjective = OLZ_ADJ
+					# set_country_heritage = massalian_heritage #P:A TODO No EU5 equivalent: Imperator country heritage
+					change_religion = religion:hellenic_pantheon # Imperator roman_pantheon (Greek culture -> hellenic_pantheon)
+					capital = {
+						rename_location = kassiteros
+					}
+					if = {
+						limit = {
+							NOT = {
+								culture = culture:massalian
+							}
+						}
+						pa_imp_set_primary_culture_cleanup_effect = {
+							NEW_PRIMARY_CULTURE = massalian
+							MAKE_OLD_CULTURE_INTEGRATED = yes
+						}
+					}
+					every_character = {
+						limit = {
+							NOT = { culture = culture:massalian }
+						}
+						change_character_culture = culture:massalian
+						change_character_religion = religion:hellenic_pantheon
+					}
+					change_religion = religion:hellenic_pantheon
+					change_government_type = government_type:republic #P:A TODO Approximate: Imperator plutocratic_republic; EU5 has no government sub-forms
+					add_gold = 50
+					save_scope_as = kassiteros_country
+				}
+			}
+			scope:kassiteros_tribe = {
+				add_truce_with = {
+					target = scope:kassiteros_country
+					years = 10
+				}
+				add_truce_with = {
+					target = scope:kassiteros_greek
+					years = 10
+				}
+			}
+			scope:kassiteros_country = {
+				make_subject_of = {
+					target = root
+					type = subject_type:subject_colony
+				}
+			}
+		}
+		# Imperator saved these three scopes in the event's after block; they are saved here so the delayed iberia_colony.8 receives them
+		hidden_effect = {
+			scope:kassiteros_tribe = { save_scope_as = iberia_colony_tribe }
+			scope:kassiteros_country = { save_scope_as = iberia_colony }
+			scope:kassiteros_prov = { save_scope_as = iberia_colony_prov_1 }
+		}
+		trigger_event_non_silently = {
+			id = iberia_colony.8
+			# days = { 1825 3650 }
+			days = { 5 10 }
+		}
+		ai_chance = {
+			factor = 30
+		}
+	}
+
+	option = {
+		name = iberia_colony.7.c
+		custom_tooltip = iberia_colony.7.ct
+		pa_imp_oligarchic_approval_effect = {
+			VALUE = -10 # party_disapproval_medium
+		}
+		pa_imp_traditionalist_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		ai_chance = {
+			factor = 40
+		}
+	}
+}
+
+iberia_colony.8 = { #[iberia_colony_tribe.GetAdjective] Offer (more land)
+	type = country_event
+	title = iberia_colony.8.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					exists = scope:iberia_colony_prov_3
+				}
+				desc = iberia_colony.8.desc_1
+			}
+			triggered_desc = {
+				trigger = { always = yes }
+				desc = iberia_colony.8.desc_2
+			}
+		}
+	}
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+#	trigger = { exists = scope:iberia_colony }
+
+	immediate = {
+		scope:iberia_colony_prov_1 = {
+			random_neighbor_location = {
+				limit = {
+					is_coastal = yes
+					has_owner = yes
+					owner = {
+						OR = {
+							is_ai = yes
+							this = scope:iberia_colony_tribe
+						}
+					}
+					NOT = {
+						owner = root
+					}
+				}
+				save_scope_as = iberia_colony_prov_2
+			}
+			random_neighbor_location = {
+				limit = {
+					is_coastal = yes
+					has_owner = yes
+					owner = {
+						OR = {
+							is_ai = yes
+							this = scope:iberia_colony_tribe
+						}
+					}
+					NOT = {
+						owner = root
+						this = scope:iberia_colony_prov_2
+					}
+				}
+				save_scope_as = iberia_colony_prov_3
+			}
+		}
+		ruler ?= {
+			save_scope_as = pa_ruler
+		}
+		scope:iberia_colony.ruler ?= {
+			save_scope_as = pa_colony_ruler
+		}
+		scope:iberia_colony_tribe.ruler ?= {
+			save_scope_as = pa_tribe_ruler
+		}
+	}
+
+	option = {
+		name = iberia_colony.8.a
+		custom_tooltip = iberia_colony.8.at
+		add_gold = -25
+		pa_imp_oligarchic_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		pa_imp_traditionalist_approval_effect = {
+			VALUE = -10 # party_disapproval_medium
+		}
+		hidden_effect = {
+			scope:iberia_colony_prov_2 = {
+				change_raw_material = goods:copper #P:A TODO Approximate: Imperator base_metals -> copper
+				change_location_owner = scope:iberia_colony
+				add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (1 citizen pop -> burghers)
+					type = pop_type:burghers
+					size = 1
+					culture = root.culture
+					religion = root.religion
+				}
+			}
+		}
+		ai_chance = {
+			factor = 30
+		}
+	}
+
+	option = {
+		name = iberia_colony.8.b
+		trigger = { exists = scope:iberia_colony_prov_3 }
+		custom_tooltip = iberia_colony.8.bt
+		add_gold = -50
+		pa_imp_oligarchic_approval_effect = {
+			VALUE = 15 # party_approval_large
+		}
+		pa_imp_traditionalist_approval_effect = {
+			VALUE = -10 # party_disapproval_medium
+		}
+		hidden_effect = {
+			scope:iberia_colony_prov_2 = {
+				change_raw_material = goods:copper #P:A TODO Approximate: Imperator base_metals -> copper
+				change_location_owner = scope:iberia_colony
+				add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (1 citizen pop -> burghers)
+					type = pop_type:burghers
+					size = 1
+					culture = root.culture
+					religion = root.religion
+				}
+			}
+			scope:iberia_colony_prov_3 = {
+				change_raw_material = goods:copper #P:A TODO Approximate: Imperator base_metals -> copper
+				change_location_owner = scope:iberia_colony
+				add_pop = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size (1 citizen pop -> burghers)
+					type = pop_type:burghers
+					size = 1
+					culture = root.culture
+					religion = root.religion
+				}
+			}
+		}
+		ai_chance = {
+			factor = 50
+		}
+	}
+
+	option = {
+		name = iberia_colony.8.c
+		custom_tooltip = iberia_colony.8.ct
+		pa_imp_oligarchic_approval_effect = {
+			VALUE = -10 # party_disapproval_medium
+		}
+		pa_imp_traditionalist_approval_effect = {
+			VALUE = 10 # party_approval_medium
+		}
+		ai_chance = {
+			factor = 20
+		}
+	}
+}

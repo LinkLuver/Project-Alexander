@@ -1,0 +1,2851 @@
+﻿#P:A Imported from Invictus: events/monarchy_events.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+namespace = monarchy_events
+
+# Pretender questions the legitimacy of the monarch
+monarchy_events.1 = {
+	type = country_event
+	title = monarchy_events.1.t
+	desc = monarchy_events.1.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		any_character = {
+			is_eligible_heir = root #P:A TODO Approximate: Imperator is_pretender (a claimant to the throne); EU5 is_eligible_heir who is not the ruler
+			is_ruler = no
+			is_adult = yes
+			exists = father
+			NOT = {
+				is_child_of = root.ruler
+			}
+			father = {
+				exists = father
+				NOT = {
+					is_child_of = root.ruler
+				}
+			}
+			# loyalty < 50 #P:A TODO No EU5 equivalent: only claimants with loyalty below 50 deny the ruler's legitimacy (EU5 characters have no loyalty)
+		}
+		legitimacy > 10
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				is_eligible_heir = root #P:A TODO Approximate: Imperator is_pretender; EU5 is_eligible_heir who is not the ruler
+				is_ruler = no
+				is_adult = yes
+				exists = father
+				# loyalty < 50
+				NOT = {
+					is_child_of = root.ruler
+				}
+				father = {
+					exists = father
+					NOT = {
+						is_child_of = root.ruler
+					}
+				}
+			}
+			save_scope_as = legitimacy_denier
+		}
+	}
+
+	option = { # ignore it
+		name = monarchy_events.1.a
+		add_legitimacy = -20 # subtract_legitimacy_large
+	}
+
+	option = { # publicly repudiate the claims
+		name = monarchy_events.1.b
+		pa_imp_remove_stability_effect = yes
+		# scope:legitimacy_denier = { add_loyalty = loyalty_lies_revealed }
+		#P:A TODO No EU5 equivalent: the pretender gets the loyalty_lies_revealed loyalty modifier (EU5 characters have no loyalty)
+	}
+}
+
+# A philosopher offers to tutor the monarch (philosopher king chain)
+monarchy_events.2 = {
+	type = country_event
+	title = monarchy_events.2.t
+	desc = monarchy_events.2.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		culture = {
+			has_culture_group = culture_group:greek_group # Imperator country_culture_group = hellenic
+		}
+		government_type = government_type:monarchy
+		exists = ruler
+		ruler = {
+			NOT = {
+				has_variable = philosopher_king_student
+			}
+		}
+	}
+
+	immediate = {
+		hidden_effect = {
+			create_character = {
+				culture = root.culture # Imperator default: the country's culture and religion
+				religion = root.religion
+				# add_trait = wise #P:A TODO No EU5 equivalent: Imperator trait "wise"
+				# add_trait = polymath #P:A TODO No EU5 equivalent: Imperator trait "polymath"
+				add_trait = trait:scholar
+				age = 40
+				save_scope_as = philosopher_king_educator
+			}
+		}
+		random_country = {
+			limit = {
+				culture = {
+					has_culture_group = culture_group:greek_group # Imperator country_culture_group = hellenic
+				}
+				NOT = { this = root }
+			}
+			save_scope_as = philosopher_move_country
+		}
+		ruler = {
+			save_scope_as = philosopher_king_student
+			set_variable = philosopher_king_student
+		}
+	}
+
+	option = { # Hire as your teacher
+		name = monarchy_events.2.a
+		add_legitimacy = 2 # legitimacy_small
+		# scope:philosopher_king_educator = { give_office = office_philosopher }
+		#P:A TODO No EU5 equivalent: the philosopher is given the court office "philosopher" (EU5 has no offices); monarchy_events.3/.4/.5 check that the philosopher still serves the country instead
+		hidden_effect = {
+			if = {
+				limit = {
+					ruler = {
+						OR = {
+							# has_trait = wise #P:A TODO No EU5 equivalent: Imperator trait "wise"
+							# has_trait = polymath #P:A TODO No EU5 equivalent: Imperator trait "polymath"
+							has_trait = scholar
+							adm > 35 # Imperator finesse > 7
+						}
+					}
+				}
+				trigger_event_non_silently = {
+					id = monarchy_events.3
+					days = { 90 180 }
+				}
+			}
+			else_if = {
+				limit = {
+					ruler = {
+						OR = {
+							# has_trait = dumb #P:A TODO No EU5 equivalent: Imperator trait "dumb"
+							has_trait = arrogant
+							# has_trait = narrowminded #P:A TODO No EU5 equivalent: Imperator trait "narrowminded"
+							adm < 20 # Imperator finesse < 4
+						}
+					}
+				}
+				trigger_event_non_silently = {
+					id = monarchy_events.5
+					days = { 90 180 }
+				}
+			}
+			else = {
+				trigger_event_non_silently = {
+					id = monarchy_events.4
+					days = { 90 180 }
+				}
+			}
+		}
+	}
+
+	option = { # Send the philosopher away
+		name = monarchy_events.2.b
+		# ruler = { add_popularity = 5 } # popularity_small
+		#P:A TODO No EU5 equivalent: +5 popularity for the ruler (EU5 characters have no popularity)
+		if = {
+			limit = {
+				exists = scope:philosopher_move_country
+			}
+			scope:philosopher_king_educator = {
+				move_country = scope:philosopher_move_country
+			}
+		}
+	}
+}
+
+# The philosopher king: the monarch learns a virtue
+monarchy_events.3 = {
+	type = country_event
+	title = monarchy_events.3.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					var:philosopher_king_virtue = 1
+				}
+				desc = monarchy_events.3.desc.a
+			}
+			triggered_desc = {
+				trigger = {
+					var:philosopher_king_virtue = 2
+				}
+				desc = monarchy_events.3.desc.b
+			}
+			triggered_desc = {
+				trigger = {
+					var:philosopher_king_virtue = 3
+				}
+				desc = monarchy_events.3.desc.c
+			}
+		}
+	}
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = ruler
+		exists = scope:philosopher_king_student
+		scope:philosopher_king_student = {
+			pa_imp_char_valid_for_country_events_trigger = yes
+			NOT = {
+				has_variable = had_philosopher_king_outcome
+			}
+		}
+		exists = scope:philosopher_king_educator
+		scope:philosopher_king_educator = {
+			# has_office = office_philosopher
+			is_alive = yes #P:A TODO Approximate: Imperator required the philosopher to hold the court office "philosopher" (EU5 has no offices); here the philosopher must still serve the country
+			employer = root
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			random_list = {
+				33 = {
+					set_variable = {
+						name = philosopher_king_virtue
+						value = 1
+					}
+				}
+				33 = {
+					set_variable = {
+						name = philosopher_king_virtue
+						value = 2
+					}
+				}
+				33 = {
+					set_variable = {
+						name = philosopher_king_virtue
+						value = 3
+					}
+				}
+			}
+			set_variable = { # set on the country, as in Invictus (the trigger checks the student)
+				name = had_philosopher_king_outcome
+				value = 1
+			}
+		}
+	}
+
+	option = {
+		name = monarchy_events.3.a
+		ruler = {
+			add_adm = 5 # Imperator add_finesse = 1
+		}
+		# Monarch cultivates justice
+		if = {
+			limit = {
+				var:philosopher_king_virtue = 1
+				NOT = {
+					ruler = {
+						OR = {
+							has_trait = just
+							# has_trait = arbitrary #P:A TODO No EU5 equivalent: Imperator trait "arbitrary"
+						}
+					}
+				}
+			}
+			ruler = {
+				add_trait = trait:just
+			}
+		}
+		else_if = {
+			limit = {
+				var:philosopher_king_virtue = 1
+				ruler = {
+					has_trait = just
+				}
+			}
+			# add_political_influence = 25 # influence_large
+			#P:A TODO No EU5 equivalent: +25 political influence (EU5 has no political influence)
+		}
+		# Monarch cultivates bravery
+		else_if = {
+			limit = {
+				var:philosopher_king_virtue = 2
+				NOT = {
+					ruler = {
+						OR = {
+							# has_trait = brave #P:A TODO No EU5 equivalent: Imperator trait "brave"
+							has_trait = craven # Imperator coward
+						}
+					}
+				}
+			}
+			# ruler = { add_trait = brave }
+			#P:A TODO No EU5 equivalent: the ruler gains the Imperator trait "brave"
+		}
+		else_if = {
+			limit = {
+				var:philosopher_king_virtue = 2
+				# ruler = { has_trait = brave }
+				always = no #P:A TODO No EU5 equivalent: Imperator trait "brave" (a ruler who already was brave gained stability instead)
+			}
+			pa_imp_add_stability_effect = yes
+		}
+		# Monarch becomes skilled at political discourse
+		else_if = {
+			limit = {
+				var:philosopher_king_virtue = 3
+				NOT = {
+					ruler = {
+						OR = {
+							has_trait = silver_tongue
+							# has_trait = blunt #P:A TODO No EU5 equivalent: Imperator trait "blunt"
+						}
+					}
+				}
+			}
+			ruler = {
+				add_trait = trait:silver_tongue
+			}
+		}
+		else_if = {
+			limit = {
+				var:philosopher_king_virtue = 3
+				ruler = {
+					has_trait = silver_tongue
+				}
+			}
+			# add_political_influence = 25 # influence_large
+			#P:A TODO No EU5 equivalent: +25 political influence (EU5 has no political influence)
+		}
+		# scope:philosopher_king_educator = { add_loyalty = loyalty_teaching_praised_1 }
+		#P:A TODO No EU5 equivalent: the philosopher gets the loyalty_teaching_praised_1 loyalty modifier (EU5 characters have no loyalty)
+	}
+}
+
+# The philosopher king: the monarch is a mediocre student
+monarchy_events.4 = {
+	type = country_event
+	title = monarchy_events.4.t
+	desc = monarchy_events.4.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = ruler
+		exists = scope:philosopher_king_student
+		scope:philosopher_king_student = {
+			pa_imp_char_valid_for_country_events_trigger = yes
+			NOT = {
+				has_variable = had_philosopher_king_outcome
+			}
+		}
+		exists = scope:philosopher_king_educator
+		scope:philosopher_king_educator = {
+			# has_office = office_philosopher
+			is_alive = yes #P:A TODO Approximate: Imperator required the philosopher to hold the court office "philosopher" (EU5 has no offices); here the philosopher must still serve the country
+			employer = root
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		hidden_effect = {
+			random_list = {
+				33 = {
+					set_variable = {
+						name = philosopher_king_virtue
+						value = 1
+					}
+				}
+				33 = {
+					set_variable = {
+						name = philosopher_king_virtue
+						value = 2
+					}
+				}
+				33 = {
+					set_variable = {
+						name = philosopher_king_virtue
+						value = 3
+					}
+				}
+			}
+			set_variable = { # set on the country, as in Invictus (the trigger checks the student)
+				name = had_philosopher_king_outcome
+				value = 1
+			}
+		}
+	}
+
+	option = { # hire philosopher
+		name = monarchy_events.4.a
+		if = {
+			limit = {
+				var:philosopher_king_virtue = 1
+			}
+			# add_political_influence = 15 # influence_medium
+			#P:A TODO No EU5 equivalent: +15 political influence (EU5 has no political influence)
+		}
+		else_if = {
+			limit = {
+				var:philosopher_king_virtue = 2
+			}
+			pa_imp_add_stability_effect = yes
+		}
+		else_if = {
+			limit = {
+				var:philosopher_king_virtue = 3
+			}
+			# add_political_influence = 15 # influence_medium
+			#P:A TODO No EU5 equivalent: +15 political influence (EU5 has no political influence)
+		}
+		add_gold = -100
+		# scope:philosopher_king_educator = { add_loyalty = loyalty_teaching_praised_2 }
+		#P:A TODO No EU5 equivalent: the philosopher gets the loyalty_teaching_praised_2 loyalty modifier (EU5 characters have no loyalty)
+	}
+
+	option = { # philosopher moves on
+		name = monarchy_events.4.b
+		if = {
+			limit = {
+				var:philosopher_king_virtue = 1
+			}
+			# add_political_influence = 15 # influence_medium
+			#P:A TODO No EU5 equivalent: +15 political influence (EU5 has no political influence)
+		}
+		else_if = {
+			limit = {
+				var:philosopher_king_virtue = 2
+			}
+			pa_imp_add_stability_effect = yes
+		}
+		else_if = {
+			limit = {
+				var:philosopher_king_virtue = 3
+			}
+			# ruler = { add_popularity = 10 } # popularity_medium
+			#P:A TODO No EU5 equivalent: +10 popularity for the ruler (EU5 characters have no popularity)
+		}
+		if = {
+			limit = {
+				exists = scope:philosopher_move_country
+			}
+			scope:philosopher_king_educator = {
+				move_country = scope:philosopher_move_country
+			}
+		}
+	}
+}
+
+# The philosopher king: the monarch is unteachable
+monarchy_events.5 = {
+	type = country_event
+	title = monarchy_events.5.t
+	desc = monarchy_events.5.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = ruler
+		exists = scope:philosopher_king_student
+		scope:philosopher_king_student = {
+			pa_imp_char_valid_for_country_events_trigger = yes
+			NOT = {
+				has_variable = had_philosopher_king_outcome
+			}
+		}
+		exists = scope:philosopher_king_educator
+		scope:philosopher_king_educator = {
+			# has_office = office_philosopher
+			is_alive = yes #P:A TODO Approximate: Imperator required the philosopher to hold the court office "philosopher" (EU5 has no offices); here the philosopher must still serve the country
+			employer = root
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+			set_variable = {
+				name = had_philosopher_king_outcome
+				value = 1
+			}
+		}
+	}
+
+	option = {
+		name = monarchy_events.5.a
+		add_legitimacy = -5 # subtract_legitimacy_medium
+		if = {
+			limit = {
+				exists = scope:philosopher_move_country
+			}
+			scope:philosopher_king_educator = {
+				move_country = scope:philosopher_move_country
+			}
+		}
+	}
+}
+
+# The high priest condemns an impious monarch
+monarchy_events.6 = {
+	type = country_event
+	title = monarchy_events.6.t
+	desc = monarchy_events.6.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		ruler = {
+			NOR = {
+				# zeal > 5 #P:A TODO No EU5 equivalent: Imperator zeal skill (EU5 characters have no zeal)
+				has_trait = pious # Imperator devout or pious
+			}
+		}
+		any_character = {
+			has_estate = estate_type:clergy_estate #P:A TODO Approximate: Imperator has_office = office_high_priest_monarchy; EU5 has no offices, so a clergy-estate character
+			# NOT = {
+			# 	OR = {
+			# 		zeal < 4
+			# 		has_trait = sceptical
+			# 		has_trait = lapsed
+			# 	}
+			# 	is_friend = root.current_ruler
+			# }
+			#P:A TODO No EU5 equivalent: the priest must not be irreligious (zeal below 4, traits "sceptical"/"lapsed") or the ruler's friend (EU5 has no zeal, these traits or friendships)
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_estate = estate_type:clergy_estate #P:A TODO Approximate: Imperator has_office = office_high_priest_monarchy
+			}
+			save_scope_as = turbulent_priest
+		}
+	}
+
+	option = { # ignore him
+		name = monarchy_events.6.a
+		add_legitimacy = -5 # subtract_legitimacy_medium
+		# scope:turbulent_priest = { add_loyalty = loyalty_impious_ruler }
+		#P:A TODO No EU5 equivalent: the priest gets the loyalty_impious_ruler loyalty modifier (EU5 characters have no loyalty)
+	}
+
+	option = { # make a large donation to the priesthood
+		name = monarchy_events.6.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 3
+			min = -6000
+		}
+		# scope:turbulent_priest = { add_loyalty = loyalty_bribed_priest }
+		#P:A TODO No EU5 equivalent: the priest gets the loyalty_bribed_priest loyalty modifier (EU5 characters have no loyalty)
+	}
+}
+
+# The high priest praises a pious monarch
+monarchy_events.7 = {
+	type = country_event
+	title = monarchy_events.7.t
+	desc = monarchy_events.7.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		ruler = {
+			OR = {
+				# zeal > 8 #P:A TODO No EU5 equivalent: Imperator zeal skill (EU5 characters have no zeal)
+				has_trait = pious # Imperator devout or pious
+			}
+		}
+		any_character = {
+			has_estate = estate_type:clergy_estate #P:A TODO Approximate: Imperator has_office = office_high_priest_monarchy; EU5 has no offices, so a clergy-estate character
+			OR = {
+				# zeal > 5 #P:A TODO No EU5 equivalent: Imperator zeal skill
+				has_trait = pious # Imperator devout or pious
+			}
+			# NOT = { is_rival = root.current_ruler } #P:A TODO No EU5 equivalent: the priest must not be the ruler's rival (EU5 characters have no rivals)
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				has_estate = estate_type:clergy_estate #P:A TODO Approximate: Imperator has_office = office_high_priest_monarchy
+				has_trait = pious # Imperator had a single high priest; EU5 may have several clergy characters, so pick the one the trigger found
+			}
+			save_scope_as = pious_high_priest
+		}
+	}
+
+	option = {
+		name = monarchy_events.7.a
+		add_legitimacy = 5 # legitimacy_medium
+		# scope:pious_high_priest = { add_loyalty = loyalty_pious_ruler_thanks }
+		#P:A TODO No EU5 equivalent: the priest gets the loyalty_pious_ruler_thanks loyalty modifier (EU5 characters have no loyalty)
+	}
+
+	option = { # use the priesthood to increase legitimacy further
+		name = monarchy_events.7.b
+		add_legitimacy = 20 # legitimacy_huge
+		pa_imp_remove_stability_effect = yes
+	}
+}
+
+# The court philosopher writes a treatise praising monarchy
+monarchy_events.8 = {
+	type = country_event
+	title = monarchy_events.8.t
+	desc = monarchy_events.8.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		any_character = {
+			artist_type = philosopher #P:A TODO Approximate: Imperator has_office = office_philosopher (court office); EU5 has no offices, so a philosopher artist
+			OR = {
+				# has_trait = wise #P:A TODO No EU5 equivalent: Imperator trait "wise"
+				adm > 40 # Imperator finesse > 8
+			}
+			# NOT = { is_rival = root.current_ruler } #P:A TODO No EU5 equivalent: the philosopher must not be the ruler's rival (EU5 characters have no rivals)
+			NOT = { has_variable = philosopher_is_republican }
+		}
+		ruler = {
+			OR = {
+				adm > 40 # Imperator finesse > 8
+				# has_trait = wise #P:A TODO No EU5 equivalent: Imperator trait "wise"
+				has_trait = just
+			}
+			# NOT = { has_trait = arbitrary } #P:A TODO No EU5 equivalent: Imperator trait "arbitrary"
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				artist_type = philosopher #P:A TODO Approximate: Imperator has_office = office_philosopher
+				adm > 40 # Imperator had a single court philosopher; EU5 may have several, so pick one the trigger allows
+				NOT = { has_variable = philosopher_is_republican }
+			}
+			save_scope_as = monarchist_philosopher
+			set_variable = philosopher_is_monarchist
+		}
+	}
+
+	option = { # a fine read
+		name = monarchy_events.8.a
+		add_legitimacy = 5 # legitimacy_medium
+		# scope:monarchist_philosopher = { add_loyalty = loyalty_praised_despot_1 }
+		#P:A TODO No EU5 equivalent: the philosopher gets the loyalty_praised_despot_1 loyalty modifier (EU5 characters have no loyalty)
+	}
+
+	option = { # have their work read throughout the land
+		name = monarchy_events.8.b
+		# add_political_influence = -25 # subtract_influence_large
+		#P:A TODO No EU5 equivalent: costs 25 political influence (EU5 has no political influence)
+		add_legitimacy = 20 # legitimacy_huge
+		# scope:monarchist_philosopher = { add_loyalty = loyalty_praised_despot_2 }
+		#P:A TODO No EU5 equivalent: the philosopher gets the loyalty_praised_despot_2 loyalty modifier (EU5 characters have no loyalty)
+	}
+}
+
+# The court philosopher condemns the monarch's despotism
+monarchy_events.9 = {
+	type = country_event
+	title = monarchy_events.9.t
+	desc = monarchy_events.9.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		any_character = {
+			artist_type = philosopher #P:A TODO Approximate: Imperator has_office = office_philosopher (court office); EU5 has no offices, so a philosopher artist
+			# NOT = { is_friend = root.current_ruler } #P:A TODO No EU5 equivalent: the philosopher must not be the ruler's friend (EU5 characters have no friends)
+			OR = {
+				# has_trait = wise #P:A TODO No EU5 equivalent: Imperator trait "wise"
+				adm > 40 # Imperator finesse > 8
+			}
+			NOT = { has_variable = philosopher_is_monarchist }
+		}
+		any_neighbor_country = {
+			# has_same_culture_group_as = ROOT
+			government_type = government_type:republic
+		}
+		ruler = {
+			OR = {
+				# has_trait = arbitrary #P:A TODO No EU5 equivalent: Imperator trait "arbitrary"
+				has_trait = cruel
+			}
+			NOT = {
+				has_trait = just
+			}
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				artist_type = philosopher #P:A TODO Approximate: Imperator has_office = office_philosopher
+				adm > 40 # Imperator had a single court philosopher; EU5 may have several, so pick one the trigger allows
+				NOT = { has_variable = philosopher_is_monarchist }
+			}
+			save_scope_as = republican_philosopher
+			set_variable = philosopher_is_republican
+		}
+		random_neighbor_country = {
+			limit = {
+				# has_same_culture_group_as = ROOT
+				government_type = government_type:republic
+			}
+			save_scope_as = republican_philosopher_country
+		}
+	}
+
+	option = { # lose legitimacy
+		name = monarchy_events.9.a
+		add_legitimacy = -5 # subtract_legitimacy_medium
+	}
+
+	option = { # exile to a republic
+		name = monarchy_events.9.b
+		scope:republican_philosopher = {
+			pa_imp_remove_all_positions = yes
+			move_country = scope:republican_philosopher_country
+			# set_as_minor_character = this #P:A TODO No EU5 equivalent: the exile becomes a minor character in the republic (EU5 has no minor characters)
+		}
+	}
+}
+
+# The royal spouse inspires the army in wartime
+monarchy_events.10 = {
+	type = country_event
+	title = monarchy_events.10.t
+	desc = monarchy_events.10.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		ruler = {
+			is_married = yes
+		}
+		exists = consort
+		consort = {
+			is_alive = yes
+		}
+		at_war = yes
+	}
+
+	immediate = {
+		ruler = {
+			random_spouse = {
+				save_scope_as = royal_spouse
+			}
+		}
+	}
+
+	option = {
+		trigger = {
+			NOT = {
+				scope:royal_spouse = {
+					mil >= 40 # Imperator martial >= 8
+					dip >= 40 # Imperator charisma >= 8
+				}
+			}
+		}
+		name = monarchy_events.10.a
+		# scope:royal_spouse = { add_popularity = 10 } # popularity_medium
+		#P:A TODO No EU5 equivalent: +10 popularity for the spouse (EU5 characters have no popularity)
+		add_country_modifier = {
+			modifier = spouse_inspires_the_army
+			days = 1825
+		}
+	}
+
+	option = {
+		trigger = {
+			scope:royal_spouse = {
+				mil >= 40 # Imperator martial >= 8
+				dip >= 40 # Imperator charisma >= 8
+			}
+		}
+		name = monarchy_events.10.a
+		add_country_modifier = {
+			modifier = spouse_inspires_the_army_better
+			days = 1825
+		}
+	}
+}
+
+# The ruler's spouse plots against an heir who is not their own child
+monarchy_events.11 = {
+	type = country_event
+	title = monarchy_events.11.t
+	desc = monarchy_events.11.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		ruler = {
+			is_married = yes
+		}
+		exists = consort #P:A TODO Approximate: Imperator used the ruler's spouse; EU5 has no single spouse link, so the country's consort is used throughout this event
+		any_character = {
+			is_eligible_heir = root #P:A TODO Approximate: Imperator is_pretender (a claimant to the throne); EU5 is_eligible_heir who is not the ruler
+			is_ruler = no
+			is_child_of = root.ruler
+			is_child_of = root.consort
+		}
+		any_character = {
+			is_heir = yes # Imperator is_primary_heir
+			is_child_of = root.ruler
+			NOT = { is_child_of = root.consort }
+		}
+	}
+
+	immediate = {
+		consort = {
+			save_scope_as = spouse_scope
+		}
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				is_eligible_heir = root #P:A TODO Approximate: Imperator is_pretender; EU5 is_eligible_heir who is not the ruler
+				is_ruler = no
+				is_child_of = root.ruler
+				is_child_of = scope:spouse_scope
+			}
+			save_scope_as = spouse_child_pretender
+		}
+		random_character = {
+			limit = {
+				is_heir = yes # Imperator is_primary_heir
+				is_child_of = root.ruler
+				NOT = { is_child_of = scope:spouse_scope }
+			}
+			save_scope_as = non_spouse_child_pretender
+		}
+	}
+
+	option = { # imprison spouse
+		name = monarchy_events.11.a
+		# imprison = { target = scope:spouse_scope }
+		# scope:spouse_scope = { add_rival = scope:non_spouse_child_pretender }
+		# scope:non_spouse_child_pretender = { add_loyalty = loyalty_heir_imprison }
+		#P:A TODO No EU5 equivalent: the spouse is imprisoned and becomes the heir's rival, the heir gains loyalty (loyalty_heir_imprison); EU5 has no prisoners, rivals or loyalty
+	}
+
+	option = { # persuade spouse to abandon plot
+		name = monarchy_events.11.b
+		trigger = {
+			OR = {
+				ruler = {
+					dip > scope:spouse_scope.dip # Imperator charisma
+				}
+				# scope:spouse_scope = { is_friend = root.current_ruler } #P:A TODO No EU5 equivalent: or the spouse is the ruler's friend (EU5 characters have no friends)
+			}
+		}
+		add_legitimacy = -10
+	}
+
+	option = { # don't interfere
+		name = monarchy_events.11.c
+		kill_character = {
+			target = scope:non_spouse_child_pretender
+			reason = assassination #P:A TODO Approximate: Imperator death_murder; EU5 has no plain murder death reason
+		}
+	}
+}
+
+# The monarch is expected to patronise the arts
+monarchy_events.12 = {
+	type = country_event
+	title = monarchy_events.12.t
+	desc = monarchy_events.12.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		NOT = {
+			has_country_modifier = patronage_of_the_arts_modifier
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = monarchy_events.12.a
+		add_country_modifier = {
+			modifier = patronage_of_the_arts_modifier
+			days = 1825
+		}
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 4
+			min = -6000
+		}
+	}
+
+	option = {
+		name = monarchy_events.12.b
+		add_legitimacy = -2 # subtract_legitimacy_small
+	}
+}
+
+# The ruler's spouse intercedes for an imprisoned friend
+monarchy_events.13 = {
+	type = country_event
+	title = monarchy_events.13.t
+	desc = monarchy_events.13.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		ruler = {
+			is_married = yes
+		}
+		exists = consort
+		any_character = {
+			# prisoner = yes
+			# is_friend = root.current_ruler.spouse
+			NOT = { has_variable = spousal_intercession }
+		}
+		always = no #P:A TODO No EU5 equivalent: the event needs an imprisoned friend of the ruler's spouse (EU5 has no prisoners or friendships); every option releases or keeps that prisoner
+	}
+
+	immediate = {
+		consort = { #P:A TODO Approximate: Imperator the ruler's spouse; EU5 country consort
+			save_scope_as = spouse_scope
+		}
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				# prisoner = yes
+				# is_friend = scope:spouse_scope
+				NOT = { has_variable = spousal_intercession }
+			}
+			save_scope_as = imprisoned_friend
+			set_variable = {
+				name = spousal_intercession
+				days = 1825
+			}
+		}
+	}
+
+	option = {
+		name = monarchy_events.13.a
+		# add_tyranny = -1 # subtract_tyranny_small
+		#P:A TODO No EU5 equivalent: -1 tyranny (EU5 has no tyranny)
+		# release_prisoner = { target = scope:imprisoned_friend }
+		#P:A TODO No EU5 equivalent: releases the prisoner (EU5 has no prisoners)
+		# if = { limit = { scope:imprisoned_friend = { NOT = { is_rival = root.current_ruler } } } scope:imprisoned_friend = { add_loyalty = loyalty_released_prison } }
+		#P:A TODO No EU5 equivalent: the released friend gains loyalty (loyalty_released_prison) unless the ruler's rival (EU5 has no loyalty or rivals)
+	}
+
+	option = {
+		name = monarchy_events.13.b
+		# scope:spouse_scope = { add_loyalty = loyalty_refused_request }
+		# scope:imprisoned_friend = { add_loyalty = loyalty_unreleased_prison }
+		#P:A TODO No EU5 equivalent: the spouse and the prisoner lose loyalty (loyalty_refused_request, loyalty_unreleased_prison); EU5 characters have no loyalty
+	}
+}
+
+# The royal consort is popular with the people
+monarchy_events.14 = {
+	type = country_event
+	title = monarchy_events.14.t
+	desc = monarchy_events.14.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = consort #P:A TODO Approximate: Imperator the ruler's spouse; EU5 country consort
+		consort = {
+			is_alive = yes
+			# popularity > 80
+			always = no #P:A TODO No EU5 equivalent: the spouse must have popularity above 80 (EU5 characters have no popularity); this is what the event is about
+		}
+	}
+
+	immediate = {
+		consort = {
+			save_scope_as = spouse_scope
+		}
+	}
+
+	option = {
+		name = monarchy_events.14.a
+		pa_imp_add_stability_effect = yes
+		# scope:spouse_scope = { add_prominence = 10 } # prominence_large
+		#P:A TODO No EU5 equivalent: +10 prominence for the spouse (EU5 characters have no prominence)
+	}
+}
+
+# The monarch gains a reputation as a tyrant
+monarchy_events.15 = {
+	type = country_event
+	title = monarchy_events.15.t
+	desc = monarchy_events.15.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		# tyranny > 40
+		always = no #P:A TODO No EU5 equivalent: the country must have more than 40 tyranny (EU5 has no tyranny); this is what the event is about
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # embrace the reputation
+		name = monarchy_events.15.a
+		# add_political_influence = -15 # subtract_influence_medium
+		#P:A TODO No EU5 equivalent: costs 15 political influence (EU5 has no political influence)
+	}
+
+	option = { # execute the troublemakers
+		name = monarchy_events.15.b
+		pa_imp_remove_stability_effect = yes
+	}
+}
+
+# A powerful pretender courts the high priest
+monarchy_events.16 = {
+	type = country_event
+	title = monarchy_events.16.t
+	desc = monarchy_events.16.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+	interface_lock = no
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		any_character = {
+			# is_rival = root.current_ruler
+			is_eligible_heir = root #P:A TODO Approximate: Imperator is_pretender (a claimant to the throne); EU5 is_eligible_heir who is not the ruler
+			is_ruler = no
+			# prominence > 50
+			NOT = {
+				has_estate = estate_type:clergy_estate #P:A TODO Approximate: Imperator has_office = office_high_priest_monarchy; EU5 clergy-estate character
+			}
+			NOT = {
+				has_variable = powerful_pretender_monarchy_var
+			}
+		}
+		any_character = {
+			has_estate = estate_type:clergy_estate #P:A TODO Approximate: Imperator has_office = office_high_priest_monarchy; EU5 clergy-estate character
+			# NOT = { is_friend = root.current_ruler }
+		}
+		always = no #P:A TODO No EU5 equivalent: the pretender must be the ruler's rival with more than 50 prominence, the priest must not be the ruler's friend, and option a only adds popularity and a friendship (EU5 characters have no rivals, friends, prominence or popularity)
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				# is_rival = root.current_ruler
+				is_eligible_heir = root #P:A TODO Approximate: Imperator is_pretender; EU5 is_eligible_heir who is not the ruler
+				is_ruler = no
+				# prominence > 50
+				NOT = {
+					has_estate = estate_type:clergy_estate
+				}
+				NOT = {
+					has_variable = powerful_pretender_monarchy_var
+				}
+			}
+			save_scope_as = powerful_pretender_monarchy
+			set_variable = powerful_pretender_monarchy_var
+		}
+		random_character = {
+			limit = {
+				has_estate = estate_type:clergy_estate #P:A TODO Approximate: Imperator has_office = office_high_priest_monarchy
+				# NOT = { is_friend = root.current_ruler }
+			}
+			save_scope_as = suggestible_priest
+		}
+	}
+
+	option = { # can't risk upsetting the high priest
+		name = monarchy_events.16.a
+		# scope:powerful_pretender_monarchy = { add_popularity = 10 add_friend = scope:suggestible_priest } # popularity_medium
+		#P:A TODO No EU5 equivalent: the pretender gains 10 popularity and befriends the priest (EU5 characters have no popularity or friends)
+	}
+
+	option = { # give the high priest a stern talking to
+		name = monarchy_events.16.b
+		pa_imp_remove_stability_effect = yes
+		# scope:suggestible_priest = { add_loyalty = loyalty_scolded_priest }
+		#P:A TODO No EU5 equivalent: the priest gets the loyalty_scolded_priest loyalty modifier (EU5 characters have no loyalty)
+	}
+}
+
+# The heir asks for a share of the responsibilities of rule
+monarchy_events.17 = {
+	type = country_event
+	title = monarchy_events.17.t
+	desc = monarchy_events.17.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		exists = ruler
+		any_character = {
+			is_heir = yes # Imperator is_primary_heir
+			is_child_of = root.ruler
+			age_in_years > 16
+			age_in_years < 30
+			NOT = {
+				has_variable = heir_groomed_for_rule
+			}
+		}
+		ruler = {
+			age_in_years > 30
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				is_heir = yes # Imperator is_primary_heir
+				is_child_of = root.ruler
+				age_in_years > 16
+				age_in_years < 30
+				NOT = {
+					has_variable = heir_groomed_for_rule
+				}
+			}
+			set_variable = heir_groomed_for_rule
+			save_scope_as = responsible_heir
+		}
+	}
+
+	option = { # give heir more responsibility
+		name = monarchy_events.17.a
+		# scope:responsible_heir = { add_prominence = 2 } # prominence_small
+		#P:A TODO No EU5 equivalent: +2 prominence for the heir (EU5 characters have no prominence)
+		hidden_effect = {
+			random_list = {
+				50 = {
+					trigger_event_non_silently = {
+						id = monarchy_events.18
+						days = { 60 120 }
+					}
+				}
+				50 = {
+					trigger_event_non_silently = {
+						id = monarchy_events.19
+						days = { 60 120 }
+					}
+				}
+			}
+		}
+	}
+
+	option = { # heir is not ready
+		name = monarchy_events.17.b
+		# scope:responsible_heir = { add_loyalty = loyalty_refused_responsibility }
+		#P:A TODO No EU5 equivalent: the heir gets the loyalty_refused_responsibility loyalty modifier (EU5 characters have no loyalty)
+	}
+}
+
+# The heir performs well with the responsibilities of state
+monarchy_events.18 = {
+	type = country_event
+	title = monarchy_events.18.t
+	desc = monarchy_events.18.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = scope:responsible_heir
+		scope:responsible_heir = {
+			is_heir = yes # Imperator is_primary_heir
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # this reflects well on both ruler and heir
+		trigger = {
+			scope:responsible_heir = {
+				pa_imp_total_stats_svalue <= 25
+			}
+		}
+		name = monarchy_events.18.a
+		add_legitimacy = 5 # legitimacy_medium
+		# scope:responsible_heir = { add_popularity = 5 add_prominence = 5 } # popularity_small, prominence_medium
+		#P:A TODO No EU5 equivalent: the heir gains 5 popularity and 5 prominence (EU5 characters have neither)
+	}
+
+	option = { # heir has done exceptionally well
+		trigger = {
+			scope:responsible_heir = {
+				pa_imp_total_stats_svalue > 25
+			}
+		}
+		name = monarchy_events.18.a
+		add_legitimacy = 10 # legitimacy_large
+		# scope:responsible_heir = { add_popularity = 10 add_prominence = 10 } # popularity_medium, prominence_large
+		#P:A TODO No EU5 equivalent: the heir gains 10 popularity and 10 prominence (EU5 characters have neither)
+	}
+}
+
+# The heir fails at the responsibilities of state
+monarchy_events.19 = {
+	type = country_event
+	title = monarchy_events.19.t
+	desc = monarchy_events.19.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		exists = scope:responsible_heir
+		scope:responsible_heir = {
+			is_heir = yes # Imperator is_primary_heir
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # this reflects poorly on both ruler and heir
+		trigger = {
+			scope:responsible_heir = {
+				pa_imp_total_stats_svalue < 20
+			}
+		}
+		name = monarchy_events.19.a
+		add_legitimacy = -5 # subtract_legitimacy_medium
+		# scope:responsible_heir = { add_popularity = -5 add_prominence = -5 } # subtract_popularity_small, subtract_prominence_medium
+		#P:A TODO No EU5 equivalent: the heir loses 5 popularity and 5 prominence (EU5 characters have neither)
+	}
+
+	option = { # heir is talented but failures can be attributed to bad luck/circumstance
+		trigger = {
+			scope:responsible_heir = {
+				pa_imp_total_stats_svalue >= 25
+			}
+		}
+		fallback = yes #P:A Added: in Invictus a heir with skills 20-24 and corruption below 20 matched no option; this mildest option is shown then
+		name = monarchy_events.19.b
+		add_legitimacy = -2 # subtract_legitimacy_small
+		# scope:responsible_heir = { add_popularity = -5 add_prominence = -2 } # subtract_popularity_small, subtract_prominence_small
+		#P:A TODO No EU5 equivalent: the heir loses 5 popularity and 2 prominence (EU5 characters have neither)
+	}
+
+	option = { # heir fails harder due to corruption
+		trigger = {
+			scope:responsible_heir = {
+				# corruption >= 20
+				always = no #P:A TODO No EU5 equivalent: shown when the heir has 20+ corruption (EU5 characters have no corruption)
+			}
+		}
+		name = monarchy_events.19.c
+		add_legitimacy = -10 # subtract_legitimacy_large
+		# scope:responsible_heir = { add_popularity = -10 add_prominence = -10 } # subtract_popularity_medium, subtract_prominence_large
+		#P:A TODO No EU5 equivalent: the heir loses 10 popularity and 10 prominence (EU5 characters have neither)
+	}
+}
+
+# A royal marriage could cement an alliance with a neighbouring monarchy
+monarchy_events.20 = {
+	type = country_event
+	title = monarchy_events.20.t
+	desc = monarchy_events.20.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		any_character = {
+			NOT = { is_eligible_heir = root } #P:A TODO Approximate: Imperator is_pretender = no (not a claimant to the throne); EU5 not an eligible heir
+			# is_governor = no #P:A Removed: EU5 has no governors, always true
+			is_female = yes
+			is_married = no
+			age_in_years < 30
+			age_in_years > 16
+		}
+		any_neighbor_country = { # check
+			government_type = government_type:monarchy
+			is_allied_with = { target = root } # Imperator alliance_with
+			any_character = {
+				is_heir = yes # Imperator is_primary_heir
+				is_female = no
+				is_married = no
+				age_in_years < 30
+				age_in_years > 16
+				# is_governor = no #P:A Removed: EU5 has no governors, always true
+			}
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				NOT = { is_eligible_heir = root } #P:A TODO Approximate: Imperator is_pretender = no; EU5 not an eligible heir
+				is_female = yes
+				is_married = no
+				age_in_years < 30
+				age_in_years > 16
+			}
+			save_scope_as = suitor_character
+		}
+		random_neighbor_country = {
+			limit = {
+				government_type = government_type:monarchy
+				is_allied_with = { target = root } # Imperator alliance_with
+				any_character = {
+					is_heir = yes # Imperator is_primary_heir
+					is_female = no
+					is_married = no
+					age_in_years < 30
+					age_in_years > 16
+				}
+			}
+			save_scope_as = allied_heir_country
+			random_character = {
+				limit = {
+					is_heir = yes # Imperator is_primary_heir
+					is_female = no
+					is_married = no
+					age_in_years < 30
+					age_in_years > 16
+				}
+				save_scope_as = allied_heir_character
+			}
+		}
+	}
+
+	option = {
+		name = monarchy_events.20.a
+		save_scope_as = suitor_country
+		scope:allied_heir_country = {
+			trigger_event_non_silently = {
+				id = monarchy_events.21
+				days = { 3 7 }
+			}
+		}
+		#P:A Fixed: Invictus fired monarchy_events.21 on this country itself, but its text and effects are written for the heir's country ("Our allies in [suitor_country] seek ..."), so it now goes to scope:allied_heir_country
+	}
+
+	option = {
+		name = monarchy_events.20.b
+		scope:allied_heir_country = {
+			add_opinion = {
+				target = root
+				modifier = minor_foreign_gift
+			}
+		}
+	}
+}
+
+# The heir's country answers the marriage proposal (fired by monarchy_events.20 on scope:allied_heir_country)
+monarchy_events.21 = {
+	type = country_event
+	title = monarchy_events.21.t
+	desc = monarchy_events.21.desc
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		exists = scope:allied_heir_character
+		scope:allied_heir_character = {
+			is_heir = yes # Imperator is_primary_heir
+			is_married = no
+		}
+	}
+
+	option = { # yes
+		name = monarchy_events.21.a
+		if = {
+			limit = {
+				NOT = {
+					scope:suitor_country = root
+				}
+			}
+			scope:suitor_country = {
+				add_opinion = {
+					target = root
+					modifier = opinion_royal_marriage
+				}
+			}
+		}
+		scope:suitor_character = {
+			move_country = root
+			# set_as_minor_character = this #P:A TODO No EU5 equivalent: the suitor becomes a minor character in the new country (EU5 has no minor characters)
+		}
+		scope:allied_heir_character = {
+			marry_character = scope:suitor_character
+		}
+		save_scope_as = monarchy_events_22_country
+		scope:suitor_country = {
+			trigger_event_non_silently = {
+				id = monarchy_events.22
+				days = { 3 7 }
+			}
+		}
+	}
+
+	option = { # no
+		name = monarchy_events.21.b
+		scope:suitor_country = {
+			trigger_event_non_silently = {
+				id = monarchy_events.23
+				days = { 3 7 }
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					scope:suitor_country = root
+				}
+			}
+			show_as_tooltip = {
+				scope:suitor_country = {
+					add_opinion = {
+						target = root
+						modifier = opinion_royal_marriage_refused
+					}
+				}
+			}
+		}
+	}
+}
+
+# The marriage proposal is accepted (fired on the suitor's country)
+monarchy_events.22 = {
+	type = country_event
+	title = monarchy_events.22.t
+	desc = monarchy_events.22.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	option = { # wish them well
+		name = monarchy_events.22.a
+		if = {
+			limit = {
+				NOT = {
+					scope:monarchy_events_22_country = root
+				}
+			}
+			scope:monarchy_events_22_country = {
+				add_opinion = {
+					target = root
+					modifier = opinion_royal_marriage
+				}
+			}
+		}
+		custom_tooltip = suitor_left_court_tooltip
+	}
+}
+
+# The marriage proposal is declined (fired on the suitor's country)
+monarchy_events.23 = {
+	type = country_event
+	title = monarchy_events.23.t
+	desc = monarchy_events.23.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	option = { # oh well
+		name = monarchy_events.23.a
+		add_opinion = {
+			target = scope:allied_heir_country
+			modifier = opinion_royal_marriage_refused
+		}
+	}
+}
+
+# A cult forms around the ruler's late parent, the previous ruler
+monarchy_events.24 = {
+	type = country_event
+	title = monarchy_events.24.t
+	desc = monarchy_events.24.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:theocracy #P:A TODO Approximate: Imperator government = theocratic_monarchy; EU5 has no sub-forms, the theocracy government type is used
+		NOT = {
+			OR = {
+				religion = religion:judaism
+				religion = religion:zoroastrian
+				religion = religion:hindu
+			}
+		}
+		exists = ruler
+		ruler = {
+			OR = {
+				AND = {
+					exists = father
+					exists = root.previous_ruler
+					# prominence >= 95 #P:A TODO No EU5 equivalent: the ruler must have 95+ prominence (EU5 characters have no prominence)
+					father = {
+						is_alive = no
+						this = root.previous_ruler # Imperator is_previous_ruler = yes
+					}
+				}
+				AND = {
+					exists = mother
+					exists = root.previous_ruler
+					this = root.previous_ruler # Imperator is_previous_ruler = yes, checked on the ruler as in Invictus (so this branch never passes there either)
+					# prominence >= 95
+					mother = {
+						is_alive = no
+						this = root.previous_ruler # Imperator is_previous_ruler = yes
+					}
+				}
+			}
+			# family = { prestige = 400 } #P:A TODO No EU5 equivalent: the ruler's family must have 400 prestige (EU5 dynasties have no prestige)
+			NOT = { has_variable = father_deification_flag }
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+			set_variable = father_deification_flag
+			if = {
+				limit = {
+					exists = mother
+					# employer = { gender_equality = yes }
+					always = no #P:A TODO No EU5 equivalent: the mother is deified instead when the country has gender equality (EU5 has no such law)
+					# prominence >= 95
+					mother = {
+						is_alive = no
+						this = root.previous_ruler # Imperator is_previous_ruler = yes
+					}
+				}
+				mother = {
+					save_scope_as = deified_father_scope
+				}
+			}
+			else = {
+				father = {
+					save_scope_as = deified_father_scope
+				}
+			}
+		}
+	}
+
+	option = {
+		name = monarchy_events.24.a
+		add_legitimacy = 10 # legitimacy_large
+	}
+
+	option = {
+		name = monarchy_events.24.b
+		add_legitimacy = 5 # legitimacy_medium
+		# current_ruler = { family = { add_prestige = 50 } }
+		#P:A TODO No EU5 equivalent: +50 prestige for the ruler's family (EU5 dynasties have no prestige)
+	}
+}
+
+# The ruler, child of a deified parent, considers proclaiming their own divinity
+monarchy_events.25 = {
+	type = country_event
+	title = monarchy_events.25.t
+	desc = monarchy_events.25.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		OR = { # Imperator is_monarchy = yes; the Imperator theocratic_monarchy counted as a monarchy
+			government_type = government_type:monarchy
+			government_type = government_type:theocracy
+		}
+		NOT = {
+			OR = {
+				religion = religion:judaism
+				religion = religion:zoroastrian
+				religion = religion:hindu
+			}
+		}
+		# NOT = { government = imperial_cult } #P:A TODO No EU5 equivalent: not for the Imperator "imperial cult" government form (EU5 has no government sub-forms)
+		OR = {
+			government_type = government_type:theocracy #P:A TODO Approximate: Imperator government = theocratic_monarchy; EU5 theocracy government type
+			# ruler = { has_trait = proud } #P:A TODO No EU5 equivalent: or the ruler has the Imperator trait "proud"
+		}
+		exists = ruler
+		ruler = {
+			# prominence >= 95 #P:A TODO No EU5 equivalent: the ruler must have 95+ prominence (EU5 characters have no prominence)
+			NOT = { has_variable = deification_flag }
+			NOT = { has_trait = humble }
+			# NOT = { has_trait = wise } #P:A TODO No EU5 equivalent: Imperator trait "wise"
+			has_variable = father_deification_flag
+		}
+		stability > 1
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+			set_variable = deification_flag
+		}
+	}
+
+	option = { # i am a god!
+		name = monarchy_events.25.a
+		pa_imp_add_stability_effect = yes
+		# add_political_influence = 15 # influence_medium
+		#P:A TODO No EU5 equivalent: +15 political influence (EU5 has no political influence)
+		add_legitimacy = -20 # subtract_legitimacy_large
+		ruler = {
+			add_character_modifier = {
+				modifier = self_proclaimed_deity
+				days = -1
+			}
+			# if = { limit = { NOT = { has_trait = proud } } add_trait = proud }
+			#P:A TODO No EU5 equivalent: the ruler gains the Imperator trait "proud"
+		}
+	}
+
+	option = { # this is going too far
+		name = monarchy_events.25.b
+		add_legitimacy = 2 # legitimacy_small
+	}
+}
+
+# A disloyal heir (starts the heir loyalty chain monarchy_events.28-35)
+monarchy_events.27 = {
+	type = country_event
+	title = monarchy_events.27.t
+	desc = monarchy_events.27.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		any_character = {
+			is_heir = yes # Imperator is_primary_heir
+			# loyalty < 50
+			is_adult = yes
+			# prisoner = no #P:A Removed: prisoner = no is always true in EU5
+		}
+		NOT = { has_variable = monarchy_events_27_cooldown }
+		always = no #P:A TODO No EU5 equivalent: the heir must have loyalty below 50 (EU5 characters have no loyalty); the whole chain (.28-.35) only moves the heir's loyalty, prominence and popularity
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				is_heir = yes # Imperator is_primary_heir
+			}
+			save_scope_as = primary_heir
+		}
+		hidden_effect = {
+			set_variable = {
+				name = monarchy_events_27_cooldown
+				days = 3650
+			}
+		}
+	}
+
+	option = { # Inspire Loyalty in the heir
+		name = monarchy_events.27.a
+		custom_tooltip = monarchy_events.27.a.custom
+		trigger_event_non_silently = {
+			id = monarchy_events.28
+			days = { 10 15 }
+		}
+	}
+
+	option = { # Try to undermine the heir
+		name = monarchy_events.27.b
+		custom_tooltip = monarchy_events.27.b.custom
+		trigger_event_non_silently = {
+			id = monarchy_events.33
+			days = { 10 15 }
+		}
+	}
+
+	option = { # Who even cares about the heir though ... ?
+		name = monarchy_events.27.c
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Heir loyalty chain: how to win the heir over (from monarchy_events.27)
+monarchy_events.28 = {
+	type = country_event
+	title = monarchy_events.28.t
+	desc = monarchy_events.28.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = scope:primary_heir
+		scope:primary_heir = { is_heir = yes } # Imperator is_primary_heir
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = { # Spend treasury to impress heir
+		name = monarchy_events.28.a
+		custom_tooltip = monarchy_events.28.a.tt
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		hidden_effect = {
+			random_list = {
+				10 = {
+					modifier = {
+						factor = 2
+						scope:primary_heir = {
+							pa_imp_char_is_decent_trigger = yes
+						}
+					}
+					trigger_event_non_silently = {
+						id = monarchy_events.29
+						days = { 5 10 }
+					}
+				}
+				6 = {
+					modifier = {
+						factor = 2
+						scope:primary_heir = {
+							pa_imp_char_is_bad_leader_trigger = yes
+						}
+					}
+					trigger_event_non_silently = {
+						id = monarchy_events.30
+						days = { 5 10 }
+					}
+				}
+			}
+		}
+	}
+
+	option = { # Spend prominence to make heir more popular
+		name = monarchy_events.28.b
+		custom_tooltip = monarchy_events.28.b.tt
+		# ruler = { add_popularity = -10 } # subtract_popularity_medium
+		#P:A TODO No EU5 equivalent: the ruler loses 10 popularity (EU5 characters have no popularity)
+		hidden_effect = {
+			random_list = {
+				10 = {
+					modifier = {
+						factor = 2
+						scope:primary_heir = {
+							pa_imp_char_is_good_leader_trigger = yes
+						}
+					}
+					trigger_event_non_silently = {
+						id = monarchy_events.31
+						days = { 5 10 }
+					}
+				}
+				6 = {
+					modifier = {
+						factor = 2
+						scope:primary_heir = {
+							pa_imp_char_is_bad_leader_trigger = yes
+						}
+					}
+					trigger_event_non_silently = {
+						id = monarchy_events.32
+						days = { 5 10 }
+					}
+				}
+			}
+		}
+	}
+}
+
+# Heir loyalty chain: the gold wins the heir over
+monarchy_events.29 = {
+	type = country_event
+	title = monarchy_events.29.t
+	desc = monarchy_events.29.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = scope:primary_heir
+		scope:primary_heir = { is_heir = yes } # Imperator is_primary_heir
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = monarchy_events.29.a
+		# scope:primary_heir = { add_loyalty = loyalty_grateful_heir add_prominence = 10 } # prominence_large
+		#P:A TODO No EU5 equivalent: the heir gains loyalty (loyalty_grateful_heir) and 10 prominence (EU5 characters have neither)
+	}
+}
+
+# Heir loyalty chain: the heir squanders the gold and stays disloyal
+monarchy_events.30 = {
+	type = country_event
+	title = monarchy_events.30.t
+	desc = monarchy_events.30.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = scope:primary_heir
+		scope:primary_heir = { is_heir = yes } # Imperator is_primary_heir
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		# hidden_effect = { scope:primary_heir = { add_gold = { subtract = root.has_monthly_income multiply = 6 floor = yes max = -20 min = -2000 } } }
+		#P:A TODO No EU5 equivalent: changes the heir's personal wealth by 6 months of the country's income (EU5 characters have no personal gold)
+	}
+
+	option = {
+		name = monarchy_events.30.a
+		# scope:primary_heir = { add_loyalty = loyalty_ungrateful_heir add_prominence = -10 } # subtract_prominence_large
+		#P:A TODO No EU5 equivalent: the heir loses loyalty (loyalty_ungrateful_heir) and 10 prominence (EU5 characters have neither)
+	}
+}
+
+# Heir loyalty chain: the heir becomes prominent at court
+monarchy_events.31 = {
+	type = country_event
+	title = monarchy_events.31.t
+	desc = monarchy_events.31.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = scope:primary_heir
+		scope:primary_heir = { is_heir = yes } # Imperator is_primary_heir
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = monarchy_events.31.a
+		# ruler = { add_popularity = 5 } # popularity_small
+		# scope:primary_heir = { add_loyalty = loyalty_grateful_heir add_prominence = 10 } # prominence_large
+		#P:A TODO No EU5 equivalent: the ruler gains 5 popularity, the heir gains loyalty (loyalty_grateful_heir) and 10 prominence (EU5 characters have no popularity, loyalty or prominence)
+	}
+}
+
+# Heir loyalty chain: the heir embarrasses everyone at court
+monarchy_events.32 = {
+	type = country_event
+	title = monarchy_events.32.t
+	desc = monarchy_events.32.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = scope:primary_heir
+		scope:primary_heir = { is_heir = yes } # Imperator is_primary_heir
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = monarchy_events.32.a
+		# ruler = { add_prominence = -2 } # subtract_prominence_small
+		# scope:primary_heir = { add_loyalty = loyalty_incompetent_heir add_prominence = -20 } # subtract_prominence_huge
+		#P:A TODO No EU5 equivalent: the ruler loses 2 prominence, the heir loses loyalty (loyalty_incompetent_heir) and 20 prominence (EU5 characters have no loyalty or prominence)
+	}
+}
+
+# Heir loyalty chain: undermining the disloyal heir (from monarchy_events.27)
+monarchy_events.33 = {
+	type = country_event
+	title = monarchy_events.33.t
+	desc = monarchy_events.33.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = scope:primary_heir
+		scope:primary_heir = { is_heir = yes } # Imperator is_primary_heir
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				is_eligible_heir = root #P:A TODO Approximate: Imperator is_pretender (a claimant to the throne); EU5 is_eligible_heir who is not the ruler
+				is_ruler = no
+				NOT = { this = scope:primary_heir }
+			}
+			save_scope_as = other_heir
+		}
+	}
+
+	option = { # Make the heir more unpopular, and blame it on someone else
+		name = monarchy_events.33.a
+		custom_tooltip = monarchy_events.33.a.tt
+		# add_political_influence = -25 # subtract_influence_large
+		#P:A TODO No EU5 equivalent: costs 25 political influence (EU5 has no political influence)
+		hidden_effect = {
+			random_list = {
+				10 = {
+					modifier = {
+						factor = 2
+						scope:primary_heir = {
+							pa_imp_char_is_bad_leader_trigger = yes
+						}
+					}
+					trigger_event_non_silently = {
+						id = monarchy_events.34
+						days = { 5 10 }
+					}
+				}
+				8 = {
+					modifier = {
+						factor = 2
+						scope:primary_heir = {
+							pa_imp_char_is_paranoid_trigger = yes
+						}
+					}
+					trigger_event_non_silently = {
+						id = monarchy_events.35
+						days = { 5 10 }
+					}
+				}
+			}
+		}
+	}
+
+	option = { # Find another potential heir to groom
+		name = monarchy_events.33.b
+		trigger = {
+			exists = scope:other_heir # Imperator any_character = { THIS = scope:other_heir }
+		}
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 12
+			floor = yes
+			max = -20
+			min = -4000
+		}
+		# scope:primary_heir = { add_rival = scope:other_heir }
+		# scope:other_heir = { add_loyalty = loyalty_favored_heir add_popularity = 10 add_prominence = 20 } # popularity_medium, prominence_huge
+		#P:A TODO No EU5 equivalent: the heir and the other claimant become rivals; the other claimant gains loyalty (loyalty_favored_heir), 10 popularity and 20 prominence (EU5 characters have no rivals, loyalty, popularity or prominence)
+	}
+
+	option = { # Regret, and do neither
+		name = monarchy_events.33.c
+		custom_tooltip = no_effect_tooltip
+	}
+}
+
+# Heir loyalty chain: the heir is put to shame
+monarchy_events.34 = {
+	type = country_event
+	title = monarchy_events.34.t
+	desc = monarchy_events.34.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = scope:primary_heir
+		scope:primary_heir = { is_heir = yes } # Imperator is_primary_heir
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = monarchy_events.34.a
+		# scope:primary_heir = { add_loyalty = loyalty_shamed_heir add_prominence = -20 } # subtract_prominence_huge
+		#P:A TODO No EU5 equivalent: the heir loses loyalty (loyalty_shamed_heir) and 20 prominence (EU5 characters have neither)
+	}
+}
+
+# Heir loyalty chain: the shaming backfires on the ruler
+monarchy_events.35 = {
+	type = country_event
+	title = monarchy_events.35.t
+	desc = monarchy_events.35.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = scope:primary_heir
+		scope:primary_heir = { is_heir = yes } # Imperator is_primary_heir
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+	}
+
+	option = {
+		name = monarchy_events.35.a
+		# root.current_ruler = { add_popularity = -5 add_prominence = -20 } # subtract_popularity_small, subtract_prominence_huge
+		# scope:primary_heir = { add_prominence = 5 add_loyalty = loyalty_shamed_heir } # prominence_medium
+		#P:A TODO No EU5 equivalent: the ruler loses 5 popularity and 20 prominence, the heir gains 5 prominence and loses loyalty (loyalty_shamed_heir); EU5 characters have no popularity, prominence or loyalty
+	}
+}
+
+# The ruler has no son; the spouse urges that their daughter be allowed to inherit
+monarchy_events.38 = {
+	type = country_event
+	title = monarchy_events.38.t
+	desc = monarchy_events.38.desc
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		# NOR = { has_law = cognatic_succession_law has_law = egyption_succession_law }
+		exists = succession_law #P:A TODO Approximate: Imperator required a succession law other than cognatic/Egyptian (no female heirs); EU5 checks below that the daughter is not a valid gender for the current heir selection
+		exists = ruler
+		ruler = {
+			NOT = {
+				any_child = {
+					is_female = no
+				}
+			}
+			is_married = yes
+			any_spouse = { # Imperator spouse
+				is_alive = yes
+				any_child = {
+					is_female = yes
+					is_child_of = root.ruler # Imperator father = root.current_ruler
+					NOT = { valid_gender_for_heir_selection = root.succession_law }
+				}
+			}
+		}
+		NOT = { has_variable = monarchy_events_38_cooldown }
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+			random_spouse = {
+				limit = {
+					is_alive = yes
+					any_child = {
+						is_female = yes
+						is_child_of = root.ruler
+					}
+				}
+				save_scope_as = ruler_spouse
+			}
+		}
+		hidden_effect = {
+			set_variable = {
+				name = monarchy_events_38_cooldown
+				days = 7300
+			}
+		}
+	}
+
+	option = {
+		name = monarchy_events.38.a
+		change_heir_selection = heir_selection:cognatic_primogeniture #P:A TODO Approximate: Imperator change_law = cognatic_succession_law; EU5 cognatic primogeniture heir selection
+		# add_political_influence = -25 # subtract_influence_large
+		# current_ruler = { add_prominence = -20 } # subtract_prominence_huge
+		# scope:ruler_spouse = { add_loyalty = loyalty_female_heir_approved }
+		#P:A TODO No EU5 equivalent: costs 25 political influence and 20 ruler prominence; the spouse gains loyalty (loyalty_female_heir_approved); EU5 has no political influence, prominence or loyalty
+	}
+
+	option = {
+		name = monarchy_events.38.b
+		# scope:ruler_spouse = { add_loyalty = loyalty_female_heir_rejected add_prominence = -5 } # subtract_prominence_medium
+		#P:A TODO No EU5 equivalent: the spouse loses loyalty (loyalty_female_heir_rejected) and 5 prominence (EU5 characters have neither)
+	}
+}
+
+# Pirates raid one of our ports
+monarchy_events.39 = {
+	type = country_event
+	title = monarchy_events.39.t
+	desc = monarchy_events.39.desc
+	outcome = negative
+	illustration_tags = {
+		10 = exterior
+		10 = armed
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		num_of_ports >= 1
+		navy_size >= 30 # Imperator num_of_ships
+		# NOT = { has_law = antipiracy_edict } #P:A TODO No EU5 equivalent: not if the country already has the Imperator "anti-piracy edict" law (EU5 laws differ)
+		NOT = { has_variable = monarchy_events_39_cooldown }
+		any_character = {
+			OR = { #P:A TODO Approximate: Imperator has_office = office_marshal (court office); EU5 has no offices, so a general or admiral
+				is_general = yes
+				is_admiral = yes
+			}
+		}
+		any_owned_location = {
+			is_port = yes
+		}
+	}
+
+	immediate = {
+		random_character = {
+			limit = {
+				OR = { #P:A TODO Approximate: Imperator has_office = office_marshal; EU5 general or admiral
+					is_general = yes
+					is_admiral = yes
+				}
+			}
+			weight = {
+				base = 1
+				modifier = {
+					factor = 3
+					is_admiral = yes
+				}
+			}
+			save_scope_as = character_marshal
+		}
+		random_owned_location = {
+			limit = {
+				is_port = yes # Imperator num_of_port_building >= 1
+			}
+			save_scope_as = random_port_province
+		}
+		hidden_effect = {
+			set_variable = {
+				name = monarchy_events_39_cooldown
+				days = 1825
+			}
+		}
+	}
+
+	option = { # Change law
+		name = monarchy_events.39.a
+		# change_law = antipiracy_edict
+		# scope:character_marshal = { add_loyalty = loyalty_pirates_outlawed }
+		# add_political_influence = -50 # subtract_influence_huge
+		#P:A TODO No EU5 equivalent: enacts the Imperator "anti-piracy edict" law for 50 political influence; the marshal gains loyalty (loyalty_pirates_outlawed); EU5 has no such law, political influence or loyalty
+	}
+
+	option = { # Military power solution
+		name = monarchy_events.39.b
+		# scope:character_marshal = { add_popularity = 25 } # popularity_huge
+		#P:A TODO No EU5 equivalent: the marshal gains 25 popularity (EU5 characters have no popularity)
+		pa_imp_subtract_manpower_effect_10 = yes
+	}
+
+	option = { # Let them run amok
+		name = monarchy_events.39.c
+		# scope:character_marshal = { add_loyalty = loyalty_pirates_tolerated }
+		#P:A TODO No EU5 equivalent: the marshal gets the loyalty_pirates_tolerated loyalty modifier (EU5 characters have no loyalty)
+		scope:random_port_province = {
+			add_location_modifier = {
+				modifier = province_unrest_pirate
+				days = 5475
+			}
+		}
+	}
+}
+
+# The disloyal master of the guard
+monarchy_events.40 = {
+	type = country_event
+	title = monarchy_events.40.t
+	desc = monarchy_events.40.desc
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		# any_character = { has_office = office_master_of_the_guard loyalty < 50 }
+		always = no #P:A TODO No EU5 equivalent: needs a master of the guard (court office) with loyalty below 50; EU5 has no offices or character loyalty, and the options mostly change that loyalty
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_character = {
+			limit = {
+				in_cabinet = yes #P:A TODO Approximate: Imperator has_office = office_master_of_the_guard with loyalty below 50; EU5 cabinet member
+			}
+			save_scope_as = character_master_guard
+		}
+	}
+
+	option = { # Remove him from office
+		name = monarchy_events.40.a
+		scope:character_master_guard = {
+			pa_imp_remove_all_positions = yes #P:A TODO Approximate: Imperator remove_office = office_master_of_the_guard; EU5 removes the character from the cabinet
+			# add_loyalty = loyalty_removed_office
+			# add_prominence = -5 # subtract_prominence_medium
+			#P:A TODO No EU5 equivalent: the guard loses loyalty (loyalty_removed_office) and 5 prominence (EU5 characters have neither)
+		}
+	}
+
+	option = { # Appease him/her with gold
+		name = monarchy_events.40.b
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 6
+			floor = yes
+			max = -20
+			min = -2000
+		}
+		# scope:character_master_guard = { if = { limit = { char_is_bad_leader_trigger = yes } add_loyalty = loyalty_gift_bribe_2 } else = { add_loyalty = loyalty_gift_bribe_1 } }
+		#P:A TODO No EU5 equivalent: the guard gains loyalty (loyalty_gift_bribe_2 if a bad leader, else loyalty_gift_bribe_1); EU5 characters have no loyalty
+		# hidden_effect = { scope:character_master_guard = { add_gold = { value = root.has_monthly_income multiply = 6 } } }
+		#P:A TODO No EU5 equivalent: the guard receives the gold as personal wealth (EU5 characters have no personal gold)
+	}
+
+	option = { # Let him / her stay as guard
+		name = monarchy_events.40.c
+		# root.current_ruler = { add_popularity = -10 } # subtract_popularity_medium
+		#P:A TODO No EU5 equivalent: the ruler loses 10 popularity (EU5 characters have no popularity)
+	}
+}
+
+# Citizens want to move to a neighbouring allied country
+monarchy_events.41 = {
+	type = country_event
+	title = monarchy_events.41.t
+	desc = monarchy_events.41.desc
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		NOT = { has_variable = monarchy_events_41_cooldown }
+		any_owned_location = {
+			any_neighbor_location = {
+				exists = owner
+				owner = {
+					is_allied_with = { target = root } # Imperator alliance_with
+				}
+			}
+			any_pop = {
+				pop_type = pop_type:burghers # Imperator citizen
+			}
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_owned_location = { # Find owned province for citizens to travel from
+			limit = {
+				any_neighbor_location = {
+					exists = owner
+					owner = {
+						is_allied_with = { target = root }
+					}
+				}
+				any_pop = {
+					pop_type = pop_type:burghers
+				}
+			}
+			save_scope_as = randomized_country_province
+			random_neighbor_location = { # Find neighbor province for citizens to travel to
+				limit = {
+					exists = owner
+					owner = {
+						is_allied_with = { target = root }
+					}
+				}
+				save_scope_as = randomized_neighbor_province
+				owner = {
+					save_scope_as = allied_neighbor
+				}
+			}
+		}
+		root = {
+			save_scope_as = original_country
+		}
+		hidden_effect = {
+			set_variable = {
+				name = monarchy_events_41_cooldown
+				days = 3650
+			}
+		}
+	}
+
+	option = { # Let citizens go to allied country
+		name = monarchy_events.41.a
+		scope:randomized_country_province = {
+			random_pop = { #P:A TODO Approximate: Imperator move_pop moved one whole citizen pop to the allied location; EU5 splits off size 1 (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					pop_type = pop_type:burghers # Imperator citizen
+				}
+				weight = {
+					base = 1
+					modifier = {
+						factor = 3
+						religion = root.religion
+					}
+					modifier = {
+						factor = 3
+						culture = root.culture
+					}
+				}
+				split_pop = {
+					size = 1
+					location = scope:randomized_neighbor_province
+				}
+			}
+		}
+		scope:allied_neighbor = {
+			add_opinion = {
+				modifier = opinion_close_allies
+				target = root
+			}
+		}
+		hidden_effect = {
+			scope:allied_neighbor = {
+				trigger_event_non_silently = {
+					id = monarchy_events.42
+					days = { 5 10 }
+				}
+			}
+		}
+	}
+
+	option = { # Make sure the citizens stick around in ROOT country by military force
+		name = monarchy_events.41.b
+		# add_tyranny = 1 # tyranny_small
+		#P:A TODO No EU5 equivalent: +1 tyranny (EU5 has no tyranny)
+	}
+
+	option = { # Build up province they travel from, to make them refrain from traveling
+		name = monarchy_events.41.c
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 4
+			min = -6000
+		}
+		scope:randomized_country_province = {
+			add_location_modifier = {
+				modifier = province_improvements_monarchy
+				days = 3650
+			}
+		}
+	}
+}
+
+# The allied country receives the migrating citizens (fired by monarchy_events.41 on scope:allied_neighbor)
+monarchy_events.42 = {
+	type = country_event
+	title = monarchy_events.42.t
+	desc = monarchy_events.42.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		scope:original_country = {
+			if = {
+				limit = { exists = ruler }
+				ruler = {
+					save_scope_as = original_country_ruler
+				}
+			}
+		}
+	}
+
+	option = { # Send a recompensation gift
+		name = monarchy_events.42.a
+		add_gold = {
+			value = 0
+			subtract = root.monthly_income_total
+			multiply = 4
+			min = -6000
+		}
+		scope:original_country = {
+			add_opinion = {
+				modifier = opinion_close_allies
+				target = root
+			}
+		}
+		hidden_effect = {
+			scope:original_country = {
+				trigger_event_non_silently = {
+					id = monarchy_events.43
+					days = { 5 10 }
+				}
+			}
+		}
+	}
+
+	option = { # Accept the citizens and move on with your life
+		name = monarchy_events.42.b
+	}
+}
+
+# The ally sends gold in thanks for the citizens (fired by monarchy_events.42 on scope:original_country)
+monarchy_events.43 = {
+	type = country_event
+	title = monarchy_events.43.t
+	desc = monarchy_events.43.desc
+	outcome = positive
+	illustration_tags = {
+		10 = interior
+		10 = happy
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		scope:allied_neighbor = {
+			if = {
+				limit = { exists = ruler }
+				ruler = {
+					save_scope_as = allied_neighbor_ruler
+				}
+			}
+		}
+	}
+
+	option = {
+		name = monarchy_events.43.a
+		add_gold = {
+			value = scope:allied_neighbor.monthly_income_total
+			multiply = 10
+			max = 5000
+		}
+	}
+}
+
+# The people of a city raise a statue of the king
+monarchy_events.44 = {
+	type = country_event
+	title = monarchy_events.44.t
+	desc = monarchy_events.44.desc
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		government_type = government_type:monarchy
+		exists = ruler
+		ruler = {
+			is_female = no
+		}
+		any_owned_location = {
+			# province_unrest <= 0 #P:A TODO No EU5 equivalent: the location must have no unrest (EU5 has no location unrest value)
+			NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+			NOR = {
+				has_location_modifier = province_improvement_statue
+				has_location_modifier = province_diminishment_statue
+			}
+		}
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		random_owned_location = {
+			limit = {
+				# province_unrest = 0
+				NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+				NOR = {
+					has_location_modifier = province_improvement_statue
+					has_location_modifier = province_diminishment_statue
+				}
+			}
+			save_scope_as = randomized_country_province
+		}
+	}
+
+	option = {
+		name = monarchy_events.44.a
+		# ruler = { add_popularity = -10 } # subtract_popularity_medium
+		#P:A TODO No EU5 equivalent: the ruler loses 10 popularity (EU5 characters have no popularity)
+		scope:randomized_country_province = {
+			add_location_modifier = {
+				modifier = province_improvement_statue
+				days = 3650
+			}
+		}
+	}
+
+	option = {
+		name = monarchy_events.44.b
+		scope:randomized_country_province = {
+			add_location_modifier = {
+				modifier = province_diminishment_statue
+				days = 3650
+			}
+		}
+	}
+}
+
+# Hidden AI helper: regional-power AI monarchies enact the "work for the best" law (disabled in Invictus itself)
+monarchy_events.100 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no # disabled in Invictus
+		is_ai = yes
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:monarchy
+		# NOT = { has_law = standing_army_law }
+		# NOT = { has_law = work_for_the_best }
+		# rank >= 3 # regional_power
+		#P:A TODO No EU5 equivalent: Imperator military laws (standing_army_law, work_for_the_best) and country rank; EU5 laws differ
+	}
+
+	immediate = {
+		# pay_price = enact_law
+		# change_law = work_for_the_best
+		#P:A TODO No EU5 equivalent: pays the law-change price and enacts the Imperator military law "work for the best" (EU5 laws differ)
+	}
+}
+
+# Hidden AI helper: AI monarchies with the discipline invention enact the standing army law (disabled in Invictus itself)
+monarchy_events.101 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		always = no # disabled in Invictus
+		is_ai = yes
+		exists = capital # Imperator has_land = yes
+		government_type = government_type:monarchy
+		# NOT = { has_law = standing_army_law }
+		# invention = discipline_inv_5
+		#P:A TODO No EU5 equivalent: Imperator military law standing_army_law and the invention discipline_inv_5 (EU5 has different laws and no inventions)
+	}
+
+	immediate = {
+		# pay_price = enact_law
+		# change_law = standing_army_law
+		#P:A TODO No EU5 equivalent: pays the law-change price and enacts the Imperator military law "standing army" (EU5 laws differ)
+	}
+}
+
+# Hidden: a hostile neighbouring power pledges support to a pretender (announced by monarchy_events.103)
+monarchy_events.102 = {
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		government_type = government_type:monarchy
+		in_civil_war = no # Imperator has_civil_war = no
+		NOT = {
+			has_variable = someone_was_supported
+		}
+		any_neighbor_country = {
+			country_rank_level >= 3 #P:A TODO Approximate: Imperator rank >= regional_power; EU5 kingdom rank or higher
+			at_war = no
+			in_civil_war = no
+			# is_antagonist = yes #P:A TODO No EU5 equivalent: the neighbour must have the Imperator "antagonist" AI personality
+			is_ai = yes
+			NOT = {
+				has_variable = supporting_someone
+			}
+		}
+		any_character = {
+			is_adult = yes
+			is_ruler = no
+			is_eligible_heir = root #P:A TODO Approximate: Imperator is_pretender (a claimant to the throne); EU5 is_eligible_heir who is not the ruler
+			is_heir = no # Imperator is_primary_heir = no
+			# loyalty <= 50 #P:A TODO No EU5 equivalent: only claimants with loyalty 50 or less are supported (EU5 characters have no loyalty)
+		}
+		NOT = {
+			any_character = {
+				has_variable = successor_support_ci
+			}
+		}
+	}
+
+	immediate = {
+		set_variable = {
+			name = someone_was_supported
+			days = 7300
+		}
+		random_neighbor_country = {
+			limit = {
+				country_rank_level >= 3 #P:A TODO Approximate: Imperator rank >= regional_power; EU5 kingdom rank or higher
+				at_war = no
+				in_civil_war = no
+				# is_antagonist = yes
+				is_ai = yes
+				NOT = {
+					has_variable = supporting_someone
+				}
+			}
+			set_variable = {
+				name = supporting_someone
+				days = 3650
+			}
+			save_scope_as = supporting_country
+		}
+		random_character = {
+			limit = {
+				is_adult = yes
+				is_ruler = no
+				is_eligible_heir = root #P:A TODO Approximate: Imperator is_pretender; EU5 is_eligible_heir who is not the ruler
+				is_heir = no # Imperator is_primary_heir = no
+				# loyalty <= 50
+			}
+			save_scope_as = supported_pretender
+			# add_loyalty = loyalty_pretender_support_ci #P:A TODO No EU5 equivalent: the pretender gets the loyalty_pretender_support_ci loyalty modifier (EU5 characters have no loyalty)
+			set_variable = {
+				name = successor_support_ci
+				value = scope:supporting_country
+				days = 1850
+			}
+			#P:A TODO Invictus read successor_support_ci in events/warfare_events.txt (the supporting country backs the pretender in a civil war); check whether that event was imported, otherwise nothing in EU5 reads it
+		}
+		trigger_event_non_silently = {
+			id = monarchy_events.103
+		}
+	}
+}
+
+# A foreign power pledges support to a pretender (fired by monarchy_events.102)
+monarchy_events.103 = {
+	type = country_event
+	title = monarchy_events.103.t
+	desc = monarchy_events.103.desc
+	outcome = negative
+	illustration_tags = {
+		10 = interior
+		10 = angry
+	}
+
+	immediate = {
+		ruler = {
+			save_scope_as = pa_ruler
+		}
+		scope:supporting_country = {
+			if = {
+				limit = { exists = ruler }
+				ruler = {
+					save_scope_as = supporting_country_ruler
+				}
+			}
+		}
+	}
+
+	option = {
+		name = monarchy_events.103.a
+		add_legitimacy = -5
+	}
+}

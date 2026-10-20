@@ -1,0 +1,789 @@
+﻿#P:A Imported from Invictus: events/state_improvement.txt
+#P:A TODO goto_location has no EU5 equivalent; dropped from every event in this file
+# Imperator states are EU5 provinces; Imperator state events are location events on the province capital (GUIDE 4.1).
+namespace = state_improvement
+#P:A TODO No EU5 caller: state_improvement.1-4, 10, 11, 19, 21, 23 and 25 were fired by the Imperator "invest in state" scripted GUI buttons (and invest_in_state_button_effect), state_improvement.5 by the "increase civilization cap" button; EU5 has neither. The caller saved the Imperator state as scope:state_improvement_target (EU5: the province); they are location events on the province capital.
+
+# Hidden: military investment in a province (Imperator state).
+state_improvement.1 = { #Military
+	type = location_event
+	hidden = yes
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		province = {
+			add_province_modifier = {
+				modifier = state_improvement_military
+				days = -1
+				mode = add
+			}
+		}
+		owner = {
+			trigger_event_non_silently = { id = state_improvement.12 }
+		}
+		province = {
+			pa_imp_increment_state_investment_count = yes
+		}
+	}
+}
+
+# Hidden: civic investment in a province (Imperator state).
+state_improvement.2 = { #Civic
+	type = location_event
+	hidden = yes
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		province = {
+			add_province_modifier = {
+				modifier = state_improvement_civic
+				days = -1
+				mode = add
+			}
+		}
+		owner = {
+			trigger_event_non_silently = { id = state_improvement.13 }
+		}
+		province = {
+			pa_imp_increment_state_investment_count = yes
+		}
+	}
+}
+
+# Hidden: oratory (commercial) investment in a province (Imperator state); counts trade investments for an Imperator capital trade mission.
+state_improvement.3 = { #Oratory
+	type = location_event
+	hidden = yes
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		province = {
+			# Counter read by the Imperator mission task that set capital_trade_mission_ongoing (no EU5 caller sets it)
+			if = {
+				limit = {
+					root.owner = {
+						has_variable = capital_trade_mission_ongoing
+					}
+					NOT = { has_variable = trade_routes_added }
+				}
+				set_variable = {
+					name = trade_routes_added
+					value = 1
+				}
+			}
+			else_if = {
+				limit = {
+					root.owner = {
+						has_variable = capital_trade_mission_ongoing
+					}
+					has_variable = trade_routes_added
+				}
+				change_variable = {
+					name = trade_routes_added
+					add = 1
+				}
+			}
+			add_province_modifier = {
+				modifier = state_improvement_oratory
+				days = -1
+				mode = add
+			}
+		}
+		owner = {
+			trigger_event_non_silently = { id = state_improvement.14 }
+		}
+		province = {
+			pa_imp_increment_state_investment_count = yes
+		}
+	}
+}
+
+# Hidden: religious investment in a province (Imperator state); counts endowments for an Imperator shrine mission.
+state_improvement.4 = { #Religious
+	type = location_event
+	hidden = yes
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		province = {
+			add_province_modifier = {
+				modifier = state_improvement_religious
+				days = -1
+				mode = add
+			}
+			hidden_effect = {
+				# Counter read by the Imperator mission task that set shrine_mission_ongoing (no EU5 caller sets it)
+				if = {
+					limit = {
+						root.owner = {
+							has_variable = shrine_mission_ongoing
+						}
+						NOT = { has_variable = endowments_made }
+					}
+					set_variable = {
+						name = endowments_made
+						value = 1
+					}
+				}
+				else_if = {
+					limit = {
+						root.owner = {
+							has_variable = shrine_mission_ongoing
+						}
+						has_variable = endowments_made
+					}
+					change_variable = {
+						name = endowments_made
+						add = 1
+					}
+				}
+			}
+		}
+		owner = {
+			trigger_event_non_silently = { id = state_improvement.15 }
+		}
+		province = {
+			pa_imp_increment_state_investment_count = yes
+		}
+	}
+}
+
+# Hidden: investment in a city's civilization (stacking location modifier).
+state_improvement.5 = { #City level civilization
+	type = location_event
+	hidden = yes
+
+	trigger = { exists = owner }
+
+	immediate = {
+		save_scope_as = local_civilization_target
+		add_location_modifier = {
+			modifier = local_civilization_pmod_stack
+			days = -1
+			mode = add
+		}
+		owner = {
+			trigger_event_non_silently = { id = state_improvement.18 }
+		}
+	}
+}
+
+# A settlement is raised to a city (Imperator city status; EU5 town rank). Fired by many Imperator mission events and by the "found city" decision/GUI.
+state_improvement.6 = { #Toggles City Status
+	type = location_event
+	title = state_improvement.6.t
+	desc = state_improvement.6.desc
+	outcome = positive
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		exists = owner
+		location_rank = location_rank:rural_settlement # Imperator has_city_status = no
+	}
+
+	immediate = {
+		owner = {
+			ruler ?= {
+				save_scope_as = pa_ruler # Imperator left_portrait = root.governor_or_ruler (EU5 has no governors)
+			}
+		}
+		pa_imp_found_city_effect = yes
+		if = {
+			limit = {
+				has_location_modifier = judea_modifier_12
+			}
+			remove_location_modifier = judea_modifier_12
+		}
+		if = {
+			limit = {
+				has_location_modifier = samaria_modifier_12
+			}
+			remove_location_modifier = samaria_modifier_12
+		}
+		if = {
+			limit = {
+				exists = owner
+				owner = {
+					exists = capital # Imperator has_land = yes
+					has_variable = pth_qanat_all_var
+				}
+				NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+				NOT = { has_location_modifier = pth_qanat_pmod }
+				climate = arid #P:A TODO Approximate: Imperator terrain = desert; EU5 arid climate
+			}
+			add_location_modifier = {
+				modifier = pth_qanat_pmod
+				days = -1
+			}
+		}
+		if = {
+			limit = {
+				exists = owner
+				owner = {
+					exists = capital # Imperator has_land = yes
+					has_variable = germ_forest_all_var
+				}
+				NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+				NOT = { has_location_modifier = germania_mod_56 }
+				vegetation = forest # Imperator terrain = forest
+			}
+			add_location_modifier = {
+				modifier = germania_mod_56
+				days = -1
+			}
+		}
+	}
+
+	option = {
+		name = state_improvement.6.a
+		pa_imp_replace_food_after_city_upgrade_finish_effect_tooltip = yes
+	}
+}
+
+# Hidden: a city is raised to a metropolis (Imperator metropolis; EU5 city rank). Fired by Imperator mission events and the "found metropolis" GUI.
+state_improvement.7 = { #Toggles Metropolis Status
+	type = location_event
+	hidden = yes
+
+	immediate = {
+		change_location_rank = location_rank:city #P:A TODO Approximate: Imperator set_city_status = city_metropolis; EU5 city rank
+		while = {
+			count = 3
+			random_pop = { #P:A TODO Approximate: Imperator turned 3 whole pops into nobles; EU5 turns size 1 of a pop into nobles each time (one Imperator pop converted 1:1 to EU5 size)
+				limit = {
+					NOT = { pop_type = pop_type:nobles }
+				}
+				if = {
+					limit = { pop_size > 1 }
+					split_pop = {
+						size = 1
+						type = pop_type:nobles
+					}
+				}
+				else = {
+					change_pop_type = pop_type:nobles
+				}
+			}
+		}
+		hidden_effect = {
+			every_neighbor_location = {
+				limit = {
+					is_land = yes # Imperator NOR = { is_sea = yes terrain = riverine_terrain }
+					location_rank = location_rank:rural_settlement # Imperator has_city_status = no
+				}
+				pa_imp_add_neighbor_city_modifier_effect = yes
+			}
+		}
+	}
+}
+
+# Hidden: AI founds a metropolis in a large city (disabled in Invictus itself).
+state_improvement.8 = { #Toggles Metropolis Status
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		# Replaced by ai_upgrade_to_metropolis_or_found_city
+		always = no # disabled in Invictus
+
+		is_ai = yes
+		any_owned_location = {
+			NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+			population >= 80 #P:A TODO Approximate: Imperator total_population >= 80 counted pops; EU5 population is in thousands (1 pop = 1 thousand)
+			is_province_capital = yes # Imperator is_state_capital
+			NOT = { location_rank = location_rank:city } # Imperator has_province_rank = city_metropolis
+			NOT = {
+				has_location_modifier = founding_metropolis_in_progress
+			}
+		}
+	}
+
+	immediate = {
+		add_gold = -400 #P:A TODO Approximate: Imperator pay_price = price_found_metropolis (400 gold and 100 political influence; EU5 has no political influence)
+		random_owned_location = {
+			limit = {
+				NOT = { location_rank = location_rank:rural_settlement }
+				population >= 80 #P:A TODO Approximate: Imperator total_population >= 80 counted pops; EU5 population is in thousands
+				is_province_capital = yes
+				NOT = { location_rank = location_rank:city }
+				NOT = {
+					has_location_modifier = founding_metropolis_in_progress
+				}
+			}
+			add_location_modifier = {
+				modifier = founding_metropolis_in_progress
+				days = 730
+			}
+			trigger_event_silently = {
+				id = state_improvement.7
+				days = 730
+			}
+		}
+	}
+}
+
+# Hidden: AI founds a city in a settlement (disabled in Invictus itself).
+state_improvement.9 = { #Toggles City Status
+	type = country_event
+	hidden = yes
+
+	trigger = {
+		# Replaced by ai_upgrade_to_metropolis_or_found_city
+		always = no # disabled in Invictus
+
+		is_ai = yes
+		num_of_non_rural > 30 # Imperator num_of_cities
+		# trigger_if = { limit = { is_tribal = yes } NOT = { has_law = nomadic_law_tribal } } #P:A TODO No EU5 equivalent: tribes with the nomadic law could not found cities (EU5 laws differ)
+		any_owned_location = {
+			location_rank = location_rank:rural_settlement # Imperator has_city_status = no
+			population > 5 #P:A TODO Approximate: Imperator total_population > 5 counted pops; EU5 population is in thousands (1 pop = 1 thousand)
+			NOT = { has_location_modifier = founding_city_in_progress }
+		}
+	}
+
+	immediate = {
+		add_gold = -200 #P:A TODO Approximate: Imperator pay_price = price_found_city (200 gold and 50 political influence; EU5 has no political influence)
+		random_owned_location = {
+			limit = {
+				location_rank = location_rank:rural_settlement # Imperator has_city_status = no
+				NOT = { has_location_modifier = founding_city_in_progress }
+			}
+			weight = {
+				base = 1
+				modifier = { #Base Viability
+					add = {
+						value = population # Imperator total_population (pops; EU5 thousands)
+						subtract = pa_imp_cities_in_province_svalue #Reduce for each existing City in province
+						multiply = 10
+						min = 0
+					}
+				}
+				modifier = { #We like making cities for our own people
+					factor = 2
+					dominant_culture = root.culture
+				}
+				modifier = { #We like making cities for our own people
+					factor = 2
+					dominant_religion = root.religion
+				}
+				modifier = {
+					factor = 1.5
+					is_province_capital = yes #State capitals are good
+				}
+				modifier = { #We like food.
+					factor = 1.25
+					vegetation = farmland # Imperator terrain = farmland
+				}
+				modifier = { #We don't want to lose our food if we can make surplus of it.
+					factor = 0.1
+					pa_imp_has_food_trade_good_trigger = yes
+				}
+				modifier = {
+					factor = 100
+					is_capital = yes #Always try to make your own capital a city if it is not one.
+				}
+			}
+			add_location_modifier = {
+				modifier = founding_city_in_progress
+				days = 730
+			}
+			trigger_event_non_silently = {
+				id = state_improvement.6
+				days = 730
+			}
+		}
+	}
+}
+
+# state_improvement.10 (Spartan military investment) and state_improvement.11 (Spartan religious investment) were not imported:
+#P:A TODO Tag-bound: fired only by the Spartan scripted GUI buttons (is_shown: tag = SPA or the variable spa_unique_mech, which nothing sets); their result events state_improvement.16/17 are skipped too. Their modifiers state_improvement_military_SPA / state_improvement_religious_SPA exist in pa_imp_b18_modifiers.txt.
+
+# Military investment made (notification from state_improvement.1).
+state_improvement.12 = { #Military
+	type = country_event
+	title = state_improvement.12.t
+	desc = state_improvement.12.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:state_improvement_target.governor_or_ruler (EU5 has no governors)
+		}
+		show_as_tooltip = {
+			scope:state_improvement_target = {
+				add_province_modifier = {
+					modifier = state_improvement_military
+					days = -1
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = { name = state_improvement.12.a }
+}
+
+# Civic investment made (notification from state_improvement.2).
+state_improvement.13 = {
+	type = country_event
+	title = state_improvement.13.t
+	desc = state_improvement.13.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:state_improvement_target.governor_or_ruler (EU5 has no governors)
+		}
+		show_as_tooltip = {
+			scope:state_improvement_target = {
+				add_province_modifier = {
+					modifier = state_improvement_civic
+					days = -1
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = { name = state_improvement.13.a }
+}
+
+# Oratory (commercial) investment made (notification from state_improvement.3).
+state_improvement.14 = {
+	type = country_event
+	title = state_improvement.14.t
+	desc = state_improvement.14.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:state_improvement_target.governor_or_ruler (EU5 has no governors)
+		}
+		show_as_tooltip = {
+			scope:state_improvement_target = {
+				add_province_modifier = {
+					modifier = state_improvement_oratory
+					days = -1
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = { name = state_improvement.14.a }
+}
+
+# Religious investment made (notification from state_improvement.4).
+state_improvement.15 = {
+	type = country_event
+	title = state_improvement.15.t
+	desc = state_improvement.15.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:state_improvement_target.governor_or_ruler (EU5 has no governors)
+		}
+		show_as_tooltip = {
+			scope:state_improvement_target = {
+				add_province_modifier = {
+					modifier = state_improvement_religious
+					days = -1
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = { name = state_improvement.15.a }
+}
+
+# state_improvement.16 and state_improvement.17 (Spartan notifications) were not imported:
+#P:A TODO Tag-bound: only fired by state_improvement.10/11 (Spartan GUI buttons, tag = SPA) and by inv_state_improvement.16 (KSH)
+
+# City civilization investment made (notification from state_improvement.5).
+state_improvement.18 = { #City level civilization
+	type = country_event
+	title = state_improvement.18.t
+	desc = state_improvement.18.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = { exists = scope:local_civilization_target }
+
+	immediate = {
+		show_as_tooltip = {
+			scope:local_civilization_target = {
+				add_location_modifier = {
+					modifier = local_civilization_pmod_stack
+					days = -1
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = { name = state_improvement.18.a }
+}
+
+#P:A Imported from Indomita
+# Hidden: administrative investment in a province (Imperator state).
+state_improvement.19 = { #Administration
+	type = location_event
+	hidden = yes
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		province = {
+			add_province_modifier = {
+				modifier = state_improvement_admin
+				days = -1
+				mode = add
+			}
+		}
+		owner = {
+			trigger_event_non_silently = { id = state_improvement.20 }
+		}
+		province = {
+			pa_imp_increment_state_investment_count = yes
+		}
+	}
+}
+
+#P:A Imported from Indomita
+# Administrative investment made (notification from state_improvement.19).
+state_improvement.20 = {
+	type = country_event
+	title = state_improvement.20.t
+	desc = state_improvement.20.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:state_improvement_target.governor_or_ruler (EU5 has no governors)
+		}
+		show_as_tooltip = {
+			scope:state_improvement_target = {
+				add_province_modifier = {
+					modifier = state_improvement_admin
+					days = -1
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = { name = state_improvement.20.a }
+}
+
+#P:A Imported from Indomita
+# Hidden: manpower investment in a province (Imperator state).
+state_improvement.21 = { #Manpower
+	type = location_event
+	hidden = yes
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		province = {
+			add_province_modifier = {
+				modifier = state_improvement_manpower
+				days = -1
+				mode = add
+			}
+		}
+		owner = {
+			trigger_event_non_silently = { id = state_improvement.22 }
+		}
+		province = {
+			pa_imp_increment_state_investment_count = yes
+		}
+	}
+}
+
+#P:A Imported from Indomita
+# Manpower investment made (notification from state_improvement.21).
+state_improvement.22 = {
+	type = country_event
+	title = state_improvement.22.t
+	desc = state_improvement.22.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:state_improvement_target.governor_or_ruler (EU5 has no governors)
+		}
+		show_as_tooltip = {
+			scope:state_improvement_target = {
+				add_province_modifier = {
+					modifier = state_improvement_manpower
+					days = -1
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = { name = state_improvement.22.a }
+}
+
+#P:A Imported from Indomita
+# Hidden: academic investment in a province (Imperator state).
+state_improvement.23 = { #Academic
+	type = location_event
+	hidden = yes
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		province = {
+			add_province_modifier = {
+				modifier = state_improvement_academic
+				days = -1
+				mode = add
+			}
+		}
+		owner = {
+			trigger_event_non_silently = { id = state_improvement.24 }
+		}
+		province = {
+			pa_imp_increment_state_investment_count = yes
+		}
+	}
+}
+
+#P:A Imported from Indomita
+# Academic investment made (notification from state_improvement.23).
+state_improvement.24 = {
+	type = country_event
+	title = state_improvement.24.t
+	desc = state_improvement.24.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:state_improvement_target.governor_or_ruler (EU5 has no governors)
+		}
+		show_as_tooltip = {
+			scope:state_improvement_target = {
+				add_province_modifier = {
+					modifier = state_improvement_academic
+					days = -1
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = { name = state_improvement.24.a }
+}
+
+#P:A Imported from Indomita
+# Hidden: civilization investment in a province (Imperator state).
+state_improvement.25 = { #Civ
+	type = location_event
+	hidden = yes
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		province = {
+			add_province_modifier = {
+				modifier = state_improvement_civ
+				days = -1
+				mode = add
+			}
+		}
+		owner = {
+			trigger_event_non_silently = { id = state_improvement.26 }
+		}
+		province = {
+			pa_imp_increment_state_investment_count = yes
+		}
+	}
+}
+
+#P:A Imported from Indomita
+# Civilization investment made (notification from state_improvement.25).
+state_improvement.26 = {
+	type = country_event
+	title = state_improvement.26.t
+	desc = state_improvement.26.desc
+	interface_lock = no
+	illustration_tags = {
+		10 = exterior
+		10 = regular
+	}
+
+	trigger = { exists = scope:state_improvement_target }
+
+	immediate = {
+		ruler ?= {
+			save_scope_as = pa_ruler # Imperator left_portrait = scope:state_improvement_target.governor_or_ruler (EU5 has no governors)
+		}
+		show_as_tooltip = {
+			scope:state_improvement_target = {
+				add_province_modifier = {
+					modifier = state_improvement_civ
+					days = -1
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = { name = state_improvement.26.a }
+}
