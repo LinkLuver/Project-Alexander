@@ -1,0 +1,69 @@
+﻿adapt_religion_for_ruler = {
+
+	message = yes
+	on_own_nation = yes
+
+	potential = {
+		scope:actor = {
+			OR = {
+				ruler ?= { can_adopt_religion_of_country = { country = scope:actor } }
+				heir ?= { can_adopt_religion_of_country = { country = scope:actor } }
+			}
+		}
+	}
+
+	ai_tick = never
+
+	allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = recipient
+		name = "choose_character"
+		column = {
+			data = name
+		}
+		visible = {
+			OR = {
+				is_ruler = yes
+				is_heir = yes
+			}
+			can_adopt_religion_of_country = { country = scope:actor }
+		}
+	}
+
+	effect = {
+		scope:recipient = {
+			if = {
+				limit = { can_adopt_religion_of_country = { country = scope:actor } }
+				if = {
+					limit = { is_ruler = yes }
+					scope:actor = {
+						add_prestige = prestige_extreme_penalty
+
+						every_known_country = {
+							limit = {
+								religion = scope:recipient.religion
+							}
+							add_opinion = { target = scope:actor modifier = opinion_ruler_religion }
+						}
+					}
+				}
+				change_character_religion = scope:actor.religion
+
+				every_child = {
+					limit = {
+						owner = scope:actor
+						OR = {
+							is_religious_figure = no
+							religious_figure != religious_figure:cardinal
+						}
+					}
+					change_character_religion = scope:actor.religion
+				}
+			}
+		}
+	}
+}
