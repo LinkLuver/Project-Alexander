@@ -1,0 +1,86 @@
+﻿#hardcoded - do not touch!
+marriage_union = {
+	has_target = no
+	disband_if_no_leader = no
+	expel_members_who_are_targets_of_other_members = no
+	custom_name = marriage_union_name
+
+	leader_change_trigger_type = rulerchange
+	leader_type = character
+	leader = {
+		every_international_organization_member = {
+			ruler_or_heir_if_regent ?= {
+				add_to_list = leaders
+			}
+		}
+	}
+
+	#Baseline of a union, will never change
+	join_defensive_wars_always = {
+		always = yes
+	}
+
+	can_declare_war = {
+		trigger_if = {
+			limit = { scope:attacker ?= { is_member_of_international_organization = scope:recipient } }
+			OR = {
+				scope:defender ?= { NOT = { is_member_of_international_organization = scope:recipient } }
+				scope:attacker ?= { in_union_with = scope:defender }
+			}
+		}
+		trigger_else = {
+			always = yes
+		}
+	}
+	
+	modifier = {
+	}
+
+	create_visible_trigger = {
+		always = no
+	}
+
+	invite_visible_trigger = {
+		always = no
+	}
+
+	fog_of_war_lifted = yes
+	show_on_diplomatic_map = yes
+	#leader_color = define:NMapColors|DIPLOMACY_UNION_COLOR
+	#member_color = define:NMapColors|DIPLOMACY_UNION_COLOR
+	
+	can_join_trigger = {
+		#these aren't things you can just join
+		always = no
+	}
+
+	can_leave_trigger = {
+		#these aren't things you can just leave
+		always = no
+	}
+
+	auto_leave_trigger = {
+		#happens in code
+		always = no
+	}
+	
+	auto_disband_trigger = {
+		OR = {
+			total_members < 2
+			custom_tooltip = {
+				text = marriage_union_disband_tt
+				OR = {
+					NOT = { exists = "leader_at_index(1)" }
+					"leader_at_index(0)" = "leader_at_index(1)"
+					"leader_at_index(0)" = {
+						NOT = {
+							any_spouse = {
+								this = "root.leader_at_index(1)"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

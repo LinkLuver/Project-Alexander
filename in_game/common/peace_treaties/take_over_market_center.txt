@@ -1,0 +1,69 @@
+﻿peace_take_over_market_center = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 5
+		}
+
+		add = {
+			desc = "game_concept_trade_income"
+			value = scope:loser.monthly_trade_income
+		}
+		max = 100
+	}
+
+	potential = {
+		scope:loser = {
+			any_market_center_in_country = {
+				any_location_in_market = {
+					owner ?= scope:winner
+					not = { integration_level = conquered }
+				}
+			}
+		}
+	}
+	allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = market
+		source = recipient
+		target_flag = target_market
+        visible = {
+			any_location_in_market = {
+				owner ?= scope:actor
+			}
+		}
+    }
+
+	effect = {
+		scope:target_market = {
+			if = {
+				limit = {
+					any_location_in_market = { this = scope:winner.capital }
+				}
+				relocate_market = scope:winner.capital
+			}
+			else = {
+				ordered_location_in_market = {
+					limit = { 
+						has_owner = yes
+						owner = scope:winner
+						not = { integration_level = conquered }
+					}
+					order_by = population
+					max = 1
+
+					save_scope_as = target_location
+				}
+				relocate_market = scope:target_location
+			}
+		}
+	}
+
+	ai_desire = {
+		# disable for now
+		add = -10
+	}
+}
+

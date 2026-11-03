@@ -25,6 +25,9 @@
 		column = {
 			data = name
 		}
+		column = {
+			data = expected_assimilation
+		}
 
 		interaction_source_list = {
 			scope:actor.culture = {
@@ -44,6 +47,30 @@
 		monthly_towards_centralization = 0.1
 	}
 	on_fully_activated = {
-		scope:actor = { merge_culture_group = scope:target }		
+		scope:actor = {
+			# Grant the bonus advances of the primary culture, if it belongs to the merged group.
+			if = {
+				limit = {
+					culture = {
+						any_culture_group = {
+							this = scope:target
+						}
+					}
+				}
+				grant_culture_bonus_advances = culture
+			}
+			# Grant the bonus advances of every accepted culture that belongs to the merged group.
+			every_accepted_culture = {
+				limit = {
+					any_culture_group = {
+						this = scope:target
+					}
+				}
+				scope:actor = {
+					grant_culture_bonus_advances = prev
+				}
+			}
+			merge_culture_group = scope:target
+		}
 	}
 }

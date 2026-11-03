@@ -1,0 +1,58 @@
+﻿assume_union_senority = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 80
+		}
+	}
+	base_antagonism = 10
+	antagonism_type = antagonism_assume_union_senority
+	
+	potential = {
+		scope:war = {
+			is_no_cb_war = no
+			casus_belli ?= casus_belli:cb_union_war_for_seniority
+		}
+		scope:winner = {
+			has_variable = pu_war_senior_partner
+			var:pu_war_senior_partner = scope:loser
+		}
+	}
+	allow = {
+	}
+
+	effect = {
+		scope:loser = {
+			if = {
+				limit = {
+					exists = union
+					union = { country_is_senior_partner = { country = scope:loser } }
+				}
+				union = {
+					every_international_organization_member = {
+						limit = {
+							NOT = { this = scope:loser }
+						}
+						add_to_list = old_union_members
+					}
+				}
+			}
+		}
+		scope:winner = {
+			remove_variable = pu_war_senior_partner
+			if = {
+				limit = { NOT = { in_union_with = scope:loser } }
+				force_union = scope:loser
+			}
+			set_senior_partner = yes
+		}
+		every_in_list = {
+			list = old_union_members
+			scope:winner = { force_union = prev }
+		}
+	}
+
+	ai_desire = {
+		value = 1000
+	}
+}

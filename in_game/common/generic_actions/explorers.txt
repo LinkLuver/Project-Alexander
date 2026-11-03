@@ -1,0 +1,269 @@
+﻿# scope:actor = country, scope:recipient = country
+start_exploration = {
+	type = owncountry
+	#we don't execute the price for this action because it creates a construction, which needs its own price information in order to be able to restore the price if it is cancelled. We leave the price in here though for display
+	should_execute_price = no
+	
+	potential = {
+		scope:actor = {
+			country_can_start_exploration_trigger = yes
+		}
+	}
+
+	allow = {
+	}
+	
+	price = {
+		if = {
+			limit = {
+				exists = scope:target
+				scope:target = {
+					adjacent_to_owned_or_owned_by_subject = scope:actor				
+					is_area_sea = no
+				}
+			}
+			value = price:start_exploration_land
+		}
+		else = {
+			value = price:start_exploration_sea
+		}
+	}
+	
+	select_trigger = {
+		top_widget = explorer_character_context_card
+		looking_for_a = area
+		source_flags = possible_exploration_areas
+		target_flag = target
+		name = "start_exploration_select_area"
+		none_available_msg_key = "start_exploration_no_areas"
+		column = {
+			data = area_exploration
+		}
+		visible = {
+		}
+	}
+
+	#this goes second so we don't have to recalculate it for each character; doesn't depend on the character at all, so that doesn't matter
+	select_trigger = {
+		top_widget = exploration_item_card_at_location_select
+		looking_for_a = location
+		source = target
+		source_flags = possible_launch_locations
+		target_flag = launch_location
+		name = "start_exploration_select_launch_point"
+		none_available_msg_key = "start_exploration_no_launch_point"
+		column = {
+			data = name
+		}
+		column = {
+			data = market
+		}
+		column = {
+			data = distance_to_target_area
+		}
+		visible = {
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		top_widget = exploration_item_card_at_location_select
+		looking_for_a = character
+		source = actor
+		source_flags_ai_override = best_explorers
+		target_flag = character
+		cache_targets = yes #this list of targets doesn't rely on the previous target so we only need to do it once
+		cache_order = yes #whenever we make an assessment, the best character will always be the best character, so only calculate it once and don't repeat all the different combinations of area, character
+		default_sort = character_explorer
+		name = "start_exploration_select_character"
+		none_available_msg_key = "start_exploration_no_characters"
+		column = {
+			data = character_explorer
+		}
+		visible = {
+			is_valid_for_exploration = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			if = {
+				limit = {
+					exists = scope:target
+					exists = scope:character
+					exists = scope:launch_location
+				}
+				start_exploration = {
+					area = scope:target
+					location = scope:launch_location
+					character = scope:character
+					price = scope:price
+					price_modifier = scope:price_modifier
+				}
+			}
+		}
+	}
+	
+	ai_tick = monthly
+	ai_tick_frequency = {
+		if = {
+			limit = {
+				num_of_ports = 0
+			}
+			add = 12
+		}
+		else = {
+			add = 3
+		}
+	}
+
+	automation_tick = monthly
+	automation_tick_frequency = {
+		if = {
+			limit = {
+				num_of_ports = 0
+			}
+			add = 12
+		}
+		else = {
+			add = 3
+		}
+	}
+	player_automated_category = exploration
+	ai_will_do = {
+		if = {
+			limit = {
+				exists = scope:target
+				exists = scope:character
+				exists = scope:launch_location
+			}
+			add = "scope:actor.exploration_utility(scope:target|scope:character|scope:launch_location)"
+		}
+	}
+}
+
+change_explorer = {
+	type = owncountry
+	
+	potential = {
+		scope:actor = {
+			modifier:may_explore = yes
+			num_explorations_including_in_construction > 0
+		}
+	}
+	
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = area
+		target_flag = target
+		source_flags = areas_being_explored
+		source_flags_ai_override = unassigned_areas_being_explored
+		name = "change_explorer_select_area"
+		none_available_msg_key = "change_explorer_no_areas"
+		column = {
+			data = name
+		}
+		visible = {
+			is_being_explored = scope:actor
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = character
+		cache_targets = yes #this list of targets doesn't rely on the previous target so we only need to do it once
+		cache_order = yes #whenever we make an assessment, the best character will always be the best character, so only calculate it once and don't repeat all the different combinations of area, character
+		default_sort = character_info
+		name = "start_exploration_select_character"
+		none_available_msg_key = "change_explorer_no_characters"
+		column = {
+			data = character_info
+		}
+		visible = {
+			is_valid_for_exploration = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			if = {
+				limit = {
+					exists = scope:target
+					exists = scope:character
+				}
+				change_explorer = {
+					area = scope:target
+					character = scope:character
+				}
+			}
+		}
+	}
+
+	player_automated_category = exploration
+	ai_will_do = {
+		value = 1
+
+		# don't reassign current explorers
+		if = {
+			limit = {
+				scope:target = {
+					has_assigned_explorer = scope:actor
+				}
+			}
+			subtract = 1000
+		}
+	}
+}
+
+cancel_exploration = {
+	type = owncountry
+
+	ai_tick = never
+
+	
+	potential = {
+		scope:actor = {
+			num_explorations_including_in_construction > 0
+		}
+	}
+
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = area
+		target_flag = target
+		name = "cancel_exploration_select_area"
+		source_flags = areas_being_explored
+		none_available_msg_key = "cancel_exploration_no_areas"
+		column = {
+			data = name
+		}
+		visible = {
+			is_being_explored = scope:actor
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:actor = {
+				cancel_area_exploration = scope:target
+			}
+		}
+	}
+
+	player_automated_category = exploration
+	ai_will_do = {
+		add = "scope:actor.cancel_exploration_utility(scope:target)"
+	}
+}

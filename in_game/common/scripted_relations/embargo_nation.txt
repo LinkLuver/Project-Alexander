@@ -1,0 +1,71 @@
+﻿embargo_nation = { 
+	type = diplomacy
+	relation_type = oneway
+	embargo = yes
+	category = {
+		offer = CATEGORY_ECONOMY_ACTIONS
+		cancellation = CATEGORY_ECONOMY_ACTIONS
+		break = CATEGORY_ECONOMY_ACTIONS
+		request = CATEGORY_ECONOMY_ACTIONS
+	}
+
+	relation_type_for_ai = hostile
+
+	visible = {
+		always = yes
+	}
+
+	request_visible = { always = no }
+
+	offer_enabled = {
+		NOT = { scope:actor = { is_allied_with = { target = scope:recipient } } }
+		NOT = { scope:actor = { is_subject_of = scope:recipient } }
+		NOT = { scope:recipient = { is_subject_of = scope:actor } }
+		NOT = {
+			scope:actor = {
+				has_diplomacy_with = {
+                    type = lifts_trade_protection
+                    country = scope:recipient
+                }
+			}
+		}
+
+		# d008 Fate of the Phoenix - See grant_latin_merchants_privileges
+		trigger_if = {
+			limit = {
+				scope:recipient = { has_country_modifier = byzantine_market_dominance_modifier }
+			}
+			scope:recipient = {
+				NOT = { has_country_modifier = byzantine_market_dominance_modifier }
+			}
+		}
+	}
+
+	will_expire_trigger = {
+		scope:first = { is_allied_with = { target = scope:second } }
+	}
+
+	break_enabled = {
+		scope:actor = {
+			has_casus_belli_on = scope:recipient
+			NOT = { has_truce_with = scope:recipient }
+		}
+	}
+
+	break_effect = {
+		scope:actor = {
+			remove_all_casus_belli = scope:recipient
+		}
+	}
+
+	wants_to_keep_diplo_chance = {
+		base = 50
+	}
+
+	wants_to_keep = {
+        add = {
+            value = "scope:actor.opinion(scope:recipient)"
+            multiply = -1
+        }
+    }
+}	

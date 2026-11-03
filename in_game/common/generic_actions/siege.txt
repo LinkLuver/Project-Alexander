@@ -1,0 +1,64 @@
+﻿garrison_sortie = {
+	type = owncountry
+
+	select_trigger = {
+		looking_for_a = siege
+		source = actor
+        source_flags = only_defending_sieges
+		target_flag = target
+		enabled = {
+			location ?= {
+				garrison_percentage > 0.5
+				is_garrison_strong_enough_to_come_out = yes
+			}
+		}
+	}
+
+	ai_tick = daily
+	ai_tick_frequency = 35
+
+	automation_tick = daily
+	automation_tick_frequency = 20
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				garrison_sortie = {}
+			}
+		}
+	}
+
+	ai_will_do = {
+		scope:target = {
+			location ?= {
+				add = {
+					if = {
+						# Go out if there is a chance to win but not if regular armies are confident to win alone
+						limit = {
+							has_combat = yes
+							strength_ratio_for_garrison_sortie > 1.0
+							strength_ratio_for_garrison_sortie < 2.0
+						}
+						add = 50
+					}
+				}
+				add = {
+					# if the garrison is to go out alone let's make sure they are confident to win
+					if = {
+						limit = {
+							has_combat = no
+							strength_ratio_for_garrison_sortie > 5.0
+						}
+						add = {
+							value = strength_ratio_for_garrison_sortie
+							multiply = 20
+						}
+					}
+				}
+			}
+		}
+	}
+}

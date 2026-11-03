@@ -1,0 +1,32 @@
+﻿#<price id> = {
+#	scaled_manpower = <float>
+#	scaled_sailors = <float>
+#	scaled_gold = <float>
+#	scaled_recipient_gold = <float>
+#	gold_per_pop = <float>
+#	manpower = <float>
+#	sailors = <float>
+#	gold = <float>
+#	stability = <float>
+#	war_exhaustion = <float>
+#	inflation = <float>
+#	prestige = <float>
+#	army_tradition = <float>
+#	navy_tradition = <float>
+#	government_power = <float>
+#	karma = <float>
+#	religious_influence = <float>
+#	purity = <float>
+#	honor = <float>
+#	doom = <float>
+#	rite_power = <float>
+#	yanantin = <float>
+#	complacency = <float>
+#	righteousness = <float>
+#	harmony = <float>
+#	self_control = <float>
+#	
+#	min = <float>				#The minimum amount that the modifiers can add up to
+#   min_scale = <float>         #The minimum amount you have to pay (before modifiers)
+#	max_scale = <float>			#The maximum amount you have to pay (before modifiers)
+#}

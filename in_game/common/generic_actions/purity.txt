@@ -1,0 +1,123 @@
+﻿# scope:actor = country, scope:recipient = religion
+
+cleansing_ritual_purity = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_purity = yes
+		}
+	}
+
+	allow = {
+		scope:actor = { has_ruler = yes }
+	}
+
+	ai_prerequisite = { purity < 90 }
+
+	ai_tick = monthly
+	ai_tick_frequency = 3
+
+	automation_tick = monthly
+	automation_tick_frequency = 6
+	player_automated_category = religiousdoctrines
+
+	price = price:cleansing_ritual_purity
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_purity = purity_weak_bonus
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.currency_utility(purity|10)"
+	}
+}
+
+religious_offering = {
+	icon = cleansing_ritual_purity
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = {
+			has_purity = yes
+		}
+	}
+
+	allow = {
+		
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 1
+
+	automation_tick = monthly
+	automation_tick_frequency = 6
+	player_automated_category = religiousdoctrines
+	
+	price = price:religious_offering
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = work_of_art
+		source = actor
+		target_flag = target
+		name = "religious_offering_select_work_of_art_title"
+		none_available_msg_key = "religious_offering_no_work_of_arts"
+		column = {
+			data = art_quality
+		}
+		column = {
+			data = name
+		}
+		column = {
+			data = art_location
+		}
+		visible = {
+			this != work_of_art:kusanagi_no_tsurugi
+			this != work_of_art:yata_no_kagami
+			this != work_of_art:yasakani_no_magatama
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_purity = purity_severe_bonus
+			if = {
+				limit = { exists = scope:target }
+				destroy_art = scope:target
+			}
+			else = {
+				custom_tooltip = religious_offering_tt
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = "scope:actor.currency_utility(purity|30)"
+	}
+}

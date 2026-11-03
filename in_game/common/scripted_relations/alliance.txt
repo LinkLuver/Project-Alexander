@@ -1,0 +1,510 @@
+﻿#P:A TODO Manual cleanup of file required
+alliance = { 
+	type = diplomacy
+	relation_type = mutual
+    uses_diplo_capacity = mutual
+    block_when_at_war = yes
+    break_on_war = yes
+    break_on_becoming_subject = yes
+    annulled_by_peace_treaty = yes
+    annullment_favours_required = 20
+    disallow_war = yes
+    military_access = yes
+	can_share_maps = yes
+    fleet_basing_rights = yes
+    lifts_fog_of_war = yes
+    called_in_defensively = mutual
+    called_in_offensively = mutual
+    mutual_color = define:NMapColors|DIPLOMACY_ALLIANCE_COLOR
+    category = {
+        offer = CATEGORY_FRIENDLY_ACTIONS
+        cancellation = CATEGORY_HOSTILE_ACTIONS
+        request = CATEGORY_FRIENDLY_ACTIONS
+        break = CATEGORY_HOSTILE_ACTIONS
+    }
+
+    relation_type_for_ai = friendly
+    show_break_alert = yes
+	
+	
+	diplomatic_capacity_cost = alliance_upkeep_cost
+
+    favors_to_first = {
+        value = 1
+        add = "scope:first.relative_military_strength(scope:second)"
+        divide = 12
+    }
+
+    favors_to_second = {
+        value = 1
+        add = "scope:second.relative_military_strength(scope:first)"
+        divide = 12
+    }
+
+    institution_spread_to_first = monthly_institution_spread_mild
+    institution_spread_to_second = monthly_institution_spread_mild
+
+	offer_enabled = {
+        alliance_can_exist = {
+            first = scope:actor
+            second = scope:recipient
+        }
+	}
+
+	request_visible = { always = no }
+	break_visible = { always = no }
+
+    cancel_enabled = {
+        scope:actor = {
+            not = { is_fighting_war_together_with = scope:recipient }
+        }
+    }
+
+    will_expire_trigger = {
+        not = {
+            alliance_can_exist = {
+                first = scope:first
+                second = scope:second
+            }
+        }
+    }
+
+	offer_declined_effect = {
+		scope:actor = {
+			add_opinion = { target = scope:recipient modifier = opinion_decline_alliance }
+		}
+	}
+
+    offer_effect = {
+        #no need for guarantees with an alliance
+        if = {
+            limit = {
+                scope:actor != scope:recipient
+                scope:actor = {
+                    giving_scripted_relation = {
+                        type = relation_type:guarantee
+                        target = scope:recipient
+                    }
+                }
+            }
+            scope:actor = {
+                remove_relation = { 
+                    first = scope:actor
+                    second = scope:recipient
+                    type = relation_type:guarantee
+                }
+            }
+        }
+        if = {
+            limit = {
+                scope:actor != scope:recipient
+                scope:actor = {
+                    receiving_scripted_relation = {
+                        type = relation_type:guarantee
+                        target = scope:recipient
+                    }
+                }
+            }
+            scope:actor = {
+                remove_relation = { 
+                    first = scope:recipient
+                    second = scope:actor
+                    type = relation_type:guarantee
+                }
+            }
+        }
+    }
+
+    cancel_effect = {
+        scope:actor = {
+            custom_tooltip = cancel_alliance_custom_tt
+            add_truce_with = {
+                target = scope:recipient
+                mutual = yes
+            }
+        }
+        scope:recipient = {
+            add_opinion = {
+                target = scope:actor
+                modifier = opinion_broke_alliance
+            }
+        }
+        scope:recipient = {
+            add_trust = {
+                target = scope:actor
+                value = -15
+            }
+        }
+    }
+
+    should_ai_offer_trigger = {
+    	NOT = {
+	        scope:first = {
+	            has_opinion = {
+	                modifier = opinion_broke_alliance
+	                target = scope:second
+	            }
+	        }
+        }
+    }
+
+    expire_effect = {
+        #downgrade to guarantee
+        if = {
+            limit = {
+                scope:first = {
+                    modifier:allowed_guarantee = yes
+                    country_rank_level > scope:second.country_rank_level
+                }
+            }
+            scope:first = {
+                create_relation = {
+                    first = scope:first
+                    second = scope:second
+                    type = relation_type:guarantee
+                }
+            }
+        }
+        else_if = {
+            limit = {
+                scope:second = {
+                    modifier:allowed_guarantee = yes
+                    country_rank_level > scope:first.country_rank_level
+                }
+            }
+            scope:first = {
+                create_relation = {
+                    first = scope:second
+                    second = scope:first
+                    type = relation_type:guarantee
+                }
+            }
+        }
+    }
+
+    wants_to_give_diplo_chance = {
+        actor_is_rival = -100
+        actor_overlord_is_rival = -100
+        base = -40
+        trust_in_actor = 1
+        positive_opinion = 0.3
+        negative_opinion = -1
+        border_distance = -0.05
+        few_relations = 5
+        same_court_language = 15
+        royal_ties = 3
+        strategic_interest = 1
+        common_threat = 0.4
+        relative_strength = 25
+        threatening_rivals = 20
+    }
+    wants_to_give = {
+        if = {
+            #Actor needs to be close and relativly big
+            limit = {
+                scope:recipient = {
+                    border_distance_to = {
+                        country = scope:actor
+                        value < 150
+                    }
+                    relative_strength = {
+                        target = scope:actor
+                        value < 0.60
+                    }
+                }
+            }
+            add = {
+                desc = "NEEDS_ALLIES_AGAINST_STRONG_RIVALS_AND_NEIGHBOURS"
+                # Check if the country needs allies at all
+                value = scope:recipient.country_needs_allies_value
+                max = 25
+                min = 0
+            }
+        }
+        scope:actor = {
+            add = {
+                desc = "COALITION_GRADE_ANTAGONISM_TOWARDS_THEM"
+                value = {
+                    every_country_with_coalition_grade_antagonism_against_us = {
+                        limit = {
+                            not = { is_subject_or_below_of = scope:actor }
+                        }
+                        subtract = {
+                            value = country_strength
+                        }
+                    }
+                    if = {
+                        limit = {
+                            NOT = {
+                                country_strength <= 0 
+                            }
+                        }
+                        divide = country_strength
+                    } 
+                    multiply = 10
+                }
+            }
+        }
+        if = {
+            limit = {
+                scope:actor = {
+                    any_current_war = {
+                        NOT = {
+                            is_on_same_side = {
+                                country = scope:actor
+                                target = scope:recipient
+                            }
+                        }
+                    }
+                }
+            }
+            add = {
+                desc = "ACTOR_IS_IN_DIFFERENT_WARS"
+                value = -100
+            }
+        }
+
+        if = {
+            limit = {
+                "scope:recipient.opinion(scope:actor)" < 150
+                "scope:recipient.conquer_desire(scope:actor)" > 20
+                scope:recipient = {
+                    is_neighbor_of = scope:actor
+                }
+            }
+            add = {
+                desc = "RECIPIENTS_DESIRES_ACTORS_LOCATIONS"
+                value = "scope:recipient.conquer_desire(scope:actor)"
+                multiply = -1
+                if = {
+                    limit = {
+                        scope:recipient = {
+                            ai_personality = ai_personality:ai_expansionist
+                        }
+                    }
+                    add = {
+                        value = "scope:recipient.num_of_locations_with_high_conquer_desire(scope:actor)"
+                        multiply = -5
+                    }
+                }
+            }
+        }
+
+        if = {
+            limit = {
+                #exists = situation:rise_of_the_ottomans.var:strongest_beylik_variable #P:A Removed vanilla reference
+                #scope:actor ?= situation:rise_of_the_ottomans.var:strongest_beylik_variable #P:A Removed vanilla reference
+                #exists = situation:rise_of_the_ottomans.var:second_strongest_strongest_beylik_variable #P:A Removed vanilla reference
+                #scope:recipient ?= situation:rise_of_the_ottomans.var:second_strongest_strongest_beylik_variable #P:A Removed vanilla reference
+            	always = no #P:A Removed vanilla reference
+            }
+            add = {
+                value = -1000
+                desc = "CHALLENGER_BEYLIK"
+            }
+        }
+
+        add = {
+            desc = "RECIPIENT_WOULD_NEED_TO_PAY_FOR_DIPLOMACY"
+            value = scope:recipient.diplomatic_capacity_without_maintenance
+            subtract = scope:recipient.used_diplomatic_capacity
+            subtract = "scope:recipient.diplomatic_capacity_of_new_relation(scope:actor|scope:scripted_relation_type)"
+            if = {
+                limit = {
+                    NOT = { scope:recipient.diplomatic_capacity_without_maintenance <= 0 }
+                }
+                divide = scope:recipient.diplomatic_capacity_without_maintenance
+            }
+            max = 0
+            multiply = 100
+        }
+
+        add = {
+            desc = "COMMON_RIVALS"
+            value = "scope:recipient.num_of_common_rivals(scope:actor)"
+            max = 3
+            multiply = 5
+        }
+    }
+
+    wants_to_keep_diplo_chance = {
+        recipient_is_rival = -100
+        recipient_overlord_is_rival = -100
+        trust_in_recipient = 1
+        border_distance = -0.05
+        same_court_language = 15
+        royal_ties = 3
+        strategic_interest = 1
+        common_threat = 0.4
+        reverse_relative_strength = 25
+        threatening_rivals = 20
+    }
+    wants_to_keep = {
+        add = {
+            desc = "DIPLOREASON_NEGATIVE_OPINION"
+            value = "scope:actor.opinion(scope:recipient)"
+            max = 0        
+        }
+        add = {
+            desc = "DIPLOREASON_POSITIVE_OPINION"
+            value = "scope:actor.opinion(scope:recipient)"
+            multiply = 0.3
+            min = 0       
+        }
+    
+        if = {
+            limit = {
+                #exists = situation:rise_of_the_ottomans.var:strongest_beylik_variable #P:A Removed vanilla reference
+                #scope:actor ?= situation:rise_of_the_ottomans.var:strongest_beylik_variable #P:A Removed vanilla reference
+                #exists = situation:rise_of_the_ottomans.var:second_strongest_strongest_beylik_variable #P:A Removed vanilla reference
+                #scope:recipient ?= situation:rise_of_the_ottomans.var:second_strongest_strongest_beylik_variable #P:A Removed vanilla reference
+            	always = no #P:A Removed vanilla reference
+            }
+            add = {
+                value = -1000
+                desc = "CHALLENGER_BEYLIK"
+            }
+        }
+
+        if = {
+            limit = {
+                "scope:actor.opinion(scope:recipient)" < 150
+                "scope:actor.conquer_desire(scope:recipient)" > 20
+                scope:actor = {
+                    is_neighbor_of = scope:recipient
+                    NOT = {
+                        wants_to_subjugate = scope:recipient
+                    }
+                    
+                }
+            }
+            add = {
+                desc = "RECIPIENTS_DESIRES_ACTORS_LOCATIONS"
+                value = "scope:actor.conquer_desire(scope:recipient)"
+                multiply = -0.5
+                if = {
+                    limit = {
+                        scope:actor = {
+                            ai_personality = ai_personality:ai_expansionist
+                        }
+                    }
+                    add = {
+                        value = "scope:actor.num_of_locations_with_high_conquer_desire(scope:recipient)"
+                        multiply = -2.5
+                    }
+                }
+
+            }
+        }
+
+        if = {
+            #Recipient needs to be close and relativly big
+            limit = {
+                scope:actor = {
+                    border_distance_to = {
+                        country = scope:recipient
+                        value < 150
+                    }
+                    relative_strength = {
+                        target = scope:recipient
+                        value < 0.60
+                    }
+                }
+            }
+
+            scope:actor = {         
+                add = {
+                    desc = "NEEDS_ALLIES_AGAINST_STRONG_RIVALS_AND_NEIGHBOURS"
+                    # Check if the country needs allies at all
+                    value = country_needs_allies_value
+                    max = 25
+                    min = 0
+                }
+            }
+        }
+        scope:recipient = {
+            add = {
+                desc = "COALITION_GRADE_ANTAGONISM_TOWARDS_RECIPIENT"
+                value = {
+                    every_country_with_coalition_grade_antagonism_against_us = {                    
+                        limit = {
+                            scope_country_can_join_coalition_against = {
+                                target = scope:recipient
+                            }
+                        }
+                        subtract = {
+                            value = country_strength
+                        }
+                    }
+                    if = {
+                        limit = {
+                            NOT = {
+                                country_strength <= 0 
+                            }
+                        }
+                        divide = country_strength
+                    } 
+                    multiply = 10
+                }
+            }
+        }
+
+        add = {
+            desc = "ACTOR_WOULD_NEED_TO_PAY_FOR_DIPLOMACY"
+            value = scope:actor.diplomatic_capacity_without_maintenance
+            subtract = scope:actor.used_diplomatic_capacity
+            if = {
+                limit = {
+                    NOT = { scope:actor.diplomatic_capacity_without_maintenance <= 0 }
+                }
+                divide = scope:actor.diplomatic_capacity_without_maintenance
+            }
+            max = 0
+            multiply = 100
+        }
+
+        #Don't break alliances during wars
+        if = {
+            limit = {
+                scope:actor = {
+                    at_war = yes
+                }
+            }
+            add = {
+                desc = "ACTOR_IS_IN_DIFFERENT_WARS"
+                value = 100
+            }
+        }
+
+        add = {
+            desc = "COMMON_RIVALS"
+            value = "scope:recipient.num_of_common_rivals(scope:actor)"
+            max = 3
+            multiply = 5
+        }
+
+		if = {
+			limit = {
+				#exists = international_organization:protestant_union #P:A Removed vanilla reference
+				#exists = international_organization:catholic_league #P:A Removed vanilla reference
+				OR = {
+					AND = {
+						#scope:actor = { is_member_of_international_organization = international_organization:protestant_union } #P:A Removed vanilla reference
+						#scope:recipient = { is_member_of_international_organization = international_organization:catholic_league } #P:A Removed vanilla reference
+						always = no #P:A Removed vanilla reference
+					}
+					AND = {
+						#scope:actor = { is_member_of_international_organization = international_organization:catholic_league } #P:A Removed vanilla reference
+						#scope:recipient = { is_member_of_international_organization = international_organization:protestant_union } #P:A Removed vanilla reference
+						always = no #P:A Removed vanilla reference
+					}
+				}
+				always = no #P:A Removed vanilla reference
+			}
+			subtract = {
+				desc = "IN_OPPOSING_RELIGIOUS_FACTONS"
+				value = 1000
+			}
+		}
+	}
+}	

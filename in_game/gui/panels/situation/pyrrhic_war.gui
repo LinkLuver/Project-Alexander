@@ -1,0 +1,255 @@
+situation_panel = {
+
+	##################################### TOP HEADER #####################################
+	# blockoverride "situation_header_extra"{ visible = no }
+	# To show the start date properly, we may want to reactivate this in the future, in case 
+	# we want to move the start date of each situation elsewhere
+
+	##################################### MAIN IMAGE #####################################
+
+	blockoverride "situation_panel_image" {
+		using = two_countries_header_template
+	
+		blockoverride "FirstCountryContext" {
+			datacontext = "[GetCountry('ROM')]"
+		}
+
+		blockoverride "SecondCountryContext" {
+			datacontext = "[GetCountry('EPI')]"
+		}
+
+		# blockoverride "history_button_anchor" {}
+
+		blockoverride "first_character_portrait_anchor" {
+			parentanchor = bottom|left
+		}
+
+		blockoverride "second_character_portrait_anchor" {
+			parentanchor = bottom|right
+		}
+
+		blockoverride "character_religion_visibility" {
+			visible = no
+		}
+
+		blockoverride "character_name_maximumsize" {
+			maximumsize = { 270 -1 }
+		}
+
+		blockoverride "country_header_extra" {
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				layoutpolicy_vertical = expanding
+				margin = { 10 10 }
+				spacing = 8
+
+				expand = {}
+			}
+		}
+	}
+
+	##################################### TAB NAME #####################################
+
+	
+	##################################### SUBHEADER #####################################
+
+	blockoverride "situation_subheader_content" {}
+
+	##################################### MAIN CONTENT #####################################
+
+	# ACTIONS
+	blockoverride "situation_panel_main_content" {
+
+		situation_card_expandable = {
+			blockoverride "header_button_onclick" {
+				onclick = "[LateralView.Vars.Toggle( 'requirements_toggled' )]"
+			}
+			blockoverride "header_text" {
+				text = "END_REQUIREMENTS"
+			}
+			blockoverride "header_icon" {
+				texture = "gfx/interface/icons/disasters/end_requirements_green.dds"
+			}
+			blockoverride "bottom_content" {
+				TooltipRequirementsList = {
+					textcontext = "[SituationView.GetActiveSituation.GetSituation.GetEndConditions]"
+				}
+			}
+			blockoverride "visible_hint" {}
+			blockoverride "onaction_hint" {
+				action_tooltip = {
+					title = "OPEN_HINT"
+					on_action = "[OpenLateralViewWithParams('hints', 'selected_hint = hint_pyrrhic_war')]"
+				}
+			}
+			blockoverride "bottom_content_onclick" {
+				visible = "[LateralView.Vars.Exists( 'requirements_toggled' )]"
+			}
+			blockoverride "icon_replace_visible_yes" {
+				visible = "[LateralView.Vars.Exists( 'requirements_toggled' )]"
+			}
+			blockoverride "icon_replace_visible_not" {
+				visible = "[Not(LateralView.Vars.Exists( 'requirements_toggled' ))]"
+			}
+		}
+
+		situation_fancy_two_line_card = {
+			block "card_datacontext" { }	#We need two countries here, not one, so we will have to define both individually
+			
+			#Left - Delhi the infirm
+			blockoverride "left_flag_properties" {
+				datacontext = "[GetCountry('ROM')]"
+				visible = "[Country.IsValid]"
+			}
+			blockoverride "left_bottom_flag" { }
+			blockoverride "left_top_text" {
+				layoutpolicy_horizontal = expanding
+				layoutpolicy_vertical = expanding
+				visible = "[GetCountry('ROM').IsValid]"
+				text = "[GetCountry('ROM').GetName]"
+			}
+			blockoverride "left_bottom_text" {
+				text = "ENG_STR_TT"
+				tooltipwidget = {
+					ContextualTooltipType = {
+						blockoverride "title_icon" {
+							country_flag_small = {
+								datacontext = "[GetCountry('ROM')]"
+							}
+						}
+						blockoverride "title_text" {
+							text = "RELATIVE_MILITARY_STRENGTH_ENG_TT_TITLE"
+						}
+						blockoverride "tooltip_content" {
+							TooltipStringPairList = {
+								blockoverride "block_title" {
+									visible = no
+								}
+								textcontext = "RELATIVE_MILITARY_STRENGTH_ENG_TT_ARMY_STRENGTH"
+							}							
+						}						
+					}
+				}
+			}
+			
+			#Right - Opposers' Strongest Country
+			blockoverride "right_flag_properties" {
+				datacontext = "[GetCountry('EPI')]"
+				visible = "[Country.IsValid]"
+			}
+			blockoverride "right_bottom_flag" {	}
+			blockoverride "right_top_text" {
+				layoutpolicy_horizontal = expanding
+				layoutpolicy_vertical = expanding
+				visible = "[GetCountry('EPI').IsValid]"
+				text = "[GetCountry('EPI').GetName]"
+			}
+			blockoverride "right_bottom_text" { 
+				text = "FRA_STR_TT"
+				tooltipwidget = {
+					ContextualTooltipType = {
+						blockoverride "title_icon" {
+							country_flag_small = {
+								datacontext = "[GetCountry('EPI')]"
+							}
+						}
+						blockoverride "title_text" {
+							text = "RELATIVE_MILITARY_STRENGTH_FRA_TT_TITLE"
+						}
+						blockoverride "tooltip_content" {
+							TooltipStringPairList = {
+								blockoverride "block_title" {
+									visible = no
+								}
+								textcontext = "RELATIVE_MILITARY_STRENGTH_FRA_TT_ARMY_STRENGTH"
+							}							
+						}						
+					}
+				}
+			}
+        }
+	}
+
+	blockoverride "situation_panel_main_content_bottom" {
+		situation_side_cards = {
+
+			#Roman side
+			blockoverride "left_header_content" {
+				icon = {
+					blockoverride "left_header_icon" { }
+				}
+				text_single = {
+					layoutpolicy_horizontal = expanding
+					align = center|nobaseline
+					text = "ENG_DEFENDERS_TT"
+					blockoverride "left_header_text" { }
+				}
+				expand = {}
+			}
+			blockoverride "left_bottom_content" {
+				scrollarea = {
+					layoutpolicy_horizontal = expanding
+					size = { -1 190 }
+					scrollbarpolicy_horizontal = always_off
+					scrollbar_vertical = {
+						using = Scrollbar_Vertical
+					}
+					
+					scrollwidget = {
+						dynamicgridbox = {
+							datacontext = "[GetWillJoinCountryList(GetCountry('ROM').Self, GetCountry('EPI').Self)]"
+							visible = "[DataModelHasItems(WillJoinCountryList.GetJoinDefensive)]"
+							position = {0 10}
+							flipdirection = yes
+							datamodel_wrap = 6
+							maxhorizontalslots = 6
+							datamodel = "[WillJoinCountryList.GetJoinDefensive]"
+							item = {
+								country_flag_small = {}
+							}
+						}
+					}
+				}
+			}
+
+			#Epirote side
+			blockoverride "right_header_content" {
+				icon = {
+					blockoverride "right_header_icon" { }
+				}
+				text_single = {
+					layoutpolicy_horizontal = expanding
+					align = center|nobaseline
+					text = "FRA_DEFENDERS_TT"
+					blockoverride "right_header_text" { }
+				}
+				expand = {}
+			}
+			blockoverride "right_bottom_content" {
+				scrollarea = {
+					layoutpolicy_horizontal = expanding
+					size = { -1 190 }
+					scrollbarpolicy_horizontal = always_off
+					scrollbar_vertical = {
+						using = Scrollbar_Vertical
+					}
+					
+					scrollwidget = {
+						dynamicgridbox = {
+							datacontext = "[GetWillJoinCountryList(GetCountry('EPI').Self, GetCountry('ROM').Self)]"
+							visible = "[DataModelHasItems(WillJoinCountryList.GetJoinDefensive)]"
+							position = {0 10}
+							flipdirection = yes
+							datamodel_wrap = 6
+							maxhorizontalslots = 6
+							datamodel = "[WillJoinCountryList.GetJoinDefensive]"
+							item = {
+								country_flag_small = {}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

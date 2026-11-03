@@ -1,0 +1,94 @@
+﻿dismiss_artist = {
+	is_consort_action = no
+	on_own_nation = yes
+
+	message = yes
+
+	potential = {
+	}
+
+	ai_tick = never
+	ai_tick_frequency = 30
+
+	allow = {
+		scope:actor = {
+			prestige >= {
+				value = prestige_mild_penalty
+				multiply = -1
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = recipient
+		name = "choose_character"
+		column = {
+			data = name
+		}
+		visible = {
+			is_alive = yes
+			is_artist = yes
+		}
+		enabled = {
+			is_ruler = no
+			is_heir = no
+			is_consort = no
+			modifier:blocked_from_character_interactions = no
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_prestige = prestige_mild_penalty
+		}
+		# Opinion penalty to estate associated with this artist type
+		hidden_effect = {
+			scope:recipient = {
+				if = {
+					limit = { has_estate = estate_type:nobles_estate }
+					scope:actor = {
+						add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_weak_penalty }
+					}
+				}
+				if = {
+					limit = { has_estate = estate_type:clergy_estate }
+					scope:actor = {
+						add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_weak_penalty }
+					}
+				}
+				if = {
+					limit = { has_estate = estate_type:burghers_estate }
+					scope:actor = {
+						add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_weak_penalty }
+					}
+				}
+			}
+		}
+		scope:recipient = {
+			# Remove artist role and move character away from court
+			random_country = {
+				limit = {
+					NOT = { this = scope:actor }
+					within_diplomatic_range = scope:actor
+				}
+				save_scope_as = target_country
+			}
+			if = {
+				limit = { exists = scope:target_country }
+				move_country = scope:target_country
+			}
+			else = {
+				kill_character_silently = {
+					target = scope:recipient
+					reason = vanished
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 0
+	}
+}

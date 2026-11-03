@@ -1,0 +1,217 @@
+﻿merge_colonies = {
+	type = subject
+	category = CATEGORY_SUBJECT_ACTIONS
+
+	block_when_at_war = yes
+
+	price = price:merge_colonies_price
+
+	potential = {
+		scope:actor = {
+			is_colonial_overlord = yes
+			any_subject = {
+				count >= 2
+				is_colonial_subject = yes
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			at_war = no
+		}
+	}
+
+	# Stage 1 — select the colony that will be absorbed (gets the accept/decline popup)
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					limit = {
+						is_colonial_subject = yes
+						NOR = {
+							country_type = building
+							country_type = pop
+						}
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "merge_colonies_select_absorbed"
+		none_available_msg_key = "merge_colonies_no_colonies"
+		cache_interaction_source_list = yes
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = { is_colonial_subject = yes }
+		enabled = { at_war = no }
+	}
+
+	# Stage 2 — select the colony that will absorb the other
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					limit = {
+						is_colonial_subject = yes
+						NOR = {
+							country_type = building
+							country_type = pop
+						}
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = colony_absorber
+		name = "merge_colonies_select_absorber"
+		none_available_msg_key = "merge_colonies_no_colonies"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			is_neighbor_of = scope:recipient
+			NOT = { this = scope:recipient }
+		}
+		enabled = { at_war = no }
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:colony_absorber
+				exists = scope:recipient
+			}
+			scope:colony_absorber = {
+				annex_country = {
+					country = scope:recipient
+					reason = Diplomatic
+				}
+			}
+		}
+		else = {
+			custom_tooltip = merge_colonies_select_both_tt
+		}
+	}
+
+	reject_effect = {
+		scope:recipient = {
+			add_liberty_desire = 10
+		}
+	}
+
+	diplo_chance = {
+		recipient_at_war = -100
+		at_war = -100
+	}
+
+	accept = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = -30
+		}
+		if = {
+			limit = {
+				exists = scope:colony_absorber
+				culture = scope:colony_absorber.culture
+			}
+			add = {
+				desc = "DIPLOREASON_SAME_CULTURE"
+				value = 20
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:colony_absorber
+				culture != scope:colony_absorber.culture
+			}
+			add = {
+				desc = "DIPLOREASON_DIFF_CULTURE"
+				value = -20
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:colony_absorber
+				religion = scope:colony_absorber.religion
+			}
+			add = {
+				desc = "DIPLOREASON_SAME_RELIGION"
+				value = 20
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:colony_absorber
+				religion != scope:colony_absorber.religion
+			}
+			add = {
+				desc = "DIPLOREASON_DIFF_RELIGION"
+				value = -20
+			}
+		}
+		if = {
+			limit = { exists = scope:recipient }
+			add = {
+				desc = "game_concept_opinion"
+				value = "scope:recipient.opinion(scope:actor)"
+				multiply = 0.1
+			}
+		}
+		add = {
+			desc = "DIPLOREASON_TRUST"
+			value = "scope:recipient.trust(scope:actor)"
+			divide = 5
+		}
+		if = {
+			limit = { scope:recipient = { is_during_bankruptcy = yes } }
+			add = {
+				desc = "IS_BANKRUPT_TOOLTIP"
+				value = 1000
+			}
+		}
+		if = {
+			limit = { scope:recipient = { has_any_active_disaster = yes } }
+			add = {
+				desc = "DIPLOREASON_RECIPIENT_IS_IN_A_DISASTER"
+				value = 100
+			}
+		}
+		add = {
+			desc = "DIPLOREASON_RECIPIENT_WAR_EXHAUSTION"
+			value = "scope:recipient.war_exhaustion"
+			multiply = 20
+		}
+		if = {
+			limit = {
+				scope:recipient = { stability < 0 }
+			}
+			add = {
+				desc = "DIPLOREASON_RECIPIENT_STABILITY"
+				value = "scope:recipient.stability"
+				multiply = -2
+			}
+		}
+		if = {
+			limit = {
+				scope:recipient = { government_power < 50 }
+			}
+			add = {
+				desc = "DIPLOREASON_RECIPIENT_GOVERNMENT_POWER"
+				value = 20
+			}
+		}
+	}
+
+	ai_tick = never
+}

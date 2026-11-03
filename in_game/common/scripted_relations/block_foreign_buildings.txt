@@ -1,0 +1,87 @@
+﻿block_foreign_building =  { 
+	type = diplomacy
+	relation_type = oneway
+	block_building = yes
+	break_on_war = yes
+	receiving_color = rgb { 60 120 0 }
+	giving_color = rgb { 40 100 0 }
+	category = {
+		offer = CATEGORY_ECONOMY_ACTIONS
+		request = CATEGORY_ECONOMY_ACTIONS
+		cancellation = CATEGORY_ECONOMY_ACTIONS
+		break = CATEGORY_ECONOMY_ACTIONS
+	}
+
+	relation_type_for_ai = hostile
+
+	visible = {
+		always = yes
+	}
+
+	offer_enabled = {
+		NOT = { scope:actor = { is_allied_with = { target = scope:recipient } } }
+		not = { 
+			scope:actor = {
+				giving_scripted_relation = {
+					type = relation_type:military_sponsorship
+					target = scope:recipient
+				}
+			}
+		}
+		
+		scope:actor = { opinion = { target = scope:recipient value < 0 } }
+
+	}
+	
+	 will_expire_trigger = {
+		scope:first = { opinion = { target = scope:second value > 100 } }
+    }
+
+	request_visible = { always = no }
+	use_with_enemies = yes
+
+	break_visible = { always = no }
+
+	break_enabled = {
+		scope:actor = {
+			has_casus_belli_on = scope:recipient
+			NOT = { has_truce_with = scope:recipient }
+		}
+	}
+
+	break_effect = {
+		scope:actor = {
+			remove_all_casus_belli = scope:recipient
+		}
+	}
+
+	wants_to_keep = {
+		add = -10
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						has_scripted_relation = {
+							target = scope:recipient
+							type = relation_type:block_foreign_building
+						}
+					}
+					scope:recipient = {
+						is_rival_of = scope:actor
+					}
+				}
+				value = 20
+			}
+		}
+		add = {
+			if = {
+				limit = {
+					scope:recipient = {
+						owns_any_foreign_buildings_in = scope:actor
+					}
+				}
+				value = 20
+			}
+		}
+	}
+}	

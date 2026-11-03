@@ -1,0 +1,846 @@
+﻿#P:A TODO Manual cleanup of file required
+join_sect = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor ?= {
+			religion = {
+				has_sects = yes
+				OR = {
+					this != religion:shinto
+					scope:actor = { has_country_modifier = favoring_buddhism_schools }
+				}
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			custom_tooltip = {
+				text = join_sect_max_sects_tt
+				any_international_organizations_member_of = {
+					international_organization_type = international_organization_type:sect
+					count < {
+						value = scope:actor.religion.max_sects
+						min = 0
+					}
+				}
+			}
+		}
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	price = price:join_sect
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			has_sects = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = target
+		name = "join_sect_choose_sect"
+		none_available_msg_key = "join_sect_no_ios"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:sect
+			OR = {
+				var:religion = scope:actor.religion
+				AND = {
+					scope:actor = {
+						religion = religion:shinto
+						has_country_modifier = favoring_buddhism_schools
+					}
+					OR = {
+						var:religion = religion:mahayana
+						var:religion = religion:shinto
+					}
+				}
+				AND = {
+					scope:actor = { religion = religion:sanjiao }
+					var:religion = religion:mahayana
+				}
+			}
+			scope:actor = {
+				NOT = { is_member_of_international_organization = root }
+			}
+		}
+		enabled = {
+			scope:actor = {
+				can_join_international_organization = root
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				add_country_to_international_organization = scope:actor
+			}
+		}
+	}
+
+	ai_will_do = {
+		#how useful is this sect?
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+		}
+	}
+}
+
+disfavor_sect = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor ?= {
+			NOT = { has_variable = disfavoring_sect }
+			religion = {
+				has_sects = yes
+				OR = {
+					this != religion:shinto
+					scope:actor = { has_country_modifier = favoring_buddhism_schools }
+				}
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 24
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	price = price:disfavor_sect
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			has_sects = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		interaction_source_list = {
+			scope:actor = {
+				every_international_organizations_member_of = {
+					limit = {
+						international_organization_type = international_organization_type:sect
+					}
+					add_to_list = source
+				}
+			}
+		}
+		cache_targets = yes
+		target_flag = target
+		name = "disfavor_sect_choose_sect"
+		none_available_msg_key = "disfavor_sect_no_ios"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:sect
+			OR = {
+				var:religion = scope:actor.religion
+				AND = {
+					scope:actor = {
+						religion = religion:shinto
+						has_country_modifier = favoring_buddhism_schools
+					}
+					OR = {
+						var:religion = religion:mahayana
+						var:religion = religion:shinto
+					}
+				}
+				AND = {
+					scope:actor = { religion = religion:sanjiao }
+					var:religion = religion:mahayana
+				}
+			}
+			scope:actor = {
+				is_member_of_international_organization = root
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:actor = {
+				set_variable = {
+					name = disfavoring_sect
+					value = scope:target
+				}
+			}
+			scope:target = { add_enemy_to_international_organization = scope:actor }
+		}
+	}
+
+	ai_will_do = {
+		#how useful is this sect?
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+			multiply = -1
+		}
+	}
+}
+
+stop_disfavoring_sect = {
+	icon = disfavor_sect
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor ?= {
+			has_variable = disfavoring_sect
+			religion = {
+				has_sects = yes
+				OR = {
+					this != religion:shinto
+					scope:actor = { has_country_modifier = favoring_buddhism_schools }
+				}
+			}
+		}
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	price = price:stop_disfavoring_sect
+
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			has_sects = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = target
+		name = "stop_disfavoring_sect_choose_sect"
+		none_available_msg_key = "stop_disfavoring_sect_no_ios"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:sect
+			scope:actor = {
+				has_variable = disfavoring_sect
+				var:disfavoring_sect ?= prev
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = { remove_enemy_from_international_organization = scope:actor }
+			scope:actor = {
+				remove_variable = disfavoring_sect
+			}
+		}
+	}
+
+	ai_will_do = {
+		#how useful is this sect?
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+		}
+	}
+}
+
+promote_sect = {
+	icon = disfavor_sect
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor ?= {
+			NOT = { has_variable = promoting_sect }
+			religion = {
+				has_sects = yes
+				OR = {
+					this != religion:shinto
+					scope:actor = { has_country_modifier = favoring_buddhism_schools }
+				}
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	price = price:promote_sect
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			has_sects = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = target
+		name = "promote_sect_choose_sect"
+		none_available_msg_key = "promote_sect_no_ios"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:sect
+			OR = {
+				AND = {
+					var:religion = scope:actor.religion
+					var:religion != religion:shinto
+				}
+				AND = {
+					scope:actor = {
+						religion = religion:shinto
+						has_country_modifier = favoring_buddhism_schools
+					}
+					OR = {
+						var:religion = religion:mahayana
+						var:religion = religion:shinto
+					}
+				}
+				AND = {
+					scope:actor = { religion = religion:sanjiao }
+					var:religion = religion:mahayana
+				}
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:actor = {
+				set_variable = {
+					name = promoting_sect
+					value = scope:target
+				}
+			}
+			scope:target = {
+				add_to_variable_list = {
+					name = sect_supporters
+					target = scope:actor
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		#how useful is this sect?
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+		}
+	}
+}
+
+stop_promoting_sect = {
+	icon = disfavor_sect
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor ?= {
+			has_variable = promoting_sect
+			religion = {
+				has_sects = yes
+				OR = {
+					this != religion:shinto
+					scope:actor = { has_country_modifier = favoring_buddhism_schools }
+				}
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	price = price:stop_promoting_sect
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			has_sects = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = target
+		name = "promote_sect_choose_sect"
+		none_available_msg_key = "stop_promoting_sect_no_ios"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:sect
+			scope:actor = {
+				has_variable = promoting_sect
+				var:promoting_sect ?= prev
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:actor = {
+				remove_variable = promoting_sect
+			}
+			scope:target = {
+				remove_list_variable = {
+					name = sect_supporters
+					target = scope:actor
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		#how useful is this sect?
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+			multiply = -1
+		}
+	}
+}
+
+leave_sect = {
+	icon = disfavor_sect
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor ?= {
+			religion = {
+				has_sects = yes
+				OR = {
+					this != religion:shinto
+					scope:actor = { has_country_modifier = favoring_buddhism_schools }
+				}
+			}
+			any_international_organizations_member_of = { international_organization_type = international_organization_type:sect }
+		}
+	}
+
+	allow = {
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	price = price:leave_sect
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			has_sects = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = target
+		name = "leave_sect_choose_sect"
+		none_available_msg_key = "leave_sect_no_ios"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:sect
+			scope:actor = {
+				is_member_of_international_organization = root
+			}
+		}
+		enabled = {
+			scope:actor = {
+				can_leave_international_organization = root
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				remove_country_from_international_organization = {
+					country = scope:actor
+					reason = DecidedToLeave
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		#how useful is this sect?
+		add = {
+			value = "scope:target.modifier_utility(scope:actor)"
+			multiply = -1
+		}
+	}
+}
+
+perform_tantric_ritual = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor = {
+			any_international_organizations_member_of = {
+				#international_organization_has_policy = policy:vajrayana_policy #P:A Removed vanilla reference
+				always = no #P:A Removed vanilla reference
+			}
+		}
+	}
+	
+	cooldown = {
+		type = perform_tantric_ritual
+		years = 10
+	}
+
+	allow = {
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	price = price:perform_tantric_ritual
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			has_sects = yes
+			scope:actor = {
+				any_international_organizations_member_of = {
+					#international_organization_has_policy = policy:vajrayana_policy #P:A Removed vanilla reference
+					has_variable = religion
+					var:religion ?= root
+					always = no #P:A Removed vanilla reference
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_government_power = government_power_extreme_bonus
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = "scope:actor.currency_utility(government_power|government_power_extreme_bonus)"
+		}
+	}
+}
+
+organize_spiritual_retreat = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor = {
+			any_international_organizations_member_of = {
+				#international_organization_has_policy = policy:vajrayana_policy #P:A Removed vanilla reference
+				always = no #P:A Removed vanilla reference
+			}
+		}
+	}
+
+	cooldown = {
+		type = organize_spiritual_retreat
+		years = 10
+	}
+
+	allow = {
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	price = price:organize_spiritual_retreat
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			has_sects = yes
+			scope:actor = {
+				any_international_organizations_member_of = {
+					#international_organization_has_policy = policy:vajrayana_policy #P:A Removed vanilla reference
+					has_variable = religion
+					var:religion ?= root
+					always = no #P:A Removed vanilla reference
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			if = {
+				limit = { religion = { has_karma = yes } }
+				add_karma = 10
+			}
+			if = {
+				limit = {
+					religion = { has_purity = yes }
+				}
+				add_purity = 10
+			}
+			if = {
+				limit = {
+					modifier:allow_harmony = yes
+					harmony < -10
+				}
+				add_harmony = 10
+			}
+			if = {
+				limit = {
+					modifier:allow_harmony = yes
+					harmony > 10
+				}
+				add_harmony = -10
+			}
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = { scope:actor.religion = { has_karma = yes } }
+			add = {
+				value = "scope:actor.currency_utility(karma|10)"
+			}
+		}
+		if = {
+			limit = { scope:actor.religion = { has_purity = yes } }
+			add = {
+				value = "scope:actor.currency_utility(purity|10)"
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					modifier:allow_harmony = yes
+					harmony < -10					
+				}
+			}
+			add = {
+				value = "scope:actor.currency_utility(harmony|10)"
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					modifier:allow_harmony = yes
+					harmony > 10					
+				}
+			}
+			add = {
+				value = "scope:actor.currency_utility(harmony|-10)"
+			}
+		}
+	}
+}
+
+commission_religious_images = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor = {
+			any_international_organizations_member_of = {
+				#international_organization_has_policy = policy:vajrayana_policy #P:A Removed vanilla reference
+				always = no #P:A Removed vanilla reference
+			}
+		}
+	}
+
+	cooldown = {
+		type = commission_religious_images
+		years = 10
+	}
+
+	allow = {
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	price = price:commission_religious_images
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			has_sects = yes
+			scope:actor = {
+				any_international_organizations_member_of = {
+					#international_organization_has_policy = policy:vajrayana_policy #P:A Removed vanilla reference
+					has_variable = religion
+					var:religion ?= root
+					always = no #P:A Removed vanilla reference
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_prestige = 10
+			if = {
+				limit = {
+					modifier:allow_righteousness = yes
+				}
+				add_righteousness = 10
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = "scope:actor.currency_utility(prestige|10)"
+		}
+		if = {
+			limit = {
+				scope:actor = { modifier:allow_righteousness = yes }
+			}
+			add = {
+				value = "scope:actor.currency_utility(righteousness|10)"
+			}
+		}
+	}
+}

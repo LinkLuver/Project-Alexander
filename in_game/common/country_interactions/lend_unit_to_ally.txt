@@ -1,0 +1,200 @@
+﻿lend_unit_to_ally = {
+	type = diplomacy
+	category = CATEGORY_MILITARY_ACTIONS
+
+	ai_prerequisite = {
+		army_size > 0
+	}
+
+	potential = {
+		scope:actor = {
+			at_war = yes
+		}
+	}
+
+	allow = {
+	}
+
+	# Step 1: Pick the war ally to receive the unit
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		interaction_source_list = {
+			scope:actor = {
+				every_current_war = {
+					if = {
+						limit = { is_an_attacker = scope:actor }
+						attacker_leader = {
+							if = {
+								limit = { NOT = { this = scope:actor } }
+								add_to_list = source
+							}
+						}
+					}
+					if = {
+						limit = { is_a_defender = scope:actor }
+						defender_leader = {
+							if = {
+								limit = { NOT = { this = scope:actor } }
+								add_to_list = source
+							}
+						}
+					}
+				}
+			}
+		}
+		cache_interaction_source_list = yes
+		name = "choose_country"
+		column = { data = name }
+		visible = {
+			always = yes
+		}
+		enabled = {
+			NOT = { this = scope:actor }
+		}
+	}
+
+	# Step 2: Pick which army to lend (skipped when pre-set from unit panel)
+	select_trigger = {
+		looking_for_a = unit
+		source = actor
+		target_flag = lend_unit_target
+		name = "lend_unit_to_ally_choose_unit"
+		none_available_msg_key = "lend_unit_to_ally_no_units"
+		column = { data = name }
+		visible = {
+			is_army = yes
+			# Exclude units that already contain lent subunits (condottieri),
+			# and units made of mercenary subunits — lending those would destroy the
+			# original mercenary contract and the troops would come back as regulars.
+			# CAESAR-67774.
+			NOT = { any_sub_unit = { is_condottieri = yes } }
+			NOT = { any_sub_unit = { is_mercenary = yes } }
+			# Exclude levy-containing units — levy subunits are tied to the pops they were
+			# raised from and cannot transfer ownership; the lend silently no-ops on them.
+			# CAESAR-67972.
+			NOT = { any_sub_unit = { is_levy = yes } }
+		}
+	}
+
+	diplo_chance = {
+		base = 50
+		opinion = 0.3
+	}
+
+	accept = {
+		# Bonus when recipient is losing
+		add = {
+			desc = "DIPLOREASON_LOSING_WAR"
+			if = {
+				limit = {
+					scope:recipient = { lowest_war_score < -10 }
+				}
+				add = 25
+			}
+		}
+		# Penalty when recipient has enough troops
+		subtract = {
+			desc = "DIPLOREASON_SUFFICIENT_ARMY"
+			if = {
+				limit = {
+					scope:recipient = { lowest_war_score >= 10 }
+				}
+				add = 20
+			}
+		}
+		# Opinion contribution
+		add = {
+			desc = "DIPLOREASON_OPINION"
+			value = "scope:recipient.opinion(scope:actor)"
+			multiply = 0.3
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:lend_unit_target
+				exists = scope:recipient
+			}
+			scope:lend_unit_target = {
+				lend_unit_to_country = scope:recipient
+			}
+			scope:actor = {
+				add_opinion = {
+					target = scope:recipient
+					modifier = opinion_lent_unit
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+
+		# Case 1: Minor coalition member lends to struggling war leader
+		if = {
+			limit = {
+				scope:actor = {
+					any_current_war = {
+						NOT = {
+							OR = {
+								attacker_leader = scope:actor
+								defender_leader = scope:actor
+							}
+						}
+						OR = {
+							AND = {
+								attacker_leader = scope:recipient
+								is_an_attacker = scope:actor
+							}
+							AND = {
+								defender_leader = scope:recipient
+								is_a_defender = scope:actor
+							}
+						}
+					}
+					relative_military_strength = {
+						target = scope:recipient
+						value < 0.5
+					}
+					scope:recipient = { lowest_war_score < 0 }
+					calc_true_if = {
+						any_unit = { is_army = yes }
+						amount >= 2
+					}
+				}
+			}
+			add = 60
+		}
+
+		# Case 2: Loyal small subject offers unit to overlord
+		if = {
+			limit = {
+				scope:actor = {
+					is_subject_of = scope:recipient
+					subject_loyalty >= MIN_SUBJECT_LOYALTY_FOR_ACTION
+					liberty_desire < 25
+					relative_military_strength = {
+						target = scope:recipient
+						value < 0.3
+					}
+					scope:recipient = { lowest_war_score < 0 }
+					calc_true_if = {
+						any_unit = { is_army = yes }
+						amount >= 2
+					}
+				}
+			}
+			add = 80
+		}
+
+		# Never lend if the actor is themselves under serious threat
+		if = {
+			limit = {
+				scope:actor = { lowest_war_score < -15 }
+			}
+			add = -1000
+		}
+	}
+}

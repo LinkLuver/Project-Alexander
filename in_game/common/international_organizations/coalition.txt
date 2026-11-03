@@ -1,0 +1,220 @@
+﻿coalition = {
+
+	has_target = yes
+	show_on_diplomatic_map = yes
+	expel_members_who_are_targets_of_other_members = yes
+	expel_members_who_are_attackers_at_war_with_other_members = yes
+	expel_members_who_are_defenders_at_war_with_other_members = yes
+	has_leader_country = yes
+	leader_type = country
+	show_strength_comparison_with_target = yes
+	declare_war_on_target_casus_belli = cb_coalition
+	promote_strongest_member_to_war_leader = yes
+
+	gives_food_access_to_members = yes
+
+	create_visible_trigger = {
+		always = yes
+	}
+
+	invite_visible_trigger = {
+		always = yes
+	}
+
+	diplomatic_capacity_cost = {
+		add = {
+			desc = "UPKEEP_BASE_VALUE"
+			value = 1
+		}
+	}
+
+	#member_color = rgb { 40 160 0 }
+	leader_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	target_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_TARGET_COLOR
+
+	#target_view_member_color = rgb { 255 0 0 }
+	#target_view_leader_color = rgb { 200 20 20 }
+
+	join_defensive_wars_always = {
+		scope:target ?= {
+			this = root.international_organization_target
+		}
+	}
+	join_offensive_wars_always = {
+		scope:target ?= {
+			this = root.international_organization_target
+		}
+		trigger_if = {
+			limit = {
+				exists = scope:casus_belli
+			}
+			scope:casus_belli = casus_belli:cb_coalition
+		}
+	}
+	
+	can_declare_war = {
+		always = yes
+	}
+
+	modifier = {
+	}
+	
+	target_modifier = {
+		monthly_complacency = -0.05
+	}
+	
+	potential_target_trigger = {
+		has_countries_with_near_coalition_grade_antagonism = yes
+	}
+	
+	can_target_trigger = {
+		has_countries_with_coalition_grade_antagonism = yes
+	}
+
+	can_join_trigger = {
+		scope_country_can_join_coalition_against = {
+			target = scope:target
+		}
+	}
+
+	can_leave_trigger = {
+		OR = {
+			not = { exists = scope:target }
+			not = { is_at_war_with = scope:target }
+		}
+	}
+	
+	auto_disband_trigger = {
+		or = {
+			total_members < 1
+			not = { country_exists = scope:target }
+		}
+	}
+
+	auto_leave_trigger = {
+		trigger_if = {
+			limit = { exists = scope:target }
+			or = {
+				AND = {
+					is_subject = yes
+					NOT = { is_subject_type = tributary }
+				}
+				and = {
+					not = { is_at_war_with = scope:target }
+					or = {
+						giving_scripted_relation = {
+							type = relation_type:anti_coalition_treaty
+							target = scope:target
+						}
+						has_truce_with = scope:target
+						is_subject_or_below_of = scope:target
+						scope:target = {
+							is_subject_or_below_of = root
+						}
+						in_union_with = scope:target
+
+						antagonism = {
+							target = scope:target
+							value < 30
+						}
+					}
+				}
+			}
+		}
+		trigger_else = {
+			always = yes
+		}
+	}
+	
+	on_joined = {
+		add_casus_belli = {
+			target = scope:target
+			type = casus_belli:cb_coalition
+		}
+	}
+
+	on_left = {
+		remove_casus_belli = {
+			target = scope:target
+			type = casus_belli:cb_coalition
+		}
+	}
+	
+	ai_desire_to_join = {
+		add = {
+			desc = "AT_WAR_TRIGGER"
+			if = {
+				limit = {	
+					is_at_war_with = scope:target
+				}
+				value = 20
+			}
+		}
+		add = {
+            desc = "game_concept_antagonism"
+            scope:target = {
+                value = prev_antagonism_towards_this
+            }
+		}
+
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			# I'm not sure if this limit is entirely needed but I'm getting errors without it
+			# even though I'm using ?= which should exactly check for that right?
+			scope:recipient ?= {
+				add = {
+					desc = "CURRENT_SIZE_COMPARED_TO_TARGET"
+					value = "organization_strength_relative_to_country(scope:target|yes)"
+					add = -5
+					multiply = -25
+				}
+			}
+		}
+		# When forming a new coalition (no existing IO), penalise countries that are
+		# individually much weaker than the target. relative_strength returns 0-1 (0.5 = equal).
+		if = {
+			limit = {
+				NOT = { exists = scope:recipient }
+			}
+			add = {
+				desc = "CURRENT_SIZE_COMPARED_TO_TARGET"
+				value = "relative_strength(scope:target)"
+				add = -0.5
+				multiply = 40
+			}
+		}
+
+		add = {
+			desc = "DISTANCE_TO_TARGET"
+			scope:target = {
+				value = "border_distance_to(root)"
+				multiply = -0.5
+			}
+		}
+
+		if = {
+			limit = {
+				scope:target = {
+					"border_distance_to(root)" > 300
+				}
+			}
+			add = -1000 #Too far away we don't care
+		}
+
+		add = {
+			desc = "OPINION"
+			value = "opinion(scope:target)"
+			multiply = -0.5		
+			max = 0 #only remove reasons, nations usually have -200 when at high antagonism
+		}
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}

@@ -1,0 +1,206 @@
+﻿# Vanilla scripted triggers restored because vanilla files the mod still loads call them, while
+# the vanilla file that defined them is emptied (international_organization_triggers.txt,
+# situation_triggers.txt) or the mod's override dropped them (character_triggers.txt).
+# Found through the game's error.log ("Unknown trigger type").
+
+#P:A Restored vanilla entry from international_organization_triggers.txt
+has_not_consistent_integration_level = {
+	custom_description = {
+		text = not_has_consistent_integration_level_text
+		OR = {
+			NOT = { modifier:union_integration_level > 0 }
+			any_international_organization_member = {
+				NOT = {
+					prev = {
+						country_has_special_status = {
+							type = special_status:senior_partner
+							country = prev
+						}
+					}
+				}
+				OR = {
+					NOT = { has_variable = integrated_in_union }
+					NOT = { var:integrated_in_union ?= prev.modifier:union_integration_level }
+				}
+			}
+		}
+	}
+}
+
+#P:A Restored vanilla entry from international_organization_triggers.txt
+has_not_union_integration_level_as_union = {
+	exists = union
+	union = {
+		modifier:union_integration_level >= 0
+	}
+	OR = {
+		NOT = { has_variable = integrated_in_union }
+		var:integrated_in_union < union.modifier:union_integration_level
+	}
+}
+
+#P:A Restored vanilla entry from international_organization_triggers.txt
+has_union_integration_level_as_union = {
+	trigger_if = {
+		limit = {
+			exists = union
+			has_variable = integrated_in_union
+			union = {
+				modifier:union_integration_level >= 0
+			}
+		}
+		var:integrated_in_union >= union.modifier:union_integration_level
+	}
+	trigger_else = {
+		exists = union
+	}
+}
+
+#P:A Restored vanilla entry from international_organization_triggers.txt
+uses_parliament_for_law_votes_trigger = {
+	has_parliament = yes
+	modifier:uses_parliament_for_law_votes = yes
+}
+
+#P:A Restored vanilla entry from international_organization_triggers.txt
+can_have_parliament_called_by = {
+	custom_description = {
+		text = can_have_parliament_called_by_text
+		object = $country$
+		OR = {
+			AND = {
+				international_organization_has_leader = yes
+				leader_country ?= $country$
+			}
+			AND = {
+				modifier:allow_member_call_parliament = yes
+				trigger_if = {
+					limit = {
+						international_organization_type = international_organization_type:hre
+					}
+					$country$ = {
+						is_member_of_international_organization = prev
+						modifier:can_call_organization_parliament = yes
+					}
+				}
+				trigger_else = {
+					$country$ = { is_member_of_international_organization = prev }
+				}
+			}
+		}
+	}
+}
+
+#P:A Restored vanilla entry from international_organization_triggers.txt
+has_proposed_parliament_issue_in = {
+	custom_description = {
+		text = has_proposed_parliament_issue_in_text
+		object = $international_organization$
+		has_variable_list = io_parliaments_called_list
+		is_target_in_variable_list = {
+			name = io_parliaments_called_list
+			target = $international_organization$
+		}
+	}
+}
+
+#P:A Restored vanilla entry from international_organization_triggers.txt
+scope_country_can_join_coalition_against = {
+	is_rebel_country = no
+	OR = {
+		is_subject = no
+		is_subject_type = tributary
+	}
+	knows_country = $target$
+
+	opinion = {
+		target = $target$
+		value < -50
+	}
+
+	within_diplomatic_range = $target$
+	antagonism = {
+		target = $target$
+		value > 50
+	}
+
+	has_limited_diplomacy = no
+
+	not = { is_subject_or_below_of = $target$ }
+	not = {
+		$target$ = {
+			is_subject_or_below_of = root
+		}
+	}
+	not = { has_truce_with = $target$ }
+	NOT = { in_union_with = $target$ }
+	not = { is_at_war_with = $target$ }
+
+	#Do not allow joining 2 coalitions at once against the same country
+	NOT = {
+		is_member_of_international_organization_of_type = {
+			type = coalition
+			target = $target$
+		}
+	}
+	NOT = {
+		giving_scripted_relation = {
+			type = relation_type:anti_coalition_treaty
+			target = $target$
+		}
+	}
+}
+
+#P:A Restored vanilla entry from international_organization_triggers.txt
+is_leader_of_international_organization_of_type = { #this = country
+	custom_description = {
+		text = is_leader_of_international_organization_of_type_text
+		value = international_organization_type:$type$
+		any_international_organizations_member_of = {
+			international_organization_type = international_organization_type:$type$
+			leader_country ?= prev
+		}
+	}
+}
+
+#P:A Restored vanilla entry from international_organization_triggers.txt
+international_organization_has_unlocked_law_trigger = {
+	custom_description = {
+		text = international_organization_has_unlocked_law_trigger_text
+		value = law:$type$
+		has_variable = unlocked_law_$type$
+	}
+}
+
+#P:A Restored vanilla entry from character_triggers.txt
+character_age_filter_trigger = {
+	age_in_years >= scope:min_value
+	age_in_years <= scope:max_value
+}
+
+### Stubs: the vanilla version depends on content this mod removed, so they stay false ###
+
+#P:A Restored vanilla entry from international_organization_triggers.txt, emptied: it depends on policy:union_establish_seniority_policy (laws/40_personal_unions.txt is emptied)
+has_active_senior_partner = {
+	always = no #P:A Removed vanilla reference
+}
+
+#P:A Restored vanilla entry from international_organization_triggers.txt, emptied: it depends on policy:union_establish_seniority_policy (laws/40_personal_unions.txt is emptied)
+country_is_senior_partner = {
+	$country$ = { always = no } #P:A Removed vanilla reference (keeps the $country$ parameter in use)
+}
+
+#P:A Restored vanilla entry from international_organization_triggers.txt, emptied: it only lists Catholic Church laws (cc_*)
+law_can_be_initiated_by_members = {
+	always = no #P:A Removed vanilla reference
+}
+
+#P:A Restored vanilla entry from situation_triggers.txt, emptied: it depends on the Japanese shogunate
+is_japanese_emperor_or_shogun = {
+	always = no #P:A Removed vanilla reference
+}
+
+#P:A Restored vanilla entry from character_triggers.txt, emptied: it depends on BYZ_kantakouzenos_co_emperor
+character_is_co_ruler_trigger = {
+	always = no #P:A Removed vanilla reference
+}

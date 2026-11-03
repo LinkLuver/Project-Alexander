@@ -1,0 +1,491 @@
+﻿# event_illustration_estate_effect = { foreground = estate_type:nobles_estate   background = estate_type:nobles_estate }
+event_illustration_estate_effect = {
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					scope_type = location
+					owner ?= { is_ai = no }
+				}
+				AND = {
+					scope_type = country
+					is_ai = no
+				}
+			}
+		}
+		event_illustration_estate_foreground_effect = { foreground = $foreground$ }
+		event_illustration_estate_background_effect = { background = $background$ }
+	}
+}
+
+event_illustration_estate_foreground_effect = {
+	if = {
+		limit = {
+			exists = $foreground$
+			OR = {
+				NOT = { scope_type = country }
+				country_has_estate = $foreground$
+			}
+		}
+		ordered_pop = {
+			limit = { 
+				OR = {
+					NOT = { $foreground$ = estate_type:clergy_estate }
+					religion = root.religion
+				}
+				estate_type = $foreground$
+			}
+			max = 1
+			order_by = pop_size
+			order_by = select_important_pop_value
+			save_scope_as = target_pop
+		}
+	}
+}
+
+event_illustration_estate_background_effect = {
+	if = {
+		limit = {
+			exists = $background$
+			OR = {
+				NOT = { scope_type = country }
+				country_has_estate = $background$
+			}
+		}
+		ordered_pop = {
+			limit = { estate_type = $background$ }
+			max = 1
+			order_by = pop_size
+			order_by = select_important_pop_value
+			save_scope_as = target_pop_bckg
+		}
+	}
+}
+
+
+
+# event_illustration_culture_effect = { culture = culture:catalan }
+event_illustration_culture_effect = {
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					scope_type = location
+					owner ?= { is_ai = no }
+				}
+				AND = {
+					scope_type = country
+					is_ai = no
+				}
+			}
+		}
+		ordered_pop = {
+			limit = { culture = $culture$ }
+			max = 1
+			order_by = pop_size
+			order_by = {
+				value = 0
+				add = {
+					if = { 
+						limit = {
+							religion = root.religion
+						}
+						value = 10
+					}
+				}
+				add = {
+					if = { 
+						limit = {
+							location = {
+								owner = root
+								integration_level = core
+							}
+						}
+						value = 100
+					}
+				}
+				add = {
+					if = { 
+						limit = {
+							location = {
+								owner = root
+								integration_level = integrated
+							}
+						}
+						value = 50
+					}
+				}
+			}
+			save_scope_as = target_pop
+		}
+	}
+	
+}
+
+# event_illustration_religion_effect = { religion = religion:orthodox }
+event_illustration_religion_effect = {
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					scope_type = location
+					owner ?= { is_ai = no }
+				}
+				AND = {
+					scope_type = country
+					is_ai = no
+				}
+			}
+		}
+		ordered_pop = {
+			limit = { religion = $religion$ }
+			max = 1
+			order_by = pop_size
+			order_by = {
+				value = 0
+				add = {
+					if = { 
+						limit = {
+							culture = root.culture
+						}
+						value = 20
+					}
+					else_if = {
+						limit = {
+							culture = { is_accepted_in = root } 
+						}
+						value = 10
+					}
+					else_if = {
+						limit = {
+							culture = { is_tolerated_in = root } 
+						}
+						value = 5
+					}
+				}
+				add = {
+					if = { 
+						limit = {
+							location = {
+								owner = root
+								integration_level = core
+							}
+						}
+						value = 100
+					}
+				}
+				add = {
+					if = { 
+						limit = {
+							pop_type = pop_type:clergy
+						}
+						value = 200
+					}
+				}
+				add = {
+					if = { 
+						limit = {
+							location = {
+								owner = root
+								integration_level = integrated
+							}
+						}
+						value = 50
+					}
+				}
+			}
+			save_scope_as = target_pop
+		}
+		if = {
+			limit = { NOT = { exists = scope:target_pop } }
+
+			pop_type:clergy = {
+				save_scope_as = target_pop_type
+				save_scope_as = target_pop_type_bckg
+			}
+			
+			$religion$ = { 
+				save_scope_as = target_religion
+				save_scope_as = target_religion_bckg
+			}
+		}
+	}
+}
+
+event_illustration_nobility_estate_of_rival_effect = {
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					scope_type = location
+					owner ?= { is_ai = no }
+				}
+				AND = {
+					scope_type = country
+					is_ai = no
+				}
+			}
+		}
+		if = {
+			limit = {
+				num_rivals > 0
+			}
+			random_rival = {
+				random_pop = {
+					weight = {
+						base = 1
+						modifier = {
+							add = pop_character_chance
+						}
+					}
+					limit = {
+						estate_type = estate_type:nobles_estate
+					}
+					save_scope_as = target_pop
+					save_scope_as = target_pop_bckg
+				}
+			}
+		}
+		else = {
+			random_pop = {
+				weight = {
+					base = 1
+					modifier = {
+						add = pop_character_chance
+					}
+				}
+				limit = {
+					estate_type = estate_type:nobles_estate
+				}
+				save_scope_as = target_pop
+				save_scope_as = target_pop_bckg
+			}
+		}
+	}
+}
+
+event_illustration_nobility_estate_of_neighbor_effect = {
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					scope_type = location
+					owner ?= { is_ai = no }
+				}
+				AND = {
+					scope_type = country
+					is_ai = no
+				}
+			}
+		}
+		if = {
+			limit = {
+				any_neighbor_country = {
+					count > 0
+				}
+			}
+			random_neighbor_country = {
+				random_pop = {
+					weight = {
+						base = 1
+						modifier = {
+							add = pop_character_chance
+						}
+					}
+					limit = {
+						estate_type = estate_type:nobles_estate
+					}
+					save_scope_as = target_pop
+					save_scope_as = target_pop_bckg
+				}
+			}
+		}
+		else = {
+			random_pop = {
+				weight = {
+					base = 1
+					modifier = {
+						add = pop_character_chance
+					}
+				}
+				limit = {
+					estate_type = estate_type:nobles_estate
+				}
+				save_scope_as = target_pop
+				save_scope_as = target_pop_bckg
+			}
+		}
+	}
+}
+
+# POP TYPE
+
+# event_illustration_poptype_effect = { foreground = pop_type:nobles   background = pop_type:nobles }
+event_illustration_poptype_effect = {
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					scope_type = location
+					owner ?= { is_ai = no }
+				}
+				AND = {
+					scope_type = country
+					is_ai = no
+				}
+			}
+		}
+		event_illustration_poptype_foreground_effect = { foreground = $foreground$ }
+		event_illustration_poptype_background_effect = { background = $background$ }
+	}
+}
+
+event_illustration_poptype_foreground_effect = {
+	if = {
+		limit = {
+			exists = $foreground$
+		}
+		$foreground$ = { save_scope_as = target_pop_type }
+		if = {
+			limit = {				
+				OR = {
+					NOT = { scope_type = country }
+					pop_type_population_in_country = {
+						pop_type = $foreground$
+						value > 0
+					}
+				}
+			}
+			ordered_pop = {
+				limit = { pop_type = $foreground$ }
+				max = 1
+				order_by = select_important_pop_value
+				order_by = pop_size
+				save_scope_as = target_pop
+			}
+		}
+	}
+}
+
+event_illustration_poptype_background_effect = {
+	if = {
+		limit = {
+			exists = $background$
+		}
+		$background$ = { save_scope_as = target_pop_type_bckg }
+		if = {
+			limit = {				
+				OR = {
+					NOT = { scope_type = country }
+					pop_type_population_in_country = {
+						pop_type = $background$
+						value > 0
+					}
+				}
+			}
+			ordered_pop = {
+				limit = { pop_type = $background$ }
+				max = 1
+				order_by = select_important_pop_value
+				order_by = pop_size
+				save_scope_as = target_pop_bckg
+			}
+		}
+	}
+}
+
+event_illustration_peasants_foreign_religion_pop_type_effect = {
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					scope_type = location
+					owner ?= { is_ai = no }
+				}
+				AND = {
+					scope_type = country
+					is_ai = no
+				}
+			}
+		}
+		random_pop = {
+			weight = {
+				base = 1
+				modifier = {
+					add = pop_character_chance
+				}
+			}
+			limit = {
+				pop_type = pop_type:peasants
+				religion != root.religion
+			}
+			save_scope_as = target_pop
+			save_scope_as = target_pop_bckg
+		}
+	}
+}
+
+event_illustration_government_estate_effect = {
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					scope_type = location
+					owner ?= { is_ai = no }
+				}
+				AND = {
+					scope_type = country
+					is_ai = no
+				}
+			}
+		}
+		if = {
+			limit = { government_type = government_type:republic has_reform = government_reform:peasant_republic_reform }
+			event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		}
+		else_if = {
+			limit = { government_type = government_type:theocracy }
+			event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+		}
+		else_if = {
+			limit = { government_type = government_type:republic }
+			event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+		}
+		else = {
+			event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		}
+	}
+}
+
+# location = { event_illustration_estate_in_location_effect = { estate_type = estate_type:burghers_estate } }
+event_illustration_estate_in_location_effect = {
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					scope_type = location
+					owner ?= { is_ai = no }
+				}
+				AND = {
+					scope_type = country
+					is_ai = no
+				}
+			}
+		}
+		ordered_pop = {
+			limit = { estate_type = $estate_type$ }
+			max = 1
+			order_by = pop_size
+			order_by = select_important_pop_value
+			order_by = {
+				value = 0
+				add = {
+					if = { limit = { location = prev } }
+					value = 1
+				}
+			}
+			save_scope_as = target_pop
+			save_scope_as = target_pop_bckg
+		}
+	}
+}

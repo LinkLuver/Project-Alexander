@@ -1,0 +1,108 @@
+﻿military_access =  { 
+	type = diplomacy
+	relation_type = oneway
+    block_when_at_war = yes
+    break_on_war = yes
+    annulled_by_peace_treaty = yes
+    annullment_favours_required = 5
+    diplomatic_cost_request = military_access
+    military_access = yes
+    receiving_color = define:NMapColors|DIPLOMACY_MIL_ACCESS_COLOR
+    category = {
+        offer = CATEGORY_ACCESS_ACTIONS
+        request = CATEGORY_ACCESS_ACTIONS
+        cancellation = CATEGORY_ACCESS_ACTIONS
+        break = CATEGORY_ACCESS_ACTIONS
+    }
+
+    buy_price = buy_military_access
+
+	offer_enabled = {
+        scope:actor = {
+            not = { has_blocked_treaties = scope:recipient }
+            has_limited_diplomacy = no
+            not = { is_subject_of = scope:recipient }
+            not = { gives_military_access_to = scope:recipient }
+        }
+        scope:recipient = {
+            OR = {
+                is_subject = no
+                overlord ?= {
+                    NOT = {
+                        this = scope:actor
+                    }
+                }
+            }
+        }
+	}
+
+	request_enabled = {
+        scope:actor = {
+            not = { has_blocked_treaties = scope:recipient }
+            OR = {
+                is_subject = no
+                overlord ?= {
+                    NOT = {
+                        this = scope:recipient
+                    }
+                }
+            }
+            not = { receives_military_access_from = scope:recipient }
+        }
+        scope:recipient = {
+            or = {
+                is_subject = no
+                overlord ?= {
+                    NOT = {
+                        this = scope:actor
+                    }
+                }
+            }
+        }
+	}
+
+    request_declined_effect = {
+        scope:actor = {
+            add_casus_belli = {
+                target = scope:recipient	
+                type = casus_belli:cb_denied_military_access
+            }
+        }
+    }
+
+    wants_to_receive_diplo_chance = {
+        base = 10
+        giving_defensive_support = 5
+        receiving_defensive_support = 10
+        same_international_organization = 10
+        trust_in_actor = 1
+        negative_opinion = -1
+        positive_opinion = 0.1
+        royal_ties = 0.5
+    }
+
+    wants_to_give_diplo_chance = {
+        base = -10
+        giving_defensive_support = 5
+        receiving_defensive_support = 10
+        same_international_organization = 10
+        trust_in_actor = 1
+        negative_opinion = -0.5
+        positive_opinion = 0.1
+        royal_ties = 0.5
+    }
+
+    wants_to_keep = {
+        if = {
+            limit = {
+                scope:actor = {
+                    wants_to_attack = scope:recipient
+                }
+            }
+
+            add = {
+                value = -100
+            }
+        }
+    }
+}	

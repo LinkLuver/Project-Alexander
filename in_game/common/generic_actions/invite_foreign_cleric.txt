@@ -1,0 +1,155 @@
+﻿# scope:actor = country, scope:recipient = religion
+invite_foreign_cleric = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	ai_tick = monthly
+	ai_tick_frequency = 24
+	automation_tick = monthly
+	automation_tick_frequency = 6
+
+	automation_tick = monthly
+	automation_tick_frequency = 12
+	player_automated_category = religiousdoctrines
+
+	
+	potential = {
+	}
+
+	allow = {
+		scope:actor = {
+			#country_rank_level >= 2
+			estate_type_allowed_in_cabinet = { estate_type = estate_type:clergy_estate }
+			estate_satisfaction:clergy_estate >= {
+				value = estate_satisfaction_severe_penalty
+				multiply = -1
+			}
+		}
+		custom_tooltip = {
+			text = invite_foreign_cleric_no_countries_tt
+			scope:recipient = {
+				any_country_in_religion = {
+					NOT = { this = scope:actor }
+					scope:actor = { within_diplomatic_range = prev }
+					capital ?= { is_discovered_by = scope:actor }		
+					has_discovered = scope:actor.capital
+				}
+			}
+		}
+	}
+	
+	price = price:invite_foreign_cleric
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = {
+			data = name
+		}
+		visible = {
+			has_religious_influence = yes
+		}
+	}
+
+	effect = {
+		custom_tooltip = {
+			text = invite_foreign_cleric_tt
+			scope:recipient = {
+				random_country_in_religion = {  
+					limit = {
+						NOT = { this = scope:actor }		
+						capital ?= { is_discovered_by = scope:actor }		
+						has_discovered = scope:actor.capital	
+						scope:actor = { 
+							within_diplomatic_range = prev
+						}
+					}
+
+					weight = {
+						factor = 1
+						modifier = {
+							factor = {
+								value = total_population
+							}
+						}
+					}
+
+					create_character = {
+						trait_category = cabinet
+						religion = scope:actor.religion
+						estate = estate_type:clergy_estate
+						age = { 30 50 }
+						female = no
+						adm = { 70 100 }
+						dip = { 30 70 }
+						mil = { 0 30 }
+						create_in_limbo = yes
+						save_scope_as = new_character
+						move_country = scope:actor
+					}
+				}
+			}
+		}
+		scope:actor = { 
+			add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_severe_penalty }
+		change_societal_value = { type = spiritualist_vs_humanist value = societal_value_minor_move_to_left }
+		}
+	}
+
+	ai_will_do = {
+		add = -100
+		
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						any_character = {
+							religion = scope:recipient
+							is_ruler = no
+							is_adult = yes
+							has_estate = estate_type:clergy_estate
+							religion = scope:actor.religion
+							count = 0
+						}
+					}
+				}
+				value = 100
+			}
+		}
+
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						NOT = {
+							any_character = {
+								is_ruler = no
+								is_adult = yes
+								adm >= 60
+							}
+						}
+					}
+				}
+				value = 100
+			}
+		}
+		
+		add = {
+			if = {
+				limit = {
+					scope:actor = {
+						any_character = {
+							is_ruler = no
+							is_adult = yes
+							count = 0
+						}
+					}
+				}
+				value = 100
+			}
+		}
+	}
+}

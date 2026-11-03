@@ -1,0 +1,205 @@
+﻿#P:A TODO Manual cleanup of file required
+hire_advisor = {
+	type = owncountry
+
+	price = price:hire_advisor
+	
+
+	ai_tick = daily
+	ai_tick_frequency = 180
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = governmentreforms
+
+
+	ai_prerequisite = {
+		num_cabinet_capable_characters < modifier:government_size
+	}
+
+	potential = {
+	}
+
+	allow = {
+	}
+
+	ai_will_do = {
+		scope:actor = {
+			#first, how many do we need?
+			value = {
+				#how many should we have?
+				value = {
+					add = {
+						desc = "Size of government"
+						value = modifier:government_size
+					}
+				}
+				#how many have we already got?
+				subtract = {
+					desc = "Current amount"
+					value = num_cabinet_capable_characters
+				}
+
+				multiply = 14
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			random_estate = {
+				limit = {
+					estate_type = {
+						eligible_for_cabinet = {
+							target = scope:actor
+							value = yes
+						}
+					}
+					not = { estate_type = estate_type:crown_estate }
+				}
+				estate_type = {
+					save_scope_as = target_estate_type
+				}
+			}
+			if = {
+				limit = { modifier:may_hire_eunuch_advisors = yes }
+				random_current_bureaucracy = {
+					#limit = { bureaucracy_type = bureaucracy_type:court_eunuchs_bureaucracy } #P:A Removed vanilla reference
+					limit = { always = no } #P:A Removed vanilla reference
+					save_scope_as = court_eunuchs_scope
+				}
+				custom_tooltip = {
+					text = hire_advisor_eunuch_chance_tt
+					random = {
+						chance = 10 # base 10% - scales to 100% via entrenchment and/or eunuch_power
+						# scales with court eunuchs bureaucracy entrenchment (10% -> 100%)
+						modifier = { add = 9 scope:court_eunuchs_scope = { entrenchment >= 10 } }
+						modifier = { add = 9 scope:court_eunuchs_scope = { entrenchment >= 20 } }
+						modifier = { add = 9 scope:court_eunuchs_scope = { entrenchment >= 30 } }
+						modifier = { add = 9 scope:court_eunuchs_scope = { entrenchment >= 40 } }
+						modifier = { add = 9 scope:court_eunuchs_scope = { entrenchment >= 50 } }
+						modifier = { add = 9 scope:court_eunuchs_scope = { entrenchment >= 60 } }
+						modifier = { add = 9 scope:court_eunuchs_scope = { entrenchment >= 70 } }
+						modifier = { add = 9 scope:court_eunuchs_scope = { entrenchment >= 80 } }
+						modifier = { add = 9 scope:court_eunuchs_scope = { entrenchment >= 90 } }
+						modifier = { add = 9 scope:court_eunuchs_scope = { entrenchment >= 100 } }
+						# also scales with eunuch_power (China content)
+						modifier = { add = 10 modifier:eunuch_power >= 0.5 }
+						modifier = { add = 10 modifier:eunuch_power >= 1.0 }
+						modifier = { add = 10 modifier:eunuch_power >= 1.5 }
+						modifier = { add = 10 modifier:eunuch_power >= 2.0 }
+						modifier = { add = 10 modifier:eunuch_power >= 2.5 }
+						save_scope_as = spawn_eunuch_trigger_scope
+					}
+				}
+			}
+			custom_tooltip = {
+				text = hire_advisor_effect
+				create_character = {
+					important_character_counts = advisor
+					skip_update_inheritance = yes
+					skip_on_created_action = yes
+					use_random_core_location = yes
+					trait_category = cabinet
+					estate = scope:target_estate_type
+					adm = {
+						integer_range = {
+							min = {
+								#10 for no admin ability, 60 for full
+								value = 10
+								ruler_or_regent ?= {
+									add = {
+										value = adm
+										multiply = 0.5
+									}
+								}
+							}
+							max = {
+								#50 for no admin ability, 100 for full
+								value = 50
+								ruler_or_regent ?= {
+									add = {
+										value = adm
+										multiply = 0.5
+									}
+								}
+							}
+						}
+						if = {
+							limit = { exists = scope:spawn_eunuch_trigger_scope }
+							add = 10
+						}
+					}
+					dip = {
+						integer_range = {
+							min = {
+								#10 for no dip ability, 60 for full
+								value = 10
+								ruler_or_regent ?= {
+									add = {
+										value = dip
+										multiply = 0.5
+									}
+								}
+							}
+							max = {
+								#50 for no admin ability, 100 for full
+								value = 50
+								ruler_or_regent ?= {
+									add = {
+										value = dip
+										multiply = 0.5
+									}
+								}
+							}
+						}
+						if = {
+							limit = { exists = scope:spawn_eunuch_trigger_scope }
+							add = 10
+						}
+					}
+					mil = {
+						integer_range = {
+							min = {
+								#10 for no admin ability, 60 for full
+								value = 10
+								ruler_or_regent ?= {
+									add = {
+										value = mil
+										multiply = 0.5
+									}
+								}
+							}
+							max = {
+								#50 for no admin ability, 100 for full
+								value = 50
+								ruler_or_regent ?= {
+									add = {
+										value = mil
+										multiply = 0.5
+									}
+								}
+							}
+						}
+						if = {
+							limit = { exists = scope:spawn_eunuch_trigger_scope }
+							add = 10
+						}
+					}
+					random_estate_type_trigger = {
+						scope:actor = {
+							estate_type_allowed_in_cabinet = {
+								estate_type = prev
+							}					
+						}
+					}
+					if = {
+						limit = { exists = scope:spawn_eunuch_trigger_scope }
+						add_trait = trait:eunuch
+					}
+					save_scope_as = new_character
+				}
+			}
+		}
+	}
+}

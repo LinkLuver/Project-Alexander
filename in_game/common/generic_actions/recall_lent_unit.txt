@@ -1,0 +1,72 @@
+﻿recall_lent_unit = {
+	type = owncountry
+
+	potential = {
+		scope:actor = {
+			any_rented_out_mercenary = { is_lent_unit = yes }
+		}
+	}
+
+	allow = {
+	}
+
+	ai_tick = monthly
+
+	# Pick which lent unit to recall
+	select_trigger = {
+		looking_for_a = mercenary
+		source = actor
+		target_flag = lent_merc_target
+		name = "recall_lent_unit_choose_unit"
+		none_available_msg_key = "recall_lent_unit_no_units"
+		column = { data = name }
+		visible = {
+			is_lent_unit = yes
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:lent_merc_target
+			}
+			# Give opinion hit to the borrower if a shared war is still ongoing
+			scope:lent_merc_target = {
+				customer = {
+					save_temporary_scope_as = borrower
+				}
+			}
+			if = {
+				limit = {
+					exists = scope:borrower
+					scope:actor = {
+						any_current_war = {
+							is_in_war = scope:borrower
+						}
+					}
+				}
+				scope:borrower = {
+					add_opinion = {
+						target = scope:actor
+						modifier = opinion_recalled_lent_unit
+					}
+				}
+			}
+			scope:lent_merc_target = {
+				recall_lent_unit = {}
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+
+		# Recall when the lender is under serious threat
+		if = {
+			limit = {
+				scope:actor = { lowest_war_score < -15 }
+			}
+			add = 100
+		}
+	}
+}

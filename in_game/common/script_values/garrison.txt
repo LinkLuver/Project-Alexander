@@ -1,0 +1,53 @@
+﻿# root is location
+strength_ratio_for_garrison_sortie = {
+    # in fort sieges, besiegers are always attackers and garrison defenders
+	save_temporary_value_as = {
+		name = attacker_strength
+		value = 0
+	}
+	save_temporary_value_as = {
+		name = defender_strength
+		value = garrison_strength
+	}
+
+    if = {
+        limit = { has_combat = yes }
+        combat ?= {
+            combat_defender ?= {
+                save_temporary_value_as = {
+                    name = defender_strength
+                    value = {
+                        value = scope:defender_strength
+                        add = combat_side_strength
+                    }
+                }
+            }
+            combat_attacker ?= {
+                save_temporary_value_as = {
+                    name = attacker_strength
+                    value = {
+                        value = scope:attacker_strength
+                        add = combat_side_strength
+                    }
+                }
+            }
+        }
+    }
+    else = {
+        siege ?= {
+            save_temporary_value_as = {
+                name = attacker_strength
+                value = {
+                    value = scope:attacker_strength
+                    add = besieger_strength
+                }
+            }
+        }
+    }
+
+    value = scope:defender_strength
+    divide = {
+        value = scope:attacker_strength
+        min = 0.01
+    }
+}

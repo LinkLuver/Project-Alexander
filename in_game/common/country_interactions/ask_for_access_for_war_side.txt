@@ -1,0 +1,142 @@
+﻿ask_for_access_for_war_side =  { 
+	type = diplomacy
+	category = CATEGORY_ACCESS_ACTIONS
+
+	potential = {
+	}
+	
+	allow = {
+		scope:actor = {
+			at_war = yes
+		}
+	}
+	
+	ai_tick = never #Handled in code
+	
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+
+		}
+        enabled = {
+			scope:actor = {
+				NOT = {
+					is_at_war_with = scope:recipient
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = war
+		target_flag = war
+		interaction_source_list = {
+			scope:actor = {
+				every_current_war = {
+					add_to_list = source
+				}
+			}
+		}
+		name = "choose_war"
+		default_sort = select_target_acceptance_total
+		column = {
+			data = name
+		}
+		column = {
+			data = select_target_acceptance_total
+		}
+		visible = {
+		}
+        enabled = {
+			scope:actor = {
+				is_war_leader_of = root
+			}
+			NOT = {
+				is_in_war = scope:recipient
+			}
+			trigger_if = {
+				limit = {
+					is_an_attacker = scope:actor
+				}
+				NOT = {
+					attackers_have_access_in = scope:recipient
+				}
+			}
+			trigger_else = {
+				NOT = {
+					defenders_have_access_in = scope:recipient
+				}
+			}
+		}
+	}
+
+
+	effect = {
+		custom_tooltip = {
+			text = add_access_for_our_side_in_recipient
+			scope:war = {
+				if = {
+					limit = {
+						is_an_attacker = scope:actor
+					}
+					add_access_for_attackers = scope:recipient
+				}
+				else = {
+					add_access_for_defenders = scope:recipient
+				}
+			}
+		}
+	}
+	reject_effect = {
+	}
+
+	price = price:buy_military_access
+	payee = scope:recipient
+
+	diplo_chance = {
+        base = -10
+        giving_defensive_support = 5
+        receiving_defensive_support = 10
+        same_international_organization = 10
+        trust_in_actor = 1
+        negative_opinion = -0.5
+        positive_opinion = 0.1
+        royal_ties = 0.5
+	}
+
+	accept = {
+		if = {
+			limit = { exists = scope:war }
+			add = {
+				desc = "OPINION_OF_OTHER_WAR_LEADER"
+				value = {
+					scope:war = {
+						if = {
+							limit = {
+								is_an_attacker = scope:actor
+							}
+							scope:recipient = {
+								add = "opinion(scope:war.defender_leader)"
+							}
+						}
+						else = {
+							scope:recipient = {
+								add = "opinion(scope:war.attacker_leader)"
+							}
+						}
+					}
+				}
+				multiply = -0.2
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = -1
+	}
+}	

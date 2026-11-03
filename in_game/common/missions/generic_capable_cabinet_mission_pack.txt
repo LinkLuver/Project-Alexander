@@ -1,0 +1,274 @@
+﻿capable_cabinet = {
+	icon = generic_capable_cabinet
+	repeatable = yes
+	chance = 3600
+	player_playstyle = diplomatic
+	visible = {
+		game_has_missions_enabled = yes
+		NOR = {
+			country_type = pop
+			country_type = building
+		}
+		NOT = { has_country_modifier = high_era_of_countryname_modifier }
+		NOT = { has_variable = recently_had_capable_cabinet_variable }
+	}
+	on_start = {
+
+		set_variable = {
+			name = mission_starting_gov_power_variable
+			value = {
+				add = government_power
+				add = 10
+				max = 95
+			}
+		}
+		set_variable = {
+			name = mission_starting_stability_variable
+			value = {
+				add = stability
+				add = 10
+				max = 95
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					any_character = { has_character_modifier = head_of_the_cabinet_modifier }
+				}
+			}
+			set_variable = not_set_cabinet_head_already_variable
+		}
+	}
+
+	on_abort = {
+		set_variable = {
+			name = recently_had_capable_cabinet_variable
+			years = 10
+		}
+		if = {
+			limit = { has_variable = not_set_cabinet_head_already_variable }
+			remove_variable = not_set_cabinet_head_already_variable
+		}
+		# remove_variable = target_building_levels_variable
+		# remove_variable = total_num_locations_variable
+		remove_variable = mission_starting_gov_power_variable
+		remove_variable = mission_starting_stability_variable
+		# add_stability = stability_mild_penalty 
+	}
+
+	on_completion = {
+		set_variable = {
+			name = recently_had_capable_cabinet_variable
+			years = 25
+		}
+		if = {
+			limit = { has_variable = not_set_cabinet_head_already_variable }
+			remove_variable = not_set_cabinet_head_already_variable
+		}
+		# remove_variable = target_building_levels_variable
+		# remove_variable = total_num_locations_variable
+		remove_variable = mission_starting_gov_power_variable
+		remove_variable = mission_starting_stability_variable
+	}
+
+	mission_create_cabinet = {
+		icon = diplomatic_training
+		enabled = {
+			any_cabinet_character = {
+				count >= root.modifier:government_size
+			}
+			any_cabinet_action = {
+				count >= root.modifier:government_size
+			}
+		}
+		duration = 0
+		on_completion = {
+			add_country_modifier = { 
+				modifier = burst_of_administrative_thought 
+				years = 5 
+				mode = replace 
+			}
+		}
+	}
+
+	mission_enact_government_reforms = {
+		icon = legalism_advance
+		requires = { mission_create_cabinet }
+		enabled = {
+			num_open_reform_slots < 1
+		}
+		duration = 0
+		on_completion = {
+			add_country_modifier = {
+				modifier = functional_government_modifier
+				months = modifier_duration_months_long
+				mode = replace
+			}
+		}
+	}
+
+	mission_promote_cabinet_head = {
+		icon = government_size
+		requires = { mission_create_cabinet }
+		enabled = {
+			any_cabinet_character ?= {
+				modifier:is_head_of_cabinet = yes
+			}
+		}
+		duration = 0
+		on_completion = {
+			if = {
+				limit = {
+					any_cabinet_character = {
+						modifier:is_head_of_cabinet = yes
+						NOT = { has_trait = efficient_administrator }
+					}
+				}
+				random_cabinet_character = {
+					limit = {
+						modifier:is_head_of_cabinet = yes
+						NOT = { has_trait = efficient_administrator }
+					}
+					add_trait = trait:efficient_administrator
+				}
+			}
+			else_if = {
+				limit = {
+					any_cabinet_character = {
+						OR = {
+							modifier:is_head_of_cabinet = yes
+							has_trait = efficient_administrator
+						}
+					}
+				}
+				random_cabinet_character = {
+					limit = {
+						OR = {
+							modifier:is_head_of_cabinet = yes
+							has_trait = efficient_administrator
+						}
+					}
+					add_adm = 3
+					add_dip = 3
+					add_mil = 3
+				}
+			}
+			else = { add_legitimacy = legitimacy_mild_bonus }
+		}
+	}
+
+	mission_increase_cabinet_efficiency = {
+		icon = efficient_spies
+		visible = { has_variable = not_set_cabinet_head_already_variable }
+		requires = { mission_promote_cabinet_head }
+		duration = 180
+
+		modifier_while_progressing = {
+			court_spending_efficiency = -0.2
+			country_cabinet_efficiency = 0.1
+		}
+	}
+
+	royal_authority = {
+		icon = crown_power_advance_renaissance
+		requires = { mission_create_cabinet }
+		enabled = { government_power >= var:mission_starting_gov_power_variable }
+		duration = 0
+
+		on_completion = {
+			add_all_estate_satisfaction = { value = estate_satisfaction_mild_bonus } 
+		}
+	}
+
+	high_era_of_countryname = {
+		final = yes
+		icon = union_and_security_act
+		requires = { royal_authority }
+
+		enabled = {
+			stability >= var:mission_starting_stability_variable
+		}
+
+		duration = 0
+
+		on_completion = {
+			add_country_modifier = { 
+				modifier = high_era_of_countryname_modifier 
+				years = modifier_duration_years_short
+				mode = replace 
+			}
+		}
+	}
+
+	meritocratic_approach = {
+		icon = sme_proactive_diplomacy
+		requires = { mission_create_cabinet }
+
+		enabled = {
+			any_cabinet_character ?= {
+				percent >= 0.5
+				OR = {
+					adm >= {
+						value = root.ruler_or_regent.adm
+						multiply = 0.8
+						min = 50
+					}
+					dip >= {
+						value = root.ruler_or_regent.dip
+						multiply = 0.8
+						min = 50
+					}
+					mil >= {
+						value = root.ruler_or_regent.mil
+						multiply = 0.8
+						min = 50
+					}
+				}
+			}
+		}
+
+
+		duration = 0
+
+		on_completion = {
+			ordered_cabinet_character = {
+				limit = {
+					OR = {
+						adm >= {
+							value = root.ruler_or_regent.adm
+							multiply = 0.8
+							min = 50
+						}
+						dip >= {
+							value = root.ruler_or_regent.dip
+							multiply = 0.8
+							min = 50
+						}
+						mil >= {
+							value = root.ruler_or_regent.mil
+							multiply = 0.8
+							min = 50
+						}
+					}
+					total_abilities < 300
+				}
+				order_by = total_abilities
+				max = 2
+				check_range_bounds = no
+				if = {
+					limit = { adm < 95 }
+					add_adm = 5
+				}
+				else_if = {
+					limit = { dip < 95 }
+					add_dip = 5
+				}
+				else = { add_mil = 5 }
+			}
+			change_societal_value = {
+				type = traditionalist_vs_innovative
+				value = societal_value_move_to_right
+			}
+		}
+	}
+}

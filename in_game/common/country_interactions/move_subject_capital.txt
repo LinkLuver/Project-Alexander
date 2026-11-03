@@ -1,0 +1,92 @@
+﻿move_subject_capital = {
+	type = subject
+	category = CATEGORY_SUBJECT_ACTIONS
+
+	ai_tick = never
+	
+	potential = {
+		scope:actor = {
+			num_subjects > 0
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			at_war = no
+		}
+	}
+
+	price = price:capital_movement
+	payer = scope:recipient
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_subject = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			NOR = {
+				country_type = building
+				country_type = pop
+			}
+			num_locations > 1
+		}
+		enabled = {
+			at_war = no
+			subject_loyalty >= MIN_SUBJECT_LOYALTY_FOR_ACTION
+			liberty_desire < MAX_SUBJECT_LIBERTY_DESIRE_FOR_ACTION
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		source = recipient
+		target_flag = target
+		source_flags = only_actual_locations
+		name = "move_subject_capital_select_location"
+		none_available_msg_key = "move_subject_capital_no_locations"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			is_capital = no
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:recipient = {
+				set_capital = scope:target
+				add_liberty_desire = {
+					value = liberty_desire_mild_plus
+				}
+			}
+		}
+		else = {
+			custom_tooltip = move_subject_capital_select_location_tt
+		}
+	}
+
+	accept = {
+		#AI subjects should always accept
+		add = {
+			desc = "DIPLOREASON_OUR_SUBJECT"
+			value = 1000
+		}
+	}
+}

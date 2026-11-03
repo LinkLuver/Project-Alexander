@@ -1,0 +1,100 @@
+﻿deny_market_access =  { 
+	type = diplomacy
+	relation_type = oneway
+	trade_to_second = -0.33
+	category = {
+		offer = CATEGORY_ECONOMY_ACTIONS
+		cancellation = CATEGORY_ECONOMY_ACTIONS
+		break = CATEGORY_ECONOMY_ACTIONS
+		request = CATEGORY_ECONOMY_ACTIONS
+	}
+
+	relation_type_for_ai = hostile
+
+	visible = {
+		scope:recipient = {
+			not = { 
+				is_subject_of = scope:actor
+			}
+		}
+	}
+
+	request_visible = { always = no }
+
+	offer_enabled = {
+		scope:recipient = { has_markets = yes }
+		NOT = { scope:actor = { is_allied_with = { target = scope:recipient } } }
+		NOT = { scope:actor = { is_subject_of = scope:recipient } }
+		NOT = {
+			scope:actor = {
+				has_diplomacy_with = {
+                    type = lifts_trade_protection
+                    country = scope:recipient
+                }
+			}
+		}
+	}
+	
+	break_enabled = {
+		scope:actor = {
+			has_casus_belli_on = scope:recipient
+			NOT = { has_truce_with = scope:recipient }
+		}
+	}
+
+	will_expire_trigger = {
+		or = {
+			scope:first = { is_allied_with = { target = scope:second } }
+			scope:first = { is_subject_of = scope:second }
+		}
+	}
+
+	offer_effect = {
+		#everyone else that uses the market will be annoyed
+		scope:recipient = {
+			every_market_present_in_country = {
+				save_scope_as = market
+
+				every_merchant_in_market = {
+					limit = {
+						not = { this = scope:recipient }
+						not = { is_subject_of = scope:actor }
+						scope:market = {
+							"available_merchant_capacity(prev)" > 0
+							"merchant_power_in_market(prev)" > 0
+						}
+					}
+					add_opinion = {
+						target = scope:actor
+						modifier = opinion_annoyed_about_denying_market_access
+						scale = {
+							scope:market = {
+								value = 2
+								multiply = {
+									value = "merchant_power_in_market(prev)"
+									if = {
+										limit = { total_merchant_power != 0 }
+										divide = total_merchant_power
+									}
+								}
+								add = 0.25
+								max = 2
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	cancel_effect = {
+		
+	}
+	
+	break_effect = {
+		scope:actor = {
+			remove_all_casus_belli = scope:recipient
+		}
+		
+	}
+}	

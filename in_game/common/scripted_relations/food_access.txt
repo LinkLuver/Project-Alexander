@@ -1,0 +1,100 @@
+﻿food_access =  { 
+	type = diplomacy
+	relation_type = oneway
+    block_when_at_war = yes
+    break_on_war = yes
+    annulled_by_peace_treaty = yes
+    annullment_favours_required = 5
+    food_access = yes
+    receiving_color = define:NMapColors|DIPLOMACY_FOOD_ACCESS_COLOR
+    category = {
+        offer = CATEGORY_ACCESS_ACTIONS
+        request = CATEGORY_ACCESS_ACTIONS
+        cancellation = CATEGORY_ACCESS_ACTIONS
+        break = CATEGORY_ACCESS_ACTIONS
+    }
+
+    relation_type_for_ai = friendly
+
+	offer_enabled = {
+        scope:actor = {
+            not = { has_blocked_treaties = scope:recipient }
+            has_limited_diplomacy = no
+            not = { gives_food_access_to = scope:recipient }
+            not = { is_fighting_war_together_with = scope:recipient }
+        }
+        scope:recipient = {
+            OR = {
+                is_subject = no
+                AND = {
+                    is_subject = yes
+                    not = { overlord = scope:actor }
+                    subject_type = {
+                        gives_food_access = no
+                    }
+                }
+            }
+        }
+	}
+
+	request_enabled = {
+        scope:actor = {
+            not = { has_blocked_treaties = scope:recipient }
+            has_limited_diplomacy = no
+            scope:recipient ={
+                OR = {
+                    is_subject = no
+                    AND = {
+                        is_subject = yes
+                        OR = {
+                            not = { overlord = scope:actor }
+                            subject_type = {
+                                gives_food_access = no
+                            }
+                        }
+                    }
+                }
+            }
+            not = { receives_food_access_from = scope:recipient }
+            not = { is_fighting_war_together_with = scope:recipient }
+        }
+	}
+
+    wants_to_receive_diplo_chance = {
+        base = 10
+        giving_defensive_support = 5
+        receiving_defensive_support = 10
+        same_international_organization = 10
+        trust_in_actor = 1
+        negative_opinion = -1
+        positive_opinion = 0.1
+        royal_ties = 0.5
+    }
+
+    wants_to_give_diplo_chance = {
+        base = -10
+        actor_is_rival = -100
+        actor_overlord_is_rival = -100
+        giving_defensive_support = 5
+        receiving_defensive_support = 10
+        same_international_organization = 10
+        trust_in_actor = 1
+        negative_opinion = -0.5
+        positive_opinion = 0.1
+        royal_ties = 0.25
+    }
+
+    wants_to_keep = {
+        if = {
+            limit = {
+                scope:actor = {
+                    at_war = no                  
+                }
+            }
+            add = -10
+        }
+        else = {
+            add = 10
+        }
+    }
+}	

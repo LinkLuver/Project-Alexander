@@ -1,0 +1,200 @@
+﻿make_unit_available_for_hire = {
+	type = owncountry
+
+	potential = {
+		scope:actor = {
+			at_war = no
+			regular_army_size > 0
+		}
+	}
+
+	allow = {
+	}
+
+	ai_prerequisite = {
+		at_war = no
+		regular_army_size > 2
+	}
+
+	ai_tick = never
+	ai_tick_frequency = 90
+
+	automation_tick = daily
+	automation_tick_frequency = 20
+	
+	select_trigger = {
+		looking_for_a = unit
+		source = actor
+		target_flag = target
+		name = "make_unit_available_for_hire_select_unit"
+		none_available_msg_key = "make_unit_available_for_hire_no_units"
+		pre_evaluation_sort_value = {
+			#use fixed AI override values (multiplier=2, duration=24) to cheaply rank units
+			#before committing to a full ai_will_do evaluation; mirrors the scoring in ai_will_do
+			value = "hire_price(2|24)"
+		}
+		pre_evaluation_number_to_evaluate_fully = 5
+		column = {
+			data = name
+		}
+		column = {
+			data = unit_location
+		}
+		visible = {
+			or = {
+				is_army = no
+				owner = {
+					not = { country_type = army }
+				}
+			}
+			or = {
+				is_navy = no
+				owner = {
+					not = { country_type = navy }
+				}
+			}
+			has_mercenaries = no
+			has_levies = no
+			# A ruler-led unit can not be rented out (would send the head of state to lead a
+			# foreign mercenary company); mirrors NUnitUtilities::CanBecomeMercenary.
+			trigger_if = {
+				limit = { exists = leader }
+				leader = { is_ruler = no }
+			}
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = value
+		target_flag = target_1
+		name = "make_unit_available_for_hire_select_cost_multiplier"
+		min = 0
+		max = 5
+		step = 0.05
+		default = 1
+		ai_override_value = 2 #for the AI, only test this value, we want it to be a bit more performant
+	}
+
+	select_trigger = {
+		looking_for_a = value
+		target_flag = target_2
+		name = "make_unit_available_for_hire_select_duration"
+		min = 1
+		max = "define:NMercenary|MERCENARY_MAX_DURATION_IN_MONTHS"
+		step = 1
+		default = "define:NMercenary|MERCENARY_DEFAULT_DURATION_IN_MONTHS"
+		ai_override_value = "define:NMercenary|MERCENARY_DEFAULT_DURATION_IN_MONTHS" #for the AI, only test this value, smaller durations aren't worth testing and we want it to be a bit more performant
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				make_unit_available_for_hire = {
+					cost_multiplier = scope:target_1
+					months = scope:target_2
+					save_scope_as = merc_for_hire
+				}
+			}
+		}
+	}
+	
+	ai_will_do = {
+		#calculate the hire price
+		value = {
+			scope:target = {
+				value = "hire_price(scope:target_1|scope:target_2)"
+				save_temporary_value_as = total_hire_price
+			}
+		}
+
+		#base
+		value = -500
+
+		#fraction of hire price as a proxy for gold value
+		#note: currency_utility(gold) is intentionally avoided here - gold is non-cacheable and
+		#evaluating it per-unit caused O(N) full gold utility walks for countries with many units
+		add = {
+			value = scope:total_hire_price
+			divide = 50
+		}
+
+		#longer duration is more sensible
+		add = {
+			value =  scope:target_2
+			multiply = 0.02
+		}
+	}
+}
+
+delist_unit = {
+	type = owncountry
+
+	potential = {
+		scope:actor = {
+			any_rented_out_mercenary = {
+				has_customer = no
+				is_carrying_or_loaded_unit = no
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	ai_tick = never
+	ai_tick_frequency = 90
+
+	ai_prerequisite = {
+		at_war = yes
+	}
+
+	automation_tick = daily
+	automation_tick_frequency = 20
+
+	#area in scope:target
+	select_trigger = {
+		looking_for_a = mercenary
+		source = actor
+		target_flag = target
+		name = "delist_unit_select_merc"
+		none_available_msg_key = "delist_unit_no_mercenaries"
+		column = {
+			data = name
+		}
+		visible = {
+			has_customer = no
+			# destroy_mercenary tears the embark link and drowns loaded armies;
+			# the C++ CDelistMercenaryCommand path is guarded by NMercenary::CanDelistMercenary,
+			# but this script action calls destroy_mercenary directly and would bypass it.
+			is_carrying_or_loaded_unit = no
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				custom_tooltip = {
+					text = delist_unit_merc_destroyed
+					destroy_mercenary = scope:target
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		scope:actor = {
+			if = {
+				limit = {
+					at_war = yes
+				}
+				add = 100
+			}
+		}
+	}
+}

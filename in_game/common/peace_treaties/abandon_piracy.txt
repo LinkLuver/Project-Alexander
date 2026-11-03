@@ -1,0 +1,75 @@
+﻿#P:A TODO Manual cleanup of file required
+abandon_piracy = {
+	
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 5
+		}
+		add = {
+			desc = "game_concept_prestige"
+			value = scope:loser.prestige
+			multiply = 0.5
+		}
+	}
+
+	potential = {
+		scope:winner = { modifier:can_create_anti_piracy_cb = yes }
+		scope:loser = {
+			OR = {
+				has_reform = government_reform:pirate_brethren_reform
+				#has_reform = government_reform:galley_lords_reform #P:A Removed vanilla reference
+				#has_policy = state_piracy_policy #P:A Removed vanilla reference
+			}
+		}
+	}
+	
+	allow = {
+	}
+
+	effect = {
+		scope:winner = {
+		}
+		scope:loser = {
+			if = {
+				limit = { has_reform = government_reform:pirate_brethren_reform }
+				remove_reform = government_reform:pirate_brethren_reform
+			}
+			if = {
+				#limit = { has_reform = government_reform:galley_lords_reform } #P:A Removed vanilla reference
+				limit = { always = no } #P:A Removed vanilla reference
+				#remove_reform = government_reform:galley_lords_reform #P:A Removed vanilla reference
+			}
+			if = {
+				#limit = { has_policy = state_piracy_policy } #P:A Removed vanilla reference
+				limit = { always = no } #P:A Removed vanilla reference
+				#add_policy = policy:anti_piracy_policy #P:A Removed vanilla reference
+			}
+		}
+	}
+
+	ai_desire = {
+		if = {
+			limit = {
+				scope:winner = {
+					is_rival_of = scope:loser
+				}
+			}
+			add = {
+				desc = "game_concept_rival"
+				value = 5
+			}
+		}
+		if = {
+			limit = {
+				scope:winner.prestige < scope:loser.prestige
+			}
+			add = {
+				desc = "DIPLOREASON_LOWER_PRESTIGE"
+				value = scope:loser.prestige
+				subtract = scope:winner.prestige
+				multiply = 0.1
+			}
+		}
+	}
+}

@@ -1,0 +1,106 @@
+﻿tribal_confederation = {
+	has_target = no
+	unique = no
+	expel_members_who_are_targets_of_other_members = yes
+	expel_members_who_are_attackers_at_war_with_other_members = yes
+	expel_members_who_are_defenders_at_war_with_other_members = yes
+	has_leader_country = yes
+	leader_type = country
+	custom_name = tribal_confederation_name
+	show_on_diplomatic_map = yes
+	leader_color = define:NMapColors|INTERNATIONAL_ORGANIZATION_LEADER_COLOR
+	#member_color = rgb { 255 0 0 }
+	
+	can_declare_war = {
+		trigger_if = {
+			limit = { scope:attacker ?= { is_member_of_international_organization = scope:recipient } }
+			scope:defender ?= { NOT = { is_member_of_international_organization = scope:recipient } }
+		}
+		trigger_else = {
+			always = yes
+		}
+	}
+
+	laws = {
+		mutual_defense_law = assured_defense_policy
+		mutual_offense_law = possible_offense_policy
+	}
+
+	modifier = {
+		scale = {
+			if = {
+				limit = {
+					exists = scope:recipient.leader_country
+					not = {
+						scope:recipient.leader_country = this
+					}
+				}
+				value = root.total_population
+				divide = -0.75
+				if = {
+					limit = { scope:recipient.leader_country.total_population > 0 }
+					divide = scope:recipient.leader_country.total_population
+				}
+				add = 1
+			}
+			else = {
+				value = 0
+			}
+		}
+		monthly_prestige = 0.02
+		monthly_tribal_cohesion = 0.02
+	}
+
+	leader_modifier = {
+		monthly_prestige = 0.05
+		monthly_tribal_cohesion = 0.05
+	}
+	
+	create_visible_trigger = {
+		root.government_type = government_type:tribe
+	}
+
+	invite_visible_trigger = {
+		always = yes
+	}
+
+	can_join_trigger = {
+		government_type = government_type:tribe
+		is_rebel_country = no
+		not = { 
+			is_member_of_international_organization_of_type = {
+				type = tribal_confederation
+			}
+		}
+	}
+	
+	can_leave_trigger = {
+	}
+	
+	auto_leave_trigger = {
+		NOT = { root.government_type = government_type:tribe }
+	}
+
+	auto_disband_trigger = {
+		total_members < 2
+	}
+
+	on_joined = {
+	}
+
+	on_left = {
+	}
+	
+	variables = {
+	}
+
+	ai_desire_to_join = {
+	}
+	
+	ai_desire_to_allow_new_member = {
+		add = {
+			desc = "WE_WANT_THE_ORGANIZATION_TO_GROW"
+			value = 20
+		}
+	}
+}

@@ -1,0 +1,59 @@
+﻿# scope:actor = country, scope:recipient = same country
+
+migrate_pop_based_country = {
+	type = owncountry
+	
+	potential = {
+		scope:actor = {
+			country_type = pop
+		}
+	}
+
+	allow = {
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	price = price:migrate_pop_based_country
+	
+	select_trigger = {
+		looking_for_a = province_definition
+		source = actor
+		target_flag = target
+		name = "migrate_pop_based_country_select_source_province"
+		none_available_msg_key = "migrate_pop_based_country_no_provinces"
+		column = {
+			data = name
+		}
+		visible = {
+			has_migration = no
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = province_definition
+		source = actor
+		source_flags = neighbor
+		target_flag = target_1
+		name = "migrate_pop_based_country_select_destination_province"
+		none_available_msg_key = "migrate_pop_based_country_no_neighbor_provinces"
+		column = {
+			data = name
+		}
+		visible = {
+			has_passable_land = yes
+			is_neighbor_of_province_definition = scope:target
+		}
+	}
+	
+	effect = {
+		add_migration = {
+			owner = scope:actor
+			from = scope:target
+			to = scope:target_1
+			amount = 0.100
+			months = -1 #keep going until we've all moved
+		}
+	}
+}

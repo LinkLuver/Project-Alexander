@@ -3,6 +3,7 @@
 @location_zoomstep_min = 4
 @location_mapname_zoomstep_min = 2
 @location_zoomstep_max = 5
+@location_highlight_fade_min_zoomstep = 0 # zooming in past @location_zoomstep_max fades the location highlight, reaching its minimum opacity at this step
 @construction_mapmarkers_max = 7
 @province_zoomstep_min = 8
 @province_zoomstep_max = 10
@@ -42,6 +43,9 @@ NJominiMapGraphics = {
 	COUNTRY_NAMES_THICKNESS_BIAS = 0.0	# More bias = thicker map names. Can be used to solve artifacts caused by thin areas
 	COUNTRY_NAMES_STRIDE_SIZE = 1
 	COUNTRY_NAMES_MAX_COSINE = -0.9
+	COUNTRY_NAMES_CENTER_WEIGHTS = 2.5
+	COUNTRY_NAMES_MINIMUM_RESTRICTIVE_TEST_LENGTH = 0.8
+	COUNTRY_NAMES_MINIMUM_RESTRICTIVE_TEST_LENGTH_FALLBACK = 0.6
 }
 
 NJominiGraphics = {
@@ -74,7 +78,8 @@ NGraphics = {
 	ARROW_MOVEMENT_SPEED = 2.0
 	DRAG_SELECTION_THRESHOLD = 10.0 # if selecting less than this it will count as a click instead of dragselect
 	
-	NO_LOCATION_HIGHLIGHT_ZOOM_STEP = @location_zoomstep_max #where to not show location highlight
+	NO_LOCATION_HIGHLIGHT_ZOOM_STEP = @location_zoomstep_max #zoom step at/above which the location highlight is fully visible; zooming in past this fades it instead of hiding it
+	LOCATION_HIGHLIGHT_FADE_MIN_ZOOM_STEP = @location_highlight_fade_min_zoomstep #zoom step at/below which the faded location highlight reaches its minimum opacity
 	
 	SECONDARY_COLOR_BORDER_COLOR = {0.0 0.0 0.0};
 	SECONDARY_COLOR_BORDER_WIDTH = 0.15;
@@ -202,6 +207,7 @@ NMapColors = {
 	IMPASSABLE_LAND_MAP_ALPHA = 		0.0
 	SELECTABLE_LAND_MAP_COLOR = 		{ 0.17 0.05 0.0 }
 	SELECTABLE_LAND_MAP_ALPHA = 		0.0
+	SOCIETAL_VALUE_STRIPE_MIN_DISTANCE = 20.0
 
 	#Build
 	QUEUED_MAP_COLOR = 					{ 0.55 0.70 1.00 }
@@ -210,12 +216,14 @@ NMapColors = {
 	CANUPGRADEBUILDING_MAP_COLOR = 		{ 0.63 0.53 0.25 }
 	CANTBUILD_MAP_COLOR = 				{ 0.00 0.80 0.70 }
 	FULLYBUILD_MAP_COLOR = 				{ 0.63 0.80 0.80 }
-	
+	FILTEREDOUT_MAP_COLOR = 			{ 0.07 0.65 0.28 }
+
 	PROVINCE_HIGHLIGHT_COLOR =			{ 0.0 0.0		1	1 	}
 	TRANSPARENT_COLOR = 				{ 0.0 0.0		0.0	0.0 }
 	CITY_HIGHLIGHT_COLOR =				{ 0.0 0.0		1	1 	}
 	COUNTRY_HIGHLIGHT_COLOR = 			{ 0.0 0.0		1	0.4} #would be merged with the country color using the alpha
 	GENERAL_HIGHLIGHT_ALPHA = 0.075 # For the GUI-script triggered highlighting, this overrides the alpha completely, even for PROVINCE/CITY_HIGHLIGHT_COLOR
+	LOCATION_HIGHLIGHT_MIN_ALPHA_SCALE = 0.35 # Fraction of GENERAL_HIGHLIGHT_ALPHA the hovered-location highlight fades to when fully zoomed in
 	WASTELAND_HIGHLIGHT_ALPHA = 0.15 # Used for wastelands when highlighting a country
 	INACCESSIBLE_HIGHLIGHT_COLOR =		{ 0.0	1.0		0.7 	1 	}
 	LOW_SUPPLY_HIGHLIGHT_COLOR =		{ 0.18	1.0		0.7 	1 	}
@@ -231,13 +239,17 @@ NMapColors = {
 	MAP_COLOR_HIGH = { 0.31 0.9 0.6	} #green
 	MAP_COLOR_MAX = { 0.31 1.0 1.0	} #light-green
 	MAP_COLOR_TOP = { 0.49 1.0 1.0 } #light blue
-	MAP_ANTAGONISM_ORANGE = { 0.08 0.85 0.90 } #light orange (antagonism coalition threshold pivot)
 	MAP_COLOR_PROXIMITY_BUILDING = { 0.0 0.0 1.0 } #white
 
-	# Current Weather map mode (clear / weak…strong interpolation)
-	WEATHER_MAP_CLEAR_COLOR = { 0.31 0.55 0.55 }
-	WEATHER_MAP_WEAK_COLOR = { 0.13 0.95 0.88 }
-	WEATHER_MAP_POWERFUL_COLOR = { 0.0 0.95 0.95 }
+	# Works of Art map mode quality ramp (HSV), red -> yellow -> green -> teal, one per named quality tier
+	WORK_OF_ART_QUALITY_1 = { 0.00 0.85 0.80 } #red - Locally Known (0-11)
+	WORK_OF_ART_QUALITY_2 = { 0.06 0.88 0.88 } #orange - Locally Well Known (12-24)
+	WORK_OF_ART_QUALITY_3 = { 0.12 0.90 0.92 } #yellow - Well Known in Area (25-36)
+	WORK_OF_ART_QUALITY_4 = { 0.19 0.85 0.85 } #yellow-green - Renowned in Area (37-49)
+	WORK_OF_ART_QUALITY_5 = { 0.27 0.85 0.78 } #green - Regionally Well Known (50-61)
+	WORK_OF_ART_QUALITY_6 = { 0.34 0.85 0.72 } #green - Regionally Renowned (62-74)
+	WORK_OF_ART_QUALITY_7 = { 0.42 0.85 0.80 } #green-teal - Masterpiece (75-86)
+	WORK_OF_ART_QUALITY_8 = { 0.49 0.90 0.95 } #teal - Magnum Opus (87-100)
 
 	MAP_COLOR_POSITIVE_MIN = { 0.31 0.3 0.3	} #dark-green
 	MAP_COLOR_NEUTRAL_MIN = { 0.13 0.3 0.3	} #dark-yellow
@@ -253,10 +265,10 @@ NMapColors = {
 	MAP_AI_DISP_PLANNING_WAR = { 0.009 0.812 1.000 }
 	MAP_AI_DISP_COVETS       = { 0.765 0.435 0.659 }
 	MAP_AI_DISP_DOMINEERING  = { 0.510 1.000 0.667 }
-	MAP_AI_DISP_RIVALS       = { 0.03 1.0 0.7 }
+	MAP_AI_DISP_RIVALS       = { 0.958 0.802 0.871 }
 	MAP_AI_DISP_NEUTRAL      = { 0.000 0.000 0.812 }
-	MAP_AI_DISP_SELF         = { 0.118 0.882 0.294 }
-	MAP_AI_DISP_FRIENDLY     = { 1.000 0.843 0.000 }
+	MAP_AI_DISP_SELF         = { 0.372 0.867 0.882 }
+	MAP_AI_DISP_FRIENDLY     = { 0.140 1.000 1.000 }
 
 	MAP_COLOR_SATURATION_RANGE = { 0.0 1.0 }
 	MAP_COLOR_VALUE_RANGE = { 0.0 1.0 } # { 0.38 1.0 }
@@ -321,8 +333,6 @@ NMapColors = {
 	CREATE_MILITARY_OBJECTIVE_AVAILABLE =	{ 0.05	0.6	0.67  }
 	CREATE_MILITARY_OBJECTIVE_SECONDARY_HIGHLIGHT = { 0.11 0.9 0.5 }
 
-	SETUP_TRADE_ORIGIN_COLOR =				{ 0.617	0.75	0.85 }
-	
 	TACTICAL_0_COLOR = { 0 0.638 0.34 } #red
 	TACTICAL_1_COLOR = { 0.13 0.713 0.75 } #yellow
 	TACTICAL_2_COLOR = { 0.31 0.675 0.6	} #green
@@ -338,11 +348,8 @@ NMapColors = {
 	
 	
 	VOLCANO_COLOR = 				{ 0.0	1.0		0.7		}
-	EARTHQUAKE_COLOR = 				{  0.05	1.0		1.0 	 }	
-	
-	LOCATION_RANK_UPGRADE_COLOR =		{ 0.2 0.9 0.99 }
-	LOCATION_RANK_UPGRADE_BLEND =		0.02
-	
+	EARTHQUAKE_COLOR = 				{  0.05	1.0		1.0 	 }
+
 
 	DIPLOMACY_OWNED_PROVINCE_COLOR =	{ 0.333	0.848	0.66 	}
 	DIPLOMACY_WAR_ALLIES_COLOR = 		{ 0.333	0.855	0.344	}
@@ -416,6 +423,11 @@ NMapColors = {
 	REBELLION_WILL_OCCUR_IN_LOCATION_COLOR = 		{ 0.9	0.81	0.9 	}
 	REBELLION_HAS_SOME_SUPPORT_IN_LOCATION_COLOR = 		{ 0.3	0.81	0.3 	}
 
+	REBEL_IMMINENT_REVOLT_COLOR =	{ 0.0	0.9		0.9		}	# HSV: red, high sat, bright
+	REBEL_READY_UPRISING_COLOR =	{ 0.07	0.9		0.9		}	# HSV: orange, high sat, bright
+	REBEL_GROWING_COLOR =			{ 0.12	0.85	0.9		}	# HSV: amber, medium sat, bright
+	REBEL_MINOR_SUPPORT_COLOR =		{ 0.16	0.6		0.9		}	# HSV: pale yellow, low sat, bright
+
 	COLONIAL_OWNED_COLOR =	{ 0.333	0.848	0.66 	}
 	COLONIAL_BUILDING_COLOR =	{ 0.5	0.81	0.9 	}
 	COLONIAL_CHARTER_COLOR =	{ 0.592	0.962	0.91	}
@@ -467,6 +479,15 @@ NMapColors = {
 	BUILD_ROAD_CAN_BUILD_ROAD = { 0.31 0.9 0.6 } #green
 	BUILD_ROAD_MARKED_FOR_CONSTRUCTION = { 0.5 0.9 0.9 } #light blue
 	BUILD_ROAD_NOT_ENOUGH_GOLD = { 0.11 0.9 0.9 } #orange
+
+	# Antagonism map mode — dedicated colors (HSV). Tune freely; nothing else uses these.
+	MAP_ANTAGONISM_NO_RISK = { 0.0 0.0 0.55 } #grey (no coalition risk)
+	MAP_ANTAGONISM_MED_RISK = { 0.14 0.9 0.95 } #yellow (medium coalition risk - ramp pivot)
+	MAP_ANTAGONISM_RISK = { 0.07 0.95 0.95 } #orange (risk of coalition)
+	MAP_ANTAGONISM_TRUCE = { 0.6 1 1 } #blue (truce stripes)
+	MAP_ANTAGONISM_COALITION = { 0.0 1.0 0.7 } #red (already in coalition)
+
+	POPULATION_GROWTH_MAPMODE_SCALE_OFFSET = 0.1 #minimum scale jump from dead-center (0.5) for any non-zero growth
 
 	POPULATION_MAPMODE_MIN = 1.000
 	POPULATION_MAPMODE_LOG_FACTOR = 1.0
@@ -597,11 +618,11 @@ NMapMarker = {
 	#Visible in anything "state" and lower
 	ZOOM_STEP_RANGE_PORT = 				{ -1 @location_zoomstep_max }
 	ZOOM_STEP_RANGE_RAW_GOODS_ICON =	{ -1 @province_zoomstep_max }
+	ZOOM_STEP_RANGE_PRODUCTION_EFFICIENCY = { -1 @province_zoomstep_max }
 	ZOOM_STEP_RANGE_DYNASTY_ICON = 		{ -1 @province_zoomstep_max }
 	ZOOM_STEP_RANGE_UNIT = 				{ -1 @province_zoomstep_max }
 	ZOOM_STEP_RANGE_COMBAT = 			{ -1 @province_zoomstep_max }
 
-	ZOOM_STEP_RANGE_IMPORT_EXPORT_WIDGET = { -1 @country_zoomstep_max }
 	ZOOM_STEP_RANGE_BUILD_BUILDING_WIDGET = { -1 @province_zoomstep_max }
 
 	ZOOM_STEP_RANGE_SMALL_UNIT = { @unit_zoomstep_min @unit_zoomstep_max }
@@ -610,6 +631,7 @@ NMapMarker = {
 	MAP_MARKER_SETTLEMENT_SIZE = { 10.0 10.0 }
 	MAP_MARKER_TOWN_SIZE = { 13.0 13.0 }
 	MAP_MARKER_CITY_SIZE = { 18.0 18.0 }
+	MAP_MARKER_MEGALOPOLIS_SIZE = { 23.0 23.0 }
 	MAP_MARKER_SETTLEMENT_POSITION = { 18.0 -2.0 }
 	MAP_MARKER_TOWN_POSITION = { 22.0 -1.0 }
 	MAP_MARKER_CITY_POSITION = { 30.0 4.0 }
@@ -661,7 +683,7 @@ NUnitGraphics = {
 	NAVY_TOTAL_STRENGTH_REFERENCE = 10 # "Normal" size of navy (in "strength")
 	UNIT_VISIBLE_SOLDIERS_AGE_FACTOR = 1.4 # "Normal" size of army multiplied by this each age
 	UNIT_VISIBLE_SOLDIERS_NORMALIZATION = 1.8 # Normalization exponent. 1 corresponds to proportional relationship.
-	UNIT_VISIBLE_SOLDIERS_MAX = 30 # This max will only be reached for ridiculously big armies
+	UNIT_VISIBLE_SOLDIERS_MAX = 40 # This max will only be reached for ridiculously big armies
 	#Patterns should have same number as elements as UNIT_VISIBLE_SOLDIERS_MAX
 	#	23 21 20 22 24  				
 	#	18 16 15 17 19  	
@@ -677,6 +699,8 @@ NUnitGraphics = {
 										"0 3"  "-1 3" "1 3" "-2 3" "2 3"
 										"0 4"  "-1 4" "1 4" "-2 4" "2 4"
 										"0 5"  "-1 5" "1 5" "-2 5" "2 5"
+										"0 6"  "-1 6" "1 6" "-2 6" "2 6"
+										"0 7"  "-1 7" "1 7" "-2 7" "2 7"
 									}#puts the unit in rows remove comment if you modify the formation
 	UNIT_PATTERN_LOW_UNIFORMITY = { 
 										"0 0"       "-1 0.14" "1 0.14"
@@ -687,6 +711,8 @@ NUnitGraphics = {
 										"0 3"       "-1.14 3.2"  "1.14 3.2"  "-2.3 3.3" "2.3 3.3"
 										"0 4"       "-1.14 4.2"  "1.14 4.2"  "-2.3 4.3" "2.3 4.3"
 										"0 5"       "-1.14 5.2"  "1.14 5.2"  "-2.3 5.3" "2.3 5.3"
+										"0 6"       "-1.14 6.2"  "1.14 6.2"  "-2.3 6.3" "2.3 6.3"
+										"0 7"       "-1.14 7.2"  "1.14 7.2"  "-2.3 7.3" "2.3 7.3"
 									}#puts the units in a circle remove comment if you modify the formation
 
 	FORMATION_PREFERENCE_BY_TAG_REAR = {
@@ -745,7 +771,7 @@ NUnitGraphics = {
 	ARMY_ENTITY_SCALE				= 0.2
 	ARMY_LOADED_SCALE				= 0.3
 	ARMY_RANDOM_UNIT_MIN_Y_SCALE_VARIATION = 0.9 #Randomizes the scale in the Y Direction of the army units use with ARMY_RANDOM_UNIT_SCALE_VARIATION to variate the height of the units
-	ARMY_RANDOM_UNIT_MIN_SCALE_VARIATION = 0.90 #randomizes the scale of each subunit 
+	ARMY_RANDOM_UNIT_MIN_SCALE_VARIATION = 0.90 #randomizes the scale of each subunit
 	ARMY_MOVEMENT_SPACING			= 1.5
 	ARMY_MOVEMENT_ASPECT			= 1.0
 	NAVY_FORMATION_SCALE			= 3.5
@@ -756,7 +782,7 @@ NUnitGraphics = {
 	COMBAT_SPACING					= 2
 	MOVEMENT_ANIMATION_SPEED_FACTOR	= 0.085
 	SINGLE_UNIT_ENTITY_SCALE		= 3
-	
+
 	COUNTRY_COLOR_SHIP_PRIMARY_REPLACEMENT_OPACITY = 1.0
 	COUNTRY_COLOR_SHIP_SECONDARY_REPLACEMENT_OPACITY = 1.0
 	COUNTRY_COLOR_SHIP_TERCIARY_REPLACEMENT_OPACITY = 0.25
@@ -788,13 +814,15 @@ NUnitGraphics = {
 	SELECTION_SCHWING_HEIGHT = 4.0		# how high in worldspace the schwing effect goes
 	SELECTION_SCHWING_TIME_START = 0.0	#times are relative to the total animation time
 	SELECTION_SCHWING_TIME_END = 1.0
+	HOVER_OWNED_COLOR = { 0.75 0.75 0.75 0.15 }	# white tint for selectable owned units on mouseover
+	HOVER_ENEMY_COLOR = { 0.5 0.0 0.0 0.25 }	# red tint for enemy units on mouseover
 
 	# battle lateral view
 	BATTLE_TILE_MORALE_ALPHA_THRESHOLD = 0.25 # At what Morale percentage do units start fading away? (at this point they are fully visible)
 	BATTLE_TILE_MORALE_ALPHA_MINIMUM = 0.5 # What is the lowest transparency they can get to (when at 0% morale)
 
 	FLATMAP_COMBAT_TEXT_SEPARATION = 3.0
-	INSTANT_MOVEMENT_SPEED_LIMIT  = 6 #from whitch speed the movement of the unit graphics will be instant
+	INSTANT_MOVEMENT_SPEED_LIMIT  = 4 #from which speed (0-indexed) the unit graphics movement becomes instant
 	UNIT_CHANGE_MESSAGE_HOLDDUP_TIME = 0.5
 }		
 
@@ -837,19 +865,21 @@ NGameIcons = {
 	PARLIAMENT_TYPES_ICON_PATH = "gfx/interface/icons/parliament_types"
 	CABINET_ACTION_ICON_PATH = "gfx/interface/icons/cabinet_actions"
 	GENERIC_ACTION_ICON_PATH = "gfx/interface/icons/generic_actions"
+	PRODUCTION_METHOD_ICON_PATH = "gfx/interface/icons/production_methods"
 	EMPLOYMENT_SYSTEM_ICON_PATH = "gfx/interface/icons/employment_systems"
 	CHARACTER_INTERACTION_ICON_PATH = "gfx/interface/icons/character_interactions"
 	COUNTRY_INTERACTION_ICON_PATH = "gfx/interface/icons/country_interactions"
 	BUILDINGS_ICON_PATH = "gfx/interface/icons/buildings"
 	POP_ICON_PATH = "gfx/interface/icons/pops"
 	HOLY_SITE_TYPE_ICON_PATH = "gfx/interface/icons/holy_site_types"
-	HOLY_SITE_ICON_PATH = "gfx/interface/illustrations/holy_sites/"
+	HOLY_SITE_ICON_PATH = "gfx/interface/illustrations/work_of_art_and_holy_sites/"
 	RELIGIOUS_FACTION_ICON_PATH = "gfx/interface/icons/religious_factions"
 	GOD_ICON_PATH = "gfx/interface/icons/gods"
 	OMEN_ICON_PATH = "gfx/interface/icons/omens"
 	AVATAR_ICON_PATH = "gfx/interface/icons/avatars"
 	DISEASE_ICON_PATH = "gfx/interface/icons/disease"
 	MOVEMENT_ICON_PATH = "gfx/interface/icons/movement"
+	AMBITION_ICON_PATH = "gfx/interface/icons/ambition"
 	RELIGIOUS_FOCUS_ICON_PATH = "gfx/interface/icons/religious_focuses"
 	RELIGIOUS_ASPECT_ICON_PATH = "gfx/interface/icons/religious_aspects"
 	ESTATE_ICON_PATH = "gfx/interface/icons/estates"
@@ -866,9 +896,12 @@ NGameIcons = {
 	HEGEMONY_BORDER_PATH = "gfx/interface/hegemony"
 	HEGEMONY_ICON_PATH = "gfx/interface/icons/hegemony"
 	DISASTER_ICON_PATH = "gfx/interface/icons/disasters"
+	EXPEDITION_TYPE_ICON_PATH = "gfx/interface/icons/expedition_types"
+	COLONIAL_CHARTER_GOAL_ICON_PATH = "gfx/interface/icons/charter_goals"
 		AI_PERSONALITY_ICON_PATH = "gfx/interface/icons/ai_personalities"
 		AI_DISPOSITION_ICON_PATH = "gfx/interface/icons/ai_dispositions"
 	TOWN_RIGHTS_ICON_PATH = "gfx/interface/icons/town_rights"
+		INDUSTRY_TYPE_ICON_PATH = "gfx/interface/icons/industry_types"
 	SITUATION_ICON_PATH = "gfx/interface/icons/situations"
 	RELIGIOUS_SCHOOL_ICON_PATH = "gfx/interface/icons/religious_schools"
 	INTERNATIONAL_ORGANIZATION_PAYMENT_ICON_PATH = "gfx/interface/icons/flat_icons/balance"
@@ -876,6 +909,9 @@ NGameIcons = {
 	ADVANCE_ICON_PATH = "gfx/interface/advance"
 	CHECK_ADVANCE_ICONS_ERRORS = 0
 	CHIVALRIC_ORDER_ICON_PATH = "gfx/interface/icons/chivalric_orders"
+	RELIGIOUS_ORDER_ICON_PATH = "gfx/interface/icons/religious_orders/"
+	RELIGIOUS_ORDER_TYPE_ICON_PATH = "gfx/interface/icons/religious_orders/types/"
+	CALLING_ICON_PATH = "gfx/interface/icons/religious_orders/callings/"
 	LAW_ICON_PATH = "gfx/interface/icons/laws"
 	LAW_CATEGORY_ICON_PATH = "gfx/interface/icons/laws/categories"
 	LAW_CATEGORY_COLOR_PATH = "gfx/interface/icons/laws/categories/colors"
@@ -916,9 +952,10 @@ NGameIllustrations = {
 	GOVERNMENT_REFORMS_ILLUSTRATION_PATH = "gfx/interface/icons/government_reforms/illustrations"
 	TRADE_GOODS_ILLUSTRATION_PATH = "gfx/interface/icons/trade_goods/illustrations"
 	SITUATIONS_ILLUSTRATION_PATH = "gfx/interface/illustrations/situation"
-	WORK_OF_ART_ILLUSTRATION_PATH = "gfx/interface/illustrations/work_of_art"
+	WORK_OF_ART_ILLUSTRATION_PATH = "gfx/interface/illustrations/work_of_art_and_holy_sites"
 	MISSION_ILLUSTRATION_PATH = "gfx/interface/illustrations/missions"
 	DISASTER_ILLUSTRATION_PATH = "gfx/interface/illustrations/disaster"
+	BOOKMARK_ILLUSTRATION_PATH = "gfx/interface/illustrations/bookmarks"
 	ILLUSTATION_AUDIO_TAGS_BLACKLIST = { "gfx" "interface" "illustrations" "event" "frontobjects" "burghers" "nobles" "clergy" "peasants"} 
 }
 
@@ -982,8 +1019,6 @@ NCombatPrediction = {
 	CLEAR_VICTORY_THRESHOLD = 2.0
 	PROBABLE_VICTORY_THRESHOLD = 1.0
 	
-	LEADER_CONTRIBUTION = 0.01
-	
 	STRENGTH_THRESHOLD = 0.15
 	STRENGTH_CONTRIBUTION = 0.5
 	
@@ -992,8 +1027,13 @@ NCombatPrediction = {
 	
 	QUALITY_THRESHOLD = 0.1
 	QUALITY_CONTRIBUTION = 4.5
+	QUALITY_MAX = 0.5
 	
 	TERRAIN_CONTRIBUTION = 0.667
+
+	SUPPLY_THRESHOLD = 0.1
+	SUPPLY_CONTRIBUTION = 3.0
+	SUPPLY_HORIZON_DAYS = 30
 
 	UNPREDICTABLE_SMALL_BATTLE_THRESHOLD = 0.1
 }
@@ -1010,16 +1050,22 @@ NMapLines = {
   UNIT_LOGISTICS = "line_trade_green" # TODO: create a new one. unit supply looking
   ROAD_BUILDER = "line_road_builder"
   ROAD_BUILDER_CONSTRUCTION = "line_road_construction"
-  PROXIMITY_FROZEN = "line_pop_movement_red"
-  PROXIMITY_LAKE = "line_trade_blue"
-  PROXIMITY_LAND = "line_pop_movement_red"
-  PROXIMITY_MARITIME = "line_trade_blue"
-  PROXIMITY_PORT = "line_trade_yellow"
-  PROXIMITY_RIVER = "line_river_direction"
+  PROXIMITY_FROZEN = "line_proximity_frozen"
+  PROXIMITY_LAKE = "line_proximity_lake"
+  PROXIMITY_LAND = "line_proximity_land"
+  PROXIMITY_MARITIME = "line_proximity_maritime"
+  PROXIMITY_PORT = "line_proximity_port"
+  PROXIMITY_RIVER = "line_proximity_river"
   PROXIMITY_ROAD_1 = "line_gravel_road"
   PROXIMITY_ROAD_2 = "line_paved_road"
   PROXIMITY_ROAD_3 = "line_modern_road"
   PROXIMITY_ROAD_4 = "line_rails_road"
+  PROXIMITY_ROAD_GHOST_1 = "line_gravel_road_ghost"
+  PROXIMITY_ROAD_GHOST_2 = "line_paved_road_ghost"
+  PROXIMITY_ROAD_GHOST_3 = "line_modern_road_ghost"
+  PROXIMITY_ROAD_GHOST_4 = "line_rails_road_ghost"
+  EXPEDITION_TRAVERSED = "line_road_builder"
+  EXPEDITION_REMAINING = "line_gravel_road_ghost"
 }
 
 NOutliner = {
@@ -1096,6 +1142,11 @@ NCityGraphics = {
 	LAKES_LAYERS = 
 	{
 		"lake_layer"
+	}
+	EXTRA_HEIGHT_LAYERS =
+	{
+		"suez_canal"
+		"panama_canal"
 	}
 }
 
@@ -1206,7 +1257,6 @@ NTextSettings = {
 NTradeGraphics = {
 	WAGON_SCALE = 0.125
 	SHIP_SCALE = 0.5
-	SHIP_FLATMAP_Y_OFFSET = 2.0
 	DEFAULT_WAGON_SPEED = 0.4
 	WAGONS_BY_MARKET = 15
 	MINIMUM_TRADEROUTE_LENGHT = 1000
@@ -1224,7 +1274,11 @@ NTradeGraphics = {
 	MAX_EXPLORATION_WAGONS = 100
 	MINIMUM_SPAWN_TIME_BETWEEN_EXPLORATION_WAGONS_GLOBAL = 0.1f
 	MINIMUM_SPAWN_TIME_BETWEEN_EXPLORATION_WAGONS_OF_THE_SAME_EXPLORATION = 20.0f
-	
+
+	MAX_EXPEDITION_WAGONS = 100
+	MINIMUM_SPAWN_TIME_BETWEEN_EXPEDITION_WAGONS_GLOBAL = 0.1f
+	MINIMUM_SPAWN_TIME_BETWEEN_EXPEDITION_WAGONS_OF_THE_SAME_EXPEDITION = 20.0f
+
 	TRADE_PARTICLES_ZOOM_OUT_STEP = @particles_zoom_out
 }
 
@@ -1242,7 +1296,6 @@ NGraphicsTest = {
 }
 
 NLateralView = {
-	IMPORT_EXPORT_ZOOM_LEVEL = 14
 	RECRUIT_LOCATION_ZOOM_LEVEL = 3
 	MAX_INT_ORG_IN_UI = @max_int_orgs_in_ui
 	MAX_GP_SUBJECT_IN_UI = @max_gp_subjects_in_ui
@@ -1251,6 +1304,7 @@ NLateralView = {
 	MAX_ESTATE_PRIVILIGE_ITEMS_IN_UI = @max_estate_privilige_items_in_ui
 	MIN_AUTOCOMPLETE_TEXT_LENGTH = 3
 	FILTERED_SEARCH_BOX_INPUT_DEALY = 300 # milliseconds
+	LOCATION_QUEUE_REORDER_INPUT_DELAY = 700 # milliseconds; debounce before sending a building-queue reorder command
 }
 
 NTreeTweaks = {

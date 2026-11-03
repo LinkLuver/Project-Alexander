@@ -1,0 +1,186 @@
+﻿change_gold_effect = {
+	add_gold = {
+		value = 1
+		multiply = $scale$
+
+		add = {
+			value = capital_wealth
+			multiply = $scale$
+			multiply = 0.2
+		}
+		add = {
+			value = country_economical_base
+			multiply = $scale$
+			multiply = 0.05
+		}
+		if = {
+			limit = {
+				$scale$ >  0
+			}
+			min = {
+				value = $scale$
+			}
+			max = {
+				value = 5000
+				multiply = $scale$
+			}
+
+		}
+
+		if = {
+			limit = {
+				$scale$ < 0
+			}
+			max = {
+				value = $scale$
+			}
+			min = {
+				value = 5000
+				multiply = $scale$
+			}
+
+		}
+	}
+}
+
+# Same scaling logic as change_gold_effect, but with caller-supplied magnitude bounds
+# instead of the default [|scale|, 5000*|scale|]. Pass $scale$ signed; pass $min$ and
+# $max$ as positive magnitudes — the sign is taken from $scale$.
+# Example: change_gold_effect_bounded = { scale = -2 min = 2 max = 1000 }
+change_gold_effect_bounded = {
+	add_gold = {
+		value = 1
+		multiply = $scale$
+
+		add = {
+			value = capital_wealth
+			multiply = $scale$
+			multiply = 0.2
+		}
+		add = {
+			value = country_economical_base
+			multiply = $scale$
+			multiply = 0.05
+		}
+
+		if = {
+			limit = {
+				$scale$ > 0
+			}
+			min = {
+				value = $min$
+			}
+			max = {
+				value = $max$
+			}
+		}
+
+		if = {
+			limit = {
+				$scale$ < 0
+			}
+			max = {
+				value = $min$
+				multiply = -1
+			}
+			min = {
+				value = $max$
+				multiply = -1
+			}
+		}
+	}
+}
+
+
+change_estate_gold_effect = {
+
+	add_gold_to_estate = {
+		estate_type = $estate$
+		value = {
+			value = $scale$
+
+			add = {
+				value = monthly_income_trade_and_tax
+				multiply = $scale$
+			}
+			if = {
+				limit = {
+					$scale$ >  0
+				}
+				min = {
+					value = $scale$
+				}
+				max = {	
+					value = 5000
+					multiply = $scale$
+				}
+
+			}
+			
+			if = {
+				limit = {
+					$scale$ < 0
+				}
+				max = {
+					value = $scale$
+				}
+				min = {	
+					value = 5000
+					multiply = $scale$
+				}
+
+			}
+		}
+	}
+}
+
+pay_gold_org_country_effect = {
+	if = {
+		limit = {
+			exists = $international_organization$
+			$international_organization$ = {
+				has_enabled_currency = gold
+			}
+		}
+		$international_organization$ = {
+			add_gold = {
+				value = $value$
+				multiply = -1
+			}
+		}
+	}
+	else = {
+		$country$ = {
+			add_gold = {
+				value = $value$
+				multiply = -4
+			}
+		}
+	}
+}
+
+transfer_gold_to_org_country_effect = {
+	add_gold = {
+		value = $value$
+		multiply = -4
+	}
+	if = {
+		limit = {
+			$international_organization$ = {
+				has_enabled_currency = gold
+			}
+		}
+		$international_organization$ = {
+			add_gold = {
+				value = $value$
+				multiply = 2
+			}
+		}
+	}
+	$country$ = {
+		add_gold = {
+			value = $value$
+			multiply = 2
+		}
+	}
+}

@@ -1,0 +1,189 @@
+﻿create_province_subject = {
+	type = owncountry
+
+	allow = {
+		scope:actor = {
+			or = {
+				is_subject = no
+				subject_type = {
+					allow_subject_creation = yes
+				}
+			}
+			custom_tooltip = {
+				text = create_province_subject_union_tt
+				trigger_if = {
+					limit = { exists = union }
+					union ?= {
+						OR = {
+							NOT = { has_active_senior_partner = yes }
+							country_is_senior_partner = { country = scope:actor }
+						}
+					}
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		interaction_source_list = {
+			scope:actor = {
+				every_province = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target_province
+		name = "create_province_subject_select_province"
+		none_available_msg_key = "create_province_subject_no_province"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = subject_type
+		target_flag = subject_type
+		cache_targets = yes #this list of targets doesn't rely on the previous target so we only need to do it once
+		name = "create_building_subject_select_subject_type"
+		none_available_msg_key = "create_building_subject_no_subject_type"
+		column = {
+			data = subject_type_attribute_column
+		}
+		column = { data = subject_type_icon }
+		visible = {
+			subject_can_be_created_by = {
+				country = scope:actor
+				where = scope:target_province
+			}
+			scope:target_province = {
+				NOT = {
+					any_location_in_province = { integration_level = colonized }
+				}
+			}
+		}
+		map_color = {
+			if = {
+				limit = {
+					is_land = yes
+					province ?= scope:target_province
+				}
+				value = define:NMapColors|MAP_COLOR_HIGH
+			}
+		}
+		only_color_selectable = no
+	}
+	
+	select_trigger = {
+		show_if = {
+			scope:subject_type ?= {
+				has_overlords_ruler = no
+			}
+		}
+		looking_for_a = character
+		source = actor
+		target_flag = ruler
+		cache_targets = yes #this list of targets doesn't rely on the previous target so we only need to do it once
+		allow_null = yes #so we let the game create a random ruler
+		name = "create_building_subject_select_ruler"
+		none_available_msg_key = "create_building_subject_no_ruler"
+		column = {
+			data = character_info
+			widget = character_info_for_select_ruler
+		}
+		visible = {
+			can_become_a_ruler = yes
+			scope:actor = {
+				trigger_if = {
+					limit = {
+						exists = ruler
+					}
+					ruler != root
+				}
+			}
+		}
+		enabled = {
+			NOT = { modifier:is_head_of_cabinet = yes }
+			is_eligible_heir = scope:actor #the new subject is going to inherit all its settings from the actor, so one rule for all
+		}
+		map_color = {
+			if = {
+				limit = {
+					province = scope:target_province
+				}
+				value = define:NMapColors|MAP_COLOR_HIGH
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target_province
+				exists = scope:ruler
+			}
+
+			scope:target_province = {
+				create_location_country_from_province = {
+					ruler = scope:ruler
+					subject_type = scope:subject_type
+
+					capital = {
+						province = {
+							save_scope_as = new_province
+						}
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				exists = scope:target_province
+			}
+
+			if = {
+				limit = {
+					scope:subject_type = {
+						has_overlords_ruler = yes
+					}
+				}
+				#using overlord's ruler
+				scope:actor = {
+					ruler = {
+						save_scope_as = ruler
+					}
+				}
+			}
+
+			scope:target_province = {
+				create_location_country_from_province = {
+					ruler = scope:ruler
+					subject_type = scope:subject_type
+
+					capital = {
+						province = {
+							save_scope_as = new_province
+						}
+					}
+
+					save_scope_as = new_country
+				}
+			}
+
+			scope:new_country = {
+				ruler = {
+					save_scope_as = ruler
+				}
+			}
+		}
+	}
+
+	ai_tick_frequency = 6
+	ai_tick = never #We do not want the AI to release subject countries...
+	ai_will_do = 0
+
+	automation_tick = never
+	automation_tick_frequency = 12
+}

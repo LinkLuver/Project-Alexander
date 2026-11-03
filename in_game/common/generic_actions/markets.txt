@@ -1,0 +1,550 @@
+﻿# scope:actor = country, scope:recipient = country
+
+relocate_market = {
+	type = owncountry
+	
+	potential = {
+	}
+
+	allow = {
+	}
+
+	ai_tick = never
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	price = price:relocate_market
+	
+	#market in scope:from
+	select_trigger = {
+		looking_for_a = market
+		source = actor
+		target_flag = target
+		name = "relocate_market_select_market"
+		none_available_msg_key = "relocate_market_no_markets"
+		column = {
+			data = name
+		}
+		visible = {
+			location = {
+				owner ?= scope:actor
+			}
+		}
+	}
+
+	#location in scope:target_location
+	select_trigger = {
+		looking_for_a = location
+		source = actor
+		target_flag = target_location
+		name = "relocate_market_select_location"
+		none_available_msg_key = "relocate_market_no_locations"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			is_city = yes
+			market = scope:target
+			this != scope:target.location
+			owner ?= scope:actor
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+				exists = scope:target_location
+			}
+			scope:target = {
+				location = {
+					save_scope_as = old_location
+				}
+				relocate_market = scope:target_location
+			}
+		}
+	}
+	
+	ai_will_do = {
+		#this is actually handled in code to more precisely target exactly which locations we want to check,
+		#but included here for debugging purposes
+		if = {
+			limit = {
+				exists = scope:target
+				exists = scope:target_location
+			}
+			add = "scope:target_location.add_static_modifier_utility(market_center)"
+			add = "scope:target.location.remove_static_modifier_utility:market_center"
+			add = "scope:actor.relocate_market_utility(scope:target.location|scope:target_location)"
+		}
+	}
+}
+
+# scope:actor = country, scope:recipient = country
+
+destroy_market = {
+	type = owncountry
+	
+	potential = {
+	}
+
+	allow = {
+	}
+
+	ai_tick = never
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	price = price:destroy_market
+	
+	#market in scope:target
+	select_trigger = {
+		looking_for_a = market
+		source = actor
+		target_flag = target
+		source_flags = include_subjects
+		name = "destroy_market_select_market"
+		none_available_msg_key = "destroy_market_no_markets"
+		column = {
+			data = name
+		}
+		visible = {
+			location = {
+				OR = {
+					owner ?= scope:actor
+					AND = {
+						owner = {
+							is_subject_of = scope:actor
+						}
+						owner ?= {
+							subject_type ?= {
+								overlord_can_destroy_markets = yes
+							}
+						}
+					}
+				}
+			}
+		}
+		enabled = {
+			has_temporary_demands = no
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				location = {
+					save_scope_as = old_location
+				}
+				destroy_market = {}
+			}
+		}
+	}
+
+	ai_will_do = {
+		#this is actually handled in code to more precisely target exactly which locations we want to check,
+		#but included here for debugging purposes
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			add = {
+				every_goods = {
+					value = "price_in_market(scope:target.location.second_best_market)"
+					subtract = "price_in_market(scope:target)"
+				}
+			}
+			add = "scope:actor.destroy_market_utility(scope:target)"
+		}
+	}
+}
+
+create_market = {
+	type = owncountry
+	
+	potential = {
+	}
+
+	allow = {
+	}
+	
+	ai_tick = never
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	#we don't execute the price for this action because it creates a construction, which needs its own price information in order to be able to restore the price if it is cancelled. We leave the price in here though for display
+	should_execute_price = no
+	price = price:create_market
+	
+	
+	price_modifier = {
+		add = {
+			desc = "game_concept_market_access"
+			if = {
+				limit = {
+					exists = scope:target
+				}
+				scope:target = {
+					value = market_access
+					min = 0.1
+				}
+			}
+		}
+	}
+	
+	#location in scope:target
+	select_trigger = {
+		looking_for_a = location
+		source = actor
+		target_flag = target
+		source_flags = include_subjects
+		name = "create_market_select_location"
+		none_available_msg_key = "create_market_no_locations"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		column = {
+			data = left_click_and_confirm_cost
+		}
+		visible = {
+			not = { this = market.location }
+			is_ownable = yes
+			OR = {
+				is_city = yes
+				market_access < 0.25
+			}
+		}
+		enabled = {
+			OR = {
+				owner = scope:actor
+				has_owned_buildings = scope:actor
+				AND = {
+					owner ?= {
+						is_subject_of = scope:actor
+					}
+					owner.subject_type ?= {
+						overlord_can_build_markets = yes
+					}
+				}
+			}
+			has_market_construction = no
+			not = {
+				market ?= {
+					owner = {
+						has_trade_treaty_with = scope:actor
+					}
+				}
+			}
+		}
+	}
+	
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			scope:target = {
+				market = {
+					location = {
+						save_scope_as = old_location
+					}
+				}
+			}
+			create_market = {
+				builder = scope:actor
+				location = scope:target
+				price = scope:price
+				price_modifier = scope:price_modifier
+			}
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					is_human = yes
+				}
+			}
+			scope:actor = {
+				set_variable = {
+					name = unlock_achievement_its_just_business
+					months = 1
+				}
+			}
+		}
+	}
+	
+	ai_will_do = {
+		#this is actually handled in code to more precisely target exactly which locations we want to check,
+		#but included here for debugging purposes
+		if = {
+			limit = {
+				exists = scope:target
+			}
+			add = "scope:actor.create_market_utility(scope:target)"
+		}
+	}
+}
+
+create_trade = {
+	type = owncountry
+	
+	potential = {
+	}
+
+	allow = {
+	}
+
+	ai_tick = never
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	#from market in scope:from
+	select_trigger = {
+		looking_for_a = market
+		target_flag = from
+		name = "create_trade_select_from_market"
+		none_available_msg_key = "create_trade_first_no_markets"
+		column = {
+			data = name
+		}
+		visible = {
+			#in_trade_range_of = scope:actor
+			OR = {
+				owner ?= scope:actor
+				scope:actor = {
+					capital = {
+						market = root
+					}
+				}
+				scope:actor = {
+					not = { is_embargoed_by = root.owner }
+				}
+				root.owner = {
+					or = {
+						modifier:trade_isolation = no
+						gives_isolation_exemption_to = scope:actor
+					}
+				}
+			}
+			trigger_if = {
+				limit = {
+					exists = scope:to
+					scope:actor = {
+						is_ai = no # AI handles these checks in code, here we save an expensive pathfinding check
+					}
+				}
+				not = { this = scope:to }
+				scope:actor = {
+					can_find_trade_route = {
+						from = root
+						to = scope:to
+					}
+				}
+			}
+		}
+	}
+
+	#to market in scope:to
+	select_trigger = {
+		looking_for_a = market
+		target_flag = to
+		name = "create_trade_select_to_market"
+		none_available_msg_key = "create_trade_second_no_markets"
+		column = {
+			data = name
+		}
+		visible = {
+			#in_trade_range_of = scope:actor
+			OR = {
+				owner ?= scope:actor
+				scope:actor = {
+					capital = {
+						market = root
+					}
+				}
+				scope:actor = {
+					not = { is_embargoed_by = root.owner }
+				}
+			}
+			trigger_if = {
+				limit = {
+					exists = scope:from
+					scope:actor = {
+						is_ai = no # AI handles these checks in code, here we save an expensive pathfinding check
+					}
+				}
+				not = { this = scope:from }
+				scope:actor = {
+					can_find_trade_route = {
+						from = scope:from
+						to = root
+					}
+				}
+			}
+		}
+	}
+
+	#market where the merchant is that you want to use in scope:merchant
+	select_trigger = {
+		looking_for_a = market
+		target_flag = merchant
+		cache_targets = yes #this list of targets doesn't rely on the previous target so we only need to do it once
+		name = "create_trade_select_merchant_market"
+		none_available_msg_key = "create_trade_no_merchant_markets"
+		column = {
+			data = name
+		}
+		visible = {
+			has_merchant = scope:actor
+			available_merchant_capacity = {
+				country = scope:actor
+				value > 0
+			}
+		}
+	}
+
+	#goods in scope:goods
+	select_trigger = {
+		looking_for_a = goods
+		target_flag = goods
+		name = "create_trade_select_goods"
+		none_available_msg_key = "create_trade_no_goods"
+		column = {
+			data = name
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					exists = scope:from
+				}
+				scope:from = {
+					OR = {
+						NOT = { is_export_banned = root }
+						# Domestic transfer: both markets belong to the same country
+						AND = {
+							exists = scope:to
+							owner = scope:to.owner
+						}
+					}
+					market_possible_goods_trade_surplus = {
+						goods = root
+						country = scope:actor
+						value > 0
+					}
+				}
+			}
+			trigger_if = {
+				limit = {
+					exists = scope:to
+				}
+				scope:to = {
+					OR = {
+						NOT = { is_import_banned = root }
+						# Domestic transfer: both markets belong to the same country
+						AND = {
+							exists = scope:from
+							owner = scope:from.owner
+						}
+					}
+				}
+			}
+		}
+		enabled = {
+			trigger_if = {
+				limit = {
+					is_food = yes
+					exists = scope:from
+				}
+				scope:from = {
+					market_food > 0
+				}
+			}
+		}
+	}
+
+	#merchant capacity requested in scope:capacity
+	select_trigger = {
+		looking_for_a = value
+		target_flag = capacity
+		name = "create_trade_select_desired_capacity"
+		min = 0
+		max = {
+			if = {
+				limit = {
+					exists = scope:merchant
+				}
+				value = "scope:merchant.merchant_capacity(scope:actor)"
+			}
+			else = {
+				value = 0
+			}
+		}
+		step = {
+			value = "define:NMarket|MARKET_TRADE_CHANGE_PER_CLICK"
+		}
+		default = {
+			if = {
+				limit = {
+					exists = scope:merchant
+				}
+				value = "scope:merchant.merchant_capacity(scope:actor)"
+			}
+			else = {
+				value = 0
+			}
+		}
+	}
+
+	#whether or not to lock the trade in scope:locked
+	select_trigger = {
+		looking_for_a = boolean
+		target_flag = locked
+		name = "create_trade_select_locked"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:from
+				exists = scope:to
+				exists = scope:merchant
+				exists = scope:goods
+				exists = scope:capacity
+				exists = scope:locked
+			}
+			scope:actor = {
+				create_trade = {
+					from = scope:from
+					to = scope:to
+					merchant = scope:merchant
+					goods = scope:goods
+					desired = scope:capacity
+					locked = scope:locked
+				}
+			}
+		}
+	}
+	
+	ai_will_do = {
+		add = {
+			value = -1000 #handled in code
+		}
+	}
+}

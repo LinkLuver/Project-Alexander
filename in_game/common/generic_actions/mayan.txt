@@ -1,0 +1,612 @@
+﻿# scope:actor = country, scope:recipient = religion
+
+sacrifice_noble_blood = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = religion:mayan
+	}
+		
+	cooldown = {
+		type = sacrifice_noble_blood
+		days = 90
+	}
+
+	ai_tick = daily
+	ai_tick_frequency = 120
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	price = price:sacrifice_noble_blood
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = { data = name }
+	}
+	
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		pre_evaluation_sort_value = {
+			value = age_in_years
+		}
+		pre_evaluation_number_to_evaluate_fully = 1 #the character doesn't matter at all to the AI score
+		target_flag = character_scope
+		name = "choose_character"
+		column = { 
+			data = name
+			data = character_ruler 
+		}
+		visible = {
+			is_alive = yes
+			has_estate = estate_type:nobles_estate
+			religion = religion:mayan
+		}
+		enabled = {
+			is_adult = yes
+			is_ruler = no
+			is_heir = no
+		}
+	}
+	
+	effect = {
+		#The bloodletter may die
+		if = {
+			limit = {
+				exists = scope:character_scope
+			}
+			random_list = {
+				20 = {
+					kill_character = {
+						target = scope:character_scope
+						reason = sacrifice
+					}
+				}
+				80 = { 
+				}
+			}
+		}
+		else = {
+			custom_tooltip = sacrifice_noble_blood_tt
+		}
+		
+		scope:actor ?= {
+			add_religious_influence = religious_influence_mild_bonus
+			add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+			add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_mild_bonus }	
+		}
+	}
+	
+	ai_will_do = {
+		add = "scope:actor.currency_utility(religious_influence|religious_influence_mild_bonus)"
+		add = "scope:actor.add_estate_satisfaction_utility(clergy_estate|estate_satisfaction_mild_bonus)"
+		add = "scope:actor.add_estate_satisfaction_utility(peasants_estate|estate_satisfaction_mild_bonus)"
+
+		#bias against doing anything
+		subtract = {
+			desc = "bias against doing stuff"
+			value = 1
+		}
+	}
+}
+
+prepare_for_katun_nothing = {
+	icon = prepare_for_katun_double
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor = {
+			religion = religion:mayan
+			has_country_modifier = prepare_for_katun
+		}
+	}
+	
+	allow = {
+		scope:actor = {
+			NOT = {
+				has_cooldown = prepare_for_katun
+			}
+		}
+	}
+	
+	cooldown = {
+		type = prepare_for_katun
+		years = 5
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 1
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = { data = name }
+	}
+	
+	effect = {
+		scope:actor ?= {
+			remove_country_modifier = prepare_for_katun
+		}
+	}
+	
+	ai_will_do = {
+		subtract = "scope:actor.add_static_modifier_utility(prepare_for_katun)"
+		#bias against doing anything
+		subtract = {
+			desc = "bias against doing stuff"
+			value = 1
+		}
+	}
+}
+
+prepare_for_katun_half = {
+	icon = prepare_for_katun_double
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = religion:mayan
+	}
+
+	allow = {
+		scope:actor = {
+			NOT = {
+				has_cooldown = prepare_for_katun
+			}
+		}
+	}
+	
+	cooldown = {
+		type = prepare_for_katun
+		years = 5
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 1
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = { data = name }
+	}
+	
+	effect = {
+		scope:actor ?= {
+			if = {
+				limit = {
+					has_country_modifier = prepare_for_katun
+				}
+				remove_country_modifier = prepare_for_katun
+			}
+			add_country_modifier = { 
+				modifier = prepare_for_katun
+				years = -1
+				mode = add_and_extend
+				size = 0.5
+			}
+		}
+	}
+	
+	ai_will_do = {
+		add = "scope:actor.add_static_modifier_utility(prepare_for_katun)"
+		multiply = 0.5
+		#bias against doing anything
+		subtract = {
+			desc = "bias against doing stuff"
+			value = 1
+		}
+	}
+}
+
+prepare_for_katun_normal = {
+	icon = prepare_for_katun_double
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = religion:mayan
+	}
+	
+	allow = {
+		scope:actor = {
+			NOT = {
+				has_cooldown = prepare_for_katun
+			}
+		}
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 1
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	cooldown = {
+		type = prepare_for_katun
+		years = 5
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = { data = name }
+	}
+	
+	effect = {
+		scope:actor ?= {
+			if = {
+				limit = {
+					has_country_modifier = prepare_for_katun
+				}
+				remove_country_modifier = prepare_for_katun
+			}
+			add_country_modifier = { 
+				modifier = prepare_for_katun
+				years = -1
+				mode = add_and_extend
+			}
+		}
+	}
+	
+	ai_will_do = {
+		add = "scope:actor.add_static_modifier_utility(prepare_for_katun)"
+		#bias against doing anything
+		subtract = {
+			desc = "bias against doing stuff"
+			value = 1
+		}
+	}
+}
+
+prepare_for_katun_double = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = religion:mayan
+	}
+	
+	allow = {
+		scope:actor = {
+			NOT = {
+				has_cooldown = prepare_for_katun
+			}
+		}
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 1
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	cooldown = {
+		type = prepare_for_katun
+		years = 5
+	}
+		
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = { data = name }
+	}
+	
+	effect = {
+		scope:actor ?= {
+			if = {
+				limit = {
+					has_country_modifier = prepare_for_katun
+				}
+				remove_country_modifier = prepare_for_katun
+			}
+			add_country_modifier = { 
+				modifier = prepare_for_katun
+				years = -1
+				mode = add_and_extend
+				size = 2
+			}
+		}
+	}
+	
+	ai_will_do = {
+		add = "scope:actor.add_static_modifier_utility(prepare_for_katun)"
+		multiply = 2
+		#bias against doing anything
+		subtract = {
+			desc = "bias against doing stuff"
+			value = 1
+		}
+	}
+}
+
+
+mayan_ceremonial_festivals = {
+	type = religious
+
+	sound = UI_action_religion_generic
+	
+	potential = {
+		scope:actor.religion = religion:mayan
+	}
+	
+	allow = {
+		scope:actor.gold >= {
+			value = scope:actor.monthly_income_trade_and_tax
+			multiply = 4
+		}
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 1
+
+	automation_tick = monthly
+	automation_tick_frequency = 1
+	player_automated_category = religiousdoctrines
+	
+	price = price:mayan_ceremonial_festivals
+	
+	cooldown = {
+		type = inti_ceremonial_festivals
+		years = 1
+	}
+	
+	select_trigger = {
+		looking_for_a = religion
+		source = actor
+		target_flag = recipient
+		name = "choose_religion"
+		column = { data = name }
+	}
+	
+	effect = {
+		scope:actor = {
+			if = {
+				limit = {
+					time_of_year = { min = 1.1 max = 1.21 }
+				}
+				custom_tooltip = { text = uinal_pop_tt }
+				add_country_modifier = { modifier = uinal_pop_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 1.21 max = 2.10 }
+				}
+				custom_tooltip = { text = uinal_uo_tt }
+				add_country_modifier = { modifier = uinal_uo_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 2.10 max = 3.1 }
+				}
+				custom_tooltip = { text = uinal_zip_tt }
+				add_country_modifier = { modifier = uinal_zip_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 3.1 max = 3.21 }
+				}
+				custom_tooltip = { text = uinal_zotz_tt }
+				add_country_modifier = { modifier = uinal_zotz_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 3.21 max = 4.10 }
+				}
+				custom_tooltip = { text = uinal_zec_tt }
+				add_country_modifier = { modifier = uinal_zec_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 4.10 max = 4.30 }
+				}
+				custom_tooltip = { text = uinal_yaxkin_tt }
+				add_country_modifier = { modifier = uinal_yaxkin_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 4.30 max = 5.20 }
+				}
+				custom_tooltip = { text = uinal_xul_tt }
+				add_country_modifier = { modifier = uinal_xul_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 5.20 max = 6.9 }
+				}
+				custom_tooltip = { text = uinal_mol_tt }
+				add_country_modifier = { modifier = uinal_mol_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 6.9 max = 7.19 }
+				}
+				custom_tooltip = { text = uinal_chen_tt }
+				add_country_modifier = { modifier = uinal_chen_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 7.19 max = 8.8 }
+				}
+				custom_tooltip = { text = uinal_zac_tt }
+				add_country_modifier = { modifier = uinal_zac_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 8.8 max = 8.28 }
+				}
+				custom_tooltip = { text = uinal_ceh_tt }
+				add_country_modifier = { modifier = uinal_ceh_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 8.28 max = 9.17 }
+				}
+				custom_tooltip = { text = uinal_mac_tt }
+				add_country_modifier = { modifier = uinal_mac_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 9.17 max = 10.7 }
+				}
+				custom_tooltip = { text = uinal_kankin_tt }
+				add_country_modifier = { modifier = uinal_kankin_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 10.7 max = 10.27 }
+				}
+				custom_tooltip = { text = uinal_muan_tt }
+				add_country_modifier = { modifier = uinal_muan_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 10.27 max = 11.16 }
+				}
+				custom_tooltip = { text = uinal_pax_tt }
+				add_country_modifier = { modifier = uinal_pax_modifier years = 1 mode = add }
+			}
+			else_if = {
+				limit = {
+					time_of_year = { min = 11.16 max = 12.26 }
+				}
+				custom_tooltip = { text = uinal_kayab_tt }
+				add_country_modifier = { modifier = uinal_kayab_modifier years = 1 mode = add }
+			}
+			else = {
+				custom_tooltip = { text = uinal_uayeb_tt }
+				add_country_modifier = { modifier = uinal_uayeb_modifier years = 1 mode = add }
+			}
+		}
+	}
+	
+	ai_will_do = {
+		if = {
+			limit = {
+				time_of_year = { min = 1.1 max = 1.21 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_pop_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 1.21 max = 2.10 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_uo_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 2.10 max = 3.1 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_zip_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 3.1 max = 3.21 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_zotz_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 3.21 max = 4.10 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_zec_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 4.10 max = 4.30 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_yaxkin_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 4.30 max = 5.20 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_xul_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 5.20 max = 6.9 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_mol_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 6.9 max = 7.19 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_chen_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 7.19 max = 8.8 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_zac_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 8.8 max = 8.28 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_ceh_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 8.28 max = 9.17 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_mac_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 9.17 max = 10.7 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_kankin_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 10.7 max = 10.27 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_muan_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 10.27 max = 11.16 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_pax_modifier)"
+		}
+		else_if = {
+			limit = {
+				time_of_year = { min = 11.16 max = 12.26 }
+			}
+			add = "scope:actor.add_static_modifier_utility(uinal_kayab_modifier)"
+		}
+		else = {
+			add = "scope:actor.add_static_modifier_utility(uinal_uayeb_modifier)"
+		}
+	}
+}

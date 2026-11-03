@@ -1,0 +1,246 @@
+﻿conduct_investigation = {
+	type = disaster
+	ai_tick = daily
+	ai_tick_frequency = 40
+
+	
+	show_message = no
+	allow = {
+		scope:actor = {
+			custom_tooltip = {
+				text = any_conspirators_are_active_tt
+				any_character = {
+					NOR = {
+						is_ruler_of = prev
+						is_regent_of = prev
+					} 
+					has_variable = potential_conspirator_variable 
+				}
+			}
+		}
+	}
+	price = price:coup_attempt_disaster_actions_price
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	cooldown = {
+		type = conduct_investigation
+		months = 3
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:coup_attempt
+			disaster_is_active = yes
+		}
+	}
+
+	effect = {
+		custom_tooltip = {
+			text = conspirators_exposed_tt
+			scope:actor = {
+				#trigger_event_non_silently = coup_attempt.4 #P:A TODO Associated event was removed
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 100
+	}
+}
+
+execute_court_member = {
+	type = disaster
+	show_message = no
+	
+	ai_tick = daily
+	ai_tick_frequency = 40
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	allow = {
+		scope:actor = {
+			custom_tooltip = {
+				text = any_conspirators_are_active_tt
+				any_character = { 
+					has_variable = potential_conspirator_variable 
+					NOR = {
+						is_ruler_of = prev
+						is_regent_of = prev
+					}
+				}
+			}
+
+			custom_tooltip = {
+				text = has_relevant_event_to_the_disaster_tt
+				NOT = { has_variable = relevant_event_variable }
+			}
+		}
+	}
+
+	cooldown = {
+		type = execute_court_member
+		months = 3
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:coup_attempt
+			disaster_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = target_character_2
+		name = "choose_character"
+		column = {
+			data = name
+		}
+		visible = {
+			is_alive = yes
+			is_adult = yes
+			is_ruler = no
+			is_regent = no
+		}
+	}
+
+	effect = {
+
+		custom_tooltip = {
+			text = selected_character_will_be_executed_tt
+			#scope:actor = { trigger_event_non_silently = coup_attempt.9 } #P:A TODO Associated event was removed
+		}
+	}
+
+	ai_will_do = {
+		add = 0
+		if = {
+			limit = { exists = scope:target_character_2 }
+			if = {
+				limit = {
+					scope:target_character_2 = { has_variable = potential_conspirator_variable }
+				}
+				add = { -1 10 }
+			}
+			else = {
+				add = { -10 2 }
+			}
+			if = {
+				limit = {
+					scope:target_character_2 = {
+						OR = {
+							is_consort = yes
+							is_heir = yes
+						}
+					}
+				}
+				if = {
+					limit = {
+						scope:target_character_2 = { has_variable = potential_conspirator_variable }
+					}
+					add = 100
+				}
+				else = { add = -100 }
+			}
+		}
+	}
+}
+
+call_private_council = {
+	type = disaster
+	show_message = no
+	
+	ai_tick = daily
+	ai_tick_frequency = 40
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	allow = {
+		scope:actor = {
+			custom_tooltip = {
+				text = any_conspirators_are_active_tt
+				any_character = { 
+					has_variable = potential_conspirator_variable 
+					NOR = {
+						is_ruler_of = prev
+						is_regent_of = prev
+					} 
+				}
+			}
+			OR = {
+				num_possible_estate_privileges:nobles_estate > 0
+				num_possible_estate_privileges:burghers_estate > 0
+				num_possible_estate_privileges:clergy_estate > 0
+			}
+		}
+	}
+
+	cooldown = {
+		type = call_private_council
+		months = 6
+	}
+	
+	select_trigger = {
+		looking_for_a = disaster
+		name = "choose_disaster"
+		target_flag = recipient
+		column = {
+			data = name
+		}
+		visible = {
+			disaster_type = disaster_type:coup_attempt
+			disaster_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			#trigger_event_non_silently = coup_attempt.6 #P:A TODO Associated event was removed
+		}
+	}
+
+	ai_will_do = {
+		add = 100
+		if = {
+			limit = {
+				scope:actor = {
+					OR = {
+						gold < {
+							value = scope:actor.monthly_income_total
+							multiply = 3
+						}
+						is_during_bankruptcy = yes
+					}
+				}
+			}
+			subtract = -1000
+		}
+		if = {
+			limit = {
+				scope:actor ?= { num_loans > 0 }
+			}
+			add = {
+				desc = "PENDING_LOANS_TOOLTIP"
+				value = scope:actor.num_loans
+				multiply = -50
+			}
+		}
+	}
+}
