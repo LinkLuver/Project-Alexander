@@ -1,0 +1,318 @@
+build_japanese_settlement = {
+	type = situation
+	show_message = no
+
+	potential = {
+		scope:actor = {
+			culture = {
+				has_culture_group = culture_group:japanese_group
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price =  price:yayoi_building_price
+	
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:yayoi_migration = this
+			situation_is_active = yes
+		}
+	}
+	select_trigger = {
+		looking_for_a = location
+		interaction_source_list = {
+			scope:actor = {
+				every_owned_location = {
+					limit = { 
+						location_rank = location_rank:rural_settlement
+						region = region:japan_region
+						location_population_percentage < 0.15
+						NOT = {
+							has_building = building_type:japanese_settlement_building
+						}
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target_location
+		name = "choose_location"
+		none_available_msg_key = "no_locations_available"
+		column = { data = name }
+		visible = {
+			owner ?= scope:actor
+			region = region:japan_region
+			location_population_percentage < 0.15
+			NOT = {
+				has_building = building_type:japanese_settlement_building
+			}
+		}
+	}
+
+	effect = {
+		scope:target_location = {
+			construct_building = {
+				building_type = building_type:japanese_settlement_building
+				cost_multiplier = 0
+				cost_multiplier_reason = "yayoi_settlement_sponsorship"
+			}
+		}
+	}
+}
+
+invite_korean_migrants = {
+	type = situation
+	show_message = no
+
+	potential = {
+		scope:actor = {
+			original_capital ?= { region = region:japan_region }
+
+			# culture = {
+			# 	has_culture_group = culture_group:japanese_group
+			# }
+		}
+	}
+
+	allow = {
+		any_country_with_capital_in_geography = {
+			capital = {
+				region = region:korea_region
+				population > 0
+			}
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:yayoi_actions_price
+
+	cooldown = {
+		type = invite_korean_migrants_cooldown
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:yayoi_migration = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province_definition
+		source = actor
+		target_flag = target
+		name = "choose_province"
+		none_available_msg_key = "no_provinces_available"
+		column = { data = name }
+		visible = {
+			any_location_in_province_definition = {
+				owner = scope:actor
+				region = region:japan_region
+			}
+		}
+	}
+
+	effect = {
+		random_country = {
+			limit = {
+				capital = {
+					region = region:korea_region
+					population > 0
+				}
+			}
+			save_scope_as = origin_country
+		}
+		if = {
+			limit = {
+				exists = scope:origin_country
+				exists = scope:origin_country.capital
+				exists = scope:target
+			}
+			add_migration = {
+				owner = scope:origin_country
+				to_owner = scope:actor
+				from = scope:origin_country.capital.province_definition
+				to = scope:target
+				type = pop_type:peasants
+				amount = 0.100
+				months = 60
+			}
+		}
+	}
+}
+
+press_yayoi_claim = {
+	type = situation
+	show_message = no
+
+	potential = {
+		scope:actor = {
+			culture = {
+				has_culture_group = culture_group:japanese_group
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			at_war = no
+		}
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:yayoi_actions_price
+
+
+	cooldown = {
+		type = yayoi_claim_cooldown
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:yayoi_migration = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		target_flag = target
+		name = "choose_province"
+		none_available_msg_key = "no_provinces_available"
+		column = { data = owner_flag }
+		column = { data = name }
+		column = { data = population }
+		visible = {
+			has_owner = yes
+			scope:actor = {
+				can_declare_war_on = root.owner
+			}
+			any_location_in_province = {
+				is_neighbor_of = scope:actor
+			}
+			NOT = {
+				owner = {
+					OR = {
+						this = scope:actor
+						overlord ?= scope:actor
+						overlord ?= {
+							is_subject_of = scope:actor
+						}
+						has_mutual_scripted_relation = {
+							type = relation_type:alliance
+							target = scope:actor
+						}
+					}
+				}
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target
+				exists = scope:target.owner
+			}
+			scope:actor = {
+				add_casus_belli = {
+					target = scope:target.owner
+					type = casus_belli:cb_conquer_province
+					province = scope:target
+				}
+			}
+		}
+	}
+}
+
+introduce_rice = { #TODO maybe change to be a production boost to rice for a time? or we need to remove the rice from the setup 
+	type = situation
+	show_message = no
+
+	potential = {
+		scope:actor = {
+			culture = {
+				has_culture_group = culture_group:japanese_group
+			}
+		}
+	}
+
+	allow = {
+	}
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	price = price:yayoi_actions_price
+
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:yayoi_migration = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		source = actor
+		source_flags = only_actual_locations
+		target_flag = target_location
+		name = "choose_location"
+		none_available_msg_key = "no_locations_available"
+		column = { data = name }
+		column = { data = raw_material }
+		column = { data = population }
+		visible = {
+			owner = scope:actor
+			region = region:japan_region
+			NOT = {
+				raw_material = goods:rice
+			}
+			raw_material = {
+				is_food = yes
+			}
+			is_goods_valid_for_location = goods:rice
+		}
+	}
+
+	effect = {
+		scope:target_location = {
+			change_max_raw_material_workers = {
+				value = rgo_workers
+				subtract = 1
+				min = 0
+				multiply = -1
+			}
+			change_prosperity = prosperity_weak_penalty
+			change_raw_material = goods:rice
+		}
+	}
+}
