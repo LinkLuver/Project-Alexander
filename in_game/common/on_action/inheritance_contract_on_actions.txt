@@ -1,0 +1,42 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+# root = country; scope:old_ruler = dead character
+on_ruler_death_inheritance_contract = {
+	effect = {
+		# Case A: heirless country (scope:first) ruler dies with no heir -> inheritance occurs
+		if = {
+			limit = {
+				giving_scripted_relation_of_type = relation_type:inheritance_contract
+				has_heir = no
+			}
+			save_scope_as = dead_ruler_country
+			every_related_country = {
+				type = inheritance_contract
+				trigger_event_non_silently = { id = inheritance_contract.3 days = 3 }
+				remove_relation = {
+					first = root
+					second = this
+					type = relation_type:inheritance_contract
+				}
+			}
+		}
+		# Case B: paying country (scope:second) ruler dies -> contract lapses
+		if = {
+			limit = {
+				receiving_scripted_relation_of_type = relation_type:inheritance_contract
+			}
+			every_related_country = {
+				type = inheritance_contract
+				root = { save_scope_as = dead_paying_country }
+				trigger_event_non_silently = { id = inheritance_contract.4 days = 3 }
+				remove_relation = {
+					first = this
+					second = root
+					type = relation_type:inheritance_contract
+				}
+			}
+		}
+	}
+}
+
+on_heir_changed = {
+}

@@ -1,0 +1,206 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+incite_desertion = {
+	type = diplomacy
+	category = CATEGORY_INFLUENCE_ACTIONS
+
+	block_when_at_war = no
+	show_message = no
+	show_message_to_target = no
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	potential = {
+		scope:actor = {
+			any_international_organization = {
+				OR = {
+					international_organization_type = international_organization_type:crusade
+					international_organization_type = international_organization_type:jihad
+				}
+				international_organization_target ?= scope:actor
+				total_members > 0
+			}
+		}
+	}
+	allow = {
+	}
+	cooldown = {
+		type = incite_desertion
+		years = 2
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "incite_desertion_select_country"
+		none_available_msg_key = "incite_desertion_no_countries"
+		column = {
+			data = country_diplomacy_info_with_population
+		}
+		visible = {
+			any_international_organizations_member_of = {
+				OR = {
+					international_organization_type = international_organization_type:crusade
+					international_organization_type = international_organization_type:jihad
+				}
+				international_organization_target ?= scope:actor
+				NOT = { leader_country = root }
+			}
+			trigger_if = {
+				limit = { exists = international_organization:crusade }
+				NOT = {
+					has_special_status_in_international_organization = {
+						type = special_status:crusade_temporal_leader
+						international_organization = international_organization:crusade
+					}
+				}
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = value
+		target_flag = target_value
+		name = "incite_desertion_select_gold_amount"
+		min = 1
+		max = scope:actor.gold
+		step = scope:recipient.monthly_income_total
+		default = {
+			value = scope:recipient.monthly_income_total
+			multiply = 6
+			min = 1
+			max = scope:actor.gold
+		}
+		ai_override_value = {
+			value = scope:recipient.monthly_income_total
+			multiply = 6
+			min = 1
+			max = scope:actor.gold
+		}
+	}
+
+	accept = {
+		add = {
+			desc = "INCITE_DESERTION_LOYAL_TO_THE_CAUSE"
+			value = -50
+		}
+		if = {
+			limit = { exists = scope:target_value }
+			add = {
+				desc = "OFFERED_GOLD"
+				value = {
+					value = scope:target_value
+					divide = {
+						value = scope:recipient.monthly_income_total
+						min = 1
+					}
+					multiply = 3
+					max = 100
+				}
+			}
+		}
+		if = {
+			limit = { scope:recipient = { monthly_balance < 0 } }
+			add = {
+				desc = "IN_DEFICIT"
+				value = 15
+			}
+		}
+		if = {
+			limit = { scope:recipient = { is_during_bankruptcy = yes } }
+			add = {
+				desc = "IS_BANKRUPT_TOOLTIP"
+				value = 30
+			}
+		}
+		if = {
+			limit = { scope:recipient = { war_exhaustion >= 10 } }
+			add = {
+				desc = "HIGH_WAR_EXHAUSTION"
+				value = 15
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = { save_scope_as = bribe_briber }
+		every_international_organization = {
+			limit = {
+				OR = {
+					international_organization_type = international_organization_type:crusade
+					international_organization_type = international_organization_type:jihad
+				}
+				international_organization_target ?= scope:actor
+				has_member = scope:recipient
+			}
+			save_scope_as = desertion_io
+		}
+		if = {
+			limit = { exists = scope:target_value }
+			scope:actor = {
+				add_gold = {
+					value = scope:target_value
+					multiply = -1
+				}
+			}
+			scope:recipient = {
+				add_gold = scope:target_value
+			}
+		}
+		if = {
+			limit = {
+				exists = scope:desertion_io
+				scope:desertion_io = { exists = var:active_war }
+				scope:desertion_io.var:active_war = { is_in_war = scope:recipient }
+			}
+			scope:recipient = {
+				leave_war = {
+					war = scope:desertion_io.var:active_war
+					actor = scope:recipient
+				}
+			}
+		}
+		if = {
+			limit = { exists = scope:desertion_io }
+			scope:desertion_io = { remove_country_from_international_organization = scope:recipient }
+		}
+		scope:recipient = {
+			add_country_modifier = {
+				modifier = deserter
+				years = 5
+				mode = add_and_extend
+			}
+		}
+		scope:recipient = { save_scope_as = desertion_member }
+		hidden_effect = {
+			scope:actor = {
+				trigger_event_non_silently = { id = holy_war.27 }
+			}
+		}
+	}
+
+	reject_effect = {
+		scope:actor = { save_scope_as = bribe_briber }
+		scope:recipient = { save_scope_as = desertion_member }
+		hidden_effect = {
+			scope:actor = {
+				add_cooldown = {
+					type = incite_desertion
+					years = 2
+				}
+				trigger_event_non_silently = { id = holy_war.28 }
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 20
+		if = {
+			limit = { scope:actor = { gold > 1000 } }
+			add = 20
+		}
+		if = {
+			limit = { scope:actor = { gold < 100 } }
+			subtract = 1000
+		}
+	}
+}

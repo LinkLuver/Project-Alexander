@@ -1,0 +1,79 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+assign_familial_governor = { 
+	on_own_nation = yes
+	message = no
+
+	potential = {
+		scope:actor = {
+			has_reform = government_reform:tun_strong_familial_governors
+			is_subject = no # only independent states can do this
+		}
+	}
+	
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = recipient
+		name = "choose_character"
+		column = {
+			data = name
+		}
+		visible = {
+			can_potentially_become_familial_governor_trigger = { country = scope:actor }
+		}
+		enabled = {
+			can_become_familial_governor_trigger = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		source = actor
+		target_flag = target_capital
+		name = "select_a_location_to_make_capital"
+		none_available_msg_key = "no_valid_locations"
+		column = {
+			data = name
+		}
+		interaction_source_list = {
+			scope:actor = {
+				every_owned_non_rural_location = {
+					add_to_list = source
+				}
+			}
+		}
+		enabled = {
+			can_select_location_for_familial_governor = yes
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target_capital
+				exists = scope:recipient
+			}	
+			create_familial_governor_in_location_effect = {
+				location = scope:target_capital
+				character = scope:recipient
+				country = scope:actor
+			}
+			scope:actor = {
+				remove_variable = tun_governorship_expected
+			}
+		}
+		custom_tooltip = create_familial_governor_effect_tt
+	}
+
+	ai_will_do = {
+		value = 0
+		if = {
+			limit = {
+				scope:actor = {
+					has_variable = tun_governorship_expected
+				}
+			}
+			add = 10000
+		}
+	}	
+}

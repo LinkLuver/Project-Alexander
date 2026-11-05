@@ -1,0 +1,3526 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = treasure_fleet_events
+
+
+# Changes the amount of cargo held by the expedition
+scripted_effect change_amount_of_treasure_voyage = {
+	custom_description = {
+		text = change_amount_of_treasure_voyage_tt
+		value = $value$
+		scope:expedition_initiator = {
+			change_variable = {
+				name = chinese_treasure_voyage_cargo
+				add = $value$
+			}
+		}
+	}
+}
+
+# Gives gold to the expedition to be converted to prestige at the end
+scripted_effect give_gold_to_expedition = {
+	custom_description = {
+		text = give_gold_to_expedition
+		value = $value$
+		add_gold = {
+			value = $value$
+			multiply = -1
+		}
+		scope:expedition_initiator = {
+			change_variable = {
+				name = gifts_received
+				add = $value$
+			}
+		}
+	}
+}
+
+
+# Script effects for setting the variables to the visited country when visiting
+scripted_effect set_visiting_variables = {
+	if = {
+		limit = {
+			NOT = { has_variable = visited_by_expedition }
+		}
+		set_variable = { name = visited_by_expedition years = 50 } #Giving it time limit in case the port changes hands before the expedition returns and the variable is not able to be cleared at the end
+	}
+	set_variable = {
+		name = chinese_expedition_opinion
+		value = 0
+	}
+	set_variable = {
+		name = being_visited_by_expedition_from
+		value = scope:expedition_initiator
+	}
+}
+
+# Scripted effect for firing a set of events from the chinese_expedition_event_pulse on_action.
+# Counts the current amount of events fired and forces the fleet to depart after 6 of them have been fired.
+scripted_effect visitation_event_pulse = {
+	hidden_effect = {
+		if = {
+			limit = {
+				NOT = { has_variable = visitation_event_count }
+			}
+			set_variable = {
+				name = visitation_event_count  
+				value = 0
+			}
+
+			#Reset the visiting variables in case something weird has happened
+			if = {
+				limit = {
+					OR = {
+						NOT = { has_variable = visited_by_expedition }
+						NOT = { has_variable = chinese_expedition_opinion }
+						NOT = { has_variable = being_visited_by_expedition_from }
+					}
+				}
+				set_visiting_variables = yes
+			}
+		}
+
+		if = {
+			limit = {
+				OR = {
+					var:visitation_event_count >= 6
+					scope:expedition_initiator ?= {
+						NOT = {
+							has_variable = chinese_treasure_visited_port_location
+						}
+					}
+				}
+			}
+			remove_variable = visitation_event_count
+			trigger_event_non_silently = {
+				id = treasure_fleet_events.8
+			}
+		}
+		else = {
+			change_variable = {
+				name = visitation_event_count
+				add = 1
+			}
+			trigger_event_silently = {
+				on_action = chinese_expedition_event_pulse
+				days = 15
+			}
+		}
+	}
+}
+
+# Scripted effect for firing a set of events after the Treasure Voyage has returned.
+# The scripted effect is put into the after = { } of each event, which makes the chain continue firing relevant events until the pool is exhausted
+scripted_effect fire_post_expedition_events = {
+	if = {
+		limit = {
+			has_variable = envoy_event
+		}
+		remove_variable = envoy_event
+		trigger_event_silently = treasure_fleet_events.10
+	}
+	else_if = {
+		limit = {
+			has_variable = gift_event
+		}
+		remove_variable = gift_event
+		trigger_event_silently = treasure_fleet_events.20
+	}
+	else_if = {
+		limit = {
+			has_variable = exceptional_gift_giraffe
+		}
+		remove_variable = exceptional_gift_giraffe
+		trigger_event_silently = treasure_fleet_events.12
+	}
+	else_if = {
+		limit = {
+			has_variable = exceptional_gift_persian_blue
+		}
+		remove_variable = exceptional_gift_persian_blue
+		trigger_event_silently = treasure_fleet_events.13
+	}
+	else_if = {
+		limit = {
+			has_variable = exceptional_gift_cloves
+		}
+		remove_variable = exceptional_gift_cloves
+		trigger_event_silently = treasure_fleet_events.14
+	}
+	else_if = {
+		limit = {
+			any_in_list = {
+				variable = characters_on_board
+				character:chi_chen_zuyi ?= this
+			}
+		}
+		character:chi_chen_zuyi = {
+			save_scope_as = executed_character
+		}
+		remove_list_variable = {
+			name = characters_on_board
+			target = character:chi_chen_zuyi
+		}
+		trigger_event_silently = {
+			id = treasure_fleet_events.16
+		}
+	}
+	else_if = {
+		limit = {
+			any_in_list = {
+				variable = characters_on_board
+				has_variable = chi_extradited
+			}
+		}
+		random_in_list = {
+			variable = characters_on_board
+			limit = {
+				has_variable = chi_extradited
+			}
+			save_scope_as = extradited_character
+			ROOT = {
+				remove_list_variable = {
+					name = characters_on_board
+					target = PREV
+				}
+			}
+		}
+		trigger_event_silently = {
+			id = treasure_fleet_events.15
+		}
+	}
+	else_if = {
+		limit = {
+			any_in_list = {
+				variable = characters_on_board
+				has_variable = chi_defiant_ruler
+			}
+		}
+		random_in_list = {
+			variable = characters_on_board
+			limit = {
+				has_variable = chi_defiant_ruler
+			}
+			save_scope_as = loser_character
+			ROOT = {
+				remove_list_variable = {
+					name = characters_on_board
+					target = PREV
+				}
+			}
+		}
+		trigger_event_silently = {
+			id = treasure_fleet_events.17
+		}
+	}
+	else = {
+		trigger_event_non_silently = {
+			id = treasure_fleet_events.11
+		}
+	}
+}
+
+scripted_effect if_possible_make_tributary = {
+	if = {
+		limit = {
+			exists = international_organization:middle_kingdom
+			NOT = { is_member_of_international_organization = international_organization:middle_kingdom }
+		}
+		international_organization:middle_kingdom = {
+			add_country_to_international_organization = PREV
+		}
+	}
+}
+
+########
+# Exceptional Gifts are special gifts that nations can grant to the expedition that fire a special event for China at the end
+########
+
+scripted_trigger exceptional_gift_cloves_trigger = {
+	capital ?= {
+		area = area:moluccas_area
+	}
+}
+
+scripted_trigger exceptional_gift_giraffe_trigger = {
+	capital ?= {
+		region = region:swahili_coast_region
+	}
+}
+
+scripted_trigger exceptional_gift_persian_blue_trigger = {
+	capital ?= {
+		OR = {
+			region = region:arabia_region
+			region = region:persia_region
+		}
+	}
+}
+
+scripted_effect give_exceptional_gift = {
+	if = {
+		limit = {
+			exceptional_gift_cloves_trigger = yes
+		}
+		custom_tooltip = {
+			text = chi_we_will_gift_cloves
+			scope:expedition_initiator = { set_variable = exceptional_gift_cloves }
+		}
+	}
+	else_if = {
+		limit = {
+			exceptional_gift_giraffe_trigger = yes
+		}
+		custom_tooltip = {
+			text = chi_we_will_gift_giraffe
+			scope:expedition_initiator = { set_variable = exceptional_gift_giraffe }
+		}
+	}
+	else_if = {
+		limit = {
+			exceptional_gift_persian_blue_trigger = yes
+		}
+		custom_tooltip = {
+			text = chi_we_will_gift_persian_blue
+			scope:expedition_initiator = { set_variable = exceptional_gift_persian_blue }
+		}
+	}
+	else = {
+		error_log = "Unreachable script reached in give_exceptional_gift"
+	}
+}
+
+# Start of Voyaging Era
+treasure_fleet_events.1 = {
+	type = country_event
+	title = treasure_fleet_events.1.title
+	desc = treasure_fleet_events.1.desc
+	outcome = neutral
+
+	fire_only_once = yes
+	dynamic_historical_event = {
+		tag = CHI
+		from = 1400.1.1
+		to = 1821.1.1
+		monthly_chance = 10
+	}
+
+	illustration_tags = {
+		10 = exterior
+		10 = happy
+	}
+
+	trigger = {
+		is_leader_of_international_organization = international_organization:middle_kingdom
+		custom_tooltip = {
+			text = treasure_fleet_events.1.zheng_he_owned_tt
+			character:chi_zheng_he ?= { owner ?= root }
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+	}
+
+	option = {
+		name = treasure_fleet_events.1.a
+		
+		change_societal_value = {
+			type = land_vs_naval
+			value = societal_value_move_to_right
+		}
+		enable_treasure_voyages = yes
+	}
+
+	after = {
+		hidden_effect = {
+			trigger_event_non_silently = {
+				id = treasure_fleet_events.2
+				years = { 40 50 }
+			}
+		}
+	}
+}
+
+# End of Voyaging Era
+treasure_fleet_events.2 = {
+	type = country_event
+	title = treasure_fleet_events.2.title
+	desc = treasure_fleet_events.2.desc
+	outcome = neutral
+
+
+	illustration_tags = {
+		10 = interior
+		10 = regular
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = treasure_fleet_events.2.a
+		
+		change_societal_value = {
+			type = land_vs_naval
+			value = societal_value_move_to_left
+		}
+		disable_treasure_voyages = yes
+	}
+}
+
+# Departure flavor for a launched treasure voyage. Fired by treasure_fleet's
+# on_start (7 days after the expedition is created by start_a_treasure_voyage).
+# The action sets up the country variables and calls start_expedition directly;
+# this event only shows the player the narrative and deducts the gift cargo
+# from the treasury.
+treasure_fleet_events.3 = {
+	type = country_event
+	title = treasure_fleet_events.3.title
+	desc = treasure_fleet_events.3.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_home_departure }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		var:chinese_treasure_start_location ?= {
+			save_scope_as = start_location
+		}
+		var:chinese_treasure_target_area ?= {
+			save_scope_as = target_area
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.3.a
+		custom_tooltip = chinese_treasure_expeditions_send_tooltip
+		# Pay the gift cargo out of the treasury.
+		if = {
+			limit = { has_variable = chinese_treasure_voyage_cargo }
+			add_gold = {
+				value = var:chinese_treasure_voyage_cargo
+				multiply = -1
+			}
+		}
+	}
+}
+
+# treasure_fleet_events.4 — Chinese-side notification when the treasure fleet has
+# reached a foreign port. Fires AT China (the player) in parallel with the
+# 2004 chain that fires at the port owner. Pure flavor: confirms the fleet
+# is on schedule, identifies the port the fleet has reached, and gives the
+# player a sense of the voyage's progress.
+treasure_fleet_events.4 = {
+	type = country_event
+	title = treasure_fleet_events.4.title
+	desc = treasure_fleet_events.4.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:expedition_initiator.var:chinese_treasure_visited_port_location ?= {
+			save_scope_as = port_location
+			owner ?= {
+				save_scope_as = port_country
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.4.a
+		# Small prestige reward — each port the fleet calls at adds a little
+		# to the imperial reputation, accumulating across the voyage. With
+		# ~7 foreign ports on the canonical route, this nets ~35 prestige
+		# over the full voyage on top of the homecoming/end-of-voyage rewards.
+		add_prestige = prestige_weak_bonus
+	}
+}
+
+# Arrival of the Expedition
+treasure_fleet_events.5 = {
+	type = country_event
+	title = treasure_fleet_events.5.title
+	desc = treasure_fleet_events.5.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+
+		chinese_expedition_calculate_gift_for_this = yes
+		set_visiting_variables = yes
+		remove_variable = visitation_event_count
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.5.a
+		
+		add_gold = {
+			value = var:gift_value
+		}
+
+		scope:expedition_initiator = {
+			change_variable = {
+				name = chinese_treasure_voyage_cargo
+				subtract = root.var:gift_value
+			}
+		}
+
+		custom_tooltip = chinese_expedition_resolution_tt
+	}
+
+	after = {
+		remove_variable = gift_value
+		trigger_event_non_silently = {
+			id = treasure_fleet_events.6
+			days = 7
+		}
+	}
+}
+
+treasure_fleet_events.6 = {
+	type = country_event
+	title = treasure_fleet_events.6.title
+	desc = treasure_fleet_events.6.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		is_current_treasure_fleet_host = yes
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.6.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				has_societal_value = societal_value_type:sinicized_vs_unsinicized
+			}
+			change_societal_value = {
+				type = sinicized_vs_unsinicized
+				value = societal_value_large_move_to_left
+			}
+		}
+
+		increase_opinion_of_expedition = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.6.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_very_negative_ai_weight
+				}
+			}
+		}
+		
+		decrease_opinion_of_expedition_greatly = yes
+		add_opinion_mutual_effect = {
+			modifier = chi_refused_tributary_status
+			target = scope:expedition_initiator
+		}
+	}
+
+	after = {
+		trigger_event_silently = {
+			id = treasure_fleet_events.7
+		}
+	}
+}
+
+treasure_fleet_events.7 = {
+	type = country_event
+	title = treasure_fleet_events.7.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { is_member_of_international_organization = international_organization:middle_kingdom }
+				desc = treasure_fleet_events.7.desc
+			}
+			triggered_desc = {
+				desc = treasure_fleet_events.7.desc_no_tributary
+			}
+		}
+	}
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.7.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+		
+		change_gold_effect = { scale = -3 }
+		scope:expedition_initiator = {
+			add_opinion = {
+				modifier = chi_gifts_from_subject
+				target = ROOT
+			}
+		}
+
+		increase_opinion_of_expedition = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.7.gift
+		
+		trigger = {
+			OR = {
+				exceptional_gift_cloves_trigger = yes
+				exceptional_gift_giraffe_trigger = yes
+				exceptional_gift_persian_blue_trigger = yes
+			}
+		}
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_very_positive_ai_weight
+				}
+			}
+		}
+
+		scope:expedition_initiator = {
+			add_opinion = {
+				modifier = chi_gifts_from_subject
+				target = ROOT
+				scale = 3
+			}
+		}
+		give_exceptional_gift = yes
+
+		increase_opinion_of_expedition_greatly = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.7.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+		
+		add_prestige = prestige_severe_penalty
+	}
+
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+treasure_fleet_events.8 = {
+	type = country_event
+	title = treasure_fleet_events.8.title
+	desc = treasure_fleet_events.8.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.8.a
+		
+		chinese_treasure_depart_from_port = yes
+	}
+}
+
+# Return of the Expedition
+treasure_fleet_events.9 = {
+	type = country_event
+	title = treasure_fleet_events.9.title
+	desc = treasure_fleet_events.9.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	option = {
+		name = treasure_fleet_events.9.a
+		
+		scope:character_expedition_leader_target ?= {
+			remove_character_modifier = chi_leading_expedition
+		}
+	}
+
+	after = {
+		if = {
+			limit = {
+				has_variable_list = nations_to_make_tributary
+				variable_list_size = {
+					name = nations_to_make_tributary
+					value > 0
+				}
+			}
+			set_variable = envoy_event
+		}
+		if = {
+			limit = {
+				exists = var:gifts_received
+				var:gifts_received > 0
+			}
+			set_variable = gift_event
+		}
+
+		fire_post_expedition_events = yes
+	}
+}
+
+# Envoys
+treasure_fleet_events.10 = {
+	type = country_event
+	title = treasure_fleet_events.10.title
+	desc = treasure_fleet_events.10.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	option = {
+		name = treasure_fleet_events.10.a
+		
+		every_in_list = {
+			variable = nations_to_make_tributary
+			show_as_tooltip = {
+				international_organization:middle_kingdom = {
+					add_country_to_international_organization = PREV
+				}
+			}
+		}
+
+		change_societal_value = {
+			type = outward_vs_inward
+			value = societal_value_minor_move_to_left
+		}
+	}
+
+	after = {
+		fire_post_expedition_events = yes
+	}
+}
+
+# Expedition End
+treasure_fleet_events.11 = {
+	type = country_event
+	title = treasure_fleet_events.11.title
+	desc = treasure_fleet_events.11.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	option = {
+		name = treasure_fleet_events.11.a
+		
+		add_prestige = prestige_mild_bonus
+		if = {
+			limit = {
+				var:chinese_treasure_voyage_cargo > 0
+			}
+			add_gold = {
+				value = var:chinese_treasure_voyage_cargo
+			}
+		}
+	}
+
+	after = {
+		cleanup_chinese_treasure_voyage_state = yes
+	}
+}
+
+# Exceptional Gift: Giraffe
+treasure_fleet_events.12 = {
+	type = country_event
+	title = treasure_fleet_events.12.title
+	desc = treasure_fleet_events.12.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	option = {
+		name = treasure_fleet_events.12.a
+		
+		add_prestige = prestige_extreme_bonus
+		add_country_modifier = {
+			mode = add
+			modifier = chi_giraffe_qilin
+			years = 5
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.12.b
+		
+		add_prestige = prestige_extreme_bonus
+		add_country_modifier = {
+			mode = add
+			modifier = chi_giraffe
+			years = 5
+		}
+	}
+
+	after = {
+		fire_post_expedition_events = yes
+	}
+}
+
+# Exceptional Gift: Persian Blue Dye
+treasure_fleet_events.13 = {
+	type = country_event
+	title = treasure_fleet_events.13.title
+	desc = treasure_fleet_events.13.desc
+	outcome = neutral
+
+	image = "gfx/interface/icons/trade_goods/illustrations/icon_goods_dyes.dds"
+
+	option = {
+		name = treasure_fleet_events.13.a
+		
+		add_country_modifier = {
+			mode = add
+			modifier = chi_persian_blue_pottery
+			years = 5
+		}
+		sell_goods_to_market = {
+			market = capital.market
+			amount = market_goods_severe_gain
+			goods = goods:dyes
+		}
+	}
+
+	after = {
+		fire_post_expedition_events = yes
+	}
+}
+
+# Exceptional Gift: Cloves
+treasure_fleet_events.14 = {
+	type = country_event
+	title = treasure_fleet_events.14.title
+	desc = treasure_fleet_events.14.desc
+	outcome = neutral
+
+	image = "gfx/interface/icons/trade_goods/illustrations/icon_goods_cloves.dds"
+
+	option = {
+		name = treasure_fleet_events.14.a
+		
+		sell_goods_to_market = {
+			market = capital.market
+			amount = market_goods_severe_gain
+			goods = goods:cloves
+		}
+
+		add_country_modifier = {
+			mode = add
+			modifier = chi_cloves
+			years = 5
+		}
+	}
+
+	after = {
+		fire_post_expedition_events = yes
+	}
+}
+
+# Extradited Character
+treasure_fleet_events.15 = {
+	type = country_event
+	title = treasure_fleet_events.15.title
+	desc = treasure_fleet_events.15.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	immediate = {
+		scope:extradited_character.var:chi_extradited = {
+			save_scope_as = asylum_country
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.15.a
+
+		kill_character = {
+			target = scope:extradited_character
+			reason = strangling
+		}
+		add_country_modifier = {
+			mode = replace
+			modifier = chi_cruel_punishment
+			years = 5
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.15.b
+
+		kill_character = {
+			target = scope:extradited_character
+			reason = beheading
+		}
+		add_country_modifier = {
+			mode = replace
+			modifier = chi_cruel_punishment
+			years = 5
+			size = 1.5
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.15.c
+		
+		kill_character = {
+			target = scope:extradited_character
+			reason = slicing
+		}
+		add_country_modifier = {
+			mode = replace
+			modifier = chi_cruel_punishment
+			years = 5
+			size = 3
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.15.d
+	
+		add_government_power = government_power_extreme_penalty
+	}
+	after = {
+		scope:extradited_character ?= {
+			remove_variable = chi_extradited
+			remove_character_modifier = chi_on_board_of_expedition
+		}
+		fire_post_expedition_events = yes
+	}
+}
+
+# Execution of Chen Zuyi
+treasure_fleet_events.16 = {
+	type = country_event
+	title = treasure_fleet_events.16.title
+	desc = treasure_fleet_events.16.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	option = {
+		name = treasure_fleet_events.16.a
+
+		kill_character = {
+			target = scope:executed_character
+			reason = slicing
+		}
+		add_government_power = government_power_extreme_bonus
+		add_prestige = prestige_severe_bonus
+	}
+
+	after = {
+		fire_post_expedition_events = yes
+	}
+}
+
+# War Prisoner
+treasure_fleet_events.17 = {
+	type = country_event
+	title = treasure_fleet_events.17.title
+	desc = treasure_fleet_events.17.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	immediate = {
+		scope:loser_character.var:chi_defiant_ruler = {
+			save_scope_as = loser_country
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.17.a
+	
+		kill_character = {
+			target = scope:loser_character
+			reason = beheading
+		}
+
+		trigger_event_non_silently = {
+			id = treasure_fleet_events.18
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.17.b
+		
+		scope:loser_country = {
+			set_new_ruler = scope:loser_character
+		}
+
+		add_country_modifier = {
+			mode = replace
+			modifier = chi_maganimous_permission
+			years = 10
+		}
+
+		fire_post_expedition_events = yes
+	}
+
+	after = {
+		scope:loser_character = {
+			remove_variable = chi_defiant_ruler
+		}
+	}
+}
+
+# Country Under Temporary Rule
+treasure_fleet_events.18 = {
+	type = country_event
+	title = treasure_fleet_events.18.title
+	desc = treasure_fleet_events.18.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	immediate = {
+		create_character = {
+			estate = estate_type:nobles_estate
+			culture = ROOT.culture
+			religion = ROOT.religion
+			min_age = 25
+			create_in_limbo = yes
+			save_scope_as = target_character_for_viceroyalty
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.18.a
+		
+		scope:loser_country = {
+			show_as_tooltip = {
+				set_new_ruler = scope:target_character_for_viceroyalty
+
+				add_country_modifier = {
+					mode = replace
+					modifier = chi_chinese_rule
+					years = 15
+				}
+				if_possible_make_tributary = yes
+			}
+
+			trigger_event_non_silently = {
+				id = treasure_fleet_events.19
+			}
+		}
+
+		culture = {
+			add_cultural_influence = cultural_influence_mild_bonus
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.18.b
+		
+		hidden_effect = {
+			kill_character_silently = {
+				target = scope:target_character_for_viceroyalty
+			}
+		}
+	}
+
+	after = {
+		fire_post_expedition_events = yes
+	}
+}
+
+# Viceroy Appointed
+treasure_fleet_events.19 = {
+	type = country_event
+	title = treasure_fleet_events.19.title
+	desc = treasure_fleet_events.19.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	option = {
+		name = treasure_fleet_events.19.a
+		
+		scope:target_character_for_viceroyalty = { move_country = root }
+		set_new_ruler = scope:target_character_for_viceroyalty
+		add_country_modifier = {
+			mode = replace
+			modifier = chi_chinese_rule
+			years = 15
+		}
+		if_possible_make_tributary = yes
+	}
+}
+
+# Gifts Received
+treasure_fleet_events.20 = {
+	type = country_event
+	title = treasure_fleet_events.20.title
+	desc = treasure_fleet_events.20.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	option = {
+		name = treasure_fleet_events.20.a
+		
+		custom_tooltip = chi_gift_received_count
+		add_prestige = {
+			value = var:gifts_received
+			divide = 100
+		}
+	}
+
+	after = {
+		fire_post_expedition_events = yes
+	}
+}
+
+# Expedition Leader Death, Character Replaced
+treasure_fleet_events.21 = {
+	type = country_event
+	title = treasure_fleet_events.21.title
+	desc = treasure_fleet_events.21.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+
+		create_character = {
+			estate = estate_type:burghers_estate
+			age = { 35 50 }
+			female = no
+			adm = { 0 50 }
+			dip = { 0 50 }
+			mil = { 0 50 }
+			save_scope_as = new_leader
+		}
+
+		make_into_expedition_leader = { target = scope:new_leader }
+
+		scope:treasure_expedition ?= {
+			set_expedition_leader = scope:new_leader
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.21.a
+		
+		custom_tooltip = chi_new_expedition_leader
+	}
+}
+
+# Expeditions Runs out of Cargo
+treasure_fleet_events.22 = {
+	type = country_event
+	title = treasure_fleet_events.22.title
+	desc = treasure_fleet_events.22.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.22.a
+		
+		add_prestige = prestige_severe_penalty
+		custom_tooltip = chi_expedition_is_returning_to_china
+	}
+}
+
+########
+# Chinese Expedition: Spontaneous Travel Events, Sea Disasters
+########
+
+# Fleet Caught in a Storm!
+treasure_fleet_events.23 = {
+	type = country_event
+	title = treasure_fleet_events.23.title
+	desc = treasure_fleet_events.23.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = {
+		scope:target_expedition ?= {
+			expedition_current_location = { topography = deep_ocean }
+		}
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		set_local_variable = {
+			name = cargo_lost
+			value = {
+				value = var:chinese_treasure_voyage_cargo
+				multiply = { 0.05 0.25 }
+				multiply = -1
+				multiply = {
+					value = 1
+					subtract = {
+						value = scope:character_expedition_leader_target.mil
+						divide = 100
+						multiply = 0.5
+					}
+				}
+			}
+		}
+
+		scope:coastal_sea_tile ?= {
+			save_scope_as = target_location
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.23.a
+		
+		change_amount_of_treasure_voyage = {
+			value = local_var:cargo_lost
+		}
+	}
+}
+
+# Fleet Meets a Pirate Fleet
+treasure_fleet_events.24 = {
+	type = country_event
+	title = treasure_fleet_events.24.title
+	desc = treasure_fleet_events.24.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = {
+		scope:target_expedition ?= {
+			expedition_current_location = { topography = narrows }
+		}
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		set_local_variable = {
+			name = cargo_lost
+			value = {
+				value = var:chinese_treasure_voyage_cargo
+				multiply = { 0.1 0.2 }
+				multiply = -1
+				multiply = {
+					value = 1
+					subtract = {
+						value = scope:character_expedition_leader_target.mil
+						divide = 100
+						multiply = 0.5
+					}
+				}
+			}
+		}
+
+		scope:coastal_sea_tile ?= {
+			save_scope_as = target_location
+		}
+
+		scope:coastal_sea_tile.province_definition = {
+			every_location_in_province_definition = {
+				every_neighbor_location = {
+					if = {
+						limit = {
+							owner ?= { 
+								NOT = { this = ROOT }
+								NOT = { has_reform = government_reform:pirate_brethren_reform }
+							}
+						}
+						owner = { add_to_list = list_of_grateful_countries }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.24.a
+		
+		change_amount_of_treasure_voyage = {
+			value = local_var:cargo_lost
+		}
+		add_prestige = prestige_mild_bonus
+
+		ordered_in_list = {
+			list = list_of_grateful_countries
+			order_by = total_population
+			max = 6
+			add_opinion = {
+				modifier = chi_grateful_for_pirate_defeat
+				target = ROOT
+			}
+		}
+	}
+}
+
+treasure_fleet_events.25 = {
+	type = country_event
+	title = treasure_fleet_events.25.title
+	desc = treasure_fleet_events.25.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		set_local_variable = {
+			name = cargo_gained
+			value = {
+				value = var:chinese_treasure_voyage_cargo
+				multiply = { 0.05 0.15 }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.25.a
+
+		change_amount_of_treasure_voyage = {
+			value = local_var:cargo_gained
+		}
+	}
+}
+
+treasure_fleet_events.26 = {
+	type = country_event
+	title = treasure_fleet_events.26.title
+	desc = treasure_fleet_events.26.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.26.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+
+		add_legitimacy = legitimacy_mild_bonus
+	}
+
+	option = {
+		name = treasure_fleet_events.26.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+
+		add_prestige = prestige_mild_bonus
+	}
+}
+
+treasure_fleet_events.27 = {
+	type = country_event
+	title = treasure_fleet_events.27.title
+	desc = treasure_fleet_events.27.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.27.a
+
+		add_prestige = prestige_mild_bonus
+	}
+}
+
+treasure_fleet_events.28 = {
+	type = country_event
+	title = treasure_fleet_events.28.title
+	desc = treasure_fleet_events.28.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.28.a
+
+		add_prestige = prestige_weak_bonus
+		change_societal_value = {
+			type = spiritualist_vs_humanist
+			value = societal_value_minor_move_to_left
+		}
+	}
+}
+
+treasure_fleet_events.29 = {
+	type = country_event
+	title = treasure_fleet_events.29.title
+	desc = treasure_fleet_events.29.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = {
+		scope:target_expedition ?= {
+			expedition_current_location = { topography = deep_ocean }
+		}
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.29.a
+
+		scope:target_expedition ?= {
+			pause_expedition = 30
+		}
+	}
+}
+
+treasure_fleet_events.30 = {
+	type = country_event
+	title = treasure_fleet_events.30.title
+	desc = treasure_fleet_events.30.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.30.a
+
+		add_prestige = prestige_weak_bonus
+	}
+}
+
+treasure_fleet_events.31 = {
+	type = country_event
+	title = treasure_fleet_events.31.title
+	desc = treasure_fleet_events.31.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		set_local_variable = {
+			name = curio_spend
+			value = {
+				value = var:chinese_treasure_voyage_cargo
+				multiply = -0.1
+			}
+		}
+		set_local_variable = {
+			name = curio_gain
+			value = {
+				value = var:chinese_treasure_voyage_cargo
+				multiply = 0.2
+			}
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.31.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+
+		change_amount_of_treasure_voyage = {
+			value = local_var:curio_spend
+		}
+		give_gold_to_expedition = {
+			value = local_var:curio_gain
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.31.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+
+		add_government_power = government_power_mild_bonus
+	}
+}
+
+treasure_fleet_events.32 = {
+	type = country_event
+	title = treasure_fleet_events.32.title
+	desc = treasure_fleet_events.32.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		set_local_variable = {
+			name = dock_loss
+			value = {
+				value = var:chinese_treasure_voyage_cargo
+				multiply = -0.05
+			}
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.32.a
+
+		change_amount_of_treasure_voyage = {
+			value = local_var:dock_loss
+		}
+	}
+}
+
+treasure_fleet_events.33 = {
+	type = country_event
+	title = treasure_fleet_events.33.title
+	desc = treasure_fleet_events.33.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.33.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+
+		add_navy_tradition = navy_tradition_weak_bonus
+		if = {
+			limit = {
+				has_societal_value = societal_value_type:outward_vs_inward
+			}
+			change_societal_value = {
+				type = outward_vs_inward
+				value = societal_value_minor_move_to_left
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.33.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+
+		add_legitimacy = legitimacy_mild_bonus
+		if = {
+			limit = {
+				has_societal_value = societal_value_type:outward_vs_inward
+			}
+			change_societal_value = {
+				type = outward_vs_inward
+				value = societal_value_minor_move_to_right
+			}
+		}
+	}
+}
+
+treasure_fleet_events.34 = {
+	type = country_event
+	title = treasure_fleet_events.34.title
+	desc = treasure_fleet_events.34.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		set_local_variable = {
+			name = admiral_gift
+			value = {
+				value = monthly_income_trade_and_tax
+				multiply = { 0.5 1.5 }
+			}
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.34.a
+
+		give_gold_to_expedition = {
+			value = local_var:admiral_gift
+		}
+	}
+}
+
+#######
+# Chinese Expedition: Events that happen during a fleet stay 
+#######
+
+# Seeking an Interpreter
+treasure_fleet_events.35 = {
+	type = country_event
+	title = treasure_fleet_events.35.title
+	desc = treasure_fleet_events.35.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		culture.language != scope:expedition_initiator.culture.language
+		NOT = {
+			culture_group:chinese_group = {
+				any_culture_in_culture_group = {
+					language = root.culture.language
+				}
+			}
+		}
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.35.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+		
+		increase_opinion_of_expedition = yes
+
+		add_government_power = government_power_mild_penalty
+		add_gold = {
+			value = yearly_gold
+			multiply = -0.1
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.35.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+
+		add_diplomats = diplomats_weak_bonus
+	}
+
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Sharing Maps
+treasure_fleet_events.36 = {
+	type = country_event
+	title = treasure_fleet_events.36.title
+	desc = treasure_fleet_events.36.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.36.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+		
+		increase_opinion_of_expedition = yes
+		add_navy_tradition = navy_tradition_severe_penalty
+	}
+
+	option = {
+		name = treasure_fleet_events.36.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+		
+		add_navy_tradition = navy_tradition_weak_bonus
+	}
+	
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Burgher Exploitation
+treasure_fleet_events.37 = {
+	type = country_event
+	title = treasure_fleet_events.37.title
+	desc = treasure_fleet_events.37.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+	
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:expedition_initiator.var:chinese_treasure_visited_port_location ?= {
+			save_scope_as = fleet_loc
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.37.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+		
+		add_estate_satisfaction = {
+			type = estate_type:burghers_estate
+			value = estate_satisfaction_extreme_penalty
+		}
+		if = {
+			limit = {
+				current_age_or_later = { age = age_4_reformation }
+			}
+			change_societal_value = {
+				type = mercantilism_vs_free_trade
+				value = societal_value_move_to_left
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.37.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+		
+		decrease_opinion_of_expedition = yes
+		add_stability = stability_weak_bonus
+	}
+	
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Noble Discontent
+treasure_fleet_events.38 = {
+	type = country_event
+	title = treasure_fleet_events.38.title
+	desc = treasure_fleet_events.38.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.38.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+		
+		add_prestige = prestige_severe_bonus
+		decrease_opinion_of_expedition = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.38.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+		
+		change_societal_value = {
+			type = outward_vs_inward
+			value = societal_value_move_to_left
+		}
+		add_estate_satisfaction = {
+			type = estate_type:nobles_estate
+			value = estate_satisfaction_extreme_penalty
+		}
+	}
+	
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Conflict with the Clergy
+treasure_fleet_events.39 = {
+	type = country_event
+	title = treasure_fleet_events.39.title
+	desc = treasure_fleet_events.39.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		scope:expedition_initiator.religion != root.religion
+		scope:expedition_initiator ?= {
+			any_expedition = {
+				expedition_type = expedition_type:treasure_fleet_expedition
+				expedition_leader = {
+					religion != root.religion
+				}
+			}
+		}
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.39.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+		
+		decrease_opinion_of_expedition = yes
+		change_societal_value = {
+			type = spiritualist_vs_humanist
+			value = societal_value_move_to_left
+		}
+		save_scope_as = offended_court
+		scope:expedition_initiator = {
+			trigger_event_non_silently = { id = treasure_fleet_events.60 }
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.39.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+		
+		add_estate_satisfaction = {
+			type = estate_type:clergy_estate
+			value = estate_satisfaction_extreme_penalty
+		}
+	}
+	
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Extradition Demand
+treasure_fleet_events.40 = {
+	type = country_event
+	title = treasure_fleet_events.40.title
+	desc = treasure_fleet_events.40.desc
+
+	trigger = {
+		scope:expedition_initiator ?= {
+			NOT = { var:chinese_treasure_extraditions_accepted >= 3 }
+		}
+	}
+
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		
+		random_character = {
+			limit = {
+				culture = {
+					has_culture_group = culture_group:chinese_group
+				}
+				birth_location ?= {
+					OR = {
+						region = region:west_china_region
+						region = region:east_china_region
+						region = region:south_china_region
+					}
+				}
+			}
+			save_scope_as = target_escapee
+		}
+		if = {
+			limit = {
+				NOT = { exists = scope:target_escapee }
+			}
+			scope:expedition_initiator = {
+				random_owned_location = {
+					limit = {
+						OR = {
+							region = region:west_china_region
+							region = region:east_china_region
+							region = region:south_china_region
+						}
+					}
+					save_scope_as = target_location
+				}
+			}
+			create_character = {
+				estate = estate_type:burghers_estate
+				birth_location = scope:target_location
+				culture = scope:target_location.dominant_culture
+				religion = scope:target_location.dominant_religion
+				min_age = 30
+				save_scope_as = target_escapee
+			}
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.40.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+		
+		scope:target_escapee = {
+			move_to_expedition = yes
+			set_variable = {
+				name = chi_extradited
+				value = ROOT
+			}
+		}
+		scope:expedition_initiator = {
+			change_variable = { name = chinese_treasure_extraditions_accepted add = 1 }
+		}
+
+		add_government_power = government_power_mild_penalty
+	}
+
+	option = {
+		name = treasure_fleet_events.40.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+	
+		decrease_opinion_of_expedition = yes
+		scope:target_escapee = {
+			add_character_modifier = {
+				mode = replace
+				modifier = chi_grateful_for_not_being_extradited
+				years = 5
+			}
+		}
+	}
+	
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Military Drills
+treasure_fleet_events.41 = {
+	type = country_event
+	title = treasure_fleet_events.41.title
+	desc = treasure_fleet_events.41.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		any_army = {
+			count >= 1
+		}
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		
+		if = {
+			limit = {
+				exists = scope:expedition_initiator
+				scope:expedition_initiator = {
+					has_variable = chinese_treasure_visited_port_location
+				}
+			}
+			ordered_army = {
+				order_by = "unit_location.distance_to(scope:expedition_initiator.var:chinese_treasure_visited_port_location)"
+				max = 1
+				save_scope_as = target_unit
+			}
+		}
+		else = {
+			random_army = {
+				save_scope_as = target_unit
+			}
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.41.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+		
+		increase_opinion_of_expedition = yes
+		add_army_tradition = army_tradition_mild_bonus
+		scope:target_unit = {
+			damage_unit_morale_percent = 0.5
+			every_sub_unit = {
+				add_subunit_experience = subunit_experience_severe_bonus
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.41.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+		
+		add_prestige = prestige_weak_bonus
+		ruler_or_heir_if_regent = {
+			add_mil = 5
+		}
+	}
+	
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# War with Unaffiliated Party
+treasure_fleet_events.42 = {
+	type = country_event
+	title = treasure_fleet_events.42.title
+	desc = treasure_fleet_events.42.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		any_enemy_war_leader = {
+			"opinion(scope:expedition_initiator)" < 0
+		}
+		NOT = { has_variable = chinese_war_support_given }
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+
+		random_enemy_war_leader = {
+			limit = {
+				"opinion(scope:expedition_initiator)" < 0
+			}
+			save_scope_as = target_country
+		}
+		save_scope_as = from
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.42.a
+		if = {
+			limit = {
+				exists = scope:expedition_initiator
+				scope:expedition_initiator = {
+					has_variable = chinese_treasure_visited_port_location
+				}
+			}
+			create_mercenary = {
+				name = chi_sailor_company
+				home = scope:expedition_initiator.var:chinese_treasure_visited_port_location
+				categories = {
+					army_heavy_infantry = 5
+				}
+				cost_multiplier = 0.5
+				save_scope_as = target_mercenary
+			}
+
+			hire_mercenary = scope:target_mercenary
+		}
+		else = {
+			add_yearly_manpower = 1
+		}
+
+		set_variable = { name = chinese_war_support_given years = 5 }
+
+		scope:target_country = {
+			show_as_tooltip = {
+				add_opinion = {
+					target = scope:expedition_initiator
+					modifier = chi_joined_against_us
+				}
+			}
+			trigger_event_non_silently = {
+				id = treasure_fleet_events.43
+			}
+		}
+
+		scope:expedition_initiator = {
+			trigger_event_non_silently = { id = treasure_fleet_events.56 }
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.42.b
+	
+		add_prestige = prestige_mild_bonus
+		add_government_power = government_power_mild_bonus
+		visitation_event_pulse = yes
+	}
+}
+
+# Chinese Support on Opposite Side
+treasure_fleet_events.43 = {
+	type = country_event
+	title = treasure_fleet_events.43.title
+	desc = treasure_fleet_events.43.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.43.a
+		
+		scope:from = {
+			show_as_tooltip = {
+				hire_mercenary = scope:target_mercenary
+			}
+		}
+		add_opinion = {
+			target = scope:expedition_initiator
+			modifier = chi_joined_against_us
+		}
+	}
+	
+	after = {
+		scope:from = {
+			if = {
+				limit = { is_current_treasure_fleet_host = yes }
+				visitation_event_pulse = yes
+			}
+		}
+	}
+}
+
+# Request to Construct Mosque
+treasure_fleet_events.44 = {
+	type = country_event
+	title = treasure_fleet_events.44.title
+	desc = treasure_fleet_events.44.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		scope:expedition_initiator ?= {
+			any_expedition = {
+				expedition_type = expedition_type:treasure_fleet_expedition
+				expedition_leader = {
+					religion = religion:sunni
+				}
+			}
+		}
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		
+		scope:character_expedition_leader_target.religion = {
+			save_scope_as = target_religion
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.44.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+		
+		scope:expedition_initiator.var:chinese_treasure_visited_port_location ?= {
+			if = {
+				limit = {
+					NOT = { has_building = building_type:temple }
+				}
+				construct_building = {
+					building_type = building_type:temple
+					cost_multiplier = 0
+					cost_multiplier_reason = game_concept_event
+				}
+			}
+		}
+
+		change_societal_value = {
+			type = spiritualist_vs_humanist
+			value = societal_value_move_to_right
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.44.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+		
+		decrease_opinion_of_expedition = yes
+	}
+
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Chinese Diaspora in Port   
+treasure_fleet_events.45 = {
+	type = country_event
+	title = treasure_fleet_events.45.title
+	desc = treasure_fleet_events.45.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		scope:expedition_initiator.var:chinese_treasure_visited_port_location ?= {
+			any_pop = {
+				culture = {
+					has_culture_group = culture_group:chinese_group
+				}
+			}
+		}
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.45.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+	
+		scope:expedition_initiator.var:chinese_treasure_visited_port_location ?= {
+			every_pop = {
+				limit  = {
+					culture = {
+						has_culture_group = culture_group:chinese_group
+					}
+				}
+				add_pop_satisfaction = pop_satisfaction_extreme_bonus
+				add_pop_size = {
+					value = pop_size
+					multiply = 0.05
+				}
+			}
+		}
+		culture = {
+			add_cultural_influence = cultural_influence_mild_penalty
+		}
+
+		scope:expedition_initiator.var:chinese_treasure_visited_port_location ?= {
+			save_scope_as = diaspora_port
+		}
+		scope:expedition_initiator = {
+			trigger_event_non_silently = { id = treasure_fleet_events.59 }
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.45.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+	
+		decrease_opinion_of_expedition = yes
+		add_government_power = government_power_mild_bonus
+	}
+	
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Sailors Settle Down
+treasure_fleet_events.46 = {
+	type = country_event
+	title = treasure_fleet_events.46.title
+	desc = treasure_fleet_events.46.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.46.a
+		if = {
+			limit = {
+				exists = scope:expedition_initiator
+				scope:expedition_initiator = {
+					has_variable = chinese_treasure_visited_port_location
+					has_variable = chinese_treasure_start_location
+					NOT = {
+						var:chinese_treasure_visited_port_location.province_definition = var:chinese_treasure_start_location.province_definition
+					}
+				}
+			}
+			add_migration = {
+				owner = ROOT
+				from = scope:expedition_initiator.var:chinese_treasure_start_location.province_definition
+				to = scope:expedition_initiator.var:chinese_treasure_visited_port_location.province_definition
+				type = pop_type:burghers
+				amount = { 0.01 0.05 }
+				months = 12
+			}
+		}
+		else_if = {
+			limit = { exists = scope:expedition_initiator }
+			random_pop = {
+				limit = { pop_type = pop_type:burghers }
+				add_pop_size = {
+					value = 0.3
+				}
+			}
+		}
+	}
+	
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# China Wishes to Intervene on Our Side
+treasure_fleet_events.47 = {
+	type = country_event
+	title = treasure_fleet_events.47.title
+	desc = treasure_fleet_events.47.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		in_civil_war = yes
+		NOT = { has_variable = chinese_civil_war_support_given }
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+
+		save_scope_as = country_at_war_with
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.47.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+		
+		every_war = {
+			limit = {
+				is_civil_war_for = ROOT
+			}
+			attacker_leader = {
+				trigger_event_non_silently = {
+					id = treasure_fleet_events.48
+				}
+			}
+		}
+
+		add_manpower = { 0.5 1.5 }
+
+		if = {
+			limit = { capital = { controller = root } }
+			capital = {
+				create_sub_unit_of_category = sub_unit_category:army_heavy_infantry
+				create_sub_unit_of_category = sub_unit_category:army_heavy_infantry
+				create_sub_unit_of_category = sub_unit_category:army_heavy_infantry
+			}
+		}
+		else = {
+			ordered_owned_location = {
+				order_by = development
+				limit = { controller = root }
+				create_sub_unit_of_category = sub_unit_category:army_heavy_infantry
+				create_sub_unit_of_category = sub_unit_category:army_heavy_infantry
+				create_sub_unit_of_category = sub_unit_category:army_heavy_infantry
+			}
+		}
+
+		set_variable = { name = chinese_civil_war_support_given years = 5 }
+
+		scope:expedition_initiator = {
+			trigger_event_non_silently = { id = treasure_fleet_events.55 }
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.47.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+		
+		add_prestige = prestige_mild_bonus
+		decrease_opinion_of_expedition = yes
+	}
+
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# China Intervenes on Opposite Side!
+treasure_fleet_events.48 = {
+	type = country_event
+	title = treasure_fleet_events.48.title
+	desc = treasure_fleet_events.48.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		
+		"war_with_country(scope:country_at_war_with)" = {
+			save_scope_as = target_war
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.48.a
+		
+		add_opinion_mutual_effect = {
+			modifier = chi_supported_civil_war_enemy
+			target = scope:expedition_initiator
+		}
+	}
+}
+
+# China angered by our ways - low opinion, pirate government, hostility.
+treasure_fleet_events.49 = {
+	type = country_event
+	title = treasure_fleet_events.49.title
+	desc = treasure_fleet_events.49.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		exists = var:chinese_expedition_opinion
+		var:chinese_expedition_opinion <= -75
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		
+		set_local_variable = {
+			name = bribe_amount
+			value = {
+				value = monthly_income_trade_and_tax
+				multiply = 3
+			}
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.49.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+		
+		give_gold_to_expedition = {
+			value = local_var:bribe_amount
+		}
+
+		increase_opinion_of_expedition = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.49.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_very_negative_ai_weight
+				}
+			}
+		}
+		
+		custom_tooltip = chi_neighboring_nations_might_get_cb_on_us
+		scope:expedition_initiator = {
+			add_to_variable_list = {
+				name = potential_enemy_list
+				target = ROOT
+			}
+		}
+		chinese_treasure_depart_from_port = yes
+		save_scope_as = contemptuous_court
+		scope:expedition_initiator = {
+			trigger_event_non_silently = { id = treasure_fleet_events.57 }
+		}
+	}
+	
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Chinese War Support Against Nearby Target
+treasure_fleet_events.50 = {
+	type = country_event
+	title = treasure_fleet_events.50.title
+	desc = treasure_fleet_events.50.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		random_neighbor_country = {
+			limit = {
+				NOT = { has_variable = chinese_war_support_declined_variable }
+				scope:expedition_initiator = {
+					is_target_in_variable_list = {
+						name = potential_enemy_list
+						target = PREV
+					}
+				}
+			}
+			save_scope_as = target_country
+		}
+		scope:expedition_initiator.var:chinese_treasure_visited_port_location ?= {
+			save_scope_as = target_location
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.50.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_very_positive_ai_weight
+				}
+			}
+		}
+		
+		leave_all_wars_with = scope:target_country
+		if = {
+			limit = {
+				can_declare_legal_war_on = { target = scope:target_country }
+			}
+			declare_war_with_cb = {
+				target = scope:target_country
+				type = casus_belli:cb_insulted_us
+			}
+		}
+		else = {
+			add_casus_belli = {
+				target = scope:target_country
+				type = casus_belli:cb_insulted_us
+			}
+		}
+
+		increase_opinion_of_expedition_greatly = yes
+
+		scope:target_location = {
+			create_sub_unit_of_category = sub_unit_category:army_heavy_infantry
+			create_sub_unit_of_category = sub_unit_category:army_heavy_infantry
+			create_sub_unit_of_category = sub_unit_category:army_heavy_infantry
+		}
+
+		save_scope_as = avenging_court
+		scope:expedition_initiator = {
+			trigger_event_non_silently = { id = treasure_fleet_events.58 }
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.50.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+	
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_minor_move_to_right
+		}
+		scope:target_country = {
+			set_variable = {
+				name = chinese_war_support_declined_variable
+				value = yes
+				days = 45
+			}
+		}
+	}
+
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Underwhelming Tribute Quality
+treasure_fleet_events.51 = {
+	type = country_event
+	title = treasure_fleet_events.51.title
+	desc = treasure_fleet_events.51.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		
+		set_local_variable = {
+			name = tribute_cost
+			value = {
+				value = monthly_income_trade_and_tax
+				multiply = { 3 6 }
+			}
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.51.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+		
+		give_gold_to_expedition = {
+			value = local_var:tribute_cost
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.51.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+		
+		decrease_opinion_of_expedition = yes
+	}
+	
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Scandal at the Court
+treasure_fleet_events.52 = {
+	type = country_event
+	title = treasure_fleet_events.52.title
+	desc = treasure_fleet_events.52.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		has_ruler = yes
+	}
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		set_local_variable = {
+			name = tribute_cost
+			value = {
+				value = monthly_income_trade_and_tax
+				multiply = { 1 2 }
+			}
+		}
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.52.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+		
+		add_government_power = government_power_extreme_penalty
+	}
+
+	option = {
+		name = treasure_fleet_events.52.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+		
+		add_government_power = government_power_extreme_penalty
+		add_prestige = prestige_mild_penalty
+		give_gold_to_expedition = {
+			value = local_var:tribute_cost
+		}
+		increase_opinion_of_expedition = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.52.c
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+
+		decrease_opinion_of_expedition = yes
+		save_scope_as = insulting_court
+		scope:expedition_initiator = {
+			trigger_event_non_silently = { id = treasure_fleet_events.54 }
+		}
+	}
+	
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+# Good Treatment
+treasure_fleet_events.53 = {
+	type = country_event
+	title = treasure_fleet_events.53.title
+	desc = treasure_fleet_events.53.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		set_chinese_expedition_scopes = yes
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.53.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+		
+		increase_opinion_of_expedition = yes
+	}
+
+	option = {
+		name = treasure_fleet_events.53.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_neutral_ai_weight
+				}
+			}
+		}
+
+		add_prestige = prestige_weak_bonus
+	}
+
+	after = {
+		visitation_event_pulse = yes
+	}
+}
+
+treasure_fleet_events.54 = {
+	type = country_event
+	title = treasure_fleet_events.54.title
+	desc = treasure_fleet_events.54.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.54.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+
+		custom_tooltip = treasure_fleet_events.54.a.tt
+		add_to_variable_list = {
+			name = potential_enemy_list
+			target = scope:insulting_court
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.54.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+
+		add_prestige = prestige_weak_bonus
+	}
+}
+
+treasure_fleet_events.55 = {
+	type = country_event
+	title = treasure_fleet_events.55.title
+	desc = treasure_fleet_events.55.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.55.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+
+		add_army_tradition = army_tradition_mild_bonus
+		if = {
+			limit = {
+				has_societal_value = societal_value_type:outward_vs_inward
+			}
+			change_societal_value = {
+				type = outward_vs_inward
+				value = societal_value_minor_move_to_left
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.55.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+
+		add_stability = stability_mild_bonus
+		if = {
+			limit = {
+				has_societal_value = societal_value_type:outward_vs_inward
+			}
+			change_societal_value = {
+				type = outward_vs_inward
+				value = societal_value_minor_move_to_right
+			}
+		}
+	}
+}
+
+treasure_fleet_events.56 = {
+	type = country_event
+	title = treasure_fleet_events.56.title
+	desc = treasure_fleet_events.56.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.56.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+
+		add_prestige = prestige_weak_bonus
+		if = {
+			limit = {
+				has_societal_value = societal_value_type:outward_vs_inward
+			}
+			change_societal_value = {
+				type = outward_vs_inward
+				value = societal_value_minor_move_to_left
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.56.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+
+		add_diplomats = diplomats_mild_bonus
+		if = {
+			limit = {
+				has_societal_value = societal_value_type:outward_vs_inward
+			}
+			change_societal_value = {
+				type = outward_vs_inward
+				value = societal_value_minor_move_to_right
+			}
+		}
+	}
+}
+
+treasure_fleet_events.57 = {
+	type = country_event
+	title = treasure_fleet_events.57.title
+	desc = treasure_fleet_events.57.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.57.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+
+		custom_tooltip = treasure_fleet_events.57.a.tt
+	}
+
+	option = {
+		name = treasure_fleet_events.57.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+
+		remove_list_variable = {
+			name = potential_enemy_list
+			target = scope:contemptuous_court
+		}
+		add_prestige = prestige_weak_bonus
+	}
+}
+
+treasure_fleet_events.58 = {
+	type = country_event
+	title = treasure_fleet_events.58.title
+	desc = treasure_fleet_events.58.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.58.a
+
+		add_prestige = prestige_mild_bonus
+		remove_list_variable = {
+			name = potential_enemy_list
+			target = scope:target_country
+		}
+	}
+}
+
+treasure_fleet_events.59 = {
+	type = country_event
+	title = treasure_fleet_events.59.title
+	desc = treasure_fleet_events.59.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.59.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+
+		add_prestige = prestige_weak_bonus
+		culture = {
+			add_cultural_influence = cultural_influence_mild_bonus
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.59.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+
+		add_manpower = { 0.5 1.5 }
+		if = {
+			limit = {
+				has_societal_value = societal_value_type:outward_vs_inward
+			}
+			change_societal_value = {
+				type = outward_vs_inward
+				value = societal_value_minor_move_to_right
+			}
+		}
+	}
+}
+
+treasure_fleet_events.60 = {
+	type = country_event
+	title = treasure_fleet_events.60.title
+	desc = treasure_fleet_events.60.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:target_stop ?= {
+			owner ?= {
+				ruler ?= { save_scope_as = court_host }
+			}
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.60.a
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_negative_ai_weight
+				}
+			}
+		}
+
+		add_prestige = prestige_weak_bonus
+		change_societal_value = {
+			type = spiritualist_vs_humanist
+			value = societal_value_minor_move_to_right
+		}
+	}
+
+	option = {
+		name = treasure_fleet_events.60.b
+
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = {
+					value = 1
+					multiply = chinese_expedition_positive_ai_weight
+				}
+			}
+		}
+
+		add_prestige = prestige_weak_penalty
+		change_societal_value = {
+			type = spiritualist_vs_humanist
+			value = societal_value_minor_move_to_left
+		}
+	}
+}

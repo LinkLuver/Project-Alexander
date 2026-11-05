@@ -1,0 +1,1609 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = grand_embassy
+
+grand_embassy.1 = {
+	type = country_event
+	title = grand_embassy.1.title
+	desc = grand_embassy.1.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_home_departure }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+	}
+
+	option = {
+		name = grand_embassy.1.a
+		custom_tooltip = grand_embassy.1.a.tt
+		scope:active_expedition = {
+			set_variable = { name = discretion value = 55 }
+		}
+	}
+	option = {
+		name = grand_embassy.1.b
+		custom_tooltip = grand_embassy.1.b.tt
+		change_gold_effect = { scale = -3 }
+		scope:active_expedition = {
+			set_variable = { name = discretion value = 75 }
+			pause_expedition = 15
+		}
+	}
+	option = {
+		name = grand_embassy.1.c
+		custom_tooltip = grand_embassy.1.c.tt
+		change_gold_effect = { scale = -5 }
+		scope:active_expedition = {
+			set_variable = { name = discretion value = 95 }
+			pause_expedition = 60
+		}
+	}
+}
+
+grand_embassy.2 = {
+	type = country_event
+	title = grand_embassy.2.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:embassy_country.capital = { is_port = yes }
+				}
+				desc = grand_embassy.2.desc.port
+			}
+			triggered_desc = {
+				desc = grand_embassy.2.desc.inland
+			}
+		}
+	}
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			add_to_variable_list = {
+				name = grand_embassy_visited_countries
+				target = scope:embassy_country
+			}
+			expedition_current_location ?= { 
+				save_scope_as = current_location
+				owner ?= { ruler ?= { save_scope_as = court_host } }
+			}
+		}
+	}
+
+	option = {
+		name = grand_embassy.2.a
+		trigger = { exists = scope:figurehead }
+		custom_tooltip = grand_embassy.opportunities_set_2_tt
+		custom_tooltip = grand_embassy.discretion_down_4_tt
+		scope:active_expedition = {
+			set_variable = { name = opportunities value = 2 }
+			set_variable = { name = grand_embassy_presented value = 1 }
+			change_variable = { name = discretion subtract = 4 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+		change_gold_effect = { scale = -1 }
+		scope:embassy_country = {
+			if = {
+				limit = { grand_embassy_host_knows_ruler = yes }
+				scope:active_expedition = {
+					set_variable = { name = grand_embassy_discovered value = 1 }
+				}
+			}
+			trigger_event_non_silently = { id = grand_embassy.3 }
+		}
+	}
+	option = {
+		name = grand_embassy.2.a_no_figurehead
+		trigger = { NOT = { exists = scope:figurehead } }
+		custom_tooltip = grand_embassy.opportunities_set_2_tt
+		custom_tooltip = grand_embassy.discretion_down_4_tt
+		scope:active_expedition = {
+			set_variable = { name = opportunities value = 2 }
+			set_variable = { name = grand_embassy_presented value = 1 }
+			change_variable = { name = discretion subtract = 4 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+		change_gold_effect = { scale = -1 }
+		scope:embassy_country = {
+			if = {
+				limit = { grand_embassy_host_knows_ruler = yes }
+				scope:active_expedition = {
+					set_variable = { name = grand_embassy_discovered value = 1 }
+				}
+			}
+			trigger_event_non_silently = { id = grand_embassy.3 }
+		}
+	}
+	option = {
+		name = grand_embassy.2.b
+		custom_tooltip = grand_embassy.opportunities_set_3_tt
+		custom_tooltip = grand_embassy.discretion_set_0_tt
+		scope:active_expedition = {
+			set_variable = { name = opportunities value = 3 }
+			set_variable = { name = grand_embassy_presented value = 1 }
+			set_variable = { name = discretion value = 0 }
+		}
+		change_gold_effect = { scale = -1 }
+		scope:embassy_country = {
+			if = {
+				limit = { grand_embassy_host_knows_ruler = yes }
+				scope:active_expedition = {
+					set_variable = { name = grand_embassy_discovered value = 1 }
+				}
+			}
+			trigger_event_non_silently = { id = grand_embassy.3 }
+		}
+	}
+	option = {
+		name = grand_embassy.2.c
+		custom_tooltip = grand_embassy.opportunities_set_1_tt
+		custom_tooltip = grand_embassy.discretion_up_10_tt
+		scope:active_expedition = {
+			set_variable = { name = opportunities value = 1 }
+			set_variable = { name = grand_embassy_presented value = 1 }
+			change_variable = { name = discretion add = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+}
+
+grand_embassy.3 = {
+	type = country_event
+	title = grand_embassy.3.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:active_expedition = { has_variable = grand_embassy_discovered } }
+				desc = grand_embassy.3.desc.aware
+			}
+			triggered_desc = {
+				desc = grand_embassy.3.desc.unaware
+			}
+		}
+	}
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		scope:target_ruler ?= {
+			has_character_modifier = on_grand_embassy
+		}
+	}
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		ruler ?= { save_scope_as = court_host }
+	}
+
+	option = {
+		name = grand_embassy.3.a
+		trigger = { NOT = { scope:active_expedition = { has_variable = grand_embassy_discovered } } }
+		custom_tooltip = grand_embassy.opportunities_set_2_tt
+		custom_tooltip = grand_embassy.discretion_down_10_tt
+		scope:from = {
+			scope:active_expedition = {
+				set_variable = { name = opportunities value = 2 }
+				change_variable = { name = discretion subtract = 10 }
+				clamp_variable = { name = discretion min = 0 max = 100 }
+			}
+			transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+			add_prestige = prestige_mild_bonus
+		}
+	}
+	option = {
+		name = grand_embassy.3.b
+		trigger = { NOT = { scope:active_expedition = { has_variable = grand_embassy_discovered } } }
+		custom_tooltip = grand_embassy.opportunities_set_3_tt
+		custom_tooltip = grand_embassy.discretion_down_10_tt
+		scope:from = {
+			scope:active_expedition = {
+				set_variable = { name = opportunities value = 3 }
+				change_variable = { name = discretion subtract = 10 }
+				clamp_variable = { name = discretion min = 0 max = 100 }
+			}
+			add_opinion = { target = scope:embassy_country modifier = received_grand_embassy }
+			transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+			add_prestige = prestige_mild_bonus
+		}
+	}
+	option = {
+		name = grand_embassy.3.c
+		trigger = { NOT = { scope:active_expedition = { has_variable = grand_embassy_discovered } } }
+		scope:from = {
+			add_opinion = { target = scope:embassy_country modifier = rejected_grand_embassy }
+			add_prestige = prestige_weak_penalty
+			trigger_event_non_silently = { id = grand_embassy.5 }
+		}
+		resume_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.3.d
+		trigger = { scope:active_expedition = { has_variable = grand_embassy_discovered } }
+		custom_tooltip = grand_embassy.opportunities_set_2_tt
+		custom_tooltip = grand_embassy.discretion_down_10_tt
+		scope:from = {
+			scope:active_expedition = {
+				set_variable = { name = opportunities value = 2 }
+				change_variable = { name = discretion subtract = 10 }
+				clamp_variable = { name = discretion min = 0 max = 100 }
+			}
+			transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+			add_prestige = prestige_mild_bonus
+		}
+	}
+	option = {
+		name = grand_embassy.3.e
+		trigger = { scope:active_expedition = { has_variable = grand_embassy_discovered } }
+		custom_tooltip = grand_embassy.opportunities_set_4_tt
+		custom_tooltip = grand_embassy.discretion_down_20_tt
+		scope:from = {
+			scope:active_expedition = {
+				set_variable = { name = opportunities value = 4 }
+				change_variable = { name = discretion subtract = 20 }
+				clamp_variable = { name = discretion min = 0 max = 100 }
+			}
+			add_opinion = { target = scope:embassy_country modifier = received_grand_embassy }
+			transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+			add_prestige = prestige_mild_bonus
+		}
+	}
+	option = {
+		name = grand_embassy.3.f
+		trigger = { scope:active_expedition = { has_variable = grand_embassy_discovered } }
+		scope:from = {
+			add_opinion = { target = scope:embassy_country modifier = humiliated_grand_embassy }
+			add_prestige = prestige_weak_penalty
+			trigger_event_non_silently = { id = grand_embassy.5 }
+		}
+		resume_expedition = scope:active_expedition
+	}
+}
+
+grand_embassy.4 = {
+	type = country_event
+	title = grand_embassy.4.title
+	desc = grand_embassy.4.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		scope:active_expedition = {
+			has_variable = grand_embassy_discovered
+			var:opportunities < 4
+		}
+	}
+
+	immediate = {
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.4.a
+		custom_tooltip = grand_embassy.opportunities_up_1_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities add = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+	option = {
+		name = grand_embassy.4.b
+		custom_tooltip = grand_embassy.opportunities_up_2_tt
+		add_prestige = prestige_mild_penalty
+		scope:active_expedition = {
+			change_variable = { name = opportunities add = 2 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+}
+
+grand_embassy.5 = {
+	type = country_event
+	title = grand_embassy.5.title
+	desc = grand_embassy.5.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+		ordered_known_country = {
+			order_by = num_of_advances_researched
+			limit = {
+				is_valid_embassy_country = yes
+				NOT = {
+					scope:active_expedition = {
+						is_target_in_variable_list = {
+							name = grand_embassy_visited_countries
+							target = prev
+						}
+					}
+				}
+			}
+			max = 1
+			save_scope_as = target_1
+		}
+		ordered_known_country = {
+			order_by = num_of_advances_researched
+			limit = {
+				is_valid_embassy_country = yes
+				NOT = {
+					scope:active_expedition = {
+						is_target_in_variable_list = {
+							name = grand_embassy_visited_countries
+							target = prev
+						}
+					}
+				}
+				NOT = { this = scope:target_1 }
+			}
+			max = 1
+			save_scope_as = target_2
+		}
+		ordered_known_country = {
+			order_by = num_of_advances_researched
+			limit = {
+				is_valid_embassy_country = yes
+				NOT = {
+					scope:active_expedition = {
+						is_target_in_variable_list = {
+							name = grand_embassy_visited_countries
+							target = prev
+						}
+					}
+				}
+				NOT = { this = scope:target_1 }
+				NOT = { this = scope:target_2 }
+			}
+			max = 1
+			save_scope_as = target_3
+		}
+		ordered_known_country = {
+			order_by = num_of_advances_researched
+			limit = {
+				is_valid_embassy_country = yes
+				NOT = {
+					scope:active_expedition = {
+						is_target_in_variable_list = {
+							name = grand_embassy_visited_countries
+							target = prev
+						}
+					}
+				}
+				NOT = { this = scope:target_1 }
+				NOT = { this = scope:target_2 }
+				NOT = { this = scope:target_3 }
+			}
+			max = 1
+			save_scope_as = target_4
+		}
+		ordered_known_country = {
+			order_by = num_of_advances_researched
+			limit = {
+				is_valid_embassy_country = yes
+				NOT = {
+					scope:active_expedition = {
+						is_target_in_variable_list = {
+							name = grand_embassy_visited_countries
+							target = prev
+						}
+					}
+				}
+				NOT = { this = scope:target_1 }
+				NOT = { this = scope:target_2 }
+				NOT = { this = scope:target_3 }
+				NOT = { this = scope:target_4 }
+			}
+			max = 1
+			save_scope_as = target_5
+		}
+	}
+
+	option = {
+		name = grand_embassy.5.a
+		scope:active_expedition = { add_new_waypoint = root.capital }
+		resume_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.5.b
+		trigger = { exists = scope:target_1 }
+		scope:active_expedition = { add_new_waypoint = scope:target_1.capital }
+		resume_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.5.c
+		trigger = { exists = scope:target_2 }
+		scope:active_expedition = { add_new_waypoint = scope:target_2.capital }
+		resume_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.5.d
+		trigger = { exists = scope:target_3 }
+		scope:active_expedition = { add_new_waypoint = scope:target_3.capital }
+		resume_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.5.e
+		trigger = { exists = scope:target_4 }
+		scope:active_expedition = { add_new_waypoint = scope:target_4.capital }
+		resume_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.5.f
+		trigger = { exists = scope:target_5 }
+		scope:active_expedition = { add_new_waypoint = scope:target_5.capital }
+		resume_expedition = scope:active_expedition
+	}
+}
+
+grand_embassy.6 = {
+	type = country_event
+	title = grand_embassy.6.title
+	desc = grand_embassy.6.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		ruler ?= {
+			has_character_modifier = on_grand_embassy
+		}
+	}
+
+	immediate = {
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.6.a
+		custom_tooltip = grand_embassy.discretion_down_5_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion subtract = 5 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+		scope:embassy_country = {
+			trigger_event_non_silently = { id = grand_embassy.3 }
+		}
+	}
+	option = {
+		name = grand_embassy.6.b
+		fail_expedition = scope:active_expedition
+	}
+}
+
+grand_embassy.7 = {
+	type = country_event
+	title = grand_embassy.7.title
+	desc = grand_embassy.7.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		ruler ?= {
+			has_character_modifier = on_grand_embassy
+		}
+	}
+
+	immediate = {
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+		ordered_known_country = {
+			order_by = num_of_advances_researched
+			limit = {
+				is_valid_embassy_country = yes
+				NOT = {
+					scope:active_expedition = {
+						is_target_in_variable_list = {
+							name = grand_embassy_visited_countries
+							target = prev
+						}
+					}
+				}
+			}
+			max = 1
+			save_scope_as = target_1
+		}
+		ordered_known_country = {
+			order_by = num_of_advances_researched
+			limit = {
+				is_valid_embassy_country = yes
+				NOT = {
+					scope:active_expedition = {
+						is_target_in_variable_list = {
+							name = grand_embassy_visited_countries
+							target = prev
+						}
+					}
+				}
+				NOT = { this = scope:target_1 }
+			}
+			max = 1
+			save_scope_as = target_2
+		}
+		ordered_known_country = {
+			order_by = num_of_advances_researched
+			limit = {
+				is_valid_embassy_country = yes
+				NOT = {
+					scope:active_expedition = {
+						is_target_in_variable_list = {
+							name = grand_embassy_visited_countries
+							target = prev
+						}
+					}
+				}
+				NOT = { this = scope:target_1 }
+				NOT = { this = scope:target_2 }
+			}
+			max = 1
+			save_scope_as = target_3
+		}
+		ordered_known_country = {
+			order_by = num_of_advances_researched
+			limit = {
+				is_valid_embassy_country = yes
+				NOT = {
+					scope:active_expedition = {
+						is_target_in_variable_list = {
+							name = grand_embassy_visited_countries
+							target = prev
+						}
+					}
+				}
+				NOT = { this = scope:target_1 }
+				NOT = { this = scope:target_2 }
+				NOT = { this = scope:target_3 }
+			}
+			max = 1
+			save_scope_as = target_4
+		}
+		ordered_known_country = {
+			order_by = num_of_advances_researched
+			limit = {
+				is_valid_embassy_country = yes
+				NOT = {
+					scope:active_expedition = {
+						is_target_in_variable_list = {
+							name = grand_embassy_visited_countries
+							target = prev
+						}
+					}
+				}
+				NOT = { this = scope:target_1 }
+				NOT = { this = scope:target_2 }
+				NOT = { this = scope:target_3 }
+				NOT = { this = scope:target_4 }
+			}
+			max = 1
+			save_scope_as = target_5
+		}
+	}
+
+	option = {
+		name = grand_embassy.7.a
+		scope:active_expedition = { add_new_waypoint = root.capital }
+		resume_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.7.b
+		trigger = { exists = scope:target_1 }
+		scope:active_expedition = { add_new_waypoint = scope:target_1.capital }
+		resume_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.7.c
+		trigger = { exists = scope:target_2 }
+		scope:active_expedition = { add_new_waypoint = scope:target_2.capital }
+		resume_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.7.d
+		trigger = { exists = scope:target_3 }
+		scope:active_expedition = { add_new_waypoint = scope:target_3.capital }
+		resume_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.7.e
+		trigger = { exists = scope:target_4 }
+		scope:active_expedition = { add_new_waypoint = scope:target_4.capital }
+		resume_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.7.f
+		trigger = { exists = scope:target_5 }
+		scope:active_expedition = { add_new_waypoint = scope:target_5.capital }
+		resume_expedition = scope:active_expedition
+	}
+}
+
+grand_embassy.8 = {
+	type = country_event
+	title = grand_embassy.8.title
+	desc = grand_embassy.8.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_home_departure }
+
+	trigger = {
+		ruler ?= {
+			has_character_modifier = on_grand_embassy
+		}
+	}
+
+	immediate = {
+		random_expedition = {
+			limit = { expedition_type = expedition_type:grand_embassy_expedition }
+			save_scope_as = active_expedition
+		}
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+	}
+
+	option = {
+		name = grand_embassy.8.a
+		fail_expedition = scope:active_expedition
+	}
+	option = {
+		name = grand_embassy.8.b
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_extreme_penalty }
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_extreme_penalty }
+	}
+}
+
+grand_embassy.9 = {
+	type = country_event
+	title = grand_embassy.9.title
+	desc = grand_embassy.9.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.9.a
+		custom_tooltip = grand_embassy.modernization_up_5_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 5 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			5 = { scope:target_leader = { add_adm = 5 } }
+			95 = {}
+		}
+	}
+	option = {
+		name = grand_embassy.9.b
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_0to10_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			30 = {
+				modifier = { add = 20  scope:target_leader = { adm >= 25 } }
+				modifier = { add = 20  scope:target_leader = { adm >= 50 } }
+				scope:active_expedition = {
+					change_variable = { name = modernization add = 10 }
+					clamp_variable = { name = modernization min = 0 max = 100 }
+				}
+				scope:target_leader = { add_adm = 5 }
+			}
+			30 = {
+				modifier = { add = 20  scope:target_leader = { adm < 50 } }
+				modifier = { add = 20  scope:target_leader = { adm < 25 } }
+			}
+		}
+		if = {
+			limit = { scope:target_leader = { num_of_traits < 3 } }
+			random_list = {
+				5 = { scope:target_leader = { add_trait = trait:worldly } }
+				95 = {}
+			}
+		}
+	}
+	option = {
+		name = grand_embassy.9.c
+		trigger = { scope:active_expedition = { var:discretion < 50 } }
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_15_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 15 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+			pause_expedition = 30
+		}
+	}
+}
+
+grand_embassy.10 = {
+	type = country_event
+	title = grand_embassy.10.title
+	desc = grand_embassy.10.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.10.a
+		custom_tooltip = grand_embassy.modernization_up_5_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 5 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			5 = { scope:target_leader = { add_adm = 5 } }
+			95 = {}
+		}
+	}
+	option = {
+		name = grand_embassy.10.b
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_0to10_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			30 = {
+				modifier = { add = 20  scope:target_leader = { adm >= 25 } }
+				modifier = { add = 20  scope:target_leader = { adm >= 50 } }
+				scope:active_expedition = {
+					change_variable = { name = modernization add = 10 }
+					clamp_variable = { name = modernization min = 0 max = 100 }
+				}
+				scope:target_leader = { add_adm = 5 }
+			}
+			30 = {
+				modifier = { add = 20  scope:target_leader = { adm < 50 } }
+				modifier = { add = 20  scope:target_leader = { adm < 25 } }
+			}
+		}
+		if = {
+			limit = { scope:target_leader = { num_of_traits < 3 } }
+			random_list = {
+				5 = { scope:target_leader = { add_trait = trait:worldly } }
+				95 = {}
+			}
+		}
+	}
+	option = {
+		name = grand_embassy.10.c
+		trigger = { scope:active_expedition = { var:discretion < 50 } }
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_15_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 15 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+			pause_expedition = 30
+		}
+	}
+}
+
+grand_embassy.11 = {
+	type = country_event
+	title = grand_embassy.11.title
+	desc = grand_embassy.11.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.11.a
+		custom_tooltip = grand_embassy.modernization_up_5_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 5 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			5 = { scope:target_leader = { add_dip = 5 } }
+			95 = {}
+		}
+	}
+	option = {
+		name = grand_embassy.11.b
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_0to10_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			30 = {
+				modifier = { add = 20  scope:target_leader = { dip >= 25 } }
+				modifier = { add = 20  scope:target_leader = { dip >= 50 } }
+				scope:active_expedition = {
+					change_variable = { name = modernization add = 10 }
+					clamp_variable = { name = modernization min = 0 max = 100 }
+				}
+				scope:target_leader = { add_dip = 5 }
+			}
+			30 = {
+				modifier = { add = 20  scope:target_leader = { dip < 50 } }
+				modifier = { add = 20  scope:target_leader = { dip < 25 } }
+			}
+		}
+		if = {
+			limit = { scope:target_leader = { num_of_traits < 3 } }
+			random_list = {
+				5 = { scope:target_leader = { add_trait = trait:worldly } }
+				95 = {}
+			}
+		}
+	}
+	option = {
+		name = grand_embassy.11.c
+		trigger = { scope:active_expedition = { var:discretion < 50 } }
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_15_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 15 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+			pause_expedition = 30
+		}
+	}
+}
+
+grand_embassy.12 = {
+	type = country_event
+	title = grand_embassy.12.title
+	desc = grand_embassy.12.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.12.a
+		custom_tooltip = grand_embassy.modernization_up_5_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 5 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			5 = { scope:target_leader = { add_dip = 5 } }
+			95 = {}
+		}
+	}
+	option = {
+		name = grand_embassy.12.b
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_0to10_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			30 = {
+				modifier = { add = 20  scope:target_leader = { dip >= 25 } }
+				modifier = { add = 20  scope:target_leader = { dip >= 50 } }
+				scope:active_expedition = {
+					change_variable = { name = modernization add = 10 }
+					clamp_variable = { name = modernization min = 0 max = 100 }
+				}
+				scope:target_leader = { add_dip = 5 }
+			}
+			30 = {
+				modifier = { add = 20  scope:target_leader = { dip < 50 } }
+				modifier = { add = 20  scope:target_leader = { dip < 25 } }
+			}
+		}
+		if = {
+			limit = { scope:target_leader = { num_of_traits < 3 } }
+			random_list = {
+				5 = { scope:target_leader = { add_trait = trait:worldly } }
+				95 = {}
+			}
+		}
+	}
+	option = {
+		name = grand_embassy.12.c
+		trigger = { scope:active_expedition = { var:discretion < 50 } }
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_15_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 15 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+			pause_expedition = 30
+		}
+	}
+}
+
+grand_embassy.13 = {
+	type = country_event
+	title = grand_embassy.13.title
+	desc = grand_embassy.13.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_field_survey }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+			expedition_leader = { save_scope_as = target_leader }
+		}
+	}
+
+	option = {
+		name = grand_embassy.13.a
+		custom_tooltip = grand_embassy.modernization_up_5_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 5 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			5 = { scope:target_leader = { add_mil = 5 } }
+			95 = {}
+		}
+	}
+	option = {
+		name = grand_embassy.13.b
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_0to10_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			30 = {
+				modifier = { add = 20  scope:target_leader = { mil >= 25 } }
+				modifier = { add = 20  scope:target_leader = { mil >= 50 } }
+				scope:active_expedition = {
+					change_variable = { name = modernization add = 10 }
+					clamp_variable = { name = modernization min = 0 max = 100 }
+				}
+				scope:target_leader = { add_mil = 5 }
+			}
+			30 = {
+				modifier = { add = 20  scope:target_leader = { mil < 50 } }
+				modifier = { add = 20  scope:target_leader = { mil < 25 } }
+			}
+		}
+		if = {
+			limit = { scope:target_leader = { num_of_traits < 3 } }
+			random_list = {
+				5 = { scope:target_leader = { add_trait = trait:worldly } }
+				95 = {}
+			}
+		}
+	}
+	option = {
+		name = grand_embassy.13.c
+		trigger = { scope:active_expedition = { var:discretion < 50 } }
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_15_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 15 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+			pause_expedition = 30
+		}
+	}
+}
+
+grand_embassy.14 = {
+	type = country_event
+	title = grand_embassy.14.title
+	desc = grand_embassy.14.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_field_survey }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+			expedition_leader = { save_scope_as = target_leader }
+		}
+	}
+
+	option = {
+		name = grand_embassy.14.a
+		custom_tooltip = grand_embassy.modernization_up_5_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 5 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			5 = { scope:target_leader = { add_mil = 5 } }
+			95 = {}
+		}
+	}
+	option = {
+		name = grand_embassy.14.b
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_0to10_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+		random_list = {
+			30 = {
+				modifier = { add = 20  scope:target_leader = { mil >= 25 } }
+				modifier = { add = 20  scope:target_leader = { mil >= 50 } }
+				scope:active_expedition = {
+					change_variable = { name = modernization add = 10 }
+					clamp_variable = { name = modernization min = 0 max = 100 }
+				}
+				scope:target_leader = { add_mil = 5 }
+			}
+			30 = {
+				modifier = { add = 20  scope:target_leader = { mil < 50 } }
+				modifier = { add = 20  scope:target_leader = { mil < 25 } }
+			}
+		}
+		if = {
+			limit = { scope:target_leader = { num_of_traits < 3 } }
+			random_list = {
+				5 = { scope:target_leader = { add_trait = trait:worldly } }
+				95 = {}
+			}
+		}
+	}
+	option = {
+		name = grand_embassy.14.c
+		trigger = { scope:active_expedition = { var:discretion < 50 } }
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -2 min = 2 max = 1000 }
+		custom_tooltip = grand_embassy.modernization_up_15_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = modernization add = 15 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+			pause_expedition = 30
+		}
+	}
+}
+
+grand_embassy.15 = {
+	type = country_event
+	title = grand_embassy.15.title
+	desc = grand_embassy.15.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.15.a
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -1 min = 1 max = 500 }
+		custom_tooltip = grand_embassy.discretion_up_10_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion add = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+	option = {
+		name = grand_embassy.15.b
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -3 min = 3 max = 1500 }
+		custom_tooltip = grand_embassy.discretion_up_20_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion add = 20 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+}
+
+grand_embassy.16 = {
+	type = country_event
+	title = grand_embassy.16.title
+	desc = grand_embassy.16.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.16.a
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -1 min = 1 max = 500 }
+		custom_tooltip = grand_embassy.discretion_up_10_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion add = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+	option = {
+		name = grand_embassy.16.b
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -3 min = 3 max = 1500 }
+		custom_tooltip = grand_embassy.discretion_up_20_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion add = 20 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+}
+
+grand_embassy.17 = {
+	type = country_event
+	title = grand_embassy.17.title
+	desc = grand_embassy.17.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		scope:active_expedition = { var:discretion > 0 }
+	}
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.17.a
+		custom_tooltip = grand_embassy.discretion_down_10_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion subtract = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+	option = {
+		name = grand_embassy.17.b
+		change_gold_effect = { scale = -2 }
+		custom_tooltip = grand_embassy.discretion_down_5_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion subtract = 5 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+}
+
+grand_embassy.18 = {
+	type = country_event
+	title = grand_embassy.18.title
+	desc = grand_embassy.18.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		scope:active_expedition = { var:discretion > 0 }
+	}
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.18.a
+		custom_tooltip = grand_embassy.discretion_down_20_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion subtract = 20 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+	option = {
+		name = grand_embassy.18.b
+		change_gold_effect = { scale = -3 }
+		custom_tooltip = grand_embassy.discretion_down_10_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion subtract = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+}
+
+grand_embassy.19 = {
+	type = country_event
+	title = grand_embassy.19.title
+	desc = grand_embassy.19.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		scope:active_expedition = { var:discretion > 0 }
+	}
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.19.a
+		custom_tooltip = grand_embassy.discretion_down_10_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion subtract = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+	option = {
+		name = grand_embassy.19.b
+		change_gold_effect = { scale = -2 }
+		custom_tooltip = grand_embassy.discretion_down_5_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion subtract = 5 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+}
+
+grand_embassy.20 = {
+	type = country_event
+	title = grand_embassy.20.title
+	desc = grand_embassy.20.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		scope:active_expedition = { var:discretion > 0 }
+	}
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.20.a
+		custom_tooltip = grand_embassy.discretion_down_30_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion subtract = 30 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+	option = {
+		name = grand_embassy.20.b
+		change_gold_effect = { scale = -4 }
+		custom_tooltip = grand_embassy.discretion_down_10_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion subtract = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+}
+
+grand_embassy.21 = {
+	type = country_event
+	title = grand_embassy.21.title
+	desc = grand_embassy.21.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.21.a
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+	option = {
+		name = grand_embassy.21.b
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		custom_tooltip = grand_embassy.modernization_up_5_tt
+		custom_tooltip = grand_embassy.discretion_down_10_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+			change_variable = { name = modernization add = 5 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = discretion subtract = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+}
+
+grand_embassy.22 = {
+	type = country_event
+	title = grand_embassy.22.title
+	desc = grand_embassy.22.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.22.a
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+	option = {
+		name = grand_embassy.22.b
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		custom_tooltip = grand_embassy.modernization_up_5_tt
+		custom_tooltip = grand_embassy.discretion_down_10_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+			change_variable = { name = modernization add = 5 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = discretion subtract = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+}
+
+grand_embassy.23 = {
+	type = country_event
+	title = grand_embassy.23.title
+	desc = grand_embassy.23.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.23.a
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+	option = {
+		name = grand_embassy.23.b
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		custom_tooltip = grand_embassy.modernization_up_5_tt
+		custom_tooltip = grand_embassy.discretion_down_10_tt
+		scope:active_expedition = {
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+			change_variable = { name = modernization add = 5 }
+			clamp_variable = { name = modernization min = 0 max = 100 }
+			change_variable = { name = discretion subtract = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+		}
+	}
+}
+
+grand_embassy.24 = {
+	type = country_event
+	title = grand_embassy.24.title
+	desc = grand_embassy.24.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.24.a
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -1 min = 1 max = 500 }
+		custom_tooltip = grand_embassy.discretion_up_10_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion add = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+	option = {
+		name = grand_embassy.24.b
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -3 min = 3 max = 1500 }
+		custom_tooltip = grand_embassy.discretion_up_20_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion add = 20 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+}
+
+grand_embassy.25 = {
+	type = country_event
+	title = grand_embassy.25.title
+	desc = grand_embassy.25.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.25.a
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -1 min = 1 max = 500 }
+		custom_tooltip = grand_embassy.discretion_up_10_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion add = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+	option = {
+		name = grand_embassy.25.b
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -3 min = 3 max = 1500 }
+		custom_tooltip = grand_embassy.discretion_up_20_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion add = 20 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+}
+
+grand_embassy.26 = {
+	type = country_event
+	title = grand_embassy.26.title
+	desc = grand_embassy.26.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	immediate = {
+		scope:active_expedition = {
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		scope:embassy_country = { ruler ?= { save_scope_as = court_host } }
+	}
+
+	option = {
+		name = grand_embassy.26.a
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -1 min = 1 max = 500 }
+		custom_tooltip = grand_embassy.discretion_up_10_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion add = 10 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+	option = {
+		name = grand_embassy.26.b
+		transfer_gold_effect_bounded = { target = scope:embassy_country scale = -3 min = 3 max = 1500 }
+		custom_tooltip = grand_embassy.discretion_up_20_tt
+		custom_tooltip = grand_embassy.opportunities_down_1_tt
+		scope:active_expedition = {
+			change_variable = { name = discretion add = 20 }
+			clamp_variable = { name = discretion min = 0 max = 100 }
+			change_variable = { name = opportunities subtract = 1 }
+			clamp_variable = { name = opportunities min = 0 max = 4 }
+		}
+	}
+}

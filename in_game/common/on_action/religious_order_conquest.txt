@@ -1,0 +1,100 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+on_took_location_in_peace_treaty = {
+	on_actions = { religious_order_conquest_candidate_pulse }
+}
+
+on_winning_war = {
+	on_actions = { religious_order_conquest_offer_pulse }
+}
+
+on_ending_war = {
+	on_actions = { religious_order_conquest_cleanup_pulse }
+}
+
+religious_order_conquest_candidate_pulse = {
+	effect = {
+		if = {
+			limit = {
+				exists = scope:winner
+				exists = scope:location
+			}
+			scope:location = {
+				if = {
+					limit = {
+						NOT = { dominant_religion.group = scope:winner.religion.group }
+						location_can_host_order_holding_trigger = yes
+					}
+					save_scope_as = candidate_location
+					scope:winner = { save_scope_as = actor }
+					if = {
+						limit = {
+							scope:winner = {
+								any_religious_order_in_country = {
+									scope:candidate_location = {
+										location_valid_for_calling = prev.order_calling
+									}
+								}
+							}
+						}
+						scope:winner = {
+							add_to_variable_list = {
+								name = ro_conquest_candidates
+								target = scope:candidate_location
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+religious_order_conquest_offer_pulse = {
+	effect = {
+		if = {
+			limit = {
+				exists = scope:winner
+				scope:winner = {
+					any_in_list = {
+						variable = ro_conquest_candidates
+						count > 0
+					}
+				}
+			}
+			scope:winner = {
+				save_scope_as = actor
+				ordered_in_list = {
+					variable = ro_conquest_candidates
+					order_by = {
+						value = local_control
+						multiply = population
+					}
+					max = 1
+					save_scope_as = ro_conquest_location
+				}
+				random_religious_order_in_country = {
+					limit = {
+						scope:ro_conquest_location = {
+							location_valid_for_calling = prev.order_calling
+						}
+					}
+					save_scope_as = ro_conquest_order
+				}
+				if = {
+					limit = { exists = scope:ro_conquest_order }
+					trigger_event_non_silently = religious_orders.202
+				}
+				clear_variable_list = ro_conquest_candidates
+			}
+		}
+	}
+}
+
+religious_order_conquest_cleanup_pulse = {
+	effect = {
+		if = {
+			limit = { exists = scope:winner }
+			scope:winner = { clear_variable_list = ro_conquest_candidates }
+		}
+	}
+}

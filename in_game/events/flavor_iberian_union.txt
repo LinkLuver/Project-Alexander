@@ -1,0 +1,303 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = flavor_iberian_union
+
+scripted_trigger is_iberian_wedding_crown = {
+	government_type = government_type:monarchy
+	religion.group = religion_group:christian
+	capital ?= { region = region:iberia_region }
+}
+
+scripted_trigger iu_is_suitable_wedding_candidate_trigger = {
+	character_can_marry_trigger = yes
+	age_in_years < 40
+}
+
+scripted_trigger iu_has_wedding_candidate_of_gender_trigger = {
+	OR = {
+		ruler ?= {
+			is_female = $is_female$
+			iu_is_suitable_wedding_candidate_trigger = yes
+		}
+		AND = {
+			exists = ruler
+			heir ?= {
+				is_female = $is_female$
+				iu_is_suitable_wedding_candidate_trigger = yes
+				is_child_of = prev.ruler
+			}
+		}
+	}
+}
+
+scripted_effect iu_save_wedding_candidate_of_gender_effect = {
+	if = {
+		limit = {
+			ruler ?= {
+				is_female = $is_female$
+				iu_is_suitable_wedding_candidate_trigger = yes
+			}
+		}
+		ruler = { save_scope_as = $save_as$ }
+	}
+	else_if = {
+		limit = {
+			exists = ruler
+			heir ?= {
+				is_female = $is_female$
+				iu_is_suitable_wedding_candidate_trigger = yes
+				is_child_of = prev.ruler
+			}
+		}
+		heir = { save_scope_as = $save_as$ }
+	}
+}
+
+flavor_iberian_union.1 = {
+	type = country_event
+	title = flavor_iberian_union.1.title
+	desc = flavor_iberian_union.1.desc
+	outcome = neutral
+
+	historical_info = flavor_iberian_union.1.historical_info
+
+	image_list = "iberian_union_throne_room"
+
+	option = {
+		name = flavor_iberian_union.1.a
+		add_legitimacy = legitimacy_mild_bonus
+	}
+}
+
+flavor_iberian_union.2 = {
+	type = country_event
+	title = flavor_iberian_union.2.title
+	desc = flavor_iberian_union.2.desc
+	outcome = neutral
+
+	historical_info = flavor_iberian_union.2.historical_info
+
+	image_list = "iberian_union_throne_room"
+
+	option = {
+		name = flavor_iberian_union.2.a
+		add_prestige = prestige_mild_bonus
+	}
+}
+
+flavor_iberian_union.3 = {
+	type = country_event
+	title = flavor_iberian_union.3.title
+	desc = flavor_iberian_union.3.desc
+	outcome = neutral
+
+	historical_info = flavor_iberian_union.3.historical_info
+
+	image_list = "iberian_union_throne_room"
+
+	trigger = {
+		culture = { has_culture_group = culture_group:iberian_group }
+		is_iberian_wedding_crown = yes
+		current_year >= 1400
+		current_year <= 1550
+		NOT = { exists = union }
+		OR = {
+			ruler ?= {
+				iu_is_suitable_wedding_candidate_trigger = yes
+				save_temporary_scope_as = target_root_character
+			}
+			AND = {
+				exists = ruler
+				heir ?= {
+					iu_is_suitable_wedding_candidate_trigger = yes
+					is_child_of = prev.ruler
+					save_temporary_scope_as = target_root_character
+				}
+			}
+		}
+		culture_group:iberian_group = {
+			any_country_in_culture_group = {
+				NOT = { this = root }
+				is_iberian_wedding_crown = yes
+				OR = {
+					AND = {
+						scope:target_root_character ?= { is_female = no }
+						iu_has_wedding_candidate_of_gender_trigger = { is_female = yes }
+					}
+					AND = {
+						scope:target_root_character ?= { is_female = yes }
+						iu_has_wedding_candidate_of_gender_trigger = { is_female = no }
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		save_scope_as = iu_initiator
+		if = {
+			limit = { iu_has_wedding_candidate_of_gender_trigger = { is_female = no } }
+			iu_save_wedding_candidate_of_gender_effect = { save_as = initiator_candidate  is_female = no }
+			culture_group:iberian_group = {
+				ordered_country_in_culture_group = {
+					limit = {
+						NOT = { this = root }
+						is_iberian_wedding_crown = yes
+						iu_has_wedding_candidate_of_gender_trigger = { is_female = yes }
+					}
+					order_by = "opinion(root)"
+					max = 2
+					if = {
+						limit = { NOT = { exists = scope:iu_partner_a } }
+						save_scope_as = iu_partner_a
+						iu_save_wedding_candidate_of_gender_effect = { save_as = iu_partner_a_candidate  is_female = yes }
+					}
+					else = {
+						save_scope_as = iu_partner_b
+						iu_save_wedding_candidate_of_gender_effect = { save_as = iu_partner_b_candidate  is_female = yes }
+					}
+				}
+			}
+		}
+		else = {
+			iu_save_wedding_candidate_of_gender_effect = { save_as = initiator_candidate  is_female = yes }
+			culture_group:iberian_group = {
+				ordered_country_in_culture_group = {
+					limit = {
+						NOT = { this = root }
+						is_iberian_wedding_crown = yes
+						iu_has_wedding_candidate_of_gender_trigger = { is_female = no }
+					}
+					order_by = "opinion(root)"
+					max = 2
+					if = {
+						limit = { NOT = { exists = scope:iu_partner_a } }
+						save_scope_as = iu_partner_a
+						iu_save_wedding_candidate_of_gender_effect = { save_as = iu_partner_a_candidate  is_female = no }
+					}
+					else = {
+						save_scope_as = iu_partner_b
+						iu_save_wedding_candidate_of_gender_effect = { save_as = iu_partner_b_candidate  is_female = no }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = flavor_iberian_union.3.a
+		trigger = { exists = scope:iu_partner_a }
+		custom_tooltip = iu_marriage_may_form_union_tt
+		scope:iu_partner_a_candidate = { save_scope_as = iu_chosen_candidate }
+		if = {
+			limit = { exists = scope:iu_partner_b }
+			scope:iu_partner_b = { save_scope_as = iu_spurned }
+			custom_tooltip = iu_spurned_will_be_displeased_tt
+		}
+		scope:iu_partner_a = {
+			save_scope_as = iu_chosen
+			trigger_event_non_silently = flavor_iberian_union.4
+		}
+	}
+
+	option = {
+		name = flavor_iberian_union.3.b
+		trigger = { exists = scope:iu_partner_b }
+		custom_tooltip = iu_marriage_may_form_union_tt
+		scope:iu_partner_b_candidate = { save_scope_as = iu_chosen_candidate }
+		scope:iu_partner_a = { save_scope_as = iu_spurned }
+		custom_tooltip = iu_spurned_will_be_displeased_tt
+		scope:iu_partner_b = {
+			save_scope_as = iu_chosen
+			trigger_event_non_silently = flavor_iberian_union.4
+		}
+	}
+
+	option = {
+		name = flavor_iberian_union.3.c
+		add_legitimacy = legitimacy_mild_penalty
+	}
+}
+
+flavor_iberian_union.4 = {
+	type = country_event
+	title = flavor_iberian_union.4.title
+	desc = flavor_iberian_union.4.desc
+	outcome = neutral
+
+	image_list = "iberian_union_throne_room"
+
+	option = {
+		name = flavor_iberian_union.4.a
+		scope:initiator_candidate = {
+			marry_character = scope:iu_chosen_candidate
+		}
+		scope:iu_initiator = { trigger_event_non_silently = flavor_iberian_union.5 }
+	}
+
+	option = {
+		name = flavor_iberian_union.4.b
+		scope:iu_initiator = { trigger_event_non_silently = flavor_iberian_union.6 }
+	}
+}
+
+flavor_iberian_union.5 = {
+	type = country_event
+	title = flavor_iberian_union.5.title
+	desc = flavor_iberian_union.5.desc
+	outcome = neutral
+
+	image_list = "iberian_union_throne_room"
+
+	option = {
+		name = flavor_iberian_union.5.a
+		show_as_tooltip = {
+			scope:initiator_candidate = {
+				marry_character = scope:iu_chosen_candidate
+			}
+		}
+		add_prestige = prestige_mild_bonus
+		if = {
+			limit = { exists = scope:iu_spurned }
+			scope:iu_spurned = {
+				add_casus_belli = {
+					target = root
+					type = casus_belli:cb_claim_throne
+				}
+				trigger_event_non_silently = flavor_iberian_union.7
+			}
+		}
+	}
+}
+
+flavor_iberian_union.6 = {
+	type = country_event
+	title = flavor_iberian_union.6.title
+	desc = flavor_iberian_union.6.desc
+	outcome = neutral
+
+	image_list = "iberian_union_throne_room"
+
+	option = {
+		name = flavor_iberian_union.6.a
+		add_legitimacy = legitimacy_mild_penalty
+	}
+}
+
+flavor_iberian_union.7 = {
+	type = country_event
+	title = flavor_iberian_union.7.title
+	desc = flavor_iberian_union.7.desc
+	outcome = negative
+
+	image_list = "iberian_union_throne_room"
+
+	option = {
+		name = flavor_iberian_union.7.a
+		show_as_tooltip = {
+			add_casus_belli = {
+				target = scope:iu_initiator
+				type = casus_belli:cb_claim_throne
+			}
+		}
+	}
+}

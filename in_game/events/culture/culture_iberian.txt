@@ -1,0 +1,1916 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = iberian_culture
+
+iberian_culture.1 = { # Songs of the Reconquista
+    type = country_event
+    title = iberian_culture.1.title
+    desc = iberian_culture.1.desc
+    outcome = neutral
+
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+        religion = religion:catholic
+        has_truce_with = c:GRA
+		NOT = {
+			OR = {
+				has_country_modifier = iberian_culture_songs_of_the_reconquista_battle
+				has_country_modifier = iberian_culture_songs_of_the_reconquista_recruitment
+			}
+		}
+    }
+
+    illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+    }	
+
+
+    option = {
+        name = iberian_culture.1.a
+        add_country_modifier = { modifier = iberian_culture_songs_of_the_reconquista_battle years = 10 mode = add }
+    }
+
+    option = { 
+        name = iberian_culture.1.b
+        add_country_modifier = { modifier = iberian_culture_songs_of_the_reconquista_recruitment years = 10 mode = add }
+    }
+}
+
+iberian_culture.2 = { #Hero of the Reconquista
+	type = country_event
+	title = iberian_culture.2.title
+	desc = iberian_culture.2.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+        has_truce_with = c:GRA
+		NOT = { has_variable = iberian_general_event_fired }
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_poptype_effect = { foreground = pop_type:soldiers background = pop_type:soldiers }
+		create_character = {
+			trait_category = general
+			save_scope_as = new_general
+			estate = estate_type:peasants_estate
+			adm = { 60 85 }
+			dip = { 60 85 }
+			mil = { 60 85 }
+			create_in_limbo = yes
+		}
+        set_variable = {
+            name = iberian_general_event_fired
+            value = 1
+            years = 15
+        } 
+	}
+
+	option = {
+		name = iberian_culture.2.a
+		scope:new_general = { move_country = root }
+	}
+	option = {
+		name = iberian_culture.2.b
+		add_army_tradition = army_tradition_mild_bonus
+		hidden_effect = {
+   			kill_character_silently = scope:new_general
+  		}
+	}
+}
+
+iberian_culture.3 = { #Settlement of Granada
+	type = country_event
+	title = iberian_culture.3.title
+	desc = iberian_culture.3.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion.group = religion_group:christian
+        own_entire_area = area:granada_area
+		capital ?= {
+			area = {
+				any_location_in_area = {
+					owner ?= root
+					dominant_culture = culture:castilian
+				}
+			}
+		}
+		area:granada_area = {
+			any_location_in_area = {
+				owner ?= root
+				dominant_culture = culture:andalusi
+			}
+		}
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		capital = {
+			area = {
+				random_location_in_area = {
+					limit = {
+						owner ?= root
+						dominant_culture = culture:castilian
+					}
+					province_definition = {
+						save_scope_as = origin_province
+					}
+				}
+			}
+		}
+		area:granada_area = {
+			random_location_in_area = {
+				limit = {
+					owner ?= root
+					dominant_culture = culture:andalusi
+				}
+				province_definition = {
+					save_scope_as = target_province
+				}
+			}
+		}
+	}
+
+	option = {
+		name = iberian_culture.3.a
+		add_migration = {
+			owner ?= root
+			from = scope:origin_province
+			to = scope:target_province
+			culture = culture:castilian
+			amount = 0.1
+			months = 60
+		}
+	}
+	
+	option = {
+		name = iberian_culture.3.b
+		add_migration = {
+			owner ?= root
+			from = scope:origin_province
+			to = scope:target_province
+			culture = culture:castilian
+			amount = 0.05
+			months = 60
+		}
+	}
+}
+
+iberian_culture.4 = { #Miracle of the Virgin Mary
+	type = country_event
+	title = iberian_culture.4.title
+	desc = iberian_culture.4.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+        region:iberia_region = {
+            any_location_in_region = {
+				trigger_if = {
+					limit = { exists = dominant_religion }
+					dominant_religion = religion:catholic
+				}
+				trigger_else = { always = no }
+				location_rank = location_rank:rural_settlement
+				owner ?= ROOT
+            }
+        }
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:nobles_estate }
+		region:iberia_region = {
+			random_location_in_region = {
+				limit = {
+					dominant_religion = religion:catholic
+					location_rank = location_rank:rural_settlement
+                    owner ?= ROOT
+				}
+				save_scope_as = target_location
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.4.a
+		scope:target_location = {
+			change_development = development_mild_bonus
+			change_prosperity = prosperity_severe_bonus
+		}
+	}
+	
+	option = {
+		name = iberian_culture.4.b
+		add_religious_influence_if_valid = { VALUE = 5 }
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+	}
+	
+	option = {
+		name = iberian_culture.4.c
+		add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_severe_bonus }
+	}
+	
+	option = {
+		name = iberian_culture.4.d
+		change_gold_effect = { scale = 1 }
+	}
+}
+
+iberian_culture.5 = { #Return from the Northern Seas
+	type = country_event
+	title = iberian_culture.5.title
+	desc = iberian_culture.5.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		any_owned_location = {
+			dominant_culture = culture:basque
+		}
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+	}
+	
+	option = {
+		name = iberian_culture.5.a
+		add_navy_tradition = navy_tradition_mild_bonus
+	}
+	
+	option = {
+		name = iberian_culture.5.b
+		change_societal_value = {
+			type = land_vs_naval
+			value = societal_value_move_to_right
+		}
+	}
+}
+
+iberian_culture.6 = { #Skilled Mudejar Artist
+	type = country_event
+	title = iberian_culture.6.title
+	desc = iberian_culture.6.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+        region:iberia_region = {
+            any_location_in_region = {
+				any_pop = {
+					religion = religion:sunni
+					owner ?= root
+				}
+				owner ?= ROOT
+            }
+        }
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:clergy_estate }
+        create_character = {
+            adm = { 70 80 }
+            dip = { 70 90 }
+            mil = { 50 60 }
+            culture = culture:andalusi
+            religion = religion:sunni
+            min_age = 30
+            create_in_limbo = yes
+            artist_skill = 0.75
+            artist = painter
+            estate = estate_type:burghers_estate
+            save_scope_as = target_character
+        }
+	}
+	
+	option = {
+		name = iberian_culture.6.a
+        change_gold_effect = { scale = -1 }
+        scope:target_character = {
+            move_country = root
+        }
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+	}
+	
+	option = {
+		name = iberian_culture.6.b
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+        hidden_effect = {
+            kill_character_silently = scope:target_character
+        }
+	}
+}
+	
+iberian_culture.7 = { #Dispute at the Market
+	type = country_event
+	title = iberian_culture.7.title
+	desc = iberian_culture.7.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+        region:iberia_region = {
+            any_location_in_region = {
+				any_pop = {
+					religion = religion:sunni
+					owner ?= root
+				}
+				any_pop = {
+					religion = religion:catholic
+					owner ?= root
+				}
+				owner ?= ROOT
+            }
+        }
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:peasants_estate }
+        region:iberia_region = {
+            random_location_in_region = {
+				limit = {
+					any_pop = {
+						religion = religion:sunni
+						owner ?= root
+					}
+					any_pop = {
+						religion = religion:catholic
+						owner ?= root
+					}
+					owner ?= ROOT
+				}
+				save_scope_as = target_location
+            }
+        }
+	}
+	
+	option = {
+		name = iberian_culture.7.a
+		custom_tooltip = {
+			text = iberian_culture.7.a.tt1
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:sunni
+					}
+					add_pop_satisfaction = pop_satisfaction_mild_bonus
+				}
+			}
+		}
+		custom_tooltip = {
+			text = iberian_culture.7.a.tt2
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:catholic
+					}
+					add_pop_satisfaction = pop_satisfaction_mild_penalty
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.7.b
+		custom_tooltip = {
+			text = iberian_culture.7.b.tt1
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:sunni
+					}
+					add_pop_satisfaction = pop_satisfaction_mild_penalty
+				}
+			}
+		}
+		custom_tooltip = {
+			text = iberian_culture.7.b.tt2
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:catholic
+					}
+					add_pop_satisfaction = pop_satisfaction_mild_bonus
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.7.c
+		add_stability = stability_weak_penalty
+	}
+}
+
+iberian_culture.8 = { #Dispute Over Mudejar Traditions
+	type = country_event
+	title = iberian_culture.8.title
+	desc = iberian_culture.8.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+        region:iberia_region = {
+            any_location_in_region = {
+				any_pop = {
+					religion = religion:sunni
+					owner ?= root
+				}
+				any_pop = {
+					religion = religion:catholic
+					owner ?= root
+				}
+				owner ?= ROOT
+            }
+        }
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:peasants_estate }
+        region:iberia_region = {
+            random_location_in_region = {
+				limit = {
+					any_pop = {
+						religion = religion:sunni
+						owner ?= root
+					}
+					any_pop = {
+						religion = religion:catholic
+						owner ?= root
+					}
+					owner ?= ROOT
+				}
+				save_scope_as = target_location
+            }
+        }
+	}
+	
+	option = {
+		name = iberian_culture.8.a
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_severe_penalty }
+		scope:target_location = {
+			change_prosperity = prosperity_severe_bonus
+		}
+		custom_tooltip = {
+			text = iberian_culture.8.a.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:sunni
+					}
+					add_pop_satisfaction = pop_satisfaction_mild_bonus
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.8.b
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+		custom_tooltip = {
+			text = iberian_culture.8.b.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:sunni
+					}
+					add_pop_satisfaction = pop_satisfaction_severe_penalty
+				}
+			}
+		}
+	}
+}
+
+iberian_culture.9 = { #Prosperous Mudejar Quarter
+	type = country_event
+	title = iberian_culture.9.title
+	desc = iberian_culture.9.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+        region:iberia_region = {
+            any_location_in_region = {
+				any_pop = {
+					religion = religion:sunni
+					owner ?= root
+				}
+				any_pop = {
+					religion = religion:catholic
+					owner ?= root
+				}
+				owner ?= ROOT
+            }
+        }
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:peasants_estate }
+        region:iberia_region = {
+            random_location_in_region = {
+				limit = {
+					any_pop = {
+						religion = religion:sunni
+						owner ?= root
+					}
+					any_pop = {
+						religion = religion:catholic
+						owner ?= root
+					}
+					owner ?= ROOT
+				}
+				save_scope_as = target_location
+            }
+        }
+	}
+	
+	option = {
+		name = iberian_culture.9.a
+		scope:target_location = {
+			change_development = development_mild_bonus
+			change_prosperity = prosperity_severe_bonus
+		}
+	}
+	
+	option = {
+		name = iberian_culture.9.b
+		change_gold_effect = { scale = 2 }
+		custom_tooltip = {
+			text = iberian_culture.9.b.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:sunni
+					}
+					add_pop_satisfaction = pop_satisfaction_severe_penalty
+				}
+			}
+		}
+	}
+}
+	
+iberian_culture.10 = { #Renowned Mudejar Physicians
+	type = country_event
+	title = iberian_culture.10.title
+	desc = iberian_culture.10.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+        region:iberia_region = {
+            any_location_in_region = {
+				any_pop = {
+					religion = religion:sunni
+					owner ?= root
+				}
+				owner ?= ROOT
+            }
+        }
+		NOT = {
+			OR = {
+				has_country_modifier = iberian_culture_mudejar_physicians
+				has_country_modifier = iberian_culture_christian_physicians
+			}
+		}
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:clergy_estate }
+	}
+	
+	option = {
+		name = iberian_culture.10.a
+		add_country_modifier = {
+			modifier = iberian_culture_mudejar_physicians
+			years = 10
+			mode = add
+		}
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+	}
+	
+	option = {
+		name = iberian_culture.10.b
+		add_country_modifier = {
+			modifier = iberian_culture_christian_physicians
+			years = 10
+			mode = add
+		}
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+	}
+}
+
+iberian_culture.11 = { #Conversos Under Suspicion
+	type = country_event
+	title = iberian_culture.11.title
+	desc = iberian_culture.11.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+        region:iberia_region = {
+            any_location_in_region = {
+				any_pop = {
+					culture = culture:sephardi
+					owner ?= root
+				}
+				owner ?= ROOT
+            }
+        }
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:clergy_estate }
+        create_character = {
+            adm = { 70 80 }
+            dip = { 70 90 }
+            mil = { 10 30 }
+            culture = culture:sephardi
+            religion = religion:catholic
+            min_age = 45
+            create_in_limbo = yes
+            estate = estate_type:burghers_estate
+            save_scope_as = target_character
+        }
+	}
+	
+	option = {
+		name = iberian_culture.11.a
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+		random_list = {
+			50 = {
+				add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_severe_penalty }
+				scope:target_character = {
+					banish_character = yes
+				}
+			}
+			50 = {
+				add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+				scope:target_character = { move_country = root }
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.11.b
+		scope:target_character = { move_country = root }
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+	}
+}
+
+iberian_culture.12 = { #Sephardi Merchants Accussed
+	type = country_event
+	title = iberian_culture.12.title
+	desc = iberian_culture.12.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+        region:iberia_region = {
+            any_location_in_region = {
+				any_pop = {
+					culture = culture:sephardi
+					pop_type = pop_type:burghers
+					owner ?= root
+				}
+				owner ?= ROOT
+            }
+        }
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+		region:iberia_region = {
+			random_location_in_region = {
+				limit = { 
+					owner ?= root
+					any_pop = {
+						owner ?= root
+						culture = culture:sephardi
+						pop_type = pop_type:burghers
+					}
+				}
+				save_scope_as = target_location
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.12.a
+		change_gold_effect = { scale = 2 }
+		custom_tooltip = {
+			text = iberian_culture.12.a.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						pop_type = pop_type:burghers
+						culture = culture:sephardi
+					}
+					add_pop_satisfaction = pop_satisfaction_severe_penalty
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.12.b
+		add_legitimacy = legitimacy_mild_bonus
+		custom_tooltip = {
+			text = iberian_culture.12.b.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						pop_type = pop_type:burghers
+						culture != culture:sephardi
+					}
+					add_pop_satisfaction = pop_satisfaction_severe_penalty
+				}
+			}
+		}
+	}
+}
+
+iberian_culture.13 = { #Combating Heat and Plague
+	type = country_event
+	title = iberian_culture.13.title
+	desc = iberian_culture.13.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+		area:granada_area = {
+			any_location_in_area = {
+				owner ?= root
+				NOT = {
+					has_location_modifier = iberian_culture_whitewashed_houses
+				}
+			}
+		}
+	}
+	
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		area:granada_area = {
+			random_location_in_area = {
+				limit = {
+					owner = root
+					NOT = {
+						has_location_modifier = iberian_culture_whitewashed_houses
+					}
+				}
+				save_scope_as = target_location
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.13.a
+		change_gold_effect = { scale = -2 }
+		scope:target_location = {
+			change_prosperity = prosperity_severe_bonus
+			add_location_modifier = { modifier = iberian_culture_whitewashed_houses years = 20 mode = add }
+		}
+		custom_tooltip = {
+			text = iberian_culture.13.a.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+					}
+					add_pop_satisfaction = pop_satisfaction_mild_bonus
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.13.b
+		scope:target_location = {
+			change_prosperity = prosperity_severe_penalty
+		}
+		custom_tooltip = {
+			text = iberian_culture.13.b.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+					}
+					add_pop_satisfaction = pop_satisfaction_severe_penalty
+				}
+			}
+		}
+	}
+}
+
+iberian_culture.14 = { #Dispute Over Cañadas Reales
+	type = country_event
+	title = iberian_culture.14.title
+	desc = iberian_culture.14.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		region:iberia_region = {
+			any_location_in_region = {
+				owner ?= root
+				raw_material = goods:wool
+			}
+		}
+	}
+	
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		region:iberia_region = {
+			random_location_in_region = {
+				limit = {
+					raw_material = goods:wool
+					owner ?= root
+				}
+				save_scope_as = target_location
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.14.a
+		add_prestige = prestige_mild_bonus
+		custom_tooltip = {
+			text = iberian_culture.14.a.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						pop_type = pop_type:peasants
+					}
+					add_pop_satisfaction = pop_satisfaction_severe_penalty
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.14.b
+		add_prestige = prestige_mild_penalty
+		scope:target_location = {
+			change_prosperity = prosperity_severe_bonus
+		}
+	}
+}
+
+iberian_culture.15 = { #Dispute Over Water Rights
+	type = country_event
+	title = iberian_culture.15.title
+	desc = iberian_culture.15.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		current_month >= 6
+		current_month < 9
+		area:valencia_area = {
+			any_location_in_area = {
+				count >= 2
+				owner ?= root
+				location_rank = location_rank:rural_settlement
+			}
+		}
+	}
+	
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		area:valencia_area = {
+			random_location_in_area = {
+				limit = {
+					owner ?= root
+					location_rank = location_rank:rural_settlement
+				}
+				save_scope_as = target_location_1
+			}
+		}
+		area:valencia_area = {
+			random_location_in_area = {
+				limit = {
+					owner ?= root
+					location_rank = location_rank:rural_settlement
+					NOT = { this = scope:target_location_1 }
+				}
+				save_scope_as = target_location_2
+			}
+		}
+	}
+	
+	
+	option = {
+		name = iberian_culture.15.a
+		scope:target_location_1 = {
+			change_prosperity = prosperity_severe_bonus
+		}
+		scope:target_location_2 = {
+			change_prosperity = prosperity_severe_penalty
+		}
+	}
+	
+	option = {
+		name = iberian_culture.15.b
+		scope:target_location_1 = {
+			change_prosperity = prosperity_severe_penalty
+		}
+		scope:target_location_2 = {
+			change_prosperity = prosperity_severe_bonus
+		}
+	}
+	
+	option = {
+		name = iberian_culture.15.c
+		scope:target_location_1 = {
+			change_prosperity = prosperity_weak_penalty
+		}
+		scope:target_location_2 = {
+			change_prosperity = prosperity_weak_penalty
+		}
+	}
+}
+
+iberian_culture.16 = { #Protection of the Fueros
+	type = country_event
+	title = iberian_culture.16.title
+	desc = iberian_culture.16.desc
+	outcome = neutral
+
+	trigger = {
+		culture = { has_culture_group = culture_group:iberian_group }
+		region:iberia_region = {
+			any_location_in_region = {
+				owner ?= root
+				OR = {
+					location_rank = location_rank:town
+					location_rank = location_rank:city
+				}
+			}
+		}
+	}
+	
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:burghers_estate }
+		region:iberia_region = {
+			random_location_in_region = {
+				limit = {
+					owner ?= root
+					OR = {
+						location_rank = location_rank:town
+						location_rank = location_rank:city
+					}
+				}
+				save_scope_as = target_location
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.16.a
+		add_legitimacy = legitimacy_mild_bonus
+		scope:target_location = {
+			change_control = control_severe_penalty
+			change_prosperity = prosperity_severe_bonus
+		}
+	}
+	
+	option = {
+		name = iberian_culture.16.b
+		change_gold_effect = { scale = 2 }
+		add_legitimacy = legitimacy_mild_penalty
+		scope:target_location = {
+			change_control = control_severe_bonus
+			change_prosperity = prosperity_severe_penalty
+		}
+	}
+}
+
+iberian_culture.17 = { #Bandits of the Sierra
+	type = country_event
+	title = iberian_culture.17.title
+	desc = iberian_culture.17.desc
+	outcome = neutral
+
+	trigger = {
+		culture = { has_culture_group = culture_group:iberian_group }
+		area:andalusia_area = {
+			any_location_in_area = {
+				owner ?= root
+				topography = hills
+			}
+		}
+	}
+	
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:burghers_estate }
+		area:andalusia_area = {
+			random_location_in_area = {
+				limit = {
+					owner ?= root
+					topography = hills
+				}
+				save_scope_as = target_location
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.17.a
+		add_stability = stability_mild_penalty
+		scope:target_location = {
+			change_control = control_severe_penalty
+			change_prosperity = prosperity_severe_penalty
+		}
+	}
+	
+	option = {
+		name = iberian_culture.17.b
+		add_manpower = { value = root.monthly_manpower multiply = -2 }
+		scope:target_location = {
+			change_control = control_severe_bonus
+			change_prosperity = prosperity_severe_bonus
+		}
+	}
+}
+
+iberian_culture.18 = { #The Mudejar Art
+	type = country_event
+	title = iberian_culture.18.title
+	desc = iberian_culture.18.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+		any_artist = {
+			artist_type = architect
+		}
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+		random_artist = {
+			limit = { artist_type = architect }
+			save_scope_as = target_artist
+		}
+	}
+	
+	option = {
+		name = iberian_culture.18.a
+		scope:target_artist = {
+			add_artist_skill = 0.1
+		}
+		culture = {
+			add_cultural_tradition = cultural_tradition_weak_bonus
+			add_cultural_influence = cultural_influence_weak_bonus
+		}
+	}
+	
+	option = {
+		name = iberian_culture.18.b
+		add_prestige = prestige_mild_bonus
+	}
+}
+
+iberian_culture.19 = { #The Hispanic Gothic
+	type = country_event
+	title = iberian_culture.19.title
+	desc = iberian_culture.19.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+	
+	fire_only_once = yes
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+        create_character = {
+            min_age = 30
+            create_in_limbo = yes
+            artist_skill = 0.8
+            artist = architect
+            estate = estate_type:burghers_estate
+            save_scope_as = target_character
+        }
+	}
+	
+	option = {
+		name = iberian_culture.19.a
+		change_gold_effect = { scale = -2 }
+		culture = {
+			add_cultural_tradition = cultural_tradition_mild_bonus
+			add_cultural_influence = cultural_influence_mild_bonus
+		}
+		scope:target_character = {
+			move_country = root
+		}
+	}
+	
+	option = {
+		name = iberian_culture.19.b
+		add_prestige = prestige_weak_penalty
+		hidden_effect = { kill_character_silently = scope:target_character }
+	}
+}
+
+iberian_culture.20 = { #The Protorrenacimiento
+	type = country_event
+	title = iberian_culture.20.title
+	desc = iberian_culture.20.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		knows_about_institution = institution:renaissance
+		NOT = { has_embraced_institution = institution:renaissance }
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+	}
+	
+	option = {
+		name = iberian_culture.20.a
+		change_gold_effect = { scale = -2 }
+		capital = { 
+			change_prosperity = prosperity_severe_bonus
+			change_institution_progress = { type = institution:renaissance value = institution_progress_severe_bonus }
+		}
+		change_societal_value = { type = traditionalist_vs_innovative value = societal_value_move_to_right }
+	}
+	
+	option = {
+		name = iberian_culture.20.b
+		change_societal_value = { type = traditionalist_vs_innovative value = societal_value_move_to_left }
+	}
+}
+
+iberian_culture.21 = { #Cristianos Nuevos
+	type = country_event
+	title = iberian_culture.21.title
+	desc = iberian_culture.21.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+		region:iberia_region = {
+			any_location_in_region = {
+				owner ?= root
+				any_pop = {
+					religion = religion:judaism
+				}
+			}
+		}
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+		region:iberia_region = {
+			random_location_in_region = {
+				limit = {
+					owner = root
+					any_pop = {
+						religion = religion:judaism
+					}
+				}
+				save_scope_as = target_location
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.21.a
+		scope:target_location = {
+			every_pop = {
+				limit = {
+					religion = religion:judaism
+				}
+				split_pop = {
+					fraction = 0.1
+					religion = religion:catholic
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.21.b
+		scope:target_location = {
+			every_pop = {
+				limit = {
+					religion = religion:judaism
+				}
+				split_pop = {
+					fraction = 0.2
+					religion = religion:catholic
+				}
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+		custom_tooltip = {
+			text = iberian_culture.21.b.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:judaism
+					}
+					add_pop_satisfaction = pop_satisfaction_mild_penalty
+				}
+			}
+		}
+	}
+}
+
+iberian_culture.22 = { #The Running of the Bulls
+	type = country_event
+	title = iberian_culture.22.title
+	desc = iberian_culture.22.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		has_ruler = yes
+		owns = location:cuellar
+		current_month = 8
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		ruler = { save_scope_as = target_ruler }
+	}
+	
+	option = {
+		name = iberian_culture.22.a
+		change_gold_effect = { scale = -1 }
+		location:cuellar = {
+			change_prosperity = prosperity_severe_bonus
+		}
+		culture = {
+			add_cultural_tradition = cultural_tradition_weak_bonus
+		}
+	}
+	
+	option = {
+		name = iberian_culture.22.b
+		custom_tooltip = {
+			text = iberian_culture.22.b.tt
+			location:cuellar = {
+				every_pop = {
+					limit = {
+						owner ?= root
+					}
+					add_pop_satisfaction = pop_satisfaction_severe_penalty
+				}
+			}
+		}
+	}
+}
+
+iberian_culture.23 = { #The Cult of Alumbrados
+	type = country_event
+	title = iberian_culture.23.title
+	desc = iberian_culture.23.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+		religion:lutheran = { is_religion_enabled = yes }
+		NOT = {
+			has_variable = iberian_culture_alumbrados
+		}
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+	}
+	
+	option = {
+		name = iberian_culture.23.a
+		add_stability = stability_mild_penalty
+		add_religious_influence = religious_influence_weak_bonus
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+	}
+	
+	option = {
+		name = iberian_culture.23.b
+		custom_tooltip = iberian_culture.23.b.tt
+		add_stability = stability_mild_bonus
+		add_religious_influence = religious_influence_weak_penalty
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+		hidden_effect = {
+			random_list = {
+				50 = { set_variable = iberian_culture_alumbrados }
+				50 = { }
+			}
+		}
+	}
+}
+
+iberian_culture.24 = { #The Mask Falls
+	type = country_event
+	title = iberian_culture.24.title
+	desc = iberian_culture.24.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		religion = religion:catholic
+		religion:lutheran = { is_religion_enabled = yes }
+		has_variable = iberian_culture_alumbrados
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+		random_owned_location = {
+			limit = {
+				region = region:iberia_region
+			}
+			province = {
+				save_scope_as = target_province
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.24.a
+		add_religious_influence = religious_influence_mild_penalty
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_severe_penalty }
+		custom_tooltip = {
+			text = iberian_culture.24.a.tt
+			scope:target_province = {
+				every_location_in_province = {
+					every_pop = {
+						limit = {
+							religion = root.religion 
+						}
+						split_pop = {
+							fraction = 0.15
+							religion = religion:lutheran
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			text = iberian_culture.24.a.tt2
+			scope:target_province = {
+				every_location_in_province = {
+					every_pop = {
+						limit = {
+							owner ?= root
+							religion = religion:catholic
+						}
+						add_pop_satisfaction = pop_satisfaction_severe_penalty
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.24.b
+		add_religious_influence = religious_influence_weak_bonus
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+		custom_tooltip = {
+			text = iberian_culture.24.b.tt
+			scope:target_province = {
+				every_location_in_province = {
+					every_pop = {
+						limit = {
+							religion = root.religion 
+						}
+						split_pop = {
+							fraction = 0.05
+							religion = religion:lutheran
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			text = iberian_culture.24.b.tt2
+			scope:target_province = {
+				every_location_in_province = {
+					every_pop = {
+						limit = {
+							owner ?= root
+						}
+						add_pop_satisfaction = pop_satisfaction_mild_penalty
+					}
+				}
+			}
+		}
+	}
+	
+	after = {
+		remove_variable = iberian_culture_alumbrados
+	}
+}
+
+iberian_culture.25 = { #Preserving the Irrigation Systems
+	type = country_event
+	title = iberian_culture.25.title
+	desc = iberian_culture.25.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		area:granada_area = {
+			any_location_in_area = {
+				NOT = {
+					has_building = building_type:irrigation_systems
+				}
+				owner = root
+			}
+		}
+	}
+	
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		area:granada_area = {
+			random_location_in_area = {
+				limit = {
+					NOT = {
+						has_building = building_type:irrigation_systems
+					}
+					owner = root
+				}
+				save_scope_as = target_location
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.25.a
+		scope:target_location = {
+			change_prosperity = prosperity_mild_bonus
+			construct_building = { 
+				building_type = building_type:irrigation_systems
+				cost_multiplier = 0.5
+				cost_multiplier_reason = "royal_sponsorship"
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.25.b
+		add_prestige = prestige_weak_penalty
+		scope:target_location = {
+			change_prosperity = prosperity_mild_penalty
+		}
+	}
+}
+
+iberian_culture.26 = { #Road to Compostela
+	type = country_event
+	title = iberian_culture.26.title
+	desc = iberian_culture.26.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		area:galicia_area = {
+			any_location_in_area = {
+				is_connected_to = location:santiago_compostela
+				NOT = { has_road_to = location:santiago_compostela }
+				owner ?= root
+			}
+		}
+		gold > 70
+		at_war = no
+		owns = location:santiago_compostela
+	}
+	
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:peasants_estate }
+		area:galicia_area = {
+			random_location_in_area = {
+				limit = {
+					owner = root
+					is_connected_to = location:santiago_compostela
+					NOT = { has_road_to = location:santiago_compostela }
+				}
+				save_scope_as = target_location
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.26.a		
+		add_gold = -50
+		scope:target_location = {
+			change_development = development_severe_bonus
+			add_road_to = {
+				target = location:santiago_compostela
+				type = gravel_road
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.26.b		
+		add_estate_satisfaction = { type = estate_type:clergy_estate	value = estate_satisfaction_mild_penalty }
+	}
+}
+
+iberian_culture.27 = { #Fading Tradition
+	type = country_event
+	title = iberian_culture.27.title
+	desc = iberian_culture.27.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		area:galicia_area = {
+			any_location_in_area = {
+				owner ?= root
+			}
+		}
+		NOT = {
+			court_language = dialect:galician_dialect
+		}
+	}
+	
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+	}
+	
+	option = {
+		name = iberian_culture.27.a		
+		add_prestige = prestige_mild_bonus
+		culture:galician = { 
+			add_cultural_influence = cultural_influence_weak_bonus 
+			add_cultural_tradition = cultural_tradition_weak_bonus
+		}
+	}
+	
+	option = {
+		name = iberian_culture.27.b		
+		add_legitimacy = legitimacy_mild_bonus
+		culture:galician = { 
+			add_cultural_influence = cultural_influence_mild_penalty
+			add_cultural_tradition = cultural_tradition_mild_penalty
+		}
+		culture = { 
+			add_cultural_influence = cultural_influence_weak_bonus 
+			add_cultural_tradition = cultural_tradition_weak_bonus
+		}
+	}
+}
+
+iberian_culture.28 = { #Fishing Brotherhoods - Cofradías de Pescadores
+	type = country_event
+	title = iberian_culture.28.title
+	desc = iberian_culture.28.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		region:iberia_region = {
+			any_location_in_region = {
+				owner ?= root
+				raw_material = goods:fish
+				is_coastal = yes
+				NOT = {
+					has_location_modifier = iberian_culture_fishing_brotherhood
+				}
+			}
+		}
+	}
+	
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:peasants_estate background = estate_type:peasants_estate }
+		region:iberia_region = {
+			random_location_in_region = {
+				limit = {
+					owner ?= root
+					raw_material = goods:fish
+					is_coastal = yes
+					NOT = {
+						has_location_modifier = iberian_culture_fishing_brotherhood
+					}
+				}
+				save_scope_as = target_location
+			}
+		}
+	}
+	
+	option = {
+		name = iberian_culture.28.a		
+		scope:target_location = {
+			change_prosperity = prosperity_severe_bonus
+			add_location_modifier = { modifier = iberian_culture_fishing_brotherhood years = 20 mode = add }
+		}
+	}
+	
+	option = {
+		name = iberian_culture.28.b		
+		add_sailors = { value = monthly_sailors multiply = 1 }
+	}
+}
+
+iberian_culture.29 = { #Prosperity of Valencian Silk
+	type = country_event
+	title = iberian_culture.29.title
+	desc = iberian_culture.29.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		owns = location:valencia
+		location:valencia = { goods_output = { goods = goods:fine_cloth value > 0 } }
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+	}
+	
+	option = {
+		name = iberian_culture.29.a
+		change_gold_effect = { scale = -1 }
+		location:valencia = {
+			change_prosperity = prosperity_severe_bonus
+			change_development = development_severe_bonus
+		}
+		if = {
+			limit = {
+				has_advance = fine_cloth_mill_advance
+			}
+			location:valencia = {
+				change_building_level_in_location = {
+					building = building_type:fine_cloth_mill
+					value = 1
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_advance = fine_cloth_manufactory_advance
+			}
+			location:valencia = {
+				change_building_level_in_location = {
+					building = building_type:fine_cloth_manufactory
+					value = 1
+				}
+			}
+		}
+		else = {
+			location:valencia = {
+				change_building_level_in_location = {
+					building = building_type:fine_cloth_guild
+					value = 1
+				}
+			}
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+	}
+	
+	option = {
+		name = iberian_culture.29.b
+		change_gold_effect = { scale = 1 }
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_penalty }
+	}
+}
+
+iberian_culture.30 = { #The Vines of Rioja
+	type = country_event
+	title = iberian_culture.30.title
+	desc = iberian_culture.30.desc
+	outcome = neutral
+	
+    trigger = {
+        culture = { has_culture_group = culture_group:iberian_group }
+		OR = {
+			owns = location:laguardia
+			owns = location:logrono
+			owns = location:viana
+			owns = location:tudela
+		}
+		region:iberia_region = {
+			any_location_in_region = {
+				owner ?= root
+				raw_material = goods:wheat
+			}
+		}
+	}
+
+	illustration_tags = {
+        10 = regular
+        10 = exterior
+    }
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+		region:iberia_region = {
+			random_location_in_region = {
+				limit = {
+					owner = root
+					raw_material = goods:wheat
+				}
+				save_scope_as = target_location
+			}
+		}
+		random_owned_location = {
+			limit = {
+				OR = {
+					this = location:laguardia
+					this = location:logrono
+					this = location:viana
+					this = location:tudela
+				}
+			}
+			save_scope_as = origin_location
+		}
+	}
+	
+	option = {
+		name = iberian_culture.30.a
+		change_gold_effect = { scale = -1 }
+		scope:target_location = {
+			change_raw_material = goods:wine
+			change_prosperity = prosperity_severe_bonus
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+		add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_severe_penalty }
+	}
+	
+	option = {
+		name = iberian_culture.30.b
+		scope:origin_location = {
+			change_prosperity = prosperity_severe_bonus
+		}
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_penalty }
+		add_estate_satisfaction = { type = estate_type:peasants_estate value = estate_satisfaction_severe_bonus }
+	}
+}
+	

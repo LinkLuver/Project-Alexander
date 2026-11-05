@@ -1,0 +1,2286 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = maghrebi_culture
+namespace = maghrebi_cultural_change_events
+
+maghrebi_culture.1 = { # <Jewish> Community of <Location>
+    type = country_event
+    title = maghrebi_culture.1.title
+    desc = maghrebi_culture.1.desc
+    outcome = neutral
+
+    trigger = {
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        "religion_percentage_in_country(religion:judaism)" > 0.001
+        NOT = { has_variable = maghreb_jewish_community_cooldown }
+        root.capital.region = {
+            any_location_in_region = {
+                owner ?= root
+                any_pop = {
+                    owner = root
+                    OR = {
+                        culture = culture:mustaarabi
+                        culture = culture:sephardi
+                    }
+                    religion = religion:judaism
+                }
+            }
+        }
+    }
+
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:clergy_estate }
+          root.capital.region = {
+            random_location_in_region = {
+                limit = {
+                    owner ?= root
+                    any_pop = {
+                        owner = root
+                        OR = {
+                            culture = culture:mustaarabi
+                            culture = culture:sephardi
+                        }
+                        religion = religion:judaism
+                    }
+                }
+                save_scope_as = target_location
+            }
+        }
+        set_variable = {
+            name = maghreb_jewish_community_cooldown
+            value = 1
+            years = 20
+        }  
+    }	
+
+
+    option = { # Grant special privileges to the local jewish pops
+        name = maghrebi_culture.1.a
+        add_government_power = government_power_extreme_bonus
+        scope:target_location = {
+            change_development = development_mild_bonus
+            change_prosperity = prosperity_mild_bonus
+        }
+        add_estate_satisfaction = {
+            type = estate_type:dhimmi_estate
+            value = estate_satisfaction_mild_bonus
+        }
+        add_estate_satisfaction = {
+            type = estate_type:clergy_estate
+            value = estate_satisfaction_mild_penalty
+        }
+    }
+
+    option = { # Force them to convert
+        name = maghrebi_culture.1.b
+        add_stability = stability_weak_penalty
+        add_political_influence = political_influence_mild_bonus
+        add_estate_satisfaction = {
+            type = estate_type:dhimmi_estate
+            value = estate_satisfaction_extreme_penalty
+        }
+        add_estate_satisfaction = {
+            type = estate_type:clergy_estate
+            value = estate_satisfaction_mild_bonus
+        }
+        scope:target_location = {
+            every_pop = {
+                limit = {
+                    OR = {
+                        culture = culture:mustaarabi
+                        culture = culture:sephardi
+                    }
+                    religion = religion:judaism
+                }
+                split_pop = {
+                    fraction = 0.33
+                    religion = root.religion
+                }
+            }
+        }
+    }
+}
+
+maghrebi_culture.2 = { # The Ibadi Lands of the Maghreb
+    type = country_event
+    title = maghrebi_culture.2.title
+    desc = maghrebi_culture.2.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        religion = religion:ibadi
+        at_war = no
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        NOT = { has_variable = maghreb_got_ibadi_homeland_of_the_maghreb } 
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        set_variable = {
+            name = maghreb_got_ibadi_homeland_of_the_maghreb
+            value = 1
+            years = 200
+        } 
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # We shall pave the way for a strong ibadi state
+        name = maghrebi_culture.2.a		
+        add_country_modifier = { modifier = maghrebi_culture_pave_way_for_new_strong_ibadi_state years = 20 mode = add }			
+    }
+    option = { # We should instead focus on our own path
+        name = maghrebi_culture.2.b	
+        add_country_modifier = { modifier = maghrebi_culture_on_our_own_path years = 20 mode = add }			
+    }
+}
+
+maghrebi_culture.3 = { # Resurgence of Ibadism Rulership over the Maghreb
+    type = country_event
+    title = maghrebi_culture.3.title
+    desc = maghrebi_culture.3.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion = religion:ibadi
+        NOT = { has_variable = maghreb_ibadi_resurgence_of_ibadism }
+        region:maghreb_region = {
+            any_location_in_region = {
+                owner ?= ROOT
+                count > 30
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        set_variable = {
+            name = maghreb_ibadi_resurgence_of_ibadism
+            value = 1
+            years = 400
+        } 
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+    option = { # Seek coexistence with our brethen
+        name = maghrebi_culture.3.a	
+        add_prestige = prestige_extreme_bonus
+        add_stability = stability_mild_bonus
+        add_country_modifier = { modifier = maghrebi_culture_ibadi_tolerate_our_brethren years = 25 mode = add }			
+    }
+    option = { # We shall spread Ibadism once more across the Maghreb
+        name = maghrebi_culture.3.b		
+        add_prestige = prestige_extreme_bonus
+        add_legitimacy = legitimacy_mild_bonus
+        add_country_modifier = { modifier = maghrebi_culture_ibadi_reconvert_the_maghreb years = 25 mode = add }			
+    }
+}
+
+maghrebi_culture.4 = { # The Fledgling Ibadi States
+    type = country_event
+    title = maghrebi_culture.4.title
+    desc = maghrebi_culture.4.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        NOT = { religion = religion:ibadi }
+        any_neighbor_country = {
+            religion = religion:ibadi
+            capital = { region = region:maghreb_region }
+            NOT = { is_subject_of = root }
+        }
+        NOT = { has_variable = maghreb_nonibadi_ibadi_heartland_event } 
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        random_neighbor_country = {
+            limit = { 
+                religion = religion:ibadi
+                capital = { region = region:maghreb_region }
+                NOT = { is_subject_of = root }
+            }
+            save_scope_as = target_country
+        }
+        set_variable = {
+            name = maghreb_nonibadi_ibadi_heartland_event
+            value = 1
+            years = 75
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Exploit the weakness of <target_country>!
+        name = maghrebi_culture.4.a	
+        add_casus_belli = {
+            target = scope:target_country
+            type = casus_belli:cb_annex
+        }				
+    }
+    option = { # They are far too fractured and remote to pose a threat.
+        name = maghrebi_culture.4.b
+        add_stability = stability_mild_bonus		
+    }
+}
+
+maghrebi_culture.5 = { # Fate of the Maghreb Ibadi Remnants 
+    type = country_event
+    title = maghrebi_culture.5.title
+    desc = maghrebi_culture.5.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        is_subject = no
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        NOT = { religion = religion:ibadi }
+        scripted_geography:ibadi_heartland_of_the_maghreb = {
+            any_location_in_scripted_geography = {
+                owner ?= ROOT
+                count > 16
+            }
+        }
+        NOT = { has_variable = maghreb_conquest_of_maghreb_ibadi_populace } 
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        set_variable = {
+            name = maghreb_conquest_of_maghreb_ibadi_populace
+            value = 1
+            years = -1
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # They must turn towards <root_religion>
+        name = maghrebi_culture.5.a	
+        add_prestige = prestige_extreme_bonus	
+        add_legitimacy = legitimacy_mild_bonus			
+        add_country_modifier = { modifier = maghrebi_culture_reconvert_the_maghrebi_ibadi years = 25 mode = add }	
+    }
+    option = { # Aim to instead peacefully integrate the ibadi populace
+        name = maghrebi_culture.5.b
+        add_prestige = prestige_extreme_bonus
+        add_stability = stability_mild_bonus	
+        add_country_modifier = { modifier = maghrebi_culture_tolerate_the_ibadi_populace years = 25 mode = add }		
+    }
+}
+
+maghrebi_culture.6 = { # Growing Influence of <country>
+    type = country_event
+    title = maghrebi_culture.6.title
+    desc = maghrebi_culture.6.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        culture = { has_culture_group = culture_group:amazigh_group }
+        country_exists = c:TUN
+        country_exists = c:MOR
+        religion.group = religion_group:muslim
+        NOT = { tag = TUN }
+        NOT = { tag = MOR }
+        NOT = { tag = TLE }
+        NOT = { tag = GRA }
+        NOT = { tag = ADU }
+        num_locations > 30
+        NOT = { has_variable = maghreb_growing_influence_of_minor_power }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        c:TUN ?= {
+            save_scope_as = target_country
+        }
+        c:MOR ?= {
+            save_scope_as = target_country_1
+        }
+        set_variable = {
+            name = maghreb_growing_influence_of_minor_power
+            value = 1
+            years = 300
+        }  
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # We shall bring the Maghreb under <dynasty> rule!
+        name = maghrebi_culture.6.a		
+        add_prestige = prestige_extreme_bonus
+        add_political_influence = political_influence_extreme_bonus
+        add_country_modifier = { modifier = maghrebi_culture_growing_influence_throughout_the_maghreb years = 30 mode = add }	
+    }
+}
+
+maghrebi_culture.7 = { # Palm Irrigation of <location>
+    type = country_event
+    title = maghrebi_culture.7.title
+    desc = maghrebi_culture.7.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        NOT = { has_variable = got_palm_irrigation_location_event }
+        region:maghreb_region = {
+            any_location_in_region = {
+                owner ?= ROOT
+                climate = arid
+                OR = {
+                    vegetation = desert
+                    vegetation = sparse
+                }
+                NOT = { has_building = building_type:maghreb_palm_irrigation }
+                count > 3
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = got_palm_irrigation_location_event
+            value = 1
+            years = 25
+        } 	
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        region:maghreb_region = {
+            random_location_in_region = {
+                limit = {
+                    owner ?= root
+                    climate = arid
+                    OR = {
+                        vegetation = desert
+                        vegetation = sparse
+                    }
+                    NOT = { has_building = building_type:maghreb_palm_irrigation }
+                }
+                save_scope_as = target_location
+            }
+            save_scope_as = capital_region
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Offer resources to the local <burghers> to establish the irrigation network
+        name = maghrebi_culture.7.a		
+        scope:target_location = {
+            change_development = development_mild_bonus
+            construct_building = {
+                building_type = building_type:maghreb_palm_irrigation
+                cost_multiplier = 0.5
+                cost_multiplier_reason = "royal_sponsorship"
+            }
+        }
+    }
+    option = { # We cannot spare the resources
+        name = maghrebi_culture.7.b		
+        add_prestige = prestige_weak_penalty	
+    }
+}
+
+maghrebi_culture.8 = { # Sophisticated Architecture of <location>
+    type = country_event
+    title = maghrebi_culture.8.title
+    desc = maghrebi_culture.8.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        NOT = { has_variable = got_maghreb_architecture_event }
+        region:maghreb_region = {
+            any_location_in_region = {
+                owner ?= ROOT
+                vegetation = desert
+                count > 1
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }
+        region:maghreb_region = {
+            random_location_in_region = {
+                limit = {
+                    owner ?= root
+                    vegetation = desert
+                }
+                save_scope_as = target_location
+            }
+        }
+        set_variable = {
+            name = got_maghreb_architecture_event
+            value = 1
+            years = 50
+        } 	
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+    option = { # We could learn from the peoples of <location>
+        name = maghrebi_culture.8.a
+        add_gold = {
+            value = root.monthly_income_trade_and_tax
+            multiply = -3
+        }
+        add_country_modifier = { modifier = maghrebi_culture_learn_from_desert_architecture years = 20 mode = add }			
+    }
+    option = { # The peoples of <location> resilience is impressive
+        name = maghrebi_culture.8.b	
+        add_gold = {
+            value = root.monthly_income_trade_and_tax
+            multiply = -1
+        }		
+        scope:target_location = {
+            add_location_modifier = {
+                modifier = maghrebi_culture_sophisticated_architecture
+                years = 40
+                mode = add_and_extend
+            }
+        }
+    }
+}
+
+maghrebi_culture.9 = { # Traditions of the Amazigh # Only for traditional Amazigh cultures
+    type = country_event
+    title = maghrebi_culture.9.title
+    desc = maghrebi_culture.9.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        culture = { has_culture_group = culture_group:amazigh_group }
+        country_has_estate = estate_type:tribes_estate
+        religion.group = religion_group:muslim
+        NOT = { has_country_modifier = maghrebi_culture_welcomed_arab_elite }
+        NOT = { has_country_modifier = maghrebi_culture_preserve_amazigh_traditions }
+        NOT = { has_variable = maghreb_got_traditions_event }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        set_variable = {
+            name = maghreb_got_traditions_event
+            value = 1
+            years = 200
+        } 
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # We should strive to work with the Arabized elite
+        name = maghrebi_culture.9.a
+        add_research_progress = research_progress_severe_bonus
+        add_country_modifier = { modifier = maghrebi_culture_welcomed_arab_elite years = 30 mode = add }	
+        add_estate_satisfaction = {
+            type = estate_type:nobles_estate
+            value = estate_satisfaction_mild_bonus
+        }
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_mild_penalty
+        }			
+    }
+    option = { # We should instead preserve <culture> traditions
+        name = maghrebi_culture.9.b	
+        culture ?= {
+            add_cultural_tradition = cultural_tradition_ultimate_bonus
+        }	
+        add_country_modifier = { modifier = maghrebi_culture_preserve_amazigh_traditions years = 30 mode = add }
+        add_estate_satisfaction = {
+            type = estate_type:nobles_estate
+            value = estate_satisfaction_mild_penalty
+        }
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_mild_bonus
+        }				
+    }
+}
+
+maghrebi_culture.10 = { # Growing Importance of <LOCATION> to Saharan Trade
+    type = country_event
+    title = maghrebi_culture.10.title
+    desc = maghrebi_culture.10.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        NOT = { has_variable = maghreb_got_saharan_trade_event }
+        area:desert_area = {
+            any_location_in_area = {
+                owner ?= ROOT
+                count > 4
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        area:desert_area = {
+            random_location_in_area = {
+                limit = {
+                    owner ?= root
+                }
+                save_scope_as = target_location
+            }
+        }
+        set_variable = {
+            name = maghreb_got_saharan_trade_event
+            value = 1
+            years = 100
+        } 
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Offer resources to <location> to help grow the <location_rank>
+        name = maghrebi_culture.10.a	
+        add_estate_satisfaction = {
+            type = estate_type:burghers_estate
+            value = estate_satisfaction_mild_bonus
+        }
+        add_gold = {
+            value = root.monthly_income_trade_and_tax
+            multiply = -3
+        }
+        scope:target_location = {
+            add_location_modifier = {
+                modifier = maghrebi_culture_important_saharan_trade_post
+                years = 100
+                mode = add_and_extend
+            }
+        }
+    }
+    option = { # <location> does not need our help
+        name = maghrebi_culture.10.b
+        add_estate_satisfaction = {
+            type = estate_type:burghers_estate
+            value = estate_satisfaction_mild_penalty
+        }
+        add_prestige = prestige_weak_penalty
+        add_stability = stability_mild_bonus		
+    }
+}
+
+maghrebi_culture.11 = { # Flourishing Agriculture in <location>
+    type = country_event
+    title = maghrebi_culture.11.title
+    desc = maghrebi_culture.11.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        NOT = { has_variable = maghreb_got_flourishing_agriculture_event }
+        region:maghreb_region = {
+            any_location_in_region = {
+                owner ?= ROOT
+                climate = arid
+                OR = {
+                    vegetation = desert
+                    vegetation = sparse
+                }
+                has_building = building_type:maghreb_palm_irrigation
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_got_flourishing_agriculture_event
+            value = 1
+            years = 26
+        } 
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        region:maghreb_region = {
+            random_location_in_region = {
+                limit = {
+                    owner ?= root
+                    climate = arid
+                    OR = {
+                        vegetation = desert
+                        vegetation = sparse
+                    }
+                    has_building = building_type:maghreb_palm_irrigation
+                }
+                save_scope_as = target_location
+            }
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Excellent
+        name = maghrebi_culture.11.a		
+        scope:target_location = {
+            change_development = development_severe_bonus
+            add_location_modifier = {
+                modifier = maghrebi_culture_palm_irrigation_yields_benefits
+                years = 25
+                mode = add_and_extend
+            }
+        }
+    }
+}
+
+maghrebi_culture.12 = { # Under Hafsid Rule ## For Tunis subject countries
+    type = country_event
+    title = maghrebi_culture.12.title
+    desc = maghrebi_culture.12.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        country_exists = c:TUN
+        culture = { has_culture_group = culture_group:amazigh_group }
+        religion.group = religion_group:muslim
+        is_subject_of = c:TUN
+        c:TUN ?= {
+            has_ruler = yes
+            ruler ?= { 
+                has_dynasty = yes
+                dynasty ?= dynasty:hafsid_dynasty
+            }
+        }
+        NOT = { has_variable = maghreb_got_subject_of_tunis_event }
+        country_has_estate = estate_type:tribes_estate
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_got_subject_of_tunis_event
+            value = 1
+            years = 200
+        } 
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        c:TUN ?= {
+            save_scope_as = target_country
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # The Hafsids have provided extensive protection towards <country>.
+        name = maghrebi_culture.12.a		
+        add_prestige = prestige_severe_penalty
+        add_stability = stability_mild_bonus	
+        add_country_modifier = { modifier = maghrebi_culture_tunis_benevolent_vassalage years = 20 mode = add }
+    }
+    option = { # it is time we broke free from the Hafsid yoke.
+        name = maghrebi_culture.12.b	
+        add_prestige = prestige_mild_bonus
+        add_stability = stability_weak_penalty
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_mild_bonus
+        }
+        add_country_modifier = { modifier = maghrebi_culture_tunis_break_free_from_tunisian_yoke years = 20 mode = add }		
+    }
+}
+
+maghrebi_culture.13 = { # Tunisian Noble Meddling in Internal Affairs
+    type = country_event
+    title = maghrebi_culture.13.title
+    desc = maghrebi_culture.13.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        country_exists = c:TUN
+        culture = { has_culture_group = culture_group:amazigh_group }
+        religion.group = religion_group:muslim
+        is_subject_of = c:TUN
+        country_has_estate = estate_type:tribes_estate
+        NOT = { has_variable = maghreb_got_meddling_tunisian_noble_event } 
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_got_meddling_tunisian_noble_event
+            value = 1
+            years = 25
+        }
+        c:TUN ?= {
+            save_scope_as = target_country
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        create_character = {
+            adm = { 60 80 }
+            dip = { 50 78 }
+            mil = { 32 48 }
+            age = { 28 38 }
+            create_in_limbo = yes
+            estate = estate_type:nobles_estate
+            save_scope_as = target_character
+            culture = culture:tunisian
+            religion = religion:sunni
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Exile the rogue noble from <country>!
+        name = maghrebi_culture.13.a	
+        add_prestige = prestige_mild_bonus	
+        add_estate_satisfaction = {
+            type = estate_type:nobles_estate
+            value = estate_satisfaction_mild_penalty
+        }
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_severe_bonus
+        }		
+        scope:target_character = { move_country = c:TUN }	
+    }
+    option = { # Allow him to remain in the <court>.
+        name = maghrebi_culture.13.b
+        add_prestige = prestige_weak_penalty
+        scope:target_character = { move_country = root }
+        add_estate_satisfaction = {
+            type = estate_type:nobles_estate
+            value = estate_satisfaction_mild_bonus
+        }
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_severe_penalty
+        }			
+    }
+}
+
+maghrebi_culture.14 = { # Tribal Incursion in <location>
+    type = country_event
+    title = maghrebi_culture.14.title
+    desc = maghrebi_culture.14.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        NOT = { has_variable = maghreb_got_tribal_incursion_event } 
+        country_has_estate = estate_type:tribes_estate
+        any_owned_location = {
+            location_rank = location_rank:town
+            OR = {
+                vegetation = desert
+                vegetation = sparse
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_got_tribal_incursion_event
+            value = 1
+            years = 25
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        random_owned_location = {
+            limit = { 
+                location_rank = location_rank:town
+                OR = {
+                    vegetation = desert
+                    vegetation = sparse
+                }
+            }
+            save_scope_as = target_location
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Reprimand the tribal leaders of <location>.
+        name = maghrebi_culture.14.a	
+        add_stability = stability_mild_bonus
+        scope:target_location = {
+            change_prosperity = prosperity_mild_penalty
+        }
+        add_estate_satisfaction = {
+            type = estate_type:burghers_estate
+            value = estate_satisfaction_mild_bonus
+        }
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_mild_penalty
+        }
+        add_gold_to_estate = {
+            estate_type = estate_type:tribes_estate
+            value = {
+                value = root.estate_tax_base:burghers_estate
+                multiply = -2
+            }
+        }	
+        add_gold_to_estate = {
+            estate_type = estate_type:burghers_estate
+            value = {
+                value = root.estate_tax_base:burghers_estate
+                multiply = 1
+            }
+        }			
+    }
+    option = { # Side with the tribal leaders and lessen <burghers> influence in <location>.
+        name = maghrebi_culture.14.b
+        add_legitimacy = legitimacy_mild_bonus
+        scope:target_location = {
+            change_prosperity = prosperity_mild_penalty
+        }
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_mild_penalty
+        }
+        add_estate_satisfaction = {
+            type = estate_type:burghers_estate
+            value = estate_satisfaction_weak_bonus
+        }
+        add_gold = {
+            value = root.monthly_income_trade_and_tax
+            multiply = -2
+        }
+        add_gold_to_estate = {
+            estate_type = estate_type:burghers_estate
+            value = {
+                value = root.estate_tax_base:burghers_estate
+                multiply = 1
+            }
+        }				
+    }
+    option = { # Side with the <burghers> and clamp down on the tribal leaders of <location>.
+        name = maghrebi_culture.14.c
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_severe_bonus
+        }
+        add_estate_satisfaction = {
+            type = estate_type:burghers_estate
+            value = estate_satisfaction_extreme_penalty
+        }			
+    }
+}
+
+maghrebi_culture.15 = { # Rising Support Amongst the Amazigh Tribes
+    type = country_event
+    title = maghrebi_culture.15.title
+    desc = maghrebi_culture.15.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        culture = { has_culture_group = culture_group:maghrebi_group }
+        religion.group = religion_group:muslim
+        country_has_estate = estate_type:tribes_estate
+        OR = {
+            has_accepted_culture = culture:chaoui
+            has_accepted_culture = culture:eastern_amazigh
+            has_accepted_culture = culture:guanche
+            has_accepted_culture = culture:kabyle
+            has_accepted_culture = culture:masmuda
+            has_accepted_culture = culture:mozabite
+            has_accepted_culture = culture:sanhaja
+            has_accepted_culture = culture:tuareg
+            has_accepted_culture = culture:zenati
+        }
+        NOT = { has_variable = maghreb_rising_support_arabized_culture_event }
+        num_locations > 21
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_rising_support_arabized_culture_event
+            value = 1
+            years = 200
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        random_accepted_culture = {
+            limit = {
+                language ?= language:tamazight_language
+            }
+            save_scope_as = target_culture
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # We welcome their support!
+        name = maghrebi_culture.15.a		
+        add_legitimacy = legitimacy_mild_bonus
+        add_country_modifier = { modifier = maghrebi_culture_support_from_amazigh_tribes years = 20 mode = add }			
+    }
+    option = { # Leverage their support to bolster our influence across the maghreb.
+        name = maghrebi_culture.15.b	
+        add_prestige = prestige_mild_bonus
+        add_country_modifier = { modifier = maghrebi_culture_leverage_amazigh_tribal_loyalty years = 20 mode = add } 		
+    }
+}
+
+maghrebi_culture.16 = { # Arabized culture recieves a Amazigh general
+    type = country_event
+    title = maghrebi_culture.16.title
+    desc = maghrebi_culture.16.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        culture = { has_culture_group = culture_group:maghrebi_group }
+        religion.group = religion_group:muslim
+        OR = {
+            has_accepted_culture = culture:chaoui
+            has_accepted_culture = culture:eastern_amazigh
+            has_accepted_culture = culture:guanche
+            has_accepted_culture = culture:kabyle
+            has_accepted_culture = culture:masmuda
+            has_accepted_culture = culture:mozabite
+            has_accepted_culture = culture:sanhaja
+            has_accepted_culture = culture:tuareg
+            has_accepted_culture = culture:zenati
+        }
+        NOT = { has_variable = maghreb_arabized_got_tribal_general_event }
+        country_has_estate = estate_type:tribes_estate
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_arabized_got_tribal_general_event
+            value = 1
+            years = 50
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        random_accepted_culture = {
+            limit = {
+                language = language:tamazight_language
+            }
+            save_scope_as = target_culture
+        }
+        create_character = {
+            adm = { 40 66 }
+            dip = { 40 66 }
+            mil = { 67 95 }
+            age = { 23 35 }
+            create_in_limbo = yes
+            estate = estate_type:tribes_estate
+            save_scope_as = target_character
+            culture = scope:target_culture
+            add_trait = trait:offensive_planner
+            add_character_modifier = {
+                modifier = character_may_lead_armies
+                years = -1
+                mode = add
+            }
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Welcome him to the court
+        name = maghrebi_culture.16.a			
+        scope:target_character = { move_country = root }	
+        culture ?= {
+            add_cultural_influence = cultural_influence_mild_penalty
+        }
+        add_estate_satisfaction = {
+            type = estate_type:nobles_estate
+            value = estate_satisfaction_mild_penalty
+        }
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_mild_bonus
+        }	
+    }
+    option = { # Refuse to employ the general
+        name = maghrebi_culture.16.b	
+        add_prestige = prestige_mild_bonus
+        kill_character_silently = scope:target_character
+        culture ?= {
+            add_cultural_influence = cultural_influence_mild_bonus
+        }
+        add_estate_satisfaction = {
+            type = estate_type:nobles_estate
+            value = estate_satisfaction_mild_bonus
+        }
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_mild_penalty
+        }		
+    }
+}
+
+maghrebi_culture.17 = { # Loyal Tribes to Amazigh provide a good general
+    type = country_event
+    title = maghrebi_culture.17.title
+    desc = maghrebi_culture.17.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        culture = { has_culture_group = culture_group:amazigh_group }
+        religion.group = religion_group:muslim
+        OR = {
+            has_accepted_culture = culture:chaoui
+            has_accepted_culture = culture:eastern_amazigh
+            has_accepted_culture = culture:guanche
+            has_accepted_culture = culture:kabyle
+            has_accepted_culture = culture:masmuda
+            has_accepted_culture = culture:mozabite
+            has_accepted_culture = culture:sanhaja
+            has_accepted_culture = culture:tuareg
+            has_accepted_culture = culture:zenati
+        }
+        NOT = { has_variable = maghreb_amazigh_got_tribal_general_event }
+        country_has_estate = estate_type:tribes_estate
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_amazigh_got_tribal_general_event
+            value = 1
+            years = 50
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        create_character = {
+            adm = { 50 63 }
+            dip = { 50 63 }
+            mil = { 75 90 }
+            age = { 23 35 }
+            create_in_limbo = yes
+            estate = estate_type:tribes_estate
+            save_scope_as = target_character
+            add_trait = trait:goal_oriented
+            add_character_modifier = {
+                modifier = character_may_lead_armies
+                years = -1
+                mode = add
+            }
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Accept the offering from the Tribes
+        name = maghrebi_culture.17.a			
+        scope:target_character = { move_country = root }	
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_mild_bonus
+        }	
+    }
+    option = { # We cannot risk granting further influence to the tribes.
+        name = maghrebi_culture.17.b	
+        add_prestige = prestige_mild_bonus
+        culture ?= {
+            add_cultural_tradition = cultural_tradition_mild_penalty
+        }
+        kill_character_silently = scope:target_character
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_mild_penalty
+        }	
+        add_country_modifier = { modifier = maghrebi_culture_rejected_tribal_general years = 10 mode = add }		
+    }
+}
+
+maghrebi_culture.18 = { # Growing Prominence of the <dynasty>
+    type = country_event
+    title = maghrebi_culture.18.title
+    desc = maghrebi_culture.18.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        NOT = { tag = TUN }
+        NOT = { tag = MOR }
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        at_war = no
+        OR = {
+            has_accepted_culture = culture:chaoui
+            has_accepted_culture = culture:eastern_amazigh
+            has_accepted_culture = culture:guanche
+            has_accepted_culture = culture:kabyle
+            has_accepted_culture = culture:masmuda
+            has_accepted_culture = culture:mozabite
+            has_accepted_culture = culture:sanhaja
+            has_accepted_culture = culture:tuareg
+            has_accepted_culture = culture:zenati
+        }
+        NOT = { has_variable = maghreb_amazigh_got_growing_prominence_event }
+        num_locations > 40
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_amazigh_got_growing_prominence_event
+            value = 1
+            years = 150
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # We should seek allies to strengthen our position
+        name = maghrebi_culture.18.a	
+        add_diplomats = 3
+        add_country_modifier = { modifier = maghrebi_culture_seek_diplomatic_allies years = 25 mode = add }				
+    }
+    option = { # Focus instead on our internal politics
+        name = maghrebi_culture.18.b
+        add_stability = stability_severe_bonus	
+        add_country_modifier = { modifier = maghrebi_culture_focus_on_internal_affairs years = 25 mode = add }		
+    }
+}
+
+maghrebi_culture.19 = { # Shared Unity with the <culture> peoples
+    type = country_event
+    title = maghrebi_culture.19.title
+    desc = maghrebi_culture.19.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        culture = { has_culture_group = culture_group:amazigh_group }
+        religion.group = religion_group:muslim
+        OR = {
+            has_accepted_culture = culture:chaoui
+            has_accepted_culture = culture:eastern_amazigh
+            has_accepted_culture = culture:guanche
+            has_accepted_culture = culture:kabyle
+            has_accepted_culture = culture:masmuda
+            has_accepted_culture = culture:mozabite
+            has_accepted_culture = culture:sanhaja
+            has_accepted_culture = culture:tuareg
+            has_accepted_culture = culture:zenati
+        }
+        NOT = { has_variable = maghreb_amazigh_got_shared_unity_event }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_amazigh_got_shared_unity_event
+            value = 1
+            years = 80
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        random_accepted_culture = {
+            limit = {
+                language = language:tamazight_language
+            }
+            save_scope_as = target_culture
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # A strong unity will leave us unconquerable!
+        name = maghrebi_culture.19.a
+        scope:target_culture = {
+            change_cultural_view = {
+                target = root.culture
+                change = 2
+            }
+        } 					
+    }
+    option = { # We should use our unity to bolster our influence within the Maghreb
+        name = maghrebi_culture.19.b
+        culture ?= {
+            add_cultural_influence = cultural_influence_ultimate_bonus
+        }
+        add_political_influence = political_influence_extreme_bonus
+        scope:target_culture = {
+            change_cultural_view = {
+                target = root.culture
+                change = 1
+            }
+        } 			
+    }
+    option = { # The cultural bond between <root> and <target_culture> is unbreakable.
+        name = maghrebi_culture.19.c
+        trigger = {
+            scope:target_culture = {
+                cultural_view = {
+                    target = root.culture
+                    value >= kindred
+                }    
+            }   
+        }
+        culture ?= {
+            add_cultural_influence = cultural_influence_radical_bonus
+        }
+        add_prestige = prestige_extreme_bonus	
+        add_stability = stability_extreme_bonus		
+    }
+}
+
+maghrebi_culture.20 = { # Arabized Rule Over the Maghreb
+    type = country_event
+    title = maghrebi_culture.20.title
+    desc = maghrebi_culture.20.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        religion.group = religion_group:muslim
+        culture = { has_culture_group = culture_group:maghrebi_group }
+        OR = {
+            has_accepted_culture = culture:chaoui
+            has_accepted_culture = culture:eastern_amazigh
+            has_accepted_culture = culture:guanche
+            has_accepted_culture = culture:kabyle
+            has_accepted_culture = culture:masmuda
+            has_accepted_culture = culture:mozabite
+            has_accepted_culture = culture:sanhaja
+            has_accepted_culture = culture:tuareg
+            has_accepted_culture = culture:zenati
+        }
+        NOT = { has_variable = maghreb_arabized_got_assimilation_event }
+        region:maghreb_region = {
+            any_location_in_region = {
+                owner ?= ROOT
+                count > 40
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_arabized_got_assimilation_event
+            value = 1
+            years = 125
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        random_accepted_culture = {
+            limit = {
+                language = language:tamazight_language
+            }
+            save_scope_as = target_culture
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Strive to assimilate them into <culture> society
+        name = maghrebi_culture.20.a	
+        add_estate_satisfaction = {
+            type = estate_type:nobles_estate
+            value = estate_satisfaction_mild_bonus
+        }
+        add_political_influence = political_influence_extreme_bonus
+        culture ?= {
+            add_cultural_influence = cultural_influence_mild_bonus
+        }
+        remove_accepted_culture = scope:target_culture
+        add_country_modifier = { modifier = maghrebi_culture_assimilate_the_amazigh years = 50 mode = add }				
+    }
+    option = { # We should instead seek to integrate the <culture> peoples
+        name = maghrebi_culture.20.b
+        add_estate_satisfaction = {
+            type = estate_type:nobles_estate
+            value = estate_satisfaction_mild_penalty
+        }	
+        culture ?= {
+            add_cultural_influence = cultural_influence_extreme_penalty
+        }
+        scope:target_culture = {
+            change_cultural_view = {
+                target = root.culture
+                change = 1
+            }
+        }
+        add_country_modifier = { modifier = maghrebi_culture_strive_to_integrate_the_amazigh years = 50 mode = add }			
+    }
+}
+
+maghrebi_culture.21 = { # Plight of the Maghreb
+    type = country_event
+    title = maghrebi_culture.21.title
+    desc = maghrebi_culture.21.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        is_ai = no # Below trigger might be a bit too performance heavy
+        NOT = { has_variable = maghreb_got_plight_event }
+        region:iberia_region = {
+            NOT = {
+                any_location_in_region = {
+                    is_ownable = yes
+                    has_owner = yes
+                    owner = {
+                        religion.group = religion_group:muslim
+                    }
+                }
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_got_plight_event
+            value = 1
+            years = -1
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # We shall not yield!
+        name = maghrebi_culture.21.a	
+        add_stability = stability_mild_penalty	
+        change_societal_value = {
+            type = offensive_vs_defensive
+            value = societal_value_large_move_to_left
+        }
+        add_country_modifier = { modifier = maghrebi_culture_refuse_to_yield years = 20 mode = add }				
+    }
+
+    option = { # We should be wary of any potential invasions by the Iberians
+        name = maghrebi_culture.21.b
+        add_stability = stability_mild_penalty
+        change_societal_value = {
+            type = offensive_vs_defensive
+            value = societal_value_large_move_to_right
+        }
+        add_country_modifier = { modifier = maghrebi_culture_defense_against_iberia years = 20 mode = add }						
+    }	
+}
+
+maghrebi_culture.22 = { # Presence in the Mediterranean
+    type = country_event
+    title = maghrebi_culture.22.title
+    desc = maghrebi_culture.22.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        culture = { has_culture_group = culture_group:amazigh_group }
+        religion.group = religion_group:muslim
+        NOT = { has_variable = maghreb_got_mediterranean_presence_event }
+        region:maghreb_region = {
+            any_location_in_region = {
+                owner ?= ROOT
+                count > 12
+                is_coastal = yes
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_got_mediterranean_presence_event
+            value = 1
+            years = -1
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # We must move quickly to build a presence within the sea.
+        name = maghrebi_culture.22.a	
+        add_prestige = prestige_severe_bonus
+        culture ?= {
+            add_cultural_influence = cultural_influence_severe_bonus
+        }
+        change_societal_value = {
+            type = land_vs_naval
+            value = societal_value_large_move_to_right
+        }				
+    }
+    option = { # New routes for <culture> traders!
+        name = maghrebi_culture.22.b	
+        add_prestige = prestige_severe_bonus
+        culture ?= {
+            add_cultural_tradition = cultural_tradition_severe_bonus
+        }	
+        change_societal_value = {
+            type = land_vs_naval
+            value = societal_value_large_move_to_left
+        }	
+    }
+}
+
+maghrebi_culture.23 = { # Reckoning of the Arabized Elite
+    type = country_event
+    title = maghrebi_culture.23.title
+    desc = maghrebi_culture.23.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        culture = { has_culture_group = culture_group:amazigh_group }
+        religion.group = religion_group:muslim
+        OR = {
+            ROOT ?= { culture_percentage_in_country = { culture = culture:tunisian value >= 0.10 } }
+            ROOT ?= { culture_percentage_in_country = { culture = culture:algerian value >= 0.10 } }
+            ROOT ?= { culture_percentage_in_country = { culture = culture:moroccan value >= 0.10 } }
+        }
+        NOT = { has_variable = maghreb_amazigh_got_reckoning_event }	
+        region:maghreb_region = {
+            any_location_in_region = {
+                owner ?= ROOT
+                count > 50
+            }
+        }		
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_amazigh_got_reckoning_event
+            value = 1
+            years = -1
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+        random_present_culture_in_country = {
+            limit = {
+                has_culture_group = culture_group:arabic_group
+                has_culture_group = culture_group:maghrebi_group
+                NOT = { has_culture_group = culture_group:iberian_group }
+            }
+            save_scope_as = target_culture
+        }
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Strive for a compromise between the <culture> and <target_culture> elites.
+        name = maghrebi_culture.23.a	
+        add_prestige = prestige_severe_penalty
+        change_societal_value = { type = belligerent_vs_conciliatory value = societal_value_move_to_right }
+        add_country_modifier = { modifier = maghrebi_culture_compromise_with_arab_the_elite years = 50 mode = add }	
+    }
+    option = { # <target_culture> influence over the Maghreb has come to an end.
+        name = maghrebi_culture.23.b	
+        add_prestige = prestige_extreme_bonus
+        change_societal_value = { type = belligerent_vs_conciliatory value = societal_value_move_to_left }
+        scope:target_culture = {
+            add_cultural_tradition = cultural_tradition_radical_penalty
+            change_cultural_view = {
+                target = root.culture
+                change = -1
+            }
+        }		
+    }
+}
+
+maghrebi_culture.24 = { # New Berber Kilims
+    type = country_event
+    title = maghrebi_culture.24.title
+    desc = maghrebi_culture.24.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        NOT = { has_variable = maghreb_got_new_tapestry_event }
+        region:maghreb_region = {
+            any_location_in_region = {
+                AND = {
+                    raw_material ?= goods:dyes
+                    owner ?= ROOT
+                }
+                count > 4
+            }
+            any_location_in_region = {
+                AND = {
+                    raw_material ?= goods:wool
+                    owner ?= ROOT
+                }
+                count > 6
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_got_new_tapestry_event
+            value = 1
+            years = 35
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Reap the benefits of the new tapestry.
+        name = maghrebi_culture.24.a	
+        add_prestige = prestige_mild_bonus
+        culture ?= {
+            add_cultural_influence = cultural_influence_mild_bonus
+        }
+        add_country_modifier = { modifier = maghrebi_culture_new_kilims years = 10 mode = add }	
+        add_gold_to_estate = {
+            estate_type = estate_type:burghers_estate
+            value = {
+                value = root.estate_tax_base:peasants_estate
+                multiply = 1.5
+            }
+        }
+    }
+    option = { # We must continue to invest in the new tapestry!
+        name = maghrebi_culture.24.b		
+        add_prestige = prestige_severe_bonus
+        culture ?= {
+            add_cultural_influence = cultural_influence_severe_bonus
+        }
+        add_country_modifier = { modifier = maghrebi_culture_new_kilims years = 25 mode = add }	
+        add_gold = {
+            value = root.monthly_income_trade_and_tax
+            multiply = -2
+        }
+        add_gold_to_estate = {
+            estate_type = estate_type:burghers_estate
+            value = {
+                value = root.estate_tax_base:peasants_estate
+                multiply = 4
+            }
+        }			
+    }
+}
+
+maghrebi_culture.25 = { # Consolidation of Tribal Lands
+    type = country_event
+    title = maghrebi_culture.25.title
+    desc = maghrebi_culture.25.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        NOT = { tag = TUN }
+        NOT = { tag = MOR }
+        NOT = { tag = TLE }
+        NOT = { tag = GRA }
+        NOT = { tag = ADU }
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        country_rank_level >= 3
+        NOT = { has_variable = maghreb_got_consolidation_of_tribal_lands_event }
+        country_has_estate = estate_type:tribes_estate
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_got_consolidation_of_tribal_lands_event
+            value = 1
+            years = -1
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # It is time the <tribes_estate> be reined in.
+        name = maghrebi_culture.25.a	
+        add_legitimacy = legitimacy_mild_bonus
+        add_stability = stability_mild_penalty
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_severe_penalty
+        }	
+        add_country_modifier = { modifier = maghrebi_culture_rein_in_the_tribes years = 40 mode = add }
+    }
+    option = { # Maintain their autonomy to avoid internal strife.
+        name = maghrebi_culture.25.b	
+        add_stability = stability_mild_bonus
+        add_estate_satisfaction = {
+            type = estate_type:tribes_estate
+            value = estate_satisfaction_mild_bonus
+        }		
+        add_country_modifier = { modifier = maghrebi_culture_autonomy_for_the_tribes years = 25 mode = add }
+    }
+}
+
+maghrebi_culture.26 = { # Dominance Over the Maghreb
+    type = country_event
+    title = maghrebi_culture.26.title
+    desc = maghrebi_culture.26.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        country_rank_level >= 3
+        NOT = { has_variable = maghreb_got_dominance_over_the_maghreb_event }
+        region:maghreb_region = {
+            any_location_in_region = {
+                owner ?= ROOT
+                count > 110
+            }
+        }
+        country_rank_level >= 3
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_got_dominance_over_the_maghreb_event
+            value = 1
+            years = -1
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # We shall stand as the protectors of Ifriqiya
+        name = maghrebi_culture.26.a
+        add_prestige = prestige_radical_bonus
+        add_stability = stability_severe_bonus
+        add_country_modifier = { modifier = maghrebi_culture_heirs_of_the_almohads years = 50 mode = add }					
+    }
+}
+
+maghrebi_culture.27 = { # The <dynasty> Golden Age of the Maghreb
+    type = country_event
+    title = maghrebi_culture.27.title
+    desc = maghrebi_culture.27.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        at_war = no
+        stability > 50
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        country_rank_level >= 3
+        has_variable = maghreb_got_dominance_over_the_maghreb_event
+        NOT = { has_variable = maghreb_got_golden_age_of_the_maghreb_event }        
+        region:maghreb_region = {
+            any_location_in_region = {
+                owner ?= ROOT
+                count > 110
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_got_golden_age_of_the_maghreb_event
+            value = 1
+            years = -1
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # May the <dynasty> rule continue to bring prosperity
+        name = maghrebi_culture.27.a
+        add_research_progress = research_progress_ultimate_bonus
+        add_country_modifier = { modifier = maghrebi_culture_rebirth_of_the_maghreb years = 50 mode = add }					
+    }
+}
+
+maghrebi_culture.28 = { # Influence Over the Corsairs
+    type = country_event
+    title = maghrebi_culture.28.title
+    desc = maghrebi_culture.28.desc
+    outcome = neutral
+
+    trigger = {
+        has_ruler = yes
+        at_war = no
+        OR = {
+            culture = { has_culture_group = culture_group:amazigh_group }
+            culture = { has_culture_group = culture_group:maghrebi_group }
+        }
+        religion.group = religion_group:muslim
+        country_rank_level >= 3
+        NOT = { has_variable = maghreb_got_influence_over_the_corsairs_event }
+        region:maghreb_region = {
+            any_location_in_region = {
+                owner ?= ROOT
+                count > 38
+                is_coastal = yes
+            }
+        }
+    }
+    
+    immediate = {
+        event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+        set_variable = {
+            name = maghreb_got_influence_over_the_corsairs_event
+            value = 1
+            years = -1
+        }
+        ruler ?= {
+            save_scope_as = our_ruler
+        }	
+    }	
+    
+    illustration_tags = {
+        10 = regular
+        10 = interior
+    }	
+
+
+    option = { # Offer the full backing of the state
+        name = maghrebi_culture.28.a
+        add_navy_tradition = navy_tradition_extreme_bonus
+        add_legitimacy = legitimacy_mild_penalty
+        change_societal_value = {
+            type = land_vs_naval
+            value = societal_value_large_move_to_right
+        }
+        add_country_modifier = { modifier = maghrebi_culture_back_the_corsairs years = 30 mode = add }					
+    }
+
+    option = { # Allow the Corsairs to continue their operations
+        name = maghrebi_culture.28.b
+        add_stability = stability_severe_bonus	
+        change_societal_value = {
+            type = land_vs_naval
+            value = societal_value_move_to_right
+        }		
+    }	
+
+    option = { # Clamp down on the Corsair raids
+        name = maghrebi_culture.28.c
+        add_legitimacy = legitimacy_mild_bonus
+        change_societal_value = {
+            type = land_vs_naval
+            value = societal_value_large_move_to_left
+        }	
+        add_country_modifier = { modifier = maghrebi_culture_clamp_down_on_the_corsairs years = 30 mode = add }					
+    }	
+}
+
+scripted_effect cache_locations_in_maghreb_for_andalusian_migration = {
+	region:maghreb_region = {
+		every_ownable_location_in_region = {
+			limit = {
+				has_owner = yes
+				location_rank != location_rank:rural_settlement
+				owner.religion = religion:sunni
+			}
+			set_local_variable = {
+				name = rating_for_this
+				value = andalusi_migration_town_rating
+			}
+			add_to_local_variable_map = {
+				name = maghreb_towns
+				key = this
+				value = local_var:rating_for_this
+			}
+		}
+	}
+}
+
+scripted_effect select_target_location_for_andalusian_migration = {
+	random_key_in_local_variable_map = {
+		variable = maghreb_towns
+		weight = {
+			base = 1
+			modifier = {
+				factor = "local_variable_map(maghreb_towns|this)"
+			}
+		}
+		save_scope_as = $scope_name$
+	}
+}
+
+# Migration Controller event
+maghrebi_cultural_change_events.1000 = {
+	type = country_event
+	title = maghrebi_cultural_change_events.1000.title
+	desc = maghrebi_cultural_change_events.1000.desc
+	hidden = yes
+
+	trigger = {
+		has_presence_in = region:iberia_region
+		religion.group = religion_group:christian
+		culture = {
+			has_culture_group = culture_group:iberian_group
+		}
+		"religion_population_in_country(religion:sunni)" > 0
+	}
+
+	immediate = {
+		set_local_variable = {
+			name = percentage_to_flee
+			value = {
+				value = 0.0025 # What is the % of pops we expect to flee?
+				multiply = 4 # years delay between events to approximate
+			}
+		}
+	
+		change_local_variable = {
+			name = percentage_to_flee # A bit of a random spread
+			multiply = { 0.67 1.5 }
+		}
+
+		cache_locations_in_maghreb_for_andalusian_migration = yes
+
+		every_owned_location = {
+			limit = {
+				"religion_population(religion:sunni)" > 0
+			}
+			save_scope_as = target_source
+			select_target_location_for_andalusian_migration = { scope_name = target_destination }
+			save_scope_value_as = {
+				name = target_amount
+				value = {
+					value = "religion_population(religion:sunni)"
+					multiply = local_var:percentage_to_flee
+					min = { 0.1 0.3 }
+					max = { 6 12 }
+				}
+			}
+			root = {
+				trigger_event_non_silently = {
+					id = maghrebi_cultural_change_events.1001
+					months = { 0 48 }
+				}
+			}
+		}
+	}
+
+	option = {
+		name = maghrebi_cultural_change_events.1000.a
+		
+	}
+}
+
+maghrebi_cultural_change_events.1001 = {
+	type = country_event
+	title = maghrebi_cultural_change_events.1001.title
+	desc = maghrebi_cultural_change_events.1001.desc
+	hidden = yes
+
+	option = {
+		name = maghrebi_cultural_change_events.1001.a
+		
+		add_migration = {
+			owner = scope:target_source.owner
+			from_location = scope:target_source
+			to_location = scope:target_destination
+			religion = religion:sunni
+			amount = {
+				value = scope:target_amount
+				divide = 12
+			}
+			months = 12
+		}
+	}
+}
+
+# Assimilation of Berbers control event
+maghrebi_cultural_change_events.1002 = {
+	type = country_event
+	title = maghrebi_cultural_change_events.1002.title
+	desc = maghrebi_cultural_change_events.1002.desc
+	hidden = yes
+
+	trigger = {
+		culture = {
+			has_culture_group = culture_group:maghrebi_group
+		}
+	}
+
+	immediate = {
+		set_local_variable = {
+			name = quota_multiplier
+			value = {
+				value = 0.0025# What is the % of pops we expect to convert (at base value)?
+				multiply = 4 # years delay between events to approximate
+			}
+		}
+		every_owned_location = {
+			limit = {
+				amazigh_population > 0
+			}
+			save_scope_value_as = {
+				name = target_value
+				value = {
+					value = local_var:quota_multiplier
+					multiply = arabization_maghreb_rating
+				}
+			}
+			trigger_event_silently = {
+				on_action = maghrebi_location_conversion
+				months = { 0 48 }
+			}
+		}
+	}
+
+	option = {
+		name = maghrebi_cultural_change_events.1002.a
+		
+	}
+}
+
+# Andalusi Migrants criticize conditions in Maghreb
+maghrebi_cultural_change_events.1004 = {
+	type = country_event
+	title = maghrebi_cultural_change_events.1004.title
+	desc = maghrebi_cultural_change_events.1004.desc
+	outcome = negative
+
+	trigger = {
+		any_owned_non_rural_location = {
+			region = region:maghreb_region
+			any_pop = {
+				pop_type = pop_type:burghers
+				culture = culture:andalusi
+			}
+			any_pop = {
+				pop_type = pop_type:clergy
+				culture = {
+					has_culture_group = culture_group:maghrebi_group
+				}
+			}
+		}
+	}
+
+	immediate = {
+		random_owned_non_rural_location = {
+			limit = {
+				region = region:maghreb_region
+				any_pop = {
+					pop_type = pop_type:burghers
+					culture = culture:andalusi
+				}
+				any_pop = {
+					pop_type = pop_type:clergy
+					culture = {
+						has_culture_group = culture_group:maghrebi_group
+					}
+				}
+			}
+			save_scope_as = target_location
+		}
+		scope:target_location = {
+			random_pop = {
+				limit = {
+					pop_type = pop_type:burghers
+					culture = culture:andalusi
+				}
+				save_scope_as = target_pop
+			}
+			random_pop = {
+				limit = {
+					pop_type = pop_type:clergy
+					culture = {
+						has_culture_group = culture_group:maghrebi_group
+					}
+				}
+				save_scope_as = target_pop2
+			}
+		}
+		area:andalusia_area = {
+			random_location_in_area = {
+				limit = {
+					location_rank != location_rank:rural_settlement
+					owner.religion.group ?= religion_group:christian
+				}
+				save_scope_as = potential_return_location
+			}
+		}
+	}
+
+	illustration_tags = {
+		10 = angry
+		10 = exterior
+	}
+
+	option = {
+		name = maghrebi_cultural_change_events.1004.a
+
+		ai_chance = {
+			factor = 50
+		}
+		
+		scope:target_pop = {
+			add_pop_satisfaction = pop_satisfaction_severe_penalty
+		}
+		if = {
+			limit = {
+				exists = scope:potential_return_location
+			}
+			add_migration = {
+				from_location = scope:target_location
+				to_location = scope:potential_return_location
+				culture = culture:andalusi
+				amount = {
+					value = scope:target_pop.pop_size
+					divide = 12
+				}
+				months = 3
+				owner = ROOT
+			}
+		}
+		add_prestige = prestige_mild_bonus
+		add_research_progress = research_progress_severe_bonus
+	}
+
+	option = {
+		name = maghrebi_cultural_change_events.1004.b
+
+		ai_chance = {
+			factor = 50
+		}
+		
+		add_stability = stability_mild_bonus
+		scope:target_pop2 = {
+			add_pop_satisfaction = pop_satisfaction_severe_penalty
+		}
+
+		change_societal_value = {
+			type = individualism_vs_communalism
+			value = societal_value_move_to_right
+		}
+	}
+}
+

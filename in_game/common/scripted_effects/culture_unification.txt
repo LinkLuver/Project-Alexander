@@ -1,0 +1,72 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+assimilate_group_into_merged_culture = {
+	save_scope_as = assimilating_country
+	every_pop = {
+		limit = {
+			owner = scope:assimilating_country
+			culture = {
+				any_culture_group = {
+					this = scope:merged_group
+				}
+			}
+			NOT = { culture = scope:new_merged_culture }
+			NOT = { culture = { is_discriminated_in = scope:assimilating_country } }
+		}
+		split_pop = {
+			fraction = {
+				value = 0
+				if = {
+					limit = { culture = { is_accepted_in = scope:assimilating_country } }
+					add = 0.75
+				}
+				else_if = {
+					limit = { culture = { is_tolerated_in = scope:assimilating_country } }
+					add = 0.5
+				}
+				else = {
+					add = 0.25
+				}
+				if = {
+					limit = { culture.dialect = scope:new_merged_culture.dialect }
+					multiply = 1
+				}
+				else_if = {
+					limit = { culture.language = scope:new_merged_culture.language }
+					multiply = 0.75
+				}
+				else_if = {
+					limit = { culture.language.language_family ?= scope:new_merged_culture.language.language_family }
+					multiply = 0.5
+				}
+				else = {
+					multiply = 0.25
+				}
+				multiply = {
+					value = location.local_control
+					add = {
+						value = pop_satisfaction
+						min = 0
+						max = 1
+					}
+					divide = 2
+				}
+				min = 0
+				max = 1
+			}
+			culture = scope:new_merged_culture
+		}
+	}
+	every_character = {
+		limit = {
+			NOT = { culture = scope:new_merged_culture }
+			culture = {
+				is_primary_or_accepted_in = scope:assimilating_country
+				any_culture_group = {
+					this = scope:merged_group
+				}
+				language = scope:new_merged_culture.language
+			}
+		}
+		change_character_culture = scope:new_merged_culture
+	}
+}

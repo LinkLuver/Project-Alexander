@@ -1,0 +1,900 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+# Estate-driven culture-tier movement agendas
+# Estates lobby to move cultures up or down the ladder based on their dominant culture's cultural_view of them.
+# *_enemy and *_kindred variants are higher-importance, higher-frequency versions for extreme opinions.
+
+# Shared estate set (mirrors pa_accept_estate_culture)
+# nobles, clergy, burghers, peasants, tribes, cossacks, dhimmi
+
+# ============================================================================
+# DEMOTION AGENDAS (move cultures down the ladder)
+# ============================================================================
+
+pa_add_discriminated_culture = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.0
+
+	potential = {
+		any_present_culture_in_country = {
+			NOR = {
+				is_discriminated_in = root
+				this = root.culture
+				is_accepted_in = root
+			}
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = negative
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_present_culture_in_country = {
+			limit = {
+				NOR = {
+					is_discriminated_in = root
+					this = root.culture
+					is_accepted_in = root
+				}
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = negative
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		add_discriminated_culture = scope:chosen_culture
+		add_estate_satisfaction = { type = scope:target value = 0.05 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 1
+}
+
+pa_add_discriminated_culture_enemy = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.5
+
+	potential = {
+		any_present_culture_in_country = {
+			NOR = {
+				is_discriminated_in = root
+				this = root.culture
+			}
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = enemy
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_present_culture_in_country = {
+			limit = {
+				NOR = {
+					is_discriminated_in = root
+					this = root.culture
+				}
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = enemy
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		add_discriminated_culture = scope:chosen_culture
+		add_estate_satisfaction = { type = scope:target value = 0.15 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 1
+}
+
+pa_remove_tolerated_culture_negative = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.0
+
+	potential = {
+		any_present_culture_in_country = {
+			is_tolerated_in = root
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = negative
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_present_culture_in_country = {
+			limit = {
+				is_tolerated_in = root
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = negative
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		remove_tolerated_culture = scope:chosen_culture
+		add_estate_satisfaction = { type = scope:target value = 0.05 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 3
+}
+
+pa_remove_tolerated_culture_enemy = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.25
+
+	potential = {
+		any_present_culture_in_country = {
+			is_tolerated_in = root
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = enemy
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_present_culture_in_country = {
+			limit = {
+				is_tolerated_in = root
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = enemy
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		remove_tolerated_culture = scope:chosen_culture
+		add_estate_satisfaction = { type = scope:target value = 0.10 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 3
+}
+
+pa_remove_accepted_culture_negative = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.0
+
+	potential = {
+		any_present_culture_in_country = {
+			is_accepted_in = root
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = negative
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_present_culture_in_country = {
+			limit = {
+				is_accepted_in = root
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = negative
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		demote_accepted_culture = scope:chosen_culture
+		add_estate_satisfaction = { type = scope:target value = 0.10 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 3
+}
+
+pa_remove_accepted_culture_enemy = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.5
+
+	potential = {
+		any_present_culture_in_country = {
+			is_accepted_in = root
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = enemy
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_present_culture_in_country = {
+			limit = {
+				is_accepted_in = root
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = enemy
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		demote_accepted_culture = scope:chosen_culture
+		add_estate_satisfaction = { type = scope:target value = 0.20 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 3
+}
+
+# ============================================================================
+# PROMOTION AGENDAS (move cultures up the ladder)
+# ============================================================================
+
+pa_remove_discriminated_culture_positive = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.0
+
+	potential = {
+		any_discriminated_culture = {
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = positive
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_discriminated_culture = {
+			limit = {
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = positive
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		remove_discriminated_culture = scope:chosen_culture
+		add_estate_satisfaction = { type = scope:target value = 0.05 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 3
+}
+
+pa_remove_discriminated_culture_kindred = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.25
+
+	potential = {
+		any_discriminated_culture = {
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = kindred
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_discriminated_culture = {
+			limit = {
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = kindred
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		remove_discriminated_culture = scope:chosen_culture
+		add_estate_satisfaction = { type = scope:target value = 0.10 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 3
+}
+
+pa_add_tolerated_culture_positive = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.0
+
+	potential = {
+		any_present_culture_in_country = {
+			NOR = {
+				this = root.culture
+				is_accepted_in = root
+				is_tolerated_in = root
+				is_discriminated_in = root
+			}
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = positive
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_present_culture_in_country = {
+			limit = {
+				NOR = {
+					this = root.culture
+					is_accepted_in = root
+					is_tolerated_in = root
+					is_discriminated_in = root
+				}
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = positive
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		if = {
+			limit = { exists = scope:chosen_culture }
+			add_tolerated_culture = scope:chosen_culture
+		}
+		add_estate_satisfaction = { type = scope:target value = 0.05 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 3
+}
+
+pa_add_tolerated_culture_kindred = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.25
+
+	potential = {
+		any_present_culture_in_country = {
+			NOR = {
+				this = root.culture
+				is_accepted_in = root
+				is_tolerated_in = root
+				is_discriminated_in = root
+			}
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = kindred
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_present_culture_in_country = {
+			limit = {
+				NOR = {
+					this = root.culture
+					is_accepted_in = root
+					is_tolerated_in = root
+					is_discriminated_in = root
+				}
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = kindred
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		if = {
+			limit = { exists = scope:chosen_culture }
+			add_tolerated_culture = scope:chosen_culture
+		}
+		add_estate_satisfaction = { type = scope:target value = 0.10 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 3
+}
+
+# add_accepted_culture only fires when the target is already Tolerated (per user constraint:
+# the estate must ratchet a culture up tier-by-tier through parliament, not jump from Ignored).
+
+pa_add_accepted_culture_positive = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.0
+
+	potential = {
+		any_present_culture_in_country = {
+			is_tolerated_in = root
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = positive
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_present_culture_in_country = {
+			limit = {
+				is_tolerated_in = root
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = positive
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		if = {
+			limit = { exists = scope:chosen_culture }
+			add_accepted_culture = scope:chosen_culture
+		}
+		add_estate_satisfaction = { type = scope:target value = 0.10 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 1
+}
+
+pa_add_accepted_culture_kindred = {
+	type = country
+	estate = nobles_estate
+	estate = clergy_estate
+	estate = burghers_estate
+	estate = peasants_estate
+	estate = tribes_estate
+	estate = cossacks_estate
+	estate = dhimmi_estate
+
+	importance = 1.5
+
+	potential = {
+		any_present_culture_in_country = {
+			is_tolerated_in = root
+			save_temporary_scope_as = candidate_culture
+			root = {
+				"estate(scope:target)" ?= {
+					dominant_culture ?= {
+						cultural_view = {
+							target = scope:candidate_culture
+							value = kindred
+						}
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_present_culture_in_country = {
+			limit = {
+				is_tolerated_in = root
+				save_temporary_scope_as = candidate_culture
+				root = {
+					"estate(scope:target)" ?= {
+						dominant_culture ?= {
+							cultural_view = {
+								target = scope:candidate_culture
+								value = kindred
+							}
+						}
+					}
+				}
+			}
+			save_scope_as = chosen_culture
+		}
+		if = {
+			limit = { exists = scope:chosen_culture }
+			add_accepted_culture = scope:chosen_culture
+		}
+		add_estate_satisfaction = { type = scope:target value = 0.20 }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				political_influence <= 90
+			}
+
+			add = {
+				value = -100
+				desc = "low political influence"
+			}
+		}
+	}
+
+	can_bribe = { can_bribe_default_trigger = yes }
+	on_bribe = { on_bribe_default_effect = yes }
+
+	chance = 1
+}

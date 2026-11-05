@@ -1,0 +1,626 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+# Crusade-specific IO member actions.
+
+claim_crusade_war_leadership = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+
+	allow = {
+		scope:actor = {
+			is_member_of_international_organization = international_organization:crusade
+			NOT = { is_leader_of_international_organization = international_organization:crusade }
+		}
+	}
+	cooldown = {
+		type = claim_crusade_war_leadership
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war_for_leadership"
+		column = {
+			data = name
+		}
+		visible = {
+			exists = international_organization:crusade
+			this = international_organization:crusade
+			scope:actor = {
+				is_member_of_international_organization = prev
+				NOT = { is_leader_of_international_organization = prev }
+			}
+		}
+		enabled = {
+			custom_tooltip = {
+				text = claim_crusade_war_leadership_enabled_tt
+				OR = {
+					NOT = {
+						any_country_with_special_status_of_type = {
+							type = crusade_temporal_leader
+						}
+					}
+					any_country_with_special_status_of_type = {
+						type = crusade_temporal_leader
+						great_power_score < scope:actor.great_power_score
+					}
+				}
+			}
+		}
+	}
+
+	effect = {
+		international_organization:crusade = {
+			random_country_with_special_status_of_type = {
+				type = crusade_temporal_leader
+				save_scope_as = hw_old_temporal
+			}
+		}
+		if = {
+			limit = { exists = scope:hw_old_temporal }
+			scope:hw_old_temporal = { save_scope_as = target }
+			scope:recipient = {
+				international_organization_remove_special_status = {
+					type = special_status:crusade_temporal_leader
+					country = scope:hw_old_temporal
+				}
+			}
+		}
+		scope:recipient = {
+			international_organization_add_special_status = {
+				type = special_status:crusade_temporal_leader
+				country = scope:actor
+			}
+		}
+		if = {
+			limit = {
+				scope:recipient = {
+					trigger_if = {
+						limit = { has_variable = phase }
+						var:phase = 2
+					}
+					trigger_else = {
+						always = no
+					}
+				}
+				scope:recipient = { exists = var:active_war }
+			}
+			scope:recipient.var:active_war = { save_scope_as = hw_war }
+			scope:actor = {
+				set_war_leader = { war = scope:hw_war }
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = -100
+		if = {
+			limit = {
+				scope:actor = { is_subject = no }
+				NOT = {
+					international_organization:crusade = {
+						any_country_with_special_status_of_type = {
+							type = crusade_temporal_leader
+						}
+					}
+				}
+				NOT = {
+					international_organization:crusade = {
+						any_international_organization_member = {
+							this != scope:actor
+							is_subject = no
+							NOT = { is_leader_of_international_organization = international_organization:crusade }
+							great_power_score > scope:actor.great_power_score
+						}
+					}
+				}
+			}
+			add = 150
+		}
+		if = {
+			limit = {
+				international_organization:crusade = {
+					any_country_with_special_status_of_type = {
+						type = crusade_temporal_leader
+						great_power_score < {
+							value = scope:actor.great_power_score
+							multiply = 0.66
+						}
+						military_strength < scope:actor.military_strength
+					}
+				}
+			}
+			add = 150
+		}
+	}
+}
+
+offer_cardinal_seat_for_crusade = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+
+	price = price:offer_cardinal_seat_for_crusade_price
+
+	allow = {
+	}
+	cooldown = {
+		type = offer_cardinal_seat_for_crusade
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war_for_recruitment"
+		column = {
+			data = name
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					exists = international_organization:crusade
+					this = international_organization:crusade
+					has_variable = phase
+				}
+				var:phase = 1
+			}
+			trigger_else = {
+				always = no
+			}
+			leader_country ?= scope:actor
+			has_enabled_currency = gold
+			gold > 0
+		}
+	}
+	select_trigger = {
+		looking_for_a = country
+		ai_interaction_source_list = {
+			religion:catholic = {
+				ordered_country_in_religion = {
+					limit = {
+						this != scope:actor
+						is_rebel_country = no
+						NOT = { is_member_of_international_organization = international_organization:crusade }
+					}
+					order_by = military_strength
+					max = 10
+					check_range_bounds = no
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target
+		name = "choose_country"
+		none_available_msg_key = "no_valid_countries"
+		column = {
+			data = name
+		}
+		visible = {
+			root != scope:actor
+			religion ?= religion:catholic
+			is_rebel_country = no
+			knows_country = scope:recipient.international_organization_target
+			NOT = { is_member_of_international_organization = scope:recipient }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			save_scope_as = cardinal_offerer
+		}
+		scope:recipient = {
+			save_scope_as = cardinal_io
+		}
+		if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				trigger_event_non_silently = { id = holy_war.9 }
+			}
+		}
+		else = {
+			custom_tooltip = offer_cardinal_seat_for_crusade_invite_tt
+		}
+	}
+
+	ai_will_do = {
+		add = -25
+		if = {
+			limit = { scope:recipient = { holy_war_overwhelms_target = yes } }
+			add = -1000
+		}
+		add = {
+			desc = "HOLY_WAR_AGE_DAMPENER"
+			value = crusade_jihad_age_dampener
+		}
+		if = {
+			limit = { scope:recipient = { total_members < 5 } }
+			add = 40
+		}
+		if = {
+			limit = {
+				exists = scope:target
+				scope:target = { great_power_score > scope:actor.great_power_score }
+			}
+			add = 25
+		}
+	}
+}
+
+preach_the_crusade = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 6
+	automation_tick = never
+	
+	
+	price = price:preach_the_crusade_price
+
+	allow = {
+	}
+	cooldown = {
+		type = preach_the_crusade
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war_for_recruitment"
+		column = {
+			data = name
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					exists = international_organization:crusade
+					this = international_organization:crusade
+					has_variable = phase
+				}
+				var:phase = 1
+			}
+			trigger_else = {
+				always = no
+			}
+			leader_country ?= scope:actor
+		}
+	}
+	select_trigger = {
+		looking_for_a = country
+		ai_interaction_source_list = {
+			religion:catholic = {
+				ordered_country_in_religion = {
+					limit = {
+						this != scope:actor
+						is_rebel_country = no
+						NOT = { is_member_of_international_organization = international_organization:crusade }
+					}
+					order_by = military_strength
+					max = 10
+					check_range_bounds = no
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target
+		name = "choose_country"
+		none_available_msg_key = "no_valid_countries"
+		column = {
+			data = name
+		}
+		visible = {
+			root != scope:actor
+			religion ?= religion:catholic
+			is_rebel_country = no
+			knows_country = scope:recipient.international_organization_target
+			NOT = { is_member_of_international_organization = scope:recipient }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			add_prestige = prestige_weak_bonus
+			save_scope_as = preach_actor
+		}
+		scope:recipient = {
+			custom_tooltip = {
+				text = preach_the_crusade_zeal_tt
+				change_variable = { name = religious_zeal add = 10 }
+				clamp_variable = { name = religious_zeal max = 100 min = 0 }
+			}
+			save_scope_as = preach_io
+		}
+		if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				set_variable = {
+					name = recently_preached_to
+					value = 1
+					months = 24
+				}
+				save_scope_as = preach_target
+				trigger_event_non_silently = { id = holy_war.1 }
+			}
+		}
+		else = {
+			custom_tooltip = preach_the_crusade_invite_tt
+		}
+	}
+
+	ai_will_do = {
+		add = -25
+		if = {
+			limit = { scope:recipient = { holy_war_overwhelms_target = yes } }
+			add = -1000
+		}
+		add = {
+			desc = "HOLY_WAR_AGE_DAMPENER"
+			value = crusade_jihad_age_dampener
+		}
+		if = {
+			limit = { scope:recipient = { total_members < 6 } }
+			add = 50
+		}
+	}
+}
+
+grant_indulgence = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+
+	price = price:grant_indulgence_price
+
+	allow = {
+	}
+	cooldown = {
+		type = grant_indulgence
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war"
+		column = {
+			data = name
+		}
+		visible = {
+			exists = international_organization:crusade
+			this = international_organization:crusade
+			leader_country ?= scope:actor
+		}
+	}
+	select_trigger = {
+		looking_for_a = country
+		source = recipient
+		target_flag = target
+		name = "choose_country"
+		column = {
+			data = name
+		}
+		visible = {
+			root != scope:actor
+			is_member_of_international_organization = international_organization:crusade
+			NOT = { has_country_modifier = crusader_indulgence }
+		}
+		pre_evaluation_sort_value = {
+			value = 1
+			if = {
+				limit = { max_manpower > 0 }
+				subtract = {
+					value = manpower
+					divide = max_manpower
+				}
+			}
+		}
+		pre_evaluation_number_to_evaluate_fully = 3
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				add_country_modifier = {
+					modifier = crusader_indulgence
+					years = 10
+					mode = add_and_extend
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = -20
+		if = {
+			limit = {
+				exists = scope:target
+				scope:target = { at_war = yes }
+			}
+			add = 45
+		}
+	}
+}
+
+levy_the_saladin_tithe = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+
+	allow = {
+	}
+	cooldown = {
+		type = levy_the_saladin_tithe
+		years = 2
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war"
+		column = {
+			data = name
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					exists = international_organization:crusade
+					this = international_organization:crusade
+					has_variable = phase
+				}
+				var:phase = 1
+			}
+			trigger_else = {
+				always = no
+			}
+			leader_country ?= scope:actor
+		}
+	}
+
+	effect = {
+		scope:recipient = { save_scope_as = levy_io }
+		scope:actor = { save_scope_as = levy_leader }
+		custom_tooltip = {
+			text = levy_the_saladin_tithe_tt
+			scope:actor = {
+				every_country_in_diplomatic_range = {
+					limit = {
+						religion = religion:catholic
+						is_rebel_country = no
+						exists = ruler
+						NOT = { is_member_of_international_organization = scope:recipient }
+						NOT = { this = scope:actor }
+					}
+					trigger_event_non_silently = { id = holy_war.2 }
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = -20
+		if = {
+			limit = { scope:recipient = { holy_war_overwhelms_target = yes } }
+			add = -1000
+		}
+		if = {
+			limit = { scope:recipient = { gold < 2000 } }
+			add = 45
+		}
+	}
+}
+
+recover_holy_relics = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+
+	allow = {
+	}
+	cooldown = {
+		type = recover_holy_relics
+		years = 3
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war"
+		column = {
+			data = name
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					exists = international_organization:crusade
+					this = international_organization:crusade
+					has_variable = phase
+				}
+				var:phase = 2
+			}
+			trigger_else = {
+				always = no
+			}
+		}
+		enabled = {
+			custom_tooltip = {
+				text = recover_holy_relics_enabled_tt
+				scope:actor = {
+					any_controlled_location = {
+						is_location_holy_site_for = religion:catholic
+						NOT = { owner = scope:actor }
+						NOT = { has_variable = looted_of_relics }
+					}
+				}
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = location
+		interaction_source_list = {
+			scope:actor = {
+				every_controlled_location = {
+					limit = {
+						is_location_holy_site_for = religion:catholic
+						NOT = { owner = scope:actor }
+						NOT = { has_variable = looted_of_relics }
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target
+		name = "choose_location"
+		none_available_msg_key = "no_locations_available"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				create_art = {
+					type = work_of_art_type:holy_relic
+					quality = 90
+					save_scope_as = recovered_relic
+				}
+				scope:recovered_relic = {
+					move_art_and_owner = { location = scope:actor.capital country = scope:actor }
+				}
+				set_variable = { name = looted_of_relics years = 10 }
+			}
+		}
+		scope:actor = {
+			add_prestige = prestige_mild_bonus
+			add_religious_influence = religious_influence_mild_bonus
+		}
+		scope:recipient = {
+			change_variable = { name = religious_zeal add = 10 }
+			clamp_variable = { name = religious_zeal max = 100 min = 0 }
+		}
+	}
+
+	ai_will_do = {
+		add = -20
+		if = {
+			limit = { scope:actor = { at_war = yes } }
+			add = 55
+		}
+	}
+}

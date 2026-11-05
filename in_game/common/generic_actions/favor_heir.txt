@@ -1,0 +1,121 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+favor_heir = {
+	type = owncountry
+	potential = {
+		scope:actor = {
+			has_for_elective_heir_selection = yes
+		}
+	}
+	ai_tick = monthly
+	ai_tick_frequency = 6
+	automation_tick = never # let the player favor their own heir
+	
+    allow = {
+		scope:actor = {
+			custom_tooltip = {
+				text = favor_heir_ct
+				NAND = {
+					has_variable = favored_heir
+					var:favored_heir ?= {
+						is_eligible_heir = scope:actor
+						modifier:blocked_from_being_ruler = no
+					}
+				}
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		target_flag = target
+		name = "choose_character"
+		pre_evaluation_sort_value = {
+			value = age_in_years
+		}
+		pre_evaluation_number_to_evaluate_fully = 5
+		column = { data = character_info }
+		visible = {
+			NOT = { is_ruler_of = scope:actor }
+			is_alive = yes
+			is_adult = yes
+		}
+		enabled = {
+			modifier:blocked_from_character_interactions = no
+			modifier:blocked_from_being_ruler = no
+			NOT = { has_character_modifier = on_prussian_crusade }
+			is_eligible_heir_baseline = scope:actor
+			is_religious_figure = no
+			is_artist = no
+			OR = {
+				valid_estate_for_heir_selection = scope:actor.succession_law
+				is_regent_of = scope:actor
+			}
+			valid_gender_for_heir_selection = scope:actor.succession_law
+			custom_tooltip = {
+				text = favor_heir_at
+				scope:actor = {
+					NOT = { is_target_in_variable_list = { name = supported_heirs target = root } }
+				}
+			}
+		}
+	}
+	effect = {
+        if = {
+            limit = {
+                exists = scope:target
+            }
+            scope:target = {
+                custom_tooltip = {
+                    text = favor_heir_tt
+                    set_variable = {
+                        name = home_country
+                        value = scope:actor
+                    }
+                    set_variable = {
+                        name = favored_in_country
+                        value = scope:actor
+                    }
+                }
+                if = {
+                    limit = {
+                        NOT = { valid_estate_for_heir_selection = scope:actor.succession_law }
+                        is_regent_of = scope:actor
+                    }
+                    change_character_estate = estate_type:clergy_estate
+                }
+            }
+            custom_tooltip = {
+                text = favor_heir_bt
+                scope:actor = {
+                    set_variable = {
+                        name = favored_heir
+                        value = scope:target
+                    }
+                    add_to_variable_list = {
+                        name = supported_heirs
+                        target = scope:target
+                    }
+                }
+            }
+        }
+        else = {
+            custom_tooltip = favor_heir_effect
+        }
+	}
+	ai_will_do = {
+		value = -100
+		add = {
+			desc = "POTENTIAL_HEIR_SCORE"
+			value = "scope:target.heir_score(scope:actor)"
+		}
+		if = {
+			limit = {
+				scope:target = { is_regent_of = scope:actor }
+			}
+			add = {
+				desc = "Is already regent"
+				value = 100
+			}
+		}
+	}
+}

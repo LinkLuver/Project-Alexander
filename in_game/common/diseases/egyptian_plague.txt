@@ -1,0 +1,269 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+egyptian_plague = {
+	monthly_spawn_chance = {
+		# Already active — don't re-spawn
+		if = {
+			limit = { disease_is_active = scope:disease }
+			value = 0
+		}
+		# Wait until the Black Death situation has fully run its course before
+		# the endemic Egyptian reservoir starts cycling. Historically, the
+		# recurrent waves followed the 1348 catastrophe.
+		else_if = {
+			limit = {
+				NOT = {
+					situation:black_death = {
+						situation_has_ended = yes
+					}
+				}
+			}
+			value = 0
+		}
+		else = {
+			# ~1 outbreak per ~3-4 years on average
+			value = 0.025
+		}
+	}
+
+	spawn = {
+		# 80% chance to seed in Egypt proper (lower or upper Nile),
+		# 20% chance to seed in the Levant (Damascus / Aleppo / etc.)
+		random_list = {
+			80 = {
+				random_ownable_location = {
+					limit = {
+						population > 1
+						"disease_resistance(scope:disease)" < 0.5
+						OR = {
+							area = area:lower_egypt_area
+							area = area:upper_egypt_area
+						}
+					}
+					spawn_disease = {
+						disease = scope:disease
+						value = 1
+						save_scope_as = outbreak
+					}
+				}
+			}
+			20 = {
+				random_ownable_location = {
+					limit = {
+						population > 1
+						"disease_resistance(scope:disease)" < 0.5
+						region = region:crescent_region
+					}
+					spawn_disease = {
+						disease = scope:disease
+						value = 1
+						save_scope_as = outbreak
+					}
+				}
+			}
+		}
+	}
+
+	# R0 — high in Egypt (dense, humid, entrepôt traffic), moderate in the
+	# Levant, sub-critical across the rest of the endemic world, zero beyond it.
+	r0 = {
+		if = {
+			limit = {
+				OR = {
+					area = area:lower_egypt_area
+					area = area:upper_egypt_area
+				}
+			}
+			value = { 1.25 1.55 }
+		}
+		else_if = {
+			limit = { region = region:crescent_region }
+			value = { 1.1 1.4 }
+		}
+		else_if = {
+			limit = {
+				OR = {
+					sub_continent = sub_continent:north_africa
+					sub_continent = sub_continent:middle_east
+				}
+			}
+			value = { 0.3 0.5 }
+		}
+		else = {
+			value = 0
+		}
+
+		# Markets and trade hubs accelerate person-to-person spread.
+		if = {
+			limit = {
+				OR = {
+					has_building_with_at_least_one_level = market_village
+					has_building_with_at_least_one_level = marketplace
+					has_building_with_at_least_one_level = slave_market
+					has_building_with_at_least_one_level = entrepot
+					has_building_with_at_least_one_level = trading_hub
+					has_building_with_at_least_one_level = stock_exchange
+				}
+			}
+			multiply = 1.15
+		}
+
+		# Stagnation / residual resistance reduces R0.
+		if = {
+			limit = {
+				OR = {
+					disease_has_stagnated = scope:disease
+					"disease_resistance(scope:disease)" > 0.5
+				}
+			}
+			subtract = { 0.2 0.6 }
+			if = {
+				limit = {
+					disease_presence = {
+						disease = scope:disease
+						value <= 0.2
+					}
+				}
+				subtract = 0.3
+			}
+		}
+
+		# Difficult terrain without roads dampens spread.
+		if = {
+			limit = {
+				num_roads = 0
+				OR = {
+					topography = mountains
+					vegetation = desert
+					vegetation = jungle
+				}
+			}
+			multiply = 0.5
+		}
+	}
+
+	calc_interval_days = 25
+
+	# High stagnation outside Nile-related areas — natural containment.
+	location_stagnation_chance = {
+		if = {
+			limit = {
+				OR = {
+					area = area:lower_egypt_area
+					area = area:upper_egypt_area
+				}
+			}
+			value = 0.03
+		}
+		else_if = {
+			limit = { region = region:crescent_region }
+			value = 0.08
+		}
+		else = {
+			value = 0.3
+		}
+
+		# Difficult terrain dies out faster.
+		if = {
+			limit = {
+				OR = {
+					vegetation = desert
+					topography = mountains
+				}
+			}
+			add = 0.2
+		}
+
+		# Low-density locations die out faster too.
+		if = {
+			limit = {
+				location_population_percentage < 0.1
+			}
+			add = 0.2
+		}
+
+		# Building partial resistance accelerates stagnation.
+		if = {
+			limit = {
+				"disease_resistance(scope:disease)" > 0.5
+			}
+			add = {
+				value = "disease_resistance(scope:disease)"
+				subtract = 0.4
+			}
+		}
+		if = {
+			limit = {
+				"disease_resistance(scope:disease)" > 0.95
+			}
+			add = 0.1
+		}
+	}
+
+	percentage_to_meet_their_fate_on_calc = {
+		value = 0.2
+	}
+
+	# Moderate per-wave mortality — smaller than the 1348 Black Death wave,
+	# but recurrent. Cumulative drag is what restrains Mamluk pop growth
+	# over the long run, matching the historical pattern.
+	mortality_rate = { 0.15 0.30 }
+
+	# Faster than bubonic_plague's 0.0002 — encourages historical recurrence
+	# cadence (~50 outbreaks across 170 years).
+	monthly_resistance_reduction = 0.004
+
+	# Standard outbreak penalty for affected locations.
+	location_modifier = {
+		local_forced_attrition = 4
+		max_attrition = 8
+
+		local_pop_promotion_speed_modifier = -1.5
+		local_pop_demotion_speed_modifier = 0.5
+
+		local_prosperity_decay = 0.08
+		local_monthly_control = -0.002
+
+		local_monthly_development = -0.01
+
+		local_migration_attraction = -3.0
+		local_migration_speed = 0.05
+	}
+
+	character_mortality_chance = {
+		value = 0.05
+		multiply = "disease_presence(scope:disease)"
+	}
+
+	# 30% local presence required before spreading to neighbors.
+	location_spread_threshold = {
+		value = 0.30
+		if = {
+			limit = {
+				num_roads = 0
+				OR = {
+					topography = mountains
+					vegetation = desert
+				}
+			}
+			value = 0.80
+		}
+	}
+
+	# Sandy / desert palette to distinguish from bubonic_plague on the map mode.
+	map_color = {
+		lerp = {
+			min_color = rgb { 230 200 140 }
+			max_color = rgb { 100 60 20 }
+			factor = "disease_presence(scope:disease)"
+		}
+	}
+
+	secondary_map_color = {
+		if = {
+			limit = {
+				disease_affects_pops_here = scope:disease
+			}
+			value = rgb { 100 120 188 }
+		}
+	}
+}

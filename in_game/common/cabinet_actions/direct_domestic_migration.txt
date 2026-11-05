@@ -1,0 +1,114 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+direct_domestic_migration = {
+	ability = adm
+	allow_multiple = no
+	potential = {
+		is_rebel_country = no
+	}
+	allow = {
+		total_population >= 5
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = source
+		name = "direct_domestic_migration_select_source"
+		none_available_msg_key = "direct_domestic_migration_no_sources"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			owner = scope:actor
+		}
+		enabled = {
+			population > 1
+		}
+		map_color = define:NMapColors|MAP_COLOR_HIGH
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = destination
+		name = "direct_domestic_migration_select_destination"
+		none_available_msg_key = "direct_domestic_migration_no_destinations"
+		column = {
+			data = name
+		}
+		column = {
+			data = population
+		}
+		visible = {
+			owner = scope:actor
+			not = { this = scope:source }
+			NOT = {
+				cabinet_already_performing_same_task_on_target = {
+					cabinet_action = direct_domestic_migration
+					interaction_target = destination
+				}
+			}
+		}
+		map_color = define:NMapColors|MAP_COLOR_HIGH
+	}
+
+	on_activate = {
+		if = {
+			limit = {
+				exists = scope:source
+				exists = scope:destination
+			}
+			custom_tooltip = {
+				text = direct_domestic_migration_effect_tt
+				add_migration = {
+					owner = scope:actor
+					from = scope:source.province_definition
+					to = scope:destination.province_definition
+					amount = {
+						value = scope:source.population
+						multiply = 0.001
+						min = 0.001
+						max = 0.25
+					}
+					months = -1
+				}
+			}
+		}
+		else = {
+			custom_tooltip = direct_domestic_migration_effect_tt
+		}
+	}
+
+	on_deactivate = {
+		if = {
+			limit = {
+				exists = scope:source
+				exists = scope:destination
+			}
+			remove_migration = {
+				owner = scope:actor
+				from = scope:source.province_definition
+				to = scope:destination.province_definition
+			}
+		}
+	}
+
+	country_modifier = {
+	}
+
+	is_finished = {
+		trigger_if = {
+			limit = {
+				exists = scope:source
+			}
+			scope:source = {
+				any_location_in_province = {
+					population < 1
+				}
+			}
+		}
+	}
+}

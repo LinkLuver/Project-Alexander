@@ -1,0 +1,398 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = flavor_gen_tun
+
+flavor_gen_tun.1 = {
+	type = country_event
+	title = flavor_gen_tun.1.title
+	desc = flavor_gen_tun.1.desc
+	outcome = positive
+
+	fire_only_once = yes
+	dynamic_historical_event = {
+		tag = GEN
+		from = 1353.1.1
+		to = 1360.1.1
+		monthly_chance = 25
+	}
+
+	trigger = {
+		country_exists = c:TRP
+		c:TRP = {
+			owns = location:tripoli
+		}
+		can_declare_legal_war_on = {
+			target = c:TRP
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		location:tripoli = {
+			save_scope_as = target_location
+			owner = {
+				save_scope_as = target_country
+			}
+			event_illustration_estate_foreground_effect = { foreground = estate_type:burghers_estate }
+			event_illustration_estate_background_effect = { background = estate_type:burghers_estate }
+		}
+	}
+
+	# AI option
+	option = {
+		name = flavor_gen_tun.1.a
+		
+		trigger = {
+			is_ai = yes
+		}
+
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 0
+				"relative_military_strength(c:TRP)" < 0.25
+			}
+			modifier = {
+				factor = 0
+				c:TRP = {
+					OR = {
+						any_related_country = {
+							type = alliance
+							count >= 2
+						}
+						is_subject = yes
+					}
+				}
+			}
+		}
+
+		declare_war_with_cb = {
+			target = c:TRP
+			type = casus_belli:cb_conquer_province
+			target_province = c:TRP.capital.province
+		}
+
+		drop_antagonism_bomb = {
+			modifier = antagonism_pressed_claim
+			target = location:tripoli
+		}
+	}
+
+	option = {
+		name = flavor_gen_tun.1.a
+		
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 0
+				"relative_military_strength(c:TRP)" >= 0.25
+			}
+			modifier = {
+				factor = 0
+				c:TRP = {
+					NOR = {
+						any_related_country = {
+							type = alliance
+							count >= 2
+						}
+						is_subject = yes
+					}
+				}
+			}
+		}
+		
+		add_casus_belli = {
+			target = c:TRP
+			type = casus_belli:cb_conquer_province
+			province = c:TRP.capital.province
+		}
+
+		drop_antagonism_bomb = {
+			modifier = antagonism_pressed_claim
+			target = location:tripoli
+		}
+	}
+
+	option = {
+		name = flavor_gen_tun.1.b
+
+		ai_chance = {
+			base = 20
+		}
+	
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_right
+		}
+	}
+}
+
+scripted_effect sell_tripoli_to_this_effect = {
+	custom_tooltip = sale_of_tripoli_tt
+	trigger_event_non_silently = flavor_gen_tun.3
+}
+
+scripted_trigger can_sell_tripoli_to = {
+	$who$ = { at_war = no }
+}
+
+flavor_gen_tun.2 = {
+	type = country_event
+	title = flavor_gen_tun.2.title
+	desc = flavor_gen_tun.2.desc
+	outcome = neutral
+
+	fire_only_once = yes
+	dynamic_historical_event = {
+		tag = GEN
+		from = 1360.1.1
+		to = 1370.1.1
+		monthly_chance = 15
+	}
+
+	trigger = {
+		owns = location:tripoli
+		location:tripoli = {
+			NOR = {
+				is_connected_to = location:genoa
+				is_connected_to = location:cairo
+				is_connected_to = location:tunis
+			}
+		}
+
+		OR = {
+			AND = {
+				country_exists = c:TRP
+				can_sell_tripoli_to = { who = c:TRP }
+			}
+			AND = {
+				country_exists = c:GBS
+				can_sell_tripoli_to = { who = c:GBS }
+			}
+			AND = {
+				location:tunis.owner ?= {
+					religion = religion:sunni
+					NOR = {
+						c:TRP ?= this
+						c:GAB ?= this
+					}
+				}
+				can_sell_tripoli_to = { who = location:tunis.owner }
+			}
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		location:tripoli = {
+			save_scope_as = target_location
+			event_illustration_estate_effect = {
+				background = estate_type:burghers_estate
+				foreground = estate_type:burghers_estate
+			}
+		}
+		location:tunis = {
+			save_scope_as = tunis_location
+		}
+		save_scope_as = from_country
+		ruler_or_regent ?= {
+			save_scope_as = portrait_for_genoa
+		}
+		set_local_variable = {
+			name = proposed_price_of_sale
+			value = 0
+		}
+		set_local_variable = {
+			name = num_of_locations_to_be_sold
+			value = 0
+		}
+		location:tripoli = {
+			every_connected_location = {
+				add_to_list = location_to_be_sold
+				change_local_variable = {
+					name = num_of_locations_to_be_sold
+					add = 1
+				}
+				change_local_variable = {
+					name = proposed_price_of_sale
+					add = location_potential_tax_base
+				}
+			}
+		}
+		change_local_variable = {
+			name = proposed_price_of_sale
+			multiply = 12
+		}
+	}
+
+	option = {
+		name = flavor_gen_tun.2.a
+		
+		trigger = {
+			country_exists = c:GBS
+			can_sell_tripoli_to = { who = c:GBS }
+		}
+
+		ai_chance = {
+			base = 25
+		}
+
+		c:GBS = {
+			sell_tripoli_to_this_effect = yes
+		}
+	}
+
+	option = {
+		name = flavor_gen_tun.2.b
+
+		ai_chance = {
+			base = 25
+		}
+		
+		trigger = {
+			country_exists = c:TRP
+			can_sell_tripoli_to = { who = c:TRP }
+		}
+
+		c:TRP = {
+			sell_tripoli_to_this_effect = yes
+		}
+	}
+
+	option = {
+		name = flavor_gen_tun.2.c
+
+		ai_chance = {
+			base = 25
+		}
+		
+		trigger = {
+			location:tunis.owner ?= {
+				religion = religion:sunni
+				NOR = {
+					c:TRP ?= this
+					c:GBS ?= this
+				}
+			}
+			can_sell_tripoli_to = { who = location:tunis.owner }
+		}
+
+		location:tunis.owner = {
+			sell_tripoli_to_this_effect = yes
+		}
+	}
+
+	option = {
+		name = flavor_gen_tun.2.d 
+
+		ai_chance = {
+			base = 10
+		}
+
+		location:tripoli = {
+			ordered_connected_location = {
+				order_by = population
+				max = 5
+				limit = {
+					integration_progress < 100
+				}
+				change_integration_progress = 25
+			}
+		}
+		add_prestige = prestige_mild_bonus
+	}
+}
+
+flavor_gen_tun.3 = {
+	type = country_event
+	title = flavor_gen_tun.3.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				desc = flavor_gen_tun.3.desc_banu_makki
+				trigger = {
+					tag = TRP
+				}
+			}
+			desc = flavor_gen_tun.3.desc
+		}
+	}
+	outcome = positive
+
+	immediate = {
+		ruler_or_regent ?= {
+			save_scope_as = portrait_for_target
+		}
+	}
+
+	major = yes
+	major_trigger = {
+		this = scope:from_country
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	option = {
+		name = flavor_gen_tun.3.a
+
+		ai_will_select = {
+			value = 100
+			subtract = "currency_utility(gold|local_var:proposed_price_of_sale)"
+		}
+		
+		add_gold = {
+			value = local_var:proposed_price_of_sale
+			multiply = -1
+		}
+		scope:from_country = {
+			add_gold = local_var:proposed_price_of_sale
+		}
+		every_in_list = {
+			list = location_to_be_sold
+			change_location_owner = ROOT
+		}
+	}
+
+	option = {
+		name = flavor_gen_tun.3.b
+
+		ai_will_select = {
+			value = "conquer_desire(scope:from_country)"
+			multiply = 10
+		}
+		
+		add_casus_belli = {
+			target = scope:from_country
+			type = casus_belli:cb_conquer_province
+			province = location:tripoli.province
+		}
+
+		drop_antagonism_bomb = {
+			modifier = antagonism_pressed_claim
+			target = location:tripoli
+		}
+
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_left
+		}
+	}
+
+	option = {
+		name = flavor_gen_tun.3.c
+		
+		ai_will_select = { value = 50 }
+		
+		custom_tooltip = custom_tooltip_generic_nothing_happens
+	}
+}

@@ -1,0 +1,681 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+# Scripted effects for expedition events
+
+save_arrival_holy_site_effect = {
+	if = {
+		limit = { exists = scope:location }
+		religion = {
+			random_holy_site_in_religion = {
+				limit = { location = scope:location }
+				save_scope_as = target_holy_site
+			}
+		}
+	}
+}
+
+# Establishes a Portuguese overseas post at a location.
+# Root = expedition country; this = target location (must be a port, gated by option trigger).
+#
+# Uninhabited (has_owner = no): Portugal takes ownership, constructs a por_trading_post
+#   (unique special building: +0.33 local max control, +0.25 merchant capacity, burgher pop),
+#   and starts colonist migration from the capital.
+# Foreign-owned: por_feitoria is placed in the existing polity's territory (no ownership
+#   transfer, which avoids the diplomacy precompute assert in expedition context).
+#
+# Usage:  scope:location = { establish_cape_route_post = { gold_scale = -3 feitoria_count = 1 } }
+establish_cape_route_post = {
+	if = {
+		limit = { has_owner = no }
+		change_location_owner = root
+		change_integration_level = colonized
+		change_location_controller = root
+		construct_building = {
+			building_type = building_type:por_trading_post
+			cost_multiplier = 0
+			cost_multiplier_reason = "game_concept_event"
+			instant = yes
+		}
+		add_migration = {
+			owner = root
+			from_location = root.capital
+			to_location = this
+			amount = 0.1
+			months = 12
+			keep_nationality = yes
+		}
+	}
+	else_if = {
+		limit = { top_owner ?= root }
+		if = {
+			limit = {
+				owner = root
+				NOT = { has_building = building_type:por_trading_post }
+			}
+			construct_building = {
+				building_type = building_type:por_trading_post
+				cost_multiplier = 0
+				cost_multiplier_reason = "game_concept_event"
+				instant = yes
+			}
+		}
+	}
+	else = {
+		save_scope_as = por_feitoria_location
+		root = {
+			save_scope_as = por_feitoria_builder
+		}
+		construct_building = {
+			building_type = building_type:por_feitoria
+			owner = root
+			cost_multiplier = 0
+			cost_multiplier_reason = "game_concept_event"
+			instant = yes
+		}
+		hidden_effect = {
+			owner = {
+				if = {
+					limit = {
+						exists = scope:por_feitoria_consenting_host
+						scope:por_feitoria_consenting_host ?= this
+					}
+					trigger_event_non_silently = cape_route_to_india_events.31
+				}
+				else = {
+					trigger_event_non_silently = cape_route_to_india_events.18
+				}
+			}
+		}
+	}
+	root = {
+		if = {
+			limit = { $gold_scale$ != 0 }
+			change_gold_effect = { scale = $gold_scale$ }
+		}
+		change_variable = { name = cape_feitorias_established add = $feitoria_count$ }
+	}
+}
+
+# Dispatch the material-specific GOOD mining-strike event based on the surveyed location's raw material.
+# Called from mining_survey_expedition on_arrive_to_waypoint when the good-outcome roll wins.
+# Country scope; scope:location must point at the surveyed location.
+dispatch_good_mining_event = {
+	if = {
+		limit = { scope:location = { raw_material = goods:iron } }
+		trigger_event_non_silently = mining_survey_events.10
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:copper } }
+		trigger_event_non_silently = mining_survey_events.11
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:tin } }
+		trigger_event_non_silently = mining_survey_events.12
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:lead } }
+		trigger_event_non_silently = mining_survey_events.13
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:silver } }
+		trigger_event_non_silently = mining_survey_events.14
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:goods_gold } }
+		trigger_event_non_silently = mining_survey_events.15
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:coal } }
+		trigger_event_non_silently = mining_survey_events.16
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:stone } }
+		trigger_event_non_silently = mining_survey_events.17
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:marble } }
+		trigger_event_non_silently = mining_survey_events.18
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:gems } }
+		trigger_event_non_silently = mining_survey_events.19
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:mercury } }
+		trigger_event_non_silently = mining_survey_events.20
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:salt } }
+		trigger_event_non_silently = mining_survey_events.21
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:alum } }
+		trigger_event_non_silently = mining_survey_events.22
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:saltpeter } }
+		trigger_event_non_silently = mining_survey_events.23
+	}
+}
+
+# Dispatch the material-specific BAD mining-setback event based on the surveyed location's raw material.
+# Called from mining_survey_expedition on_arrive_to_waypoint when the bad-outcome roll wins.
+dispatch_bad_mining_event = {
+	if = {
+		limit = { scope:location = { raw_material = goods:iron } }
+		trigger_event_non_silently = mining_survey_events.30
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:copper } }
+		trigger_event_non_silently = mining_survey_events.31
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:tin } }
+		trigger_event_non_silently = mining_survey_events.32
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:lead } }
+		trigger_event_non_silently = mining_survey_events.33
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:silver } }
+		trigger_event_non_silently = mining_survey_events.34
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:goods_gold } }
+		trigger_event_non_silently = mining_survey_events.35
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:coal } }
+		trigger_event_non_silently = mining_survey_events.36
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:stone } }
+		trigger_event_non_silently = mining_survey_events.37
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:marble } }
+		trigger_event_non_silently = mining_survey_events.38
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:gems } }
+		trigger_event_non_silently = mining_survey_events.39
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:mercury } }
+		trigger_event_non_silently = mining_survey_events.40
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:salt } }
+		trigger_event_non_silently = mining_survey_events.41
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:alum } }
+		trigger_event_non_silently = mining_survey_events.42
+	}
+	else_if = {
+		limit = { scope:location = { raw_material = goods:saltpeter } }
+		trigger_event_non_silently = mining_survey_events.43
+	}
+}
+
+relic_expedition_grant_relic_effect = {
+	scope:expedition.expedition_current_location = {
+		create_art = {
+			type = work_of_art_type:holy_relic
+			quality = $quality$
+			key = $key$
+			save_scope_as = recovered_relic
+		}
+	}
+	scope:recovered_relic = {
+		move_art_and_owner = { location = root.capital country = root }
+	}
+	scope:expedition = {
+		set_variable = { name = relic_hunt_found_relic value = scope:recovered_relic }
+	}
+}
+
+relic_expedition_grant_relic_effect_procedural = {
+	scope:expedition.expedition_current_location = {
+		create_art = {
+			type = work_of_art_type:holy_relic
+			quality = $quality$
+			save_scope_as = recovered_relic
+		}
+	}
+	scope:recovered_relic = {
+		move_art_and_owner = { location = root.capital country = root }
+	}
+	scope:expedition = {
+		set_variable = { name = relic_hunt_found_relic value = scope:recovered_relic }
+	}
+}
+
+relic_expedition_grant_minor_relic_effect = {
+	if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_1 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_1 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_2 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_2 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_3 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_3 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_4 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_4 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_5 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_5 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_6 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_6 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_7 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_7 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_8 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_8 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_9 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_9 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_10 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_10 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_11 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_11 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_12 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_12 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_13 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_13 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_14 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_14 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_15 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_15 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_16 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_16 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_17 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_17 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_18 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_18 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_19 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_19 }
+	}
+	else_if = {
+		limit = { NOT = { exists = work_of_art:$base_key$_20 } }
+		relic_expedition_grant_relic_effect = { quality = $quality$ key = $base_key$_20 }
+	}
+	else = {
+		relic_expedition_grant_relic_effect_procedural = { quality = $quality$ }
+	}
+}
+
+relic_expedition_announce_true_cross_effect = {
+	save_scope_as = relic_finder
+	custom_tooltip = {
+		text = relic_expedition_announce_true_cross_tt
+		religion:catholic = {
+			every_country_in_religion = {
+				limit = {
+					is_rebel_country = no
+					exists = ruler
+					NOT = { this = scope:relic_finder }
+				}
+				trigger_event_non_silently = { id = relic_expedition_events.20 }
+			}
+		}
+	}
+}
+
+relic_expedition_announce_holy_lance_effect = {
+	save_scope_as = relic_finder
+	custom_tooltip = {
+		text = relic_expedition_announce_holy_lance_tt
+		religion:catholic = {
+			every_country_in_religion = {
+				limit = {
+					is_rebel_country = no
+					exists = ruler
+					NOT = { this = scope:relic_finder }
+				}
+				trigger_event_non_silently = { id = relic_expedition_events.21 }
+			}
+		}
+	}
+}
+
+relic_expedition_announce_holy_shroud_effect = {
+	save_scope_as = relic_finder
+	custom_tooltip = {
+		text = relic_expedition_announce_holy_shroud_tt
+		religion:catholic = {
+			every_country_in_religion = {
+				limit = {
+					is_rebel_country = no
+					exists = ruler
+					NOT = { this = scope:relic_finder }
+				}
+				trigger_event_non_silently = { id = relic_expedition_events.22 }
+			}
+		}
+	}
+}
+
+gt_opportunity_chain_roll_effect = {
+	random_list = {
+		1 = {
+			trigger = { NOT = { scope:expedition = { has_variable = gt_learning_taken } } }
+			random = {
+				chance = {
+					value = scope:target_leader.adm
+					divide = 10
+					add = {
+						value = scope:target_leader.dip
+						divide = 10
+					}
+					add = scope:expedition.var:experience
+					add = scope:expedition.var:knowledge
+				}
+				set_variable = { name = gt_opportunity_taken value = 1 }
+				scope:expedition = { set_variable = { name = gt_learning_taken value = 1 } }
+				trigger_event_non_silently = { id = grand_tour_events.28 days = $DAYS$ }
+			}
+		}
+		1 = {
+			trigger = {
+				NOT = { scope:expedition = { has_variable = gt_field_taken } }
+				scope:target_location.owner ?= { at_war = yes }
+			}
+			random = {
+				chance = {
+					value = 50
+					add = {
+						value = scope:target_leader.adm
+						divide = 10
+					}
+					add = {
+						value = scope:target_leader.mil
+						divide = 10
+					}
+					add = scope:expedition.var:experience
+					add = scope:expedition.var:connections
+				}
+				set_variable = { name = gt_opportunity_taken value = 1 }
+				scope:expedition = { set_variable = { name = gt_field_taken value = 1 } }
+				trigger_event_non_silently = { id = grand_tour_events.30 days = $DAYS$ }
+			}
+		}
+		1 = {
+			trigger = {
+				NOT = { scope:expedition = { has_variable = gt_fencing_taken } }
+				NOT = { scope:target_location.owner ?= { at_war = yes } }
+			}
+			random = {
+				chance = {
+					value = scope:target_leader.adm
+					divide = 10
+					add = {
+						value = scope:target_leader.mil
+						divide = 10
+					}
+					add = scope:expedition.var:experience
+					add = scope:expedition.var:connections
+				}
+				set_variable = { name = gt_opportunity_taken value = 1 }
+				scope:expedition = { set_variable = { name = gt_fencing_taken value = 1 } }
+				trigger_event_non_silently = { id = grand_tour_events.34 days = $DAYS$ }
+			}
+		}
+		1 = {
+			trigger = { NOT = { scope:expedition = { has_variable = gt_contact_taken } } }
+			random = {
+				chance = {
+					value = scope:target_leader.mil
+					divide = 10
+					add = {
+						value = scope:target_leader.dip
+						divide = 10
+					}
+					add = scope:expedition.var:connections
+					add = scope:expedition.var:knowledge
+				}
+				set_variable = { name = gt_opportunity_taken value = 1 }
+				scope:expedition = { set_variable = { name = gt_contact_taken value = 1 } }
+				trigger_event_non_silently = { id = grand_tour_events.32 days = $DAYS$ }
+			}
+		}
+	}
+	if = {
+		limit = { NOT = { has_variable = gt_opportunity_taken } }
+		trigger_event_non_silently = { id = grand_tour_events.24 days = $DAYS$ }
+	}
+	remove_variable = gt_opportunity_taken
+	random_list = {
+		33 = {
+			trigger = { scope:expedition = { var:knowledge > 7 } }
+			set_variable = { name = gt_prodigy_pick value = 1 }
+		}
+		33 = {
+			trigger = { scope:expedition = { var:connections > 7 } }
+			set_variable = { name = gt_prodigy_pick value = 2 }
+		}
+		34 = {
+			trigger = { scope:expedition = { var:experience > 7 } }
+			set_variable = { name = gt_prodigy_pick value = 3 }
+		}
+	}
+}
+
+gt_prodigy_knowledge_reward_effect = {
+	custom_tooltip = grand_tour_events.diligence_down_10_tt
+	scope:expedition = {
+		change_variable = { name = gt_diligence subtract = 10 }
+		clamp_variable = { name = gt_diligence min = 0 max = 100 }
+	}
+	if = {
+		add_research_progress = research_progress_weak_bonus
+	}
+	else = {
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = 0.1 }
+	}
+}
+
+gt_prodigy_connections_reward_effect = {
+	custom_tooltip = grand_tour_events.diligence_down_10_tt
+	scope:expedition = {
+		change_variable = { name = gt_diligence subtract = 10 }
+		clamp_variable = { name = gt_diligence min = 0 max = 100 }
+	}
+	if = {
+		limit = { NOT = { political_influence >= 100 } }
+		add_political_influence = political_influence_mild_bonus
+	}
+	else = {
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = 0.1 }
+	}
+}
+
+gt_prodigy_experience_reward_effect = {
+	custom_tooltip = grand_tour_events.diligence_down_10_tt
+	scope:expedition = {
+		change_variable = { name = gt_diligence subtract = 10 }
+		clamp_variable = { name = gt_diligence min = 0 max = 100 }
+	}
+	if = {
+		limit = { NOT = { prestige >= 100 } }
+		add_navy_tradition = navy_tradition_mild_bonus		
+		add_army_tradition = army_tradition_mild_bonus
+	}
+	else = {
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = 0.1 }
+	}
+}
+
+gt_party_trait_roll_effect = {
+	if = {
+		limit = {
+			heir = {
+				NOR = {
+					has_trait = babbling_buffoon
+					has_trait = embezzler
+					has_trait = drunkard
+					has_trait = sinner
+					has_trait = greedy
+					has_trait = naive
+					has_trait = loose_lips
+				}
+			}
+		}
+		random = {
+			chance = 3
+			random_list = {
+				1 = { trigger = { heir = { num_of_traits < 3 NOT = { has_trait = babbling_buffoon } } } heir = { add_trait = trait:babbling_buffoon } }
+				1 = { trigger = { heir = { num_of_traits < 3 NOT = { has_trait = embezzler } } } heir = { add_trait = trait:embezzler } }
+				1 = { trigger = { heir = { num_of_traits < 3 NOT = { has_trait = drunkard } } } heir = { add_trait = trait:drunkard } }
+				1 = { trigger = { heir = { num_of_traits < 3 NOT = { has_trait = sinner } } } heir = { add_trait = trait:sinner } }
+				1 = { trigger = { heir = { num_of_traits < 3 NOT = { has_trait = greedy } } } heir = { add_trait = trait:greedy } }
+				1 = { trigger = { heir = { num_of_traits < 3 NOT = { has_trait = naive } } } heir = { add_trait = trait:naive } }
+				1 = { trigger = { heir = { num_of_traits < 3 NOT = { has_trait = loose_lips } } } heir = { add_trait = trait:loose_lips } }
+			}
+		}
+	}
+}
+
+gt_friend_encounter_roll_effect = {
+	if = {
+		limit = { NOT = { scope:expedition = { has_variable = gt_friend_met } } }
+		random = {
+			chance = 30
+			scope:expedition = { set_variable = { name = gt_friend_met value = 1 } }
+			trigger_event_non_silently = { id = grand_tour_events.45 days = 10 }
+		}
+	}
+	if = {
+		limit = {
+			scope:expedition = {
+				has_variable = gt_friend_met
+				var:gt_friendship < 5
+			}
+		}
+		random = {
+			chance = 50
+			random_list = {
+				1 = { trigger_event_non_silently = grand_tour_events.46 }
+				1 = { trigger_event_non_silently = grand_tour_events.47 }
+				1 = { trigger_event_non_silently = grand_tour_events.48 }
+				1 = { trigger_event_non_silently = grand_tour_events.49 }
+				1 = { trigger_event_non_silently = grand_tour_events.50 }
+			}
+		}
+	}
+}
+
+gt_roll_hidden_path_effect = {
+	scope:expedition = {
+		random_list = {
+			1 = { set_variable = { name = gt_hidden_path value = 1 } }
+			1 = { set_variable = { name = gt_hidden_path value = 2 } }
+			1 = { set_variable = { name = gt_hidden_path value = 3 } }
+		}
+	}
+}
+
+gt_knowledge_study_effect = {
+	add_gold = {
+		value = root.monthly_income_trade_and_tax
+		multiply = -1
+	}
+	custom_tooltip = grand_tour_events.knowledge_up_1_tt
+	scope:expedition = {
+		change_variable = { name = knowledge add = 1 }
+		clamp_variable = { name = knowledge min = 0 max = 10 }
+	}
+	custom_tooltip = grand_tour_events.diligence_down_10_tt
+	scope:expedition = {
+		change_variable = { name = gt_diligence subtract = 10 }
+		clamp_variable = { name = gt_diligence min = 0 max = 100 }
+	}
+}
+
+gt_experience_handson_effect = {
+	add_gold = {
+		value = root.monthly_income_trade_and_tax
+		multiply = -1
+	}
+	custom_tooltip = grand_tour_events.experience_up_1_tt
+	scope:expedition = {
+		change_variable = { name = experience add = 1 }
+		clamp_variable = { name = experience min = 0 max = 10 }
+	}
+	custom_tooltip = grand_tour_events.diligence_down_10_tt
+	scope:expedition = {
+		change_variable = { name = gt_diligence subtract = 10 }
+		clamp_variable = { name = gt_diligence min = 0 max = 100 }
+	}
+}
+
+gt_party_effect = {
+	add_gold = {
+		value = root.monthly_income_trade_and_tax
+		multiply = -1.5
+		min = -500
+	}
+	custom_tooltip = grand_tour_events.diligence_up_30_tt
+	scope:expedition = {
+		change_variable = { name = gt_diligence add = 30 }
+		clamp_variable = { name = gt_diligence min = 0 max = 100 }
+	}
+	gt_party_trait_roll_effect = yes
+	gt_friend_encounter_roll_effect = yes
+}
+
+gt_connections_courtly_effect = {
+	add_gold = {
+		value = root.monthly_income_trade_and_tax
+		multiply = -1.2
+	}
+	custom_tooltip = grand_tour_events.connections_up_1_tt
+	scope:expedition = {
+		change_variable = { name = connections add = 1 }
+		clamp_variable = { name = connections min = 0 max = 10 }
+	}
+	custom_tooltip = grand_tour_events.diligence_down_10_tt
+	scope:expedition = {
+		change_variable = { name = gt_diligence subtract = 10 }
+		clamp_variable = { name = gt_diligence min = 0 max = 100 }
+	}
+	scope:target_location.owner ?= {
+		if = {
+			limit = { NOT = { this = root } }
+			add_opinion = { target = root modifier = opinion_went_on_grand_tour }
+		}
+	}
+}
+

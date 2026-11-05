@@ -1,0 +1,144 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+crusade_privileges_bull = {
+
+	international_organization_type = catholic_church
+
+	potential = {
+		papacy_active = yes
+		exists = international_organization:crusade
+	}
+
+	allow = {
+		scope:actor ?= {
+			is_member_of_international_organization = international_organization:catholic_church
+		}
+		OR = {
+			international_organization:catholic_church = { resolution_is_active = resolution:crusade_privileges_bull }
+			no_papal_bull_debate_active = yes
+		}
+		current_papal_authority = { value = 25 }
+		international_organization:crusade = {
+			NOT = { any_international_organization_member = { has_country_modifier = crusade_privileges } }
+		}
+	}
+
+	can_vote = {
+		international_organization:catholic_church = {
+			country_has_special_status = {
+				type = special_status:curia
+				country = scope:actor
+			}
+		}
+	}
+
+	votes = {
+		add = {
+			desc = "[cardinal_s|e]"
+			value = scope:actor.num_cardinals
+		}
+	}
+
+	proposal_price = price:propose_curia_action
+
+	months = 6
+
+	cooldown = {
+		type = crusade_privileges_bull
+		years = 10
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = recipient
+		name = "choose_international_organization"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:catholic_church
+		}
+		enabled = {
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = boolean
+		target_flag = vote
+		name = "select_vote"
+		column = {
+			data = name
+		}
+		visible = {
+		}
+		enabled = {
+			trigger_if = {
+				limit = {
+					root = no
+				}
+				scope:recipient = {
+					resolution_is_active = resolution:crusade_privileges_bull
+				}
+			}
+			trigger_else = {
+				always = yes
+			}
+		}
+	}
+
+	vote_effect = {
+		align_subject_curia_votes_effect = yes
+	}
+
+	effect = {
+		if = {
+			limit = { exists = international_organization:crusade }
+			custom_tooltip = {
+				text = crusade_privileges_bull_effect_tt
+				international_organization:crusade = {
+					every_international_organization_member = {
+						add_country_modifier = {
+							modifier = crusade_privileges
+							years = 5
+							mode = add_and_extend
+						}
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_propose = {
+		if = {
+			limit = {
+				scope:actor = {
+					is_member_of_international_organization = international_organization:crusade
+				}
+			}
+			add = 50
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					is_member_of_international_organization = international_organization:crusade
+					religious_influence > 50
+				}
+			}
+			add = 50
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				scope:actor = {
+					is_member_of_international_organization = international_organization:crusade
+				}
+			}
+			add = 100
+		}
+	}
+
+	ai_proposer_risk = {
+		value = "scope:actor.currency_utility(religious_influence|-50)"
+	}
+}

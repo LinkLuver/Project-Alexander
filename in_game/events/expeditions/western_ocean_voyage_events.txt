@@ -1,0 +1,884 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = western_ocean_voyage_events
+
+# western_ocean_voyage_events.1 — Departure (on_start)
+western_ocean_voyage_events.1 = {
+	type = country_event
+	title = western_ocean_voyage_events.1.title
+	desc = western_ocean_voyage_events.1.desc
+	historical_info = western_ocean_voyage_events.1.historical_info
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_home_departure }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+		}
+		capital ?= { save_scope_as = target_location }
+		stall_expedition = scope:expedition
+	}
+
+	option = {
+		name = western_ocean_voyage_events.1.a
+		change_gold_effect = { scale = -2 }
+		custom_tooltip = western_ocean_voyage_events.ship_gained_tt
+		scope:expedition = {
+			change_variable = { name = num_ships add = 1 }
+			clamp_variable = { name = num_ships min = 0 max = 4 }
+			pause_expedition = 30
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.1.b
+		change_gold_effect = { scale = -1 }
+	}
+
+	option = {
+		name = western_ocean_voyage_events.1.c
+		trigger = {
+			scope:target_leader = { has_trait = navigator }
+			NOT = { scope:target_leader = character:christopher_columbus }
+		}
+		add_prestige = prestige_weak_bonus
+	}
+
+	option = {
+		name = western_ocean_voyage_events.1.columbus
+		trigger = {
+			exists = character:christopher_columbus
+			scope:target_leader = character:christopher_columbus
+		}
+		add_prestige = prestige_weak_bonus
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
+
+# western_ocean_voyage_events.2 — The Canary Islands (on_arrive_to_waypoint)
+western_ocean_voyage_events.2 = {
+	type = country_event
+	title = western_ocean_voyage_events.2.title
+	desc = western_ocean_voyage_events.2.desc
+	historical_info = western_ocean_voyage_events.2.historical_info
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		stall_expedition = scope:expedition
+	}
+
+	option = {
+		name = western_ocean_voyage_events.2.a
+		trigger = {
+			area:canary_islands_area = {
+				NOT = { any_location_in_area = { owner ?= root } }
+				any_location_in_area = {
+					exists = owner
+					owner = { NOT = { is_enemy_of = root } }
+				}
+			}
+		}
+		change_gold_effect = { scale = -1 }
+		custom_tooltip = western_ocean_voyage_events.provisions_up_20_tt
+		custom_tooltip = western_ocean_voyage_events.morale_up_10_tt
+		scope:expedition = {
+			pause_expedition = 7
+			change_variable = { name = provisions add = 20 }
+			clamp_variable = { name = provisions min = 0 max = 100 }
+			change_variable = { name = morale add = 10 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.2.b
+		trigger = {
+			area:canary_islands_area = {
+				any_location_in_area = { owner ?= root }
+			}
+		}
+		custom_tooltip = western_ocean_voyage_events.provisions_up_20_tt
+		custom_tooltip = western_ocean_voyage_events.morale_up_10_tt
+		scope:expedition = {
+			pause_expedition = 7
+			change_variable = { name = provisions add = 20 }
+			clamp_variable = { name = provisions min = 0 max = 100 }
+			change_variable = { name = morale add = 10 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.2.c
+		trigger = {
+			area:canary_islands_area = {
+				any_location_in_area = {
+					is_land = yes
+					has_owner = no
+				}
+			}
+		}
+		custom_tooltip = western_ocean_voyage_events.provisions_up_10_tt
+		scope:expedition = {
+			pause_expedition = 10
+			change_variable = { name = provisions add = 10 }
+			clamp_variable = { name = provisions min = 0 max = 100 }
+		}
+		random_list = {
+			70 = {
+				custom_tooltip = western_ocean_voyage_events.2.c.calm_tt
+				custom_tooltip = western_ocean_voyage_events.morale_up_5_tt
+				scope:expedition = {
+					change_variable = { name = morale add = 5 }
+					clamp_variable = { name = morale min = 0 max = 100 }
+				}
+			}
+			30 = {
+				custom_tooltip = western_ocean_voyage_events.2.c.clash_tt
+				custom_tooltip = western_ocean_voyage_events.morale_down_10_tt
+				scope:expedition = {
+					change_variable = { name = morale add = -10 }
+					clamp_variable = { name = morale min = 0 max = 100 }
+				}
+			}
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.2.d
+		trigger = {
+			scope:expedition = { var:num_ships < 3 }
+			area:canary_islands_area = {
+				any_location_in_area = {
+					exists = owner
+					owner = { NOT = { is_enemy_of = root } }
+				}
+			}
+		}
+		change_gold_effect = { scale = -2 }
+		custom_tooltip = western_ocean_voyage_events.ship_gained_tt
+		scope:expedition = {
+			pause_expedition = 30
+			change_variable = { name = num_ships add = 1 }
+			clamp_variable = { name = num_ships min = 0 max = 4 }
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.2.e
+	}
+
+	option = {
+		name = western_ocean_voyage_events.2.f
+		ai_chance = { base = 0 }
+		set_variable = western_ocean_voyage_voluntary_return
+		fail_expedition = scope:expedition
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
+
+# western_ocean_voyage_events.3 — The Men Demand We Turn Back (on_arrive_to_waypoint, mid-Atlantic)
+western_ocean_voyage_events.3 = {
+	type = country_event
+	title = western_ocean_voyage_events.3.title
+	desc = western_ocean_voyage_events.3.desc
+	historical_info = western_ocean_voyage_events.3.historical_info
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		stall_expedition = scope:expedition
+	}
+
+	# Columbus falsifies the log
+	option = {
+		name = western_ocean_voyage_events.3.columbus
+		trigger = {
+			exists = character:christopher_columbus
+			scope:target_leader = character:christopher_columbus
+		}
+		custom_tooltip = western_ocean_voyage_events.3.columbus.tt
+		add_prestige = prestige_weak_bonus
+	}
+
+	# Generic — press on
+	option = {
+		name = western_ocean_voyage_events.3.a
+		trigger = {
+			OR = {
+				NOT = { exists = character:christopher_columbus }
+				NOT = { scope:target_leader = character:christopher_columbus }
+			}
+		}
+		custom_tooltip = western_ocean_voyage_events.morale_down_15_tt
+		scope:expedition = {
+			change_variable = { name = morale add = -15 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	# Turn back
+	option = {
+		name = western_ocean_voyage_events.3.b
+		ai_chance = { base = 0 }
+		set_variable = western_ocean_voyage_voluntary_return
+		fail_expedition = scope:expedition
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
+
+# western_ocean_voyage_events.4 — Land! (on_arrive_to_waypoint, Caribbean landfall)
+western_ocean_voyage_events.4 = {
+	type = country_event
+	title = western_ocean_voyage_events.4.title
+	desc = western_ocean_voyage_events.4.desc
+	historical_info = western_ocean_voyage_events.4.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		set_variable = { name = landfall_set value = 2 }
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+		}
+		stall_expedition = scope:expedition
+		scope:location = {
+			save_scope_as = target_location
+			random_neighbor_location = {
+				limit = { is_land = yes }
+				save_scope_as = adjacent_land_loc
+			}
+		}
+	}
+
+	# Columbus plants the flag — we have found the Indies
+	option = {
+		name = western_ocean_voyage_events.4.columbus
+		trigger = {
+			exists = character:christopher_columbus
+			scope:target_leader = character:christopher_columbus
+		}
+		add_prestige = prestige_severe_bonus
+		if = {
+			limit = { exists = scope:adjacent_land_loc }
+			discover_area = scope:adjacent_land_loc.area
+		}
+		trigger_event_non_silently = western_ocean_voyage_events.6
+	}
+
+	# Generic — claim the land for the crown
+	option = {
+		name = western_ocean_voyage_events.4.a
+		trigger = {
+			OR = {
+				NOT = { exists = character:christopher_columbus }
+				NOT = { scope:target_leader = character:christopher_columbus }
+			}
+		}
+		add_prestige = prestige_mild_bonus
+		if = {
+			limit = { exists = scope:adjacent_land_loc }
+			discover_area = scope:adjacent_land_loc.area
+		}
+		trigger_event_non_silently = western_ocean_voyage_events.6
+	}
+
+	# Something is different — not the Indies
+	option = {
+		name = western_ocean_voyage_events.4.b
+		add_legitimacy = legitimacy_mild_bonus
+		if = {
+			limit = { exists = scope:adjacent_land_loc }
+			discover_area = scope:adjacent_land_loc.area
+		}
+		trigger_event_non_silently = western_ocean_voyage_events.6
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
+
+western_ocean_voyage_events.5 = {
+	type = country_event
+	title = western_ocean_voyage_events.5.title
+	desc = western_ocean_voyage_events.5.desc
+	historical_info = western_ocean_voyage_events.5.historical_info
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		stall_expedition = scope:expedition
+	}
+
+	option = {
+		name = western_ocean_voyage_events.5.a
+		add_navy_tradition = navy_tradition_weak_bonus
+	}
+
+	option = {
+		name = western_ocean_voyage_events.5.b
+		add_prestige = prestige_weak_bonus
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
+
+western_ocean_voyage_events.6 = {
+	type = country_event
+	title = western_ocean_voyage_events.6.title
+	desc = western_ocean_voyage_events.6.desc
+	historical_info = western_ocean_voyage_events.6.historical_info
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+		stall_expedition = scope:expedition
+	}
+
+	option = {
+		name = western_ocean_voyage_events.6.a
+		add_research_progress = research_progress_weak_bonus
+	}
+
+	option = {
+		name = western_ocean_voyage_events.6.b
+		add_prestige = prestige_mild_bonus
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
+
+western_ocean_voyage_events.7 = {
+	type = country_event
+	title = western_ocean_voyage_events.7.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { NOT = { has_variable = western_ocean_first_crossing } }
+				desc = western_ocean_voyage_events.7.desc.later
+			}
+			desc = western_ocean_voyage_events.7.desc
+		}
+	}
+	historical_info = western_ocean_voyage_events.7.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_home_departure }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			expedition_current_location ?= { save_scope_as = current_location }
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.7.a
+		if = {
+			limit = { has_variable = western_ocean_first_crossing }
+			add_prestige = prestige_extreme_bonus
+			add_country_modifier = {
+				modifier = western_ocean_pioneer
+				days = 10950
+			}
+			remove_variable = western_ocean_first_crossing
+		}
+		else = {
+			add_prestige = prestige_mild_bonus
+		}
+		add_legitimacy = legitimacy_mild_bonus
+		if = {
+			limit = { has_dlc = "d009_across_the_pillars" }
+			custom_tooltip = western_ocean_voyage_mythical_cities_tt
+		}
+	}
+}
+
+western_ocean_voyage_events.8 = {
+	type = country_event
+	title = western_ocean_voyage_events.8.title
+	desc = western_ocean_voyage_events.8.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			expedition_current_location ?= { save_scope_as = current_location }
+			set_variable = { name = western_ocean_mutiny_cooldown value = yes days = 365 }
+		}
+		stall_expedition = scope:expedition
+	}
+
+	option = {
+		name = western_ocean_voyage_events.8.a
+		custom_tooltip = western_ocean_voyage_events.ship_lost_tt
+		custom_tooltip = western_ocean_voyage_events.morale_up_15_tt
+		scope:expedition = {
+			change_variable = { name = num_ships add = -1 }
+			clamp_variable = { name = num_ships min = 0 max = 4 }
+			change_variable = { name = morale add = 15 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.8.b
+		random_list = {
+			60 = {
+				modifier = { add = 15  scope:target_leader = { mil >= 50 } }
+				modifier = { add = 10  scope:target_leader = { mil >= 75 } }
+				custom_tooltip = western_ocean_voyage_events.8.fight_win_tt
+				scope:expedition = {
+					pause_expedition = 30
+				}
+			}
+			40 = {
+				custom_tooltip = western_ocean_voyage_events.8.fight_lose_tt
+				custom_tooltip = western_ocean_voyage_events.ship_lost_tt
+				scope:expedition = {
+					pause_expedition = 30
+					change_variable = { name = num_ships add = -1 }
+					clamp_variable = { name = num_ships min = 0 max = 4 }
+				}
+			}
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.8.c
+		trigger = {
+			scope:expedition = { expedition_leader = { has_trait = inspiring_leader } }
+		}
+		ai_chance = { base = 100 }
+		add_prestige = prestige_weak_bonus
+		custom_tooltip = western_ocean_voyage_events.8.rouse_tt
+		custom_tooltip = western_ocean_voyage_events.morale_up_30_tt
+		scope:expedition = {
+			change_variable = { name = morale add = 30 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
+
+western_ocean_voyage_events.9 = {
+	type = country_event
+	title = western_ocean_voyage_events.9.title
+	desc = western_ocean_voyage_events.9.desc
+	historical_info = western_ocean_voyage_events.9.historical_info
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			expedition_current_location ?= { save_scope_as = current_location }
+			set_variable = western_ocean_sickness_done
+		}
+		stall_expedition = scope:expedition
+	}
+
+	option = {
+		name = western_ocean_voyage_events.9.a
+		custom_tooltip = western_ocean_voyage_events.morale_down_5_tt
+		scope:expedition = {
+			pause_expedition = 30
+			change_variable = { name = morale add = -5 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.9.b
+		custom_tooltip = western_ocean_voyage_events.morale_crash_20_tt
+		scope:expedition = {
+			change_variable = { name = morale add = -20 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+		random = {
+			chance = 20
+			custom_tooltip = western_ocean_voyage_events.ship_lost_tt
+			scope:expedition = {
+				change_variable = { name = num_ships add = -1 }
+				clamp_variable = { name = num_ships min = 0 max = 4 }
+			}
+		}
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
+western_ocean_voyage_events.10 = {
+	type = country_event
+	title = western_ocean_voyage_events.10.title
+	desc = western_ocean_voyage_events.10.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	option = {
+		name = western_ocean_voyage_events.10.a
+		add_prestige = prestige_weak_penalty
+		custom_tooltip = western_ocean_voyage_events.charted_kept_tt
+	}
+}
+
+western_ocean_voyage_events.11 = {
+	type = country_event
+	title = western_ocean_voyage_events.11.title
+	desc = western_ocean_voyage_events.11.desc
+	historical_info = western_ocean_voyage_events.11.historical_info
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	option = {
+		name = western_ocean_voyage_events.11.a
+		add_prestige = prestige_mild_penalty
+		custom_tooltip = western_ocean_voyage_events.charted_kept_tt
+	}
+}
+
+western_ocean_voyage_events.13 = {
+	type = country_event
+	title = western_ocean_voyage_events.13.title
+	desc = western_ocean_voyage_events.13.desc
+	historical_info = western_ocean_voyage_events.13.historical_info
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			expedition_current_location ?= { save_scope_as = current_location }
+			set_variable = western_ocean_sargasso_done
+		}
+		stall_expedition = scope:expedition
+	}
+
+	option = {
+		name = western_ocean_voyage_events.13.a
+		custom_tooltip = western_ocean_voyage_events.morale_up_5_tt
+		scope:expedition = {
+			pause_expedition = 5
+			change_variable = { name = morale add = 5 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.13.b
+		custom_tooltip = western_ocean_voyage_events.morale_down_10_tt
+		scope:expedition = {
+			change_variable = { name = morale add = -10 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.13.c
+		trigger = {
+			scope:target_leader = { has_trait = navigator }
+		}
+		custom_tooltip = western_ocean_voyage_events.morale_up_5_tt
+		scope:expedition = {
+			change_variable = { name = morale add = 5 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
+
+western_ocean_voyage_events.14 = {
+	type = country_event
+	title = western_ocean_voyage_events.14.title
+	desc = western_ocean_voyage_events.14.desc
+	historical_info = western_ocean_voyage_events.14.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			expedition_current_location ?= { save_scope_as = current_location }
+			set_variable = western_ocean_land_signs_done
+		}
+		stall_expedition = scope:expedition
+	}
+
+	option = {
+		name = western_ocean_voyage_events.14.a
+		custom_tooltip = western_ocean_voyage_events.morale_up_15_tt
+		scope:expedition = {
+			change_variable = { name = morale add = 15 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.14.b
+		add_navy_tradition = navy_tradition_weak_bonus
+		custom_tooltip = western_ocean_voyage_events.morale_up_5_tt
+		scope:expedition = {
+			change_variable = { name = morale add = 5 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
+
+western_ocean_voyage_events.15 = {
+	type = country_event
+	title = circumnavigation_expedition_events.22.title
+	desc = circumnavigation_expedition_events.22.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			expedition_current_location ?= { save_scope_as = current_location }
+			set_variable = western_ocean_tempest_done
+		}
+		stall_expedition = scope:expedition
+	}
+
+	option = {
+		name = circumnavigation_expedition_events.22.a
+		custom_tooltip = western_ocean_voyage_events.morale_down_5_tt
+		scope:expedition = {
+			pause_expedition = 30
+			change_variable = { name = morale add = -5 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	option = {
+		name = circumnavigation_expedition_events.22.b
+		random_list = {
+			60 = {
+				modifier = { add = 20  scope:expedition = { var:morale >= 60 } }
+				modifier = { add = 15  scope:expedition = { var:morale >= 80 } }
+				custom_tooltip = circumnavigation_expedition_events.22.b.win_tt
+				custom_tooltip = western_ocean_voyage_events.morale_down_5_tt
+				scope:expedition = {
+					change_variable = { name = morale add = -5 }
+					clamp_variable = { name = morale min = 0 max = 100 }
+				}
+			}
+			40 = {
+				custom_tooltip = circumnavigation_expedition_events.22.b.lose_tt
+				custom_tooltip = western_ocean_voyage_events.morale_down_10_tt
+				scope:expedition = {
+					change_variable = { name = morale add = -10 }
+					clamp_variable = { name = morale min = 0 max = 100 }
+				}
+				if = {
+					limit = { scope:expedition = { var:num_ships > 1 } }
+					trigger_event_non_silently = circumnavigation_expedition_events.26
+				}
+			}
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.15.c
+		trigger = {
+			scope:target_leader = { has_trait = navigator }
+		}
+		custom_tooltip = western_ocean_voyage_events.morale_down_5_tt
+		scope:expedition = {
+			change_variable = { name = morale add = -5 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
+
+western_ocean_voyage_events.16 = {
+	type = country_event
+	title = circumnavigation_expedition_events.24.title
+	desc = circumnavigation_expedition_events.24.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = {
+		exists = scope:expedition.expedition_leader
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			expedition_current_location ?= { save_scope_as = current_location }
+			set_variable = western_ocean_becalmed_done
+		}
+		stall_expedition = scope:expedition
+	}
+
+	option = {
+		name = circumnavigation_expedition_events.24.a
+		custom_tooltip = western_ocean_voyage_events.morale_down_10_tt
+		scope:expedition = {
+			pause_expedition = 30
+			change_variable = { name = morale add = -10 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	option = {
+		name = circumnavigation_expedition_events.24.b
+		custom_tooltip = western_ocean_voyage_events.morale_down_15_tt
+		scope:expedition = {
+			pause_expedition = 10
+			change_variable = { name = morale add = -15 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	option = {
+		name = western_ocean_voyage_events.16.c
+		trigger = {
+			scope:target_leader = { has_trait = navigator }
+		}
+		custom_tooltip = western_ocean_voyage_events.morale_down_5_tt
+		scope:expedition = {
+			pause_expedition = 5
+			change_variable = { name = morale add = -5 }
+			clamp_variable = { name = morale min = 0 max = 100 }
+		}
+	}
+
+	after = {
+		resume_expedition = scope:expedition
+	}
+}
