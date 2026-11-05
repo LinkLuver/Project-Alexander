@@ -21,7 +21,6 @@
 #	doom = <float>
 #	rite_power = <float>
 #	yanantin = <float>
-#	complacency = <float>
 #	righteousness = <float>
 #	harmony = <float>
 #	self_control = <float>
