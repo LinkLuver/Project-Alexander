@@ -6,20 +6,44 @@ league = {
 	show_leave_message = no
 	annulled_by_peace_treaty = yes
 	has_parliament = yes
+	has_buildings = yes
 	parliament_type = league_assembly 
-
-	has_leader_country = no
+	has_leader_country = yes
+	#leader_title_key = "SWISS_CONFEDERATION_LEADER"
+	leader_type = none
+	leader_change_trigger_type = none
+	leader_change_method = none
+	months_between_leader_changes = 48
 	#land_ownership_rule = league_land_ownership
 	gives_military_access_to_all_when_at_war = yes
 
+	can_initiate_policy_votes = {
+		is_member_of_international_organization = scope:recipient
+		trigger_if = {
+			limit = {
+				scope:recipient = {
+					international_organization_has_law = law:league_representative
+				}
+			}
+			is_leader_of_international_organization = scope:recipient
+		}
+	}
 
 	joins_defensive_wars_as_co_belligerent = yes	
 
 	laws = {
+		 league_representative = league_country_representative
+		 league_election_method = league_direct_vote
+		 league_ruling_period = league_timed
+		 league_election_frequency = league_four_yearly_elections
 		 league_legal_jurisdiction = league_complete_autonomy
 		 league_representation = league_among_equals
 		 #league_foundation_law = league_koinon_foundation
 		 league_currency = league_independent_currency
+			# league_country_representative
+			# league_direct_vote
+			# league_timed
+			# league_four_yearly_elections
 	}
 	special_statuses_implemented = { league_hegemon }
 
@@ -88,7 +112,7 @@ league = {
 			scope:recipient = {
 				not = {
 					custom_tooltip = {
-						text = hre_num_of_emperor_comfort_policies_active_$value$_tt #update
+						text = league_can_join_existing_members_tt
 						any_international_organization_member = {
 							save_temporary_scope_as = io_member
 							OR = {
@@ -130,30 +154,18 @@ league = {
 
 	}
 	variables = {
-		#cohesion = {
-		imperial_authority = {
-			format = "IMPERIAL_AUTHORITY_DISPLAY"
+		league_currency = {
+			format = "LEAGUE_CURRENCY_DISPLAY"
 			change_format = "VARIABLE_CHANGE_FORMAT"
 			min = 0
 			max = 100
-			#monthly_change = {
-			#	add = {
-			#		desc = "game_concept_opinion"
-			#		scope:recipient = {
-			#			every_international_organization_member = {
-			#				limit {
-			#					opinion = {target = root 100 }
-			#				}
-			#				root = {
-			#					add = {
-			#						value = this_opinion_of_prev
-			#						multiply = 0.2
-			#					}
-			#				}
-			#			}
-			#		}
-			#	}
-			#}
+			start = 5
+			monthly_change = {
+				add = {
+					desc = "NUMBER_OF_MEMBERS"
+					value = total_members
+				}
+			}
 		}
 	}
 	

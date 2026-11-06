@@ -1,4 +1,413 @@
-﻿league_foundation_law = {
+﻿league_representative = {
+	type = international_organization
+	law_category = election
+	potential = { international_organization_type = international_organization_type:league }
+	custom_tags = { forbids_no_policy }
+	league_country_representative = {
+		leader_type = country
+		on_activate = {
+			hidden_effect = {
+				international_organization_chooses_new_leader = this
+			}
+		}
+		on_deactivate = {
+			hidden_effect = {
+				remove_law_from_international_organization = law:league_election_method
+				remove_law_from_international_organization = law:league_ruling_period
+				remove_law_from_international_organization = law:league_election_frequency
+			}
+		}
+		wants_this_policy_bias = {
+			if = {
+				limit = { NOT = { scope:recipient = { international_organization_has_leader = yes } } }
+				add = {
+					desc = "VOTE_BASE_VALUE"
+					value = 10
+				}
+				#our own dip rep in hope we get it
+				add = {
+					desc = "game_concept_diplomatic_reputation"
+					value = modifier:diplomatic_reputation
+				}
+				add = io_members_and_potential_members_opinion_value
+			}
+			if = {
+				limit = { modifier:bias_for_militarist_policies > 0 }
+				add = {
+					desc = "PROVIDES_POWER_OPPORTUNITY"
+					value = {
+						value = modifier:bias_for_militarist_policies
+						multiply = {
+							value = country_tax_base
+							subtract = io_get_average_tax_base
+						}
+					}
+				}
+			}
+		}
+	}
+	league_councillor_representative = {
+		leader_type = character
+		on_activate = {
+			hidden_effect = {
+				international_organization_chooses_new_leader = this
+			}
+		}
+		on_deactivate = {
+			hidden_effect = {
+				remove_law_from_international_organization = law:league_election_method
+				remove_law_from_international_organization = law:league_ruling_period
+				remove_law_from_international_organization = law:league_election_frequency
+			}
+		}
+		wants_this_policy_bias = {
+			if = {
+				limit = { NOT = { scope:recipient = { international_organization_has_leader = yes } } }
+				add = {
+					desc = "VOTE_BASE_VALUE"
+					value = 10
+				}
+				#our own dip rep in hope we get it
+				add = {
+					desc = "game_concept_diplomatic_reputation"
+					value = modifier:diplomatic_reputation
+				}
+				add = io_members_and_potential_members_opinion_value
+			}
+			if = {
+				limit = { modifier:bias_for_militarist_policies > 0 }
+				add = {
+					desc = "PROVIDES_POWER_OPPORTUNITY"
+					value = {
+						value = modifier:bias_for_militarist_policies
+						multiply = {
+							value = country_tax_base
+							subtract = io_get_average_tax_base
+						}
+					}
+				}
+			}
+		}
+	}
+}
+#Ruling Period
+league_ruling_period = {
+	type = international_organization
+	law_category = election
+	custom_tags = { forbids_no_policy }
+	potential = {
+		international_organization_type = international_organization_type:league
+		international_organization_has_law = law:league_representative
+	}
+	league_timed = {
+		leader_change_trigger_type = timed
+		on_deactivate = {
+			if = {
+				limit = { international_organization_has_law = law:league_representative }
+				add_policy_to_international_organization = policy:league_lifelong
+			}
+		}
+		wants_this_policy_bias = {
+			if = {
+				limit = { NOT = { scope:recipient = { international_organization_has_leader = yes } } }
+				add = {
+					desc = "VOTE_BASE_VALUE"
+					value = 10
+				}
+				#our own dip rep in hope we get it
+				add = {
+					desc = "game_concept_diplomatic_reputation"
+					value = modifier:diplomatic_reputation
+				}
+				add = io_members_and_potential_members_opinion_value
+			}
+			if = {
+				limit = { modifier:bias_for_militarist_policies > 0 }
+				add = {
+					desc = "PROVIDES_POWER_OPPORTUNITY"
+					value = {
+						value = modifier:bias_for_militarist_policies
+						multiply = {
+							value = country_tax_base
+							subtract = io_get_average_tax_base
+						}
+					}
+				}
+			}
+			if = {
+				limit = { is_leader_of_international_organization = scope:recipient }
+				add = {
+					desc = "DOES_NOT_BENEFITS_US"
+					value = -100
+				}
+			}
+			if = {
+				limit = { NOT = { is_leader_of_international_organization = scope:recipient } }
+				add = {
+					desc = "BENEFITS_US"
+					value = 50
+				}
+			}
+		}
+	}
+	league_lifelong = {
+		leader_change_trigger_type = rulerchange
+		on_deactivate = {	#So even if we vote for no policy, the IO will always end up with a policy
+			if = {
+				limit = { international_organization_has_law = law:league_representative }
+				add_policy_to_international_organization = policy:league_timed
+				add_policy_to_international_organization = policy:league_four_yearly_elections
+			}
+		}
+		wants_this_policy_bias = {
+			if = {
+				limit = { NOT = { scope:recipient = { international_organization_has_leader = yes } } }
+				add = {
+					desc = "VOTE_BASE_VALUE"
+					value = 10
+				}
+				#our own dip rep in hope we get it
+				add = {
+					desc = "game_concept_diplomatic_reputation"
+					value = modifier:diplomatic_reputation
+				}
+				add = io_members_and_potential_members_opinion_value
+			}
+			if = {
+				limit = { modifier:bias_for_militarist_policies > 0 }
+				add = {
+					desc = "PROVIDES_POWER_OPPORTUNITY"
+					value = {
+						value = modifier:bias_for_militarist_policies
+						multiply = {
+							value = country_tax_base
+							subtract = io_get_average_tax_base
+						}
+					}
+				}
+			}
+			if = {
+				limit = { NOT = { is_leader_of_international_organization = scope:recipient } }
+				add = {
+					desc = "DOES_NOT_BENEFITS_US"
+					value = -50
+				}
+			}
+			if = {
+				limit = { is_leader_of_international_organization = scope:recipient }
+				add = {
+					desc = "BENEFITS_US"
+					value = 100
+				}
+			}
+		}
+	}
+}
+#Election Method
+league_election_method = {
+	type = international_organization
+	law_category = election
+	custom_tags = { forbids_no_policy }
+	potential = {
+		international_organization_type = international_organization_type:league
+		international_organization_has_law = law:league_representative
+	}
+	league_direct_vote = {
+		leader_change_method = vote
+		leadership_election_resolution = league_election
+		wants_this_policy_bias = {
+			if = {
+				limit = { NOT = { scope:recipient = { international_organization_has_leader = yes } } }
+				add = {
+					desc = "VOTE_BASE_VALUE"
+					value = 10
+				}
+				#our own dip rep in hope we get it
+				add = {
+					desc = "game_concept_diplomatic_reputation"
+					value = modifier:diplomatic_reputation
+				}
+				add = io_members_and_potential_members_opinion_value
+			}
+			if = {
+				limit = { modifier:bias_for_militarist_policies > 0 }
+				add = {
+					desc = "PROVIDES_POWER_OPPORTUNITY"
+					value = {
+						value = modifier:bias_for_militarist_policies
+						multiply = {
+							value = country_tax_base
+							subtract = io_get_average_tax_base
+						}
+					}
+				}
+			}
+			if = {
+				limit = { is_leader_of_international_organization = scope:recipient }
+				add = {
+					desc = "BENEFITS_US"
+					value = 1000
+				}
+			}
+		}
+	}
+	league_lottery = {
+		leader_change_method = lottery
+		wants_this_policy_bias = {
+			if = {
+				limit = { NOT = { scope:recipient = { international_organization_has_leader = yes } } }
+				add = {
+					desc = "VOTE_BASE_VALUE"
+					value = 10
+				}
+				#our own dip rep in hope we get it
+				add = {
+					desc = "game_concept_diplomatic_reputation"
+					value = modifier:diplomatic_reputation
+				}
+				add = io_members_and_potential_members_opinion_value
+			}
+			if = {
+				limit = { modifier:bias_for_militarist_policies > 0 }
+				add = {
+					desc = "PROVIDES_POWER_OPPORTUNITY"
+					value = {
+						value = modifier:bias_for_militarist_policies
+						multiply = {
+							value = country_tax_base
+							subtract = io_get_average_tax_base
+						}
+					}
+				}
+			}
+			if = {
+				limit = { is_leader_of_international_organization = scope:recipient }
+				add = {
+					desc = "DOES_NOT_BENEFITS_US"
+					value = -100
+				}
+			}
+			if = {
+				limit = { NOT = { is_leader_of_international_organization = scope:recipient } }
+				add = {
+					desc = "BENEFITS_US"
+					value = 50
+				}
+			}
+		}
+	}
+	league_rotation = {
+		leader_change_method = rotation
+		wants_this_policy_bias = {
+			if = {
+				limit = { NOT = { scope:recipient = { international_organization_has_leader = yes } } }
+				add = {
+					desc = "VOTE_BASE_VALUE"
+					value = 10
+				}
+				#our own dip rep in hope we get it
+				add = {
+					desc = "game_concept_diplomatic_reputation"
+					value = modifier:diplomatic_reputation
+				}
+				add = io_members_and_potential_members_opinion_value
+			}
+			if = {
+				limit = { modifier:bias_for_militarist_policies > 0 }
+				add = {
+					desc = "PROVIDES_POWER_OPPORTUNITY"
+					value = {
+						value = modifier:bias_for_militarist_policies
+						multiply = {
+							value = country_tax_base
+							subtract = io_get_average_tax_base
+						}
+					}
+				}
+			}
+			if = {
+				limit = { is_leader_of_international_organization = scope:recipient }
+				add = {
+					desc = "DOES_NOT_BENEFITS_US"
+					value = -100
+				}
+			}
+			if = {
+				limit = { NOT = { is_leader_of_international_organization = scope:recipient } }
+				add = {
+					desc = "BENEFITS_US"
+					value = 50
+				}
+			}
+		}
+	}
+}
+#Election Frequency
+league_election_frequency = {
+	type = international_organization
+	law_category = election
+	custom_tags = { forbids_no_policy }
+	potential = {
+		international_organization_type = international_organization_type:league
+		international_organization_has_law = law:league_representative
+		international_organization_has_policy = policy:league_timed
+	}
+	league_biyearly_elections = {
+		months_between_leader_changes = 24
+		wants_this_policy_bias = {
+			if = {
+				limit = { NOT = { scope:recipient = { international_organization_has_leader = yes } } }
+				add = {
+					desc = "VOTE_BASE_VALUE"
+					value = 10
+				}
+				#our own dip rep in hope we get it
+				add = {
+					desc = "game_concept_diplomatic_reputation"
+					value = modifier:diplomatic_reputation
+				}
+				add = io_members_and_potential_members_opinion_value
+			}
+		}
+	}
+	league_four_yearly_elections = {
+		months_between_leader_changes = 48
+		wants_this_policy_bias = {
+			if = {
+				limit = { NOT = { scope:recipient = { international_organization_has_leader = yes } } }
+				add = {
+					desc = "VOTE_BASE_VALUE"
+					value = 10
+				}
+				#our own dip rep in hope we get it
+				add = {
+					desc = "game_concept_diplomatic_reputation"
+					value = modifier:diplomatic_reputation
+				}
+				add = io_members_and_potential_members_opinion_value
+			}
+		}
+	}
+	league_eight_yearly_elections = {
+		months_between_leader_changes = 96
+		wants_this_policy_bias = {
+			if = {
+				limit = { NOT = { scope:recipient = { international_organization_has_leader = yes } } }
+				add = {
+					desc = "VOTE_BASE_VALUE"
+					value = 10
+				}
+				#our own dip rep in hope we get it
+				add = {
+					desc = "game_concept_diplomatic_reputation"
+					value = modifier:diplomatic_reputation
+				}
+				add = io_members_and_potential_members_opinion_value
+			}
+		}
+	}
+}
+league_foundation_law = {
 	type = international_organization
 	law_category = foundation
 	potential = { 
@@ -47,18 +456,29 @@ league_representation = {
 	law_category = administrative
 	custom_tags = { forbids_no_policy }
 	potential = { international_organization_type = international_organization_type:league }
+	has_levels = yes
 
 	league_among_equals ={
+		level = 1
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_representation policy = policy:league_among_equals }
+		}
 
 
 	}
 	league_proportional_voting = {
+		level = 2
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_representation policy = policy:league_proportional_voting }
+		}
 
 	}
 	league_hegemon_will = {
+		level = 3
 		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_representation policy = policy:league_hegemon_will }
 			#international_organization_has_law = law:league_hegemonic_dictate
-			hre_num_of_emperor_comfort_policies_active = { value = 1 }
+			league_num_of_hegemon_comfort_policies_active = { value = 1 }
 			
 		}
 		international_organization_modifier = {
@@ -77,10 +497,15 @@ league_legal_jurisdiction = {
 
 	league_complete_autonomy ={
 		level = 1
-
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_legal_jurisdiction policy = policy:league_complete_autonomy }
+		}
 	}
 	league_dikai = {
 		level = 2
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_legal_jurisdiction policy = policy:league_dikai }
+		}
 
 		international_organization_modifier = {
 			enforced_internal_peace = yes
@@ -88,6 +513,9 @@ league_legal_jurisdiction = {
 	}
 	league_hegemon_authority = {
 		level = 3
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_legal_jurisdiction policy = policy:league_hegemon_authority }
+		}
 
 		country_modifier = {
 			potential_trigger = {
@@ -110,14 +538,7 @@ league_assembly_location = {
 	custom_tags = { forbids_no_policy }
 	potential = { 
 		international_organization_type = international_organization_type:league 
-		international_organization_has_law = law:legal_jurisdiction
-		or = {
-			international_organization_has_policy = policy:league_dikai
-			international_organization_has_policy = policy:league_hegemon_authority
-		}
-	}
-	locked = {
-		international_organization_has_law = law:legal_jurisdiction
+		international_organization_has_law = law:league_legal_jurisdiction
 		or = {
 			international_organization_has_policy = policy:league_dikai
 			international_organization_has_policy = policy:league_hegemon_authority
@@ -141,12 +562,13 @@ league_treasury_location = {
 	custom_tags = { forbids_no_policy }
 	potential = { 
 		international_organization_type = international_organization_type:league 
-		international_organization_has_law = law:legal_jurisdiction
+		international_organization_has_law = law:league_legal_jurisdiction
 		or = {
 			international_organization_has_policy = policy:league_dikai
 			international_organization_has_policy = policy:league_hegemon_authority
 		}
 	}
+
 	league_cerimonial_location = {
 
 	}
@@ -161,16 +583,23 @@ league_military_assistance = {
 	type = international_organization
 	law_category = military
 	potential = { international_organization_type = international_organization_type:league }
+	has_levels = yes
 
 
 	league_defensive_assistance = {
-
+		level = 1
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_military_assistance policy = policy:league_defensive_assistance }
+		}
 	}
 	league_military_cooperation = {
+		level = 2
 		allow = {
-
-			international_organization_has_policy = policy:league_dikai
-			international_organization_has_policy = policy:league_hegemon_authority
+			league_can_select_adjacent_reform_level = { law = law:league_military_assistance policy = policy:league_military_cooperation }
+			or = {
+				international_organization_has_policy = policy:league_dikai
+				international_organization_has_policy = policy:league_hegemon_authority
+			}
 		}
 		international_organization_modifier = {
 			league_comfort_policies_counter = 1
@@ -188,10 +617,15 @@ league_mutual_defense = {
 		international_organization_type = international_organization_type:league 
 		international_organization_has_law = law:league_military_assistance
 	}
+	has_levels = yes
 
 	no_defense_policy = {
+		level = 1
 		potential = {
 			NOT = { international_organization_type = international_organization_type:defensive_league }
+		}
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_mutual_defense policy = policy:no_defense_policy }
 		}
 		wants_propose_policy = {
 			subtract = {
@@ -230,6 +664,10 @@ league_mutual_defense = {
 	}
 
 	possible_defense_policy = {
+		level = 2
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_mutual_defense policy = policy:possible_defense_policy }
+		}
 		diplomatic_capacity_cost = possible_defence_upkeep_cost
 		join_defensive_wars_can_call = {
 			custom_tooltip = {
@@ -327,6 +765,10 @@ league_mutual_defense = {
 	}
 
 	automatic_defense_policy = {
+		level = 3
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_mutual_defense policy = policy:automatic_defense_policy }
+		}
 		diplomatic_capacity_cost = automatic_defence_upkeep_cost
 		join_defensive_wars_auto_call = {
 			custom_tooltip = {
@@ -463,6 +905,10 @@ league_mutual_defense = {
 	}
 
 	assured_defense_policy = {
+		level = 4
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_mutual_defense policy = policy:assured_defense_policy }
+		}
 		diplomatic_capacity_cost = assured_defence_upkeep_cost
 		join_defensive_wars_always = {
 			custom_tooltip = {
@@ -582,10 +1028,11 @@ league_mutual_defense = {
 league_mutual_offense = {
 	type = international_organization
 	law_category = military
+	has_levels = yes
 	potential = { 
 		international_organization_type = international_organization_type:league 
 		international_organization_has_law = law:league_military_assistance
-		international_organization_has_policy = policy:military_cooperation
+		international_organization_has_policy = policy:league_military_cooperation
 	}
 	allow = {
 		#international_organization_lifetime >= 5
@@ -593,6 +1040,9 @@ league_mutual_offense = {
 
 	league_possible_offense = {
 		level = 1
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_mutual_offense policy = policy:league_possible_offense }
+		}
 
 		join_offensive_wars_can_call = {
 			always = yes
@@ -600,12 +1050,18 @@ league_mutual_offense = {
 	}
 	league_duty_for_offense = {
 		level = 2
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_mutual_offense policy = policy:league_duty_for_offense }
+		}
 		join_offensive_wars_auto_call = {
 			always = yes
 		}
 	}
 	league_assured_offense = {
 		level = 3
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_mutual_offense policy = policy:league_assured_offense }
+		}
 		join_offensive_wars_always = {
 			always = yes
 		}
@@ -620,22 +1076,31 @@ league_federal_army = {
 	potential = { 
 		international_organization_type = international_organization_type:league 
 		international_organization_has_law = law:league_military_assistance
-		international_organization_has_policy = policy:military_cooperation
+		international_organization_has_policy = policy:league_military_cooperation
 	}
 	allow = {
 	}
 
 	league_no_common_army = {
 		level = 1
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_federal_army policy = policy:league_no_common_army }
+		}
 
 	}
 	league_mercenary_reliance = {
 		level = 2
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_federal_army policy = policy:league_mercenary_reliance }
+		}
 
 		#Members contribute more gold than usual to attract and recruit more mercenaries
 	}
 	league_army = {
 		level = 3
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_federal_army policy = policy:league_army }
+		}
 		manpower = yes
 
 		country_modifier = {
@@ -660,20 +1125,29 @@ league_currency = {
 	custom_tags = { forbids_no_policy }
 	has_levels = yes
 
-	potential = {}
+	potential = {
+		international_organization_type = international_organization_type:league
+	}
 
 	allow = { }
 
 	league_independent_currency ={
 		level = 1
-
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_currency policy = policy:league_independent_currency }
+		}
 	}
 	league_common_mint = {
 		level = 2
-
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_currency policy = policy:league_common_mint }
+		}
 	}
 	league_hegemons_coin ={
 		level = 3
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_currency policy = policy:league_hegemons_coin }
+		}
 
 		country_modifier = {
 			potential_trigger = {
@@ -692,18 +1166,37 @@ league_taxation = {
 	has_levels = yes
 	law_category = socioeconomic
 	custom_tags = { forbids_no_policy }
-	potential = {}
+	potential = {
+		international_organization_type = international_organization_type:league
+		international_organization_has_law = law:league_legal_jurisdiction
+		or = {
+			international_organization_has_policy = policy:league_dikai
+			international_organization_has_policy = policy:league_hegemon_authority
+		}
+	}
 	no_contribution = {
-
+		level = 1
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_taxation policy = policy:no_contribution }
+		}
 	}
 	league_phoros = {
-
+		level = 2
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_taxation policy = policy:league_phoros }
+		}
 	}
 	league_ship_contribution ={
-
+		level = 3
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_taxation policy = policy:league_ship_contribution }
+		}
 	}
 	league_hegemon_dues ={
-
+		level = 4
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_taxation policy = policy:league_hegemon_dues }
+		}
 	}
 
 }
@@ -714,19 +1207,31 @@ league_centralization = {
 	has_levels = yes
 	law_category = centralization
 	potential = {
-
+		international_organization_type = international_organization_type:league
+		international_organization_has_law = law:league_legal_jurisdiction
+		international_organization_has_policy = policy:league_hegemon_authority
+		international_organization_has_law = law:league_representation
+		international_organization_has_law = law:league_currency
+		international_organization_has_law = law:league_taxation
 	}
 
 	league_loose_assembly = {
 		level = 1
-
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_centralization policy = policy:league_loose_assembly }
+		}
 	}
 	league_synedrion = {
 		level = 2
-
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_centralization policy = policy:league_synedrion }
+		}
 	}
 	league_hegemonic_dictate = {
 		level = 3
+		allow = {
+			league_can_select_adjacent_reform_level = { law = law:league_centralization policy = policy:league_hegemonic_dictate }
+		}
 		international_organization_modifier = {
 			league_comfort_policies_counter = 1
 			#unlock_contribute_to_organization_treasury = yes
@@ -745,6 +1250,7 @@ league_centralization = {
 		}
 		allow = {
 			league_num_of_hegemon_comfort_policies_active = { value = 5 }
+			league_can_select_adjacent_reform_level = { law = law:league_centralization policy = policy:league_unification }
 
 			international_organization_has_law = law:league_taxation
 			international_organization_has_law = law:league_currency
