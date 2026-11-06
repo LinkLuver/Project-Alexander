@@ -1,0 +1,388 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = seven_cities_quivira
+
+seven_cities_quivira.1 = {
+# .1 — bad outcome
+#An Adobe Village in the Grass
+	type = country_event
+	title = seven_cities_quivira.1.title
+	desc = seven_cities_quivira.1.desc
+	historical_info = seven_cities_quivira.1.historical_info
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 14
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_quivira.1.a
+		add_prestige = prestige_mild_penalty
+		fail_expedition = scope:expedition
+	}
+}
+
+seven_cities_quivira.2 = {
+# .2 — medium outcome
+#Fertile Country, but no Gold
+	type = country_event
+	title = seven_cities_quivira.2.title
+	desc = seven_cities_quivira.2.desc
+	historical_info = seven_cities_quivira.2.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 14
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_quivira.2.a
+		add_research_progress = research_progress_weak_bonus
+		change_gold_effect = { scale = 2 }
+		scope:location = {
+			add_location_modifier = {
+				modifier = quivira_discovered
+				days = -1
+			}
+		}
+		grant_seven_cities_expedition_loot_effect = yes
+		end_expedition = scope:expedition
+	}
+}
+
+seven_cities_quivira.3 = {
+# .3 — good outcome
+#The Legend Confirmed
+	type = country_event
+	title = seven_cities_quivira.3.title
+	desc = seven_cities_quivira.3.desc
+	historical_info = seven_cities_quivira.3.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 14
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_quivira.3.a
+		add_prestige = prestige_extreme_bonus
+		add_country_modifier = {
+			modifier = major_discovery
+			years = modifier_duration_years_short
+		}
+		change_gold_effect = { scale = 5 }
+		scope:location = {
+			add_location_modifier = {
+				modifier = quivira_discovered
+				days = -1
+			}
+		}
+		grant_seven_cities_expedition_loot_effect = yes
+		end_expedition = scope:expedition
+	}
+}
+
+seven_cities_quivira.10 = {
+#Two Guides
+	type = country_event
+	title = seven_cities_quivira.10.title
+	desc = seven_cities_quivira.10.desc
+	historical_info = seven_cities_quivira.10.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_home_departure }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		location:quivira = {
+			random_present_culture_in_location = { save_scope_as = target_culture }
+			random_present_religion_in_location = { save_scope_as = target_religion }
+		}
+		create_character = {
+			age = { 40 55 }
+			culture = scope:target_culture
+			religion = scope:target_religion
+			birth_location = location:quivira
+			estate = estate_type:peasants_estate
+			save_scope_as = target_character
+			create_in_limbo = yes
+		}
+		create_character = {
+			age = { 20 30 }
+			culture = scope:target_culture
+			religion = scope:target_religion
+			birth_location = location:quivira
+			estate = estate_type:peasants_estate
+			save_scope_as = second_guide
+			create_in_limbo = yes
+		}
+		scope:expedition = {
+			random_list = {
+				45 = { set_variable = quivira_elder_honest }
+				55 = { }
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities_quivira.10.a
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		custom_tooltip = {
+			text = quivira_gold_guide_tt
+			scope:expedition = {
+				set_variable = {
+					name = quivira_guide_character_var
+					value = scope:target_character
+				}
+				if = {
+					limit = { has_variable = quivira_elder_honest }
+					set_variable = { name = quivira_true_guide value = 1 }
+					if = {
+						limit = { NOT = { has_variable = expedition_receives_guides_and_porters_variable } }
+						set_variable = expedition_receives_guides_and_porters_variable
+					}
+				}
+				else = {
+					set_variable = { name = quivira_false_guide value = 1 }
+				}
+			}
+		}
+		hidden_effect = { kill_character_silently = scope:second_guide }
+	}
+
+	option = {
+		name = seven_cities_quivira.10.b
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		custom_tooltip = {
+			text = quivira_grass_guide_tt
+			scope:expedition = {
+				set_variable = {
+					name = quivira_guide_character_var
+					value = scope:second_guide
+				}
+				if = {
+					limit = { NOT = { has_variable = quivira_elder_honest } }
+					set_variable = { name = quivira_true_guide value = 1 }
+					if = {
+						limit = { NOT = { has_variable = expedition_receives_guides_and_porters_variable } }
+						set_variable = expedition_receives_guides_and_porters_variable
+					}
+				}
+				else = {
+					set_variable = { name = quivira_false_guide value = 1 }
+				}
+			}
+		}
+		hidden_effect = { kill_character_silently = scope:target_character }
+	}
+}
+
+seven_cities_quivira.11 = {
+#The Thirty Lances
+	type = country_event
+	title = seven_cities_quivira.11.title
+	desc = seven_cities_quivira.11.desc
+	historical_info = seven_cities_quivira.11.historical_info
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 10
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_quivira.11.a
+		change_gold_effect = { scale = -1 }
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		if = {
+			limit = { scope:expedition = { has_variable = expedition_receives_guides_and_porters_variable } }
+			custom_tooltip = {
+				text = quivira_train_left_behind_tt
+				scope:expedition = { remove_variable = expedition_receives_guides_and_porters_variable }
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities_quivira.11.b
+		scope:expedition = { pause_expedition = { 10 15 } }
+		custom_tooltip = {
+			text = expedition_less_likely_to_stall_tt
+			scope:expedition = {
+				if = {
+					limit = { NOT = { has_variable = expedition_receives_guides_and_porters_variable } }
+					set_variable = expedition_receives_guides_and_porters_variable
+				}
+			}
+		}
+	}
+}
+
+seven_cities_quivira.12 = {
+#The Sea of Grass
+	type = country_event
+	title = seven_cities_quivira.12.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:expedition = { has_variable = quivira_false_guide } }
+				desc = seven_cities_quivira.12.desc_false_guide
+			}
+			triggered_desc = {
+				trigger = { scope:expedition = { has_variable = quivira_true_guide } }
+				desc = seven_cities_quivira.12.desc_true_guide
+			}
+			triggered_desc = { desc = seven_cities_quivira.12.desc }
+		}
+	}
+	historical_info = seven_cities_quivira.12.historical_info
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			expedition_current_location = { save_scope_as = target_location }
+		}
+	}
+
+	option = {
+		name = seven_cities_quivira.12.a
+		trigger = { scope:expedition = { has_variable = quivira_false_guide } }
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		scope:expedition = { pause_expedition = { 5 10 } }
+	}
+
+	option = {
+		name = seven_cities_quivira.12.b
+		trigger = { scope:expedition = { has_variable = quivira_true_guide } }
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		if = {
+			limit = { scope:target_leader = { NOT = { has_trait = navigator } } }
+			scope:target_leader = { add_trait = trait:navigator }
+		}
+		else = {
+			add_research_progress = research_progress_weak_bonus
+		}
+	}
+
+	option = {
+		name = seven_cities_quivira.12.c
+		fallback = yes
+		add_research_progress = research_progress_weak_bonus
+	}
+}
+
+seven_cities_quivira.13 = {
+#The Hunchbacked Cattle
+	type = country_event
+	title = seven_cities_quivira.13.title
+	desc = seven_cities_quivira.13.desc
+	historical_info = seven_cities_quivira.13.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_overland_caravan }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			expedition_current_location = { save_scope_as = target_location }
+		}
+	}
+
+	option = {
+		name = seven_cities_quivira.13.a
+		custom_tooltip = {
+			text = quivira_hides_and_meat_tt
+			scope:expedition = {
+				if = {
+					limit = { NOT = { has_variable = expedition_receives_exotic_goods_variable } }
+					set_variable = {
+						name = expedition_receives_exotic_goods_variable
+						value = 0
+					}
+				}
+				change_variable = {
+					name = expedition_receives_exotic_goods_variable
+					add = 0.3
+				}
+				if = {
+					limit = { scope:target_location = { exists = raw_material } }
+					set_variable = {
+						name = last_exotic_good
+						value = scope:target_location.raw_material
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			text = expedition_less_likely_to_stall_tt
+			scope:expedition = {
+				if = {
+					limit = { NOT = { has_variable = expedition_receives_guides_and_porters_variable } }
+					set_variable = expedition_receives_guides_and_porters_variable
+				}
+			}
+		}
+		scope:expedition = { pause_expedition = { 5 10 } }
+	}
+
+	option = {
+		name = seven_cities_quivira.13.b
+		custom_tooltip = seven_cities_quivira.13.b.tt
+	}
+}

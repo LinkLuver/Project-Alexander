@@ -1,0 +1,1446 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+battle_for_the_strait = {
+
+	monthly_spawn_chance = monthly_spawn_chance_unique
+	hint_tag = hint_battle_for_the_strait
+
+	can_start = {
+		has_dlc = "d009_across_the_pillars"
+		NOT = { 
+			current_age_or_later = { age = age_3_discovery }
+		}
+		country_exists = c:GRA
+		country_exists = c:CAS
+		country_exists = c:MOR
+	}
+
+	# Win attribution (CAS > MOR > GRA priority) and the stalemate fan-out are resolved in on_ending.
+	outcome = {
+		name = "battle_for_the_strait_castilian_supremacy"
+		desc = "battle_for_the_strait_castilian_supremacy_desc"
+		trigger = {
+			battle_for_the_strait_castile_requirements_met = yes
+		}
+	}
+	outcome = {
+		name = "battle_for_the_strait_moroccan_supremacy"
+		desc = "battle_for_the_strait_moroccan_supremacy_desc"
+		trigger = {
+			battle_for_the_strait_morocco_requirements_met = yes
+		}
+	}
+	outcome = {
+		name = "battle_for_the_strait_granadan_sovereignty_preserved"
+		desc = "battle_for_the_strait_granadan_sovereignty_preserved_desc"
+		trigger = {
+			battle_for_the_strait_granada_requirements_met = yes
+		}
+	}
+	outcome = {
+		name = "battle_for_the_strait_neutral_outcome"
+		trigger = {
+			OR = {
+				NOT = { country_exists = c:CAS }
+				NOT = { country_exists = c:MOR }
+				current_age_or_later = { age = age_3_discovery }
+			}
+		}
+	}
+
+	visible = {
+		OR = {
+			has_or_had_tag = CAS
+			has_or_had_tag = GRA
+			has_or_had_tag = MOR
+			has_presence_in = region:iberia_region
+			has_presence_in = region:maghreb_region
+		}
+	}
+
+	variables = {
+		influence_over_granada = {
+			format         = "INFLUENCE_OVER_GRANADA_DISPLAY"
+			change_format  = "VARIABLE_CHANGE_FORMAT"
+			positive_name  = moroccan_influence_over_granada
+			negative_name  = castilian_influence_over_granada
+			min            = -100
+			max            = 100
+			start          = -33
+			monthly_change = {
+				add = {
+					add = {
+						desc  = "BFTS_YEARS_SUBJECT_UNDER_CAS"
+						value = 0
+						if = {
+							limit = { has_variable = GRA_years_subject_under_CAS_variable }
+							value    = var:GRA_years_subject_under_CAS_variable
+							multiply = -0.01
+						}
+					}
+					if = {
+						limit = {
+							country_exists = c:CAS
+							c:CAS.modifier:monthly_influence_over_castile != 0
+						}
+						subtract = {
+							desc  = "BFTS_CAS_INFLUENCE_FROM_MODIFIERS"
+							value = 0
+							add = c:CAS.modifier:monthly_influence_over_castile
+						}
+					}
+					if = {
+						limit = { 
+							country_exists = c:MOR 
+							c:MOR.modifier:monthly_influence_over_granada != 0
+						}
+						add = {
+							desc  = "BFTS_MOR_INFLUENCE_FROM_MODIFIERS"
+							value = 0
+							add = c:MOR.modifier:monthly_influence_over_granada
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_AXIS_DECAY"
+						value    = situation:battle_for_the_strait.var:influence_over_granada
+						multiply = -0.0065
+					}
+
+					# === CAS-side conditions ===
+
+					subtract = {
+						
+						desc  = "BFTS_INFLUENCE_GRA_MILITARY_WEAKNESS_VS_CAS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:GRA
+							}
+							value = 0.5
+							subtract = "c:GRA.relative_military_strength(c:CAS)"
+							multiply = 0.4
+							min = 0
+							max = 0.2
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_GRA_SUBJECT_OF_CAS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:GRA
+								c:GRA ?= {
+									is_subject_of = c:CAS
+								}
+							}
+							value = bfts_influence_gain_mid
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_GRA_PARIAS_TO_CAS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:GRA
+								c:GRA ?= {
+									has_scripted_relation = {
+										type = relation_type:parias_payments
+										target = c:CAS
+									}
+								}
+							}
+							value = bfts_influence_gain_tiny
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_GRA_ECONOMIC_WEAKNESS_VS_CAS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:GRA
+								c:CAS ?= {
+									country_tax_base > c:GRA.country_tax_base
+								}
+							}
+							value = bfts_influence_gain_tiny
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_GRA_ECONOMIC_WEAKNESS_VS_MOR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:MOR
+								country_exists = c:GRA
+								c:MOR ?= {
+									country_tax_base > c:GRA.country_tax_base
+								}
+							}
+							value = bfts_influence_gain_tiny
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_GRA_AT_WAR_WITH_MOR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:MOR
+								country_exists = c:GRA
+								c:GRA ?= {
+									is_at_war_with = c:MOR
+								}
+							}
+							value = 0.05
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_MOR_LOSING_WAR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:MOR
+								c:MOR ?= {
+									at_war = yes
+									lowest_war_score < -10
+									trigger_if = {
+										limit = { country_exists = c:GRA }
+										NOT = { is_at_war_with = c:GRA }
+									}
+								}
+							}
+							value = bfts_influence_gain_small
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_GRA_OPINION_OF_CAS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:GRA
+							}
+							value    = "c:GRA.opinion(c:CAS)"
+							multiply = -0.00025
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_GRA_ALLIED_WITH_CAS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:GRA
+								c:GRA ?= {
+									is_allied_with = { target = c:CAS }
+								}
+							}
+							value = bfts_influence_gain_small
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_GRA_GUARANTEED_BY_CAS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:GRA
+								c:GRA ?= {
+									has_scripted_relation = {
+										type = relation_type:guarantee
+										target = c:CAS
+									}
+								}
+							}
+							value = bfts_influence_gain_tiny
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_GRA_SHARED_RELIGION_WITH_CAS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:GRA
+								c:CAS ?= {
+									religion = c:GRA.religion
+								}
+							}
+							value = 0.05
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_CAS_PROV_MALAGA"
+						value = 0
+						if = { limit = { country_exists = c:CAS c:CAS ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:malaga_province } } value = 0.02 }
+					}
+					subtract = {
+						desc  = "BFTS_INFLUENCE_CAS_PROV_CADIZ"
+						value = 0
+						if = { limit = { country_exists = c:CAS c:CAS ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:cadiz_province } } value = 0.02 }
+					}
+					subtract = {
+						desc  = "BFTS_INFLUENCE_CAS_PROV_GRANADA"
+						value = 0
+						if = { limit = { country_exists = c:CAS c:CAS ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:granada_province } } value = 0.02 }
+					}
+					subtract = {
+						desc  = "BFTS_INFLUENCE_CAS_PROV_ALMERIA"
+						value = 0
+						if = { limit = { country_exists = c:CAS c:CAS ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:almeria_province } } value = 0.02 }
+					}
+					subtract = {
+						desc  = "BFTS_INFLUENCE_CAS_PROV_HABAT"
+						value = 0
+						if = { limit = { country_exists = c:CAS c:CAS ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:habat_province } } value = 0.02 }
+					}
+					subtract = {
+						desc  = "BFTS_INFLUENCE_CAS_PROV_ERRIF"
+						value = 0
+						if = { limit = { country_exists = c:CAS c:CAS ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:errif_province } } value = 0.02 }
+					}
+					subtract = {
+						desc  = "BFTS_INFLUENCE_CAS_PROV_AZGHAR"
+						value = 0
+						if = { limit = { country_exists = c:CAS c:CAS ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:azghar_province } } value = 0.02 }
+					}
+					subtract = {
+						desc  = "BFTS_INFLUENCE_CAS_AREA_ANDALUSIA"
+						value = 0
+						if = { limit = { country_exists = c:CAS area:andalusia_area = { any_province_definition_in_area = { count = all c:CAS ?= { owns_or_non_sovereign_subject_owns_entire_province = prev } } } } value = 0.05 }
+					}
+					subtract = {
+						desc  = "BFTS_INFLUENCE_CAS_AREA_GRANADA"
+						value = 0
+						if = { limit = { country_exists = c:CAS area:granada_area = { any_province_definition_in_area = { count = all c:CAS ?= { owns_or_non_sovereign_subject_owns_entire_province = prev } } } } value = 0.05 }
+					}
+					subtract = {
+						desc  = "BFTS_INFLUENCE_CAS_AREA_MURCIA"
+						value = 0
+						if = { limit = { country_exists = c:CAS area:murcia_area = { any_province_definition_in_area = { count = all c:CAS ?= { owns_or_non_sovereign_subject_owns_entire_province = prev } } } } value = 0.05 }
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_CAS_MARITIME_STRAIT"
+						value = 0
+						if = {
+							limit = { country_exists = c:CAS }
+							value    = "location:strait_of_gibraltar.location_maritime_presence_power(c:CAS)"
+							add      = "location:trafalgar.location_maritime_presence_power(c:CAS)"
+							divide   = 2
+							multiply = 0.001
+							min      = 0
+							max      = 0.1
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_STRENGTH_CAS_VS_MOR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:MOR
+							}
+							value    = "c:CAS.relative_strength(c:MOR)"
+							subtract = 0.5
+							multiply = 0.4
+							min      = -0.2
+							max      = 0.2
+						}
+					}
+
+					# === MOR-side conditions ===
+
+					add = {
+						desc  = "BFTS_YEARS_SUBJECT_UNDER_MOR"
+						value = 0
+						if = {
+							limit = { has_variable = GRA_years_subject_under_MOR_variable }
+							value    = var:GRA_years_subject_under_MOR_variable
+							multiply = 0.01
+						}
+					}
+
+					add = {
+						
+						desc  = "BFTS_INFLUENCE_GRA_MILITARY_WEAKNESS_VS_MOR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:MOR
+								country_exists = c:GRA
+							}
+							value = 0.5
+							subtract = "c:GRA.relative_military_strength(c:MOR)"
+							multiply = 0.4
+							min = 0
+							max = 0.2
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_GRA_SUBJECT_OF_MOR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:MOR
+								country_exists = c:GRA
+								c:GRA ?= {
+									is_subject_of = c:MOR
+								}
+							}
+							value = bfts_influence_gain_mid
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_GRA_AT_WAR_WITH_CAS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:GRA
+								c:GRA ?= {
+									is_at_war_with = c:CAS
+								}
+							}
+							value = 0.05
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_CAS_LOSING_WAR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								c:CAS ?= {
+									at_war = yes
+									lowest_war_score < -10
+									trigger_if = {
+										limit = { country_exists = c:GRA }
+										NOT = { is_at_war_with = c:GRA }
+									}
+								}
+							}
+							value = bfts_influence_gain_small
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_GRA_OPINION_OF_MOR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:MOR
+								country_exists = c:GRA
+							}
+							value    = "c:GRA.opinion(c:MOR)"
+							multiply = 0.00025
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_GRA_ALLIED_WITH_MOR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:MOR
+								country_exists = c:GRA
+								c:GRA ?= {
+									is_allied_with = { target = c:MOR }
+								}
+							}
+							value = bfts_influence_gain_small
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_GRA_GUARANTEED_BY_MOR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:MOR
+								country_exists = c:GRA
+								c:GRA ?= {
+									has_scripted_relation = {
+										type = relation_type:guarantee
+										target = c:MOR
+									}
+								}
+							}
+							value = bfts_influence_gain_tiny
+						}
+					}
+					add = {
+						desc  = "BFTS_INFLUENCE_GRA_SHARED_RELIGION_WITH_MOR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:MOR
+								country_exists = c:GRA
+								c:MOR ?= {
+									religion = c:GRA.religion
+								}
+							}
+							value = 0.05
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_MOR_PROV_MALAGA"
+						value = 0
+						if = { limit = { country_exists = c:MOR c:MOR ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:malaga_province } } value = 0.02 }
+					}
+					add = {
+						desc  = "BFTS_INFLUENCE_MOR_PROV_CADIZ"
+						value = 0
+						if = { limit = { country_exists = c:MOR c:MOR ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:cadiz_province } } value = 0.02 }
+					}
+					add = {
+						desc  = "BFTS_INFLUENCE_MOR_PROV_GRANADA"
+						value = 0
+						if = { limit = { country_exists = c:MOR c:MOR ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:granada_province } } value = 0.02 }
+					}
+					add = {
+						desc  = "BFTS_INFLUENCE_MOR_PROV_ALMERIA"
+						value = 0
+						if = { limit = { country_exists = c:MOR c:MOR ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:almeria_province } } value = 0.02 }
+					}
+					add = {
+						desc  = "BFTS_INFLUENCE_MOR_PROV_HABAT"
+						value = 0
+						if = { limit = { country_exists = c:MOR c:MOR ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:habat_province } } value = 0.02 }
+					}
+					add = {
+						desc  = "BFTS_INFLUENCE_MOR_PROV_ERRIF"
+						value = 0
+						if = { limit = { country_exists = c:MOR c:MOR ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:errif_province } } value = 0.02 }
+					}
+					add = {
+						desc  = "BFTS_INFLUENCE_MOR_PROV_AZGHAR"
+						value = 0
+						if = { limit = { country_exists = c:MOR c:MOR ?= { owns_or_non_sovereign_subject_owns_entire_province = province_definition:azghar_province } } value = 0.02 }
+					}
+					add = {
+						desc  = "BFTS_INFLUENCE_MOR_AREA_ANDALUSIA"
+						value = 0
+						if = { limit = { country_exists = c:MOR area:andalusia_area = { any_province_definition_in_area = { count = all c:MOR ?= { owns_or_non_sovereign_subject_owns_entire_province = prev } } } } value = 0.05 }
+					}
+					add = {
+						desc  = "BFTS_INFLUENCE_MOR_AREA_GRANADA"
+						value = 0
+						if = { limit = { country_exists = c:MOR area:granada_area = { any_province_definition_in_area = { count = all c:MOR ?= { owns_or_non_sovereign_subject_owns_entire_province = prev } } } } value = 0.05 }
+					}
+					add = {
+						desc  = "BFTS_INFLUENCE_MOR_AREA_MURCIA"
+						value = 0
+						if = { limit = { country_exists = c:MOR area:murcia_area = { any_province_definition_in_area = { count = all c:MOR ?= { owns_or_non_sovereign_subject_owns_entire_province = prev } } } } value = 0.05 }
+					}
+					add = {
+						desc  = "BFTS_INFLUENCE_MOR_MARITIME_STRAIT"
+						value = 0
+						if = {
+							limit = { country_exists = c:MOR }
+							value    = "location:strait_of_gibraltar.location_maritime_presence_power(c:MOR)"
+							add      = "location:trafalgar.location_maritime_presence_power(c:MOR)"
+							divide   = 2
+							multiply = 0.001
+							min      = 0
+							max      = 0.1
+						}
+					}
+
+					# === Granadan self-assertion ===
+
+					add = {
+						desc  = "BFTS_INFLUENCE_GRA_OUTGROWS_CAS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:GRA
+								situation:battle_for_the_strait.var:influence_over_granada < 0
+								OR = {
+									c:GRA ?= { country_tax_base > c:CAS.country_tax_base }
+									c:GRA ?= { relative_military_strength = { target = c:CAS value > 0.5 } }
+								}
+							}
+							value    = situation:battle_for_the_strait.var:influence_over_granada
+							multiply = -0.02
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_GRA_OUTGROWS_MOR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:MOR
+								country_exists = c:GRA
+								situation:battle_for_the_strait.var:influence_over_granada > 0
+								OR = {
+									c:GRA ?= { country_tax_base > c:MOR.country_tax_base }
+									c:GRA ?= { relative_military_strength = { target = c:MOR value > 0.5 } }
+								}
+							}
+							value    = situation:battle_for_the_strait.var:influence_over_granada
+							multiply = 0.02
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_GRA_INDEPENDENT_NEUTRALITY"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								c:GRA ?= { is_subject = no }
+								situation:battle_for_the_strait.var:influence_over_granada != 0
+							}
+							value    = situation:battle_for_the_strait.var:influence_over_granada
+							divide   = 25
+							min      = -1
+							max      = 1
+							multiply = bfts_influence_gain_small
+							multiply = -1
+						}
+					}
+
+					add = {
+						desc  = "BFTS_INFLUENCE_GRA_CONTROLS_STRAIT"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								situation:battle_for_the_strait.var:influence_over_granada != 0
+							}
+							value    = c:GRA.num_locations
+							multiply = situation:battle_for_the_strait.var:influence_over_granada
+							multiply = -0.0002
+							min      = -0.15
+							max      = 0.15
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_GRA_MARITIME_STRAIT"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								situation:battle_for_the_strait.var:influence_over_granada != 0
+							}
+							value    = situation:battle_for_the_strait.var:influence_over_granada
+							divide   = 25
+							min      = -1
+							max      = 1
+							multiply = bfts_gra_strait_maritime_pull
+						}
+					}
+
+					subtract = {
+						desc  = "BFTS_INFLUENCE_SOVEREIGNTY_COUNTERWEIGHT"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								c:GRA ?= { is_subject = no }
+								situation:battle_for_the_strait.var:influence_over_granada != 0
+							}
+							value    = situation:battle_for_the_strait.var:influence_over_granada
+							divide   = 25
+							min      = -1
+							max      = 1
+							multiply = situation:battle_for_the_strait.var:granadan_sovereignty
+							multiply = 0.0025
+						}
+					}
+				}
+			}
+		}
+
+		granadan_sovereignty = {
+			format         = "BFTS_SOVEREIGNTY_DISPLAY"
+			change_format  = "VARIABLE_CHANGE_FORMAT"
+			min            = 0
+			max            = 100
+			start          = 50
+			monthly_change = {
+				add = {
+					# === Accumulated country-modifier stack ===
+					add = {
+						desc  = "BFTS_SOVEREIGNTY_FROM_CAS_MODIFIERS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:MOR
+								country_exists = c:GRA
+							}
+							value = c:CAS.modifier:monthly_granadan_sovereignty
+						}
+					}
+					add = {
+						desc  = "BFTS_SOVEREIGNTY_FROM_MOR_MODIFIERS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:MOR
+								country_exists = c:GRA
+							}
+							value = c:MOR.modifier:monthly_granadan_sovereignty
+						}
+					}
+					add = {
+						desc  = "BFTS_SOVEREIGNTY_FROM_GRA_MODIFIERS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:CAS
+								country_exists = c:MOR
+								country_exists = c:GRA
+							}
+							value = c:GRA.modifier:monthly_granadan_sovereignty
+						}
+					}
+
+					# === Allies ===
+					add = {
+						desc  = "BFTS_SOVEREIGNTY_FROM_ALLIES"
+						value = 0
+						if = {
+							limit = { country_exists = c:GRA }
+							c:GRA ?= {
+								every_related_country = {
+									type = alliance
+									add = {
+										value    = great_power_score
+										multiply = 0.0004
+										add      = 0.01
+										min      = 0.01
+										max      = 0.05
+									}
+								}
+							}
+						}
+					}
+
+					# === Loyal subjects ===
+					add = {
+						desc  = "BFTS_SOVEREIGNTY_FROM_LOYAL_SUBJECTS"
+						value = 0
+						if = {
+							limit = { country_exists = c:GRA }
+							c:GRA ?= {
+								every_subject = {
+									limit = { subject_loyalty >= 50 }
+									add = {
+										value    = great_power_score
+										multiply = 0.0004
+										add      = 0.01
+										min      = 0.01
+										max      = 0.05
+									}
+								}
+							}
+						}
+					}
+
+					# === Disloyal subjects ===
+					subtract = {
+						desc  = "BFTS_SOVEREIGNTY_FROM_DISLOYAL_SUBJECTS"
+						value = 0
+						if = {
+							limit = { country_exists = c:GRA }
+							c:GRA ?= {
+								every_subject = {
+									limit = { subject_loyalty < 50 }
+									add = {
+										value    = great_power_score
+										multiply = 0.0004
+										add      = 0.01
+										min      = 0.01
+										max      = 0.05
+									}
+								}
+							}
+						}
+					}
+
+					# === Alhambra ===
+					add = {
+						desc  = "BFTS_SOVEREIGNTY_FROM_ALHAMBRA"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								c:GRA ?= {
+									has_variable = alhambra_extension_level
+								}
+							}
+							value    = c:GRA.var:alhambra_extension_level
+							multiply = 0.05
+						}
+					}
+
+					# === Independence vs subjugation =========================================
+					add = {
+						desc  = "BFTS_SOVEREIGNTY_GRA_IS_INDEPENDENT"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								c:GRA ?= { is_subject = no }
+							}
+							value = bfts_influence_gain_tiny
+						}
+					}
+					subtract = {
+						desc  = "BFTS_SOVEREIGNTY_GRA_IS_SUBJECT"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								c:GRA ?= { is_subject = yes }
+							}
+							value = 0.25
+							if = {
+								limit = { has_variable = GRA_years_as_subject_variable }
+								value    = var:GRA_years_as_subject_variable
+								multiply = 0.05
+								add      = 0.25
+								max      = 1
+							}
+						}
+					}
+
+					# === Peace vs war ========================================================
+					add = {
+						desc  = "BFTS_SOVEREIGNTY_GRA_AT_PEACE"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								c:GRA ?= { at_war = no }
+							}
+							value = bfts_influence_gain_tiny
+						}
+					}
+					subtract = {
+						desc  = "BFTS_SOVEREIGNTY_GRA_AT_WAR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								c:GRA ?= { at_war = yes }
+							}
+							value = bfts_influence_gain_small
+						}
+					}
+
+					# === Influence-axis pressure ===
+					subtract = {
+						desc     = "BFTS_SOVEREIGNTY_CAS_INFLUENCE_PRESSURE"
+						value    = situation:battle_for_the_strait.var:influence_over_granada
+						multiply = -0.001
+						min      = 0
+						max      = 0.1
+					}
+					subtract = {
+						desc     = "BFTS_SOVEREIGNTY_MOR_INFLUENCE_PRESSURE"
+						value    = situation:battle_for_the_strait.var:influence_over_granada
+						multiply = 0.001
+						min      = 0
+						max      = 0.1
+					}
+
+					# === Crown power ===
+					add = {
+						desc  = "BFTS_SOVEREIGNTY_FROM_CROWN_POWER"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								c:GRA ?= {
+									"estate_power(estate_type:crown_estate)" < 0.25
+								}
+							}
+							value    = "c:GRA.estate_power(estate_type:crown_estate)"
+							multiply = 0.4
+							subtract = 0.1
+						}
+						else_if = {
+							limit = {
+								country_exists = c:GRA
+							}
+							value    = "c:GRA.estate_power(estate_type:crown_estate)"
+							subtract = 0.25
+							multiply = 2
+							divide   = 3
+						}
+					}
+
+					# === Prestige ===
+					add = {
+						desc  = "BFTS_SOVEREIGNTY_FROM_PRESTIGE"
+						value = 0
+						if = {
+							limit = { country_exists = c:GRA }
+							value    = c:GRA.prestige
+							multiply = 0.005
+							min      = 0
+							max      = 0.5
+						}
+					}
+
+					# === Pace multiplier ===
+					multiply = {
+						desc            = "BFTS_SOVEREIGNTY_PULL_MULTIPLIER"
+						format          = "MULTIPLIER_CHANGE_FORMAT"
+						desc_sort_order = -99999
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+							}
+							add = c:GRA.modifier:granadan_sovereignty_modifier
+						}
+						add = 1
+					}
+
+					# Castile has a disaster
+					add = {
+						desc  = "BFTS_ACTIVE_DISASTER_CAS"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								c:CAS = {
+									has_any_active_disaster = yes
+								}
+							}
+							add = 0.1
+						}
+					}
+
+					# Morocco has a disaster
+					add = {
+						desc  = "BFTS_ACTIVE_DISASTER_MOR"
+						value = 0
+						if = {
+							limit = {
+								country_exists = c:GRA
+								c:MOR = {
+									has_any_active_disaster = yes
+								}
+							}
+							add = 0.1
+						}
+					}
+
+					subtract = {
+						desc     = "BFTS_SOVEREIGNTY_DECAY"
+						value    = situation:battle_for_the_strait.var:granadan_sovereignty
+						subtract = 50
+						multiply = 0.002
+						min      = 0
+					}
+
+					multiply = {
+						desc            = "BFTS_SOVEREIGNTY_GROWTH_PACE"
+						format          = "MULTIPLIER_CHANGE_FORMAT"
+						desc_sort_order = -100000
+						value = 0.8
+					}
+				}
+			}
+		}
+	}
+
+	on_start = {
+		set_variable = {
+			name = GRA_years_subject_under_CAS_variable
+			value = 15
+		}
+		region:iberia_region = {
+			every_present_country = {
+				limit = {
+					NOT = { has_variable = bfts_event_cd_variable }
+				}
+				set_variable = {
+					name = bfts_event_cd_variable
+					months = 1
+				}
+				trigger_event_non_silently = battle_for_the_strait_events.1
+			}
+		}
+
+		region:maghreb_region = {
+			every_present_country = {
+				limit = { NOT = { has_variable = bfts_event_cd_variable } }
+				trigger_event_non_silently = battle_for_the_strait_events.1
+			}
+		}
+
+		c:GRA ?= {
+			every_owned_location = {
+				add_location_modifier = {
+					modifier = contested_in_the_battle_for_the_strait
+					years = 50
+					mode = replace
+				}
+			}
+		}
+
+		c:MOR ?= {
+			if = {
+				limit = { is_ai = yes }
+				hidden_effect = {
+					add_country_modifier = {
+						modifier = mor_contests_the_strait_modifier
+					}
+				}
+			}
+		}
+
+		c:CAS ?= {
+			add_area_preference = castile_conquer_maghreb
+		}
+	}
+
+	on_monthly = {
+		if = {
+			limit = {
+				country_exists = c:GRA
+				country_exists = c:CAS
+				c:GRA = { is_subject_or_below_of = c:CAS }
+			}
+			if = {
+				limit = {
+					current_month = 6
+					has_variable = GRA_years_subject_under_CAS_variable
+				}
+				change_variable = {
+					name = GRA_years_subject_under_CAS_variable
+					add = 1
+				}
+			}
+		}
+		else_if = {
+			limit = { has_variable = GRA_years_subject_under_CAS_variable }
+			remove_variable = GRA_years_subject_under_CAS_variable
+		}
+		if = {
+			limit = {
+				country_exists = c:GRA
+				country_exists = c:MOR
+				c:GRA = { is_subject_or_below_of = c:MOR }
+			}
+			if = {
+				limit = {
+					current_month = 6
+					has_variable = GRA_years_subject_under_MOR_variable
+				}
+				change_variable = {
+					name = GRA_years_subject_under_MOR_variable
+					add = 1
+				}
+			}
+		}
+		else_if = {
+			limit = { has_variable = GRA_years_subject_under_MOR_variable }
+			remove_variable = GRA_years_subject_under_MOR_variable
+		}
+		if = {
+			limit = {
+				country_exists = c:GRA
+				c:GRA = { is_subject = yes }
+			}
+			if = {
+				limit = { NOT = { has_variable = GRA_years_as_subject_variable } }
+				set_variable = {
+					name = GRA_years_as_subject_variable
+					value = 0
+				}
+			}
+			else_if = {
+				limit = { current_month = 6 }
+				change_variable = {
+					name = GRA_years_as_subject_variable
+					add = 1
+				}
+			}
+		}
+		else_if = {
+			limit = { has_variable = GRA_years_as_subject_variable }
+			remove_variable = GRA_years_as_subject_variable
+		}
+		c:GRA ?= {
+			if = {
+				limit = {
+					has_variable = forced_gold_trade_variable
+					NOR = { 
+						is_subject_or_below_of = c:CAS 
+						is_subject_or_below_of = c:SPA	
+					}
+				}
+				cancel_bfts_gold_trade = yes
+			}
+			random_list = {
+				14 = {}
+				1 = {
+					random_list = {
+						1 = { trigger_event_non_silently = battle_for_the_strait_events.40 }
+						1 = { trigger_event_non_silently = battle_for_the_strait_events.41 }
+						1 = { trigger_event_non_silently = battle_for_the_strait_events.42 }
+						1 = { trigger_event_non_silently = battle_for_the_strait_events.45 }
+						1 = { trigger_event_non_silently = battle_for_the_strait_events.46 }
+						1 = { trigger_event_non_silently = battle_for_the_strait_events.47 }
+					}
+				}
+			}
+		}
+
+		c:CAS ?= {
+			# The Adelantado Mayor holds office only while Castile keeps a firm grip on the strait; if influence slips back above -25 the appointment lapses.
+			if = {
+				limit = {
+					has_variable = cas_adelantado_mayor_character
+					OR = {
+						situation:battle_for_the_strait.var:influence_over_granada > -25
+						var:cas_adelantado_mayor_character = {
+							OR = {
+								is_alive = no
+								owner != prev
+							}
+						}
+					}
+				}
+				cas_repeal_adelantado_mayor_effect = yes
+				area:andalusia_area = {
+					every_province_in_area = {
+						remove_province_modifier = guarded_by_adelantado_mayor
+					}
+				}
+				area:granada_area = {
+					every_province_in_area = {
+						remove_province_modifier = guarded_by_adelantado_mayor
+					}
+				}
+				area:murcia_area = {
+					every_province_in_area = {
+						remove_province_modifier = guarded_by_adelantado_mayor
+					}
+				}
+			}
+
+			random_list = {
+				14 = {}
+				1 = {
+					random_list = {
+						1 = { trigger_event_non_silently = battle_for_the_strait_events.43 }
+						1 = { trigger_event_non_silently = battle_for_the_strait_events.44 }
+					}
+				}
+			}
+
+			if = {
+				limit = {
+					country_exists = c:GRA
+					can_declare_war_on = c:GRA
+					NOT = { has_truce_with = c:GRA }
+					NOT = {
+						has_casus_belli_of_type_on = {
+							target = c:GRA
+							type = casus_belli:cb_demand_andalusi_submission
+						}
+					}
+					c:GRA ?= {
+						NOT = { is_subject_or_below_of = prev }
+					}
+				}
+				add_casus_belli = {
+					type = casus_belli:cb_demand_andalusi_submission
+					target = c:GRA
+					years = 15
+				}
+			}
+		}
+
+		c:MOR ?= {
+			random_list = {
+				14 = {}
+				1 = {
+					random_list = {
+						1 = { trigger_event_non_silently = battle_for_the_strait_events.43 }
+						1 = { trigger_event_non_silently = battle_for_the_strait_events.44 }
+					}
+				}
+			}
+
+			if = {
+				limit = {
+					country_exists = c:GRA
+					can_declare_war_on = c:GRA
+					NOT = { has_truce_with = c:GRA }
+					NOT = {
+						has_casus_belli_of_type_on = {
+							target = c:GRA
+							type = casus_belli:cb_demand_andalusi_submission
+						}
+					}
+					c:GRA ?= {
+						NOT = { is_subject_or_below_of = prev }
+					}
+				}
+				add_casus_belli = {
+					type = casus_belli:cb_demand_andalusi_submission
+					target = c:GRA
+					years = 15
+				}
+			}
+		}
+	}
+
+	on_ending = {
+		c:GRA ?= { remove_country_modifier = contested_strait_modifier }
+		c:MOR ?= { remove_country_modifier = contested_strait_modifier }
+		c:CAS ?= { remove_country_modifier = contested_strait_modifier }
+		c:MOR ?= { remove_country_modifier = mor_contests_the_strait_modifier }
+		c:CAS ?= { remove_area_preference = castile_conquer_maghreb }
+		if = {
+			limit = {
+				battle_for_the_strait_castile_requirements_met = yes
+			}
+			c:CAS = {
+				trigger_event_non_silently = battle_for_the_strait_events.2
+				trigger_event_non_silently = {
+					id = d009_mudejar.3
+					months = { 4 6 }
+				}
+				trigger_event_non_silently = {
+					id = battle_for_the_strait_events.6
+					months = { 7 10 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				battle_for_the_strait_morocco_requirements_met = yes
+			}
+			c:MOR = {
+				trigger_event_non_silently = battle_for_the_strait_events.3
+			}
+		}
+		else_if = {
+			limit = {
+				battle_for_the_strait_granada_requirements_met = yes
+			}
+			c:GRA = {
+				trigger_event_non_silently = battle_for_the_strait_events.4
+			}
+		}
+		else_if = {
+			limit = {
+				battle_for_the_strait_contender_eliminated = yes
+				battle_for_the_strait_castile_holds_the_strait = yes
+			}
+			c:CAS = {
+				trigger_event_non_silently = battle_for_the_strait_events.2
+				trigger_event_non_silently = {
+					id = d009_mudejar.3
+					months = { 4 6 }
+				}
+				trigger_event_non_silently = {
+					id = battle_for_the_strait_events.6
+					months = { 7 10 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				battle_for_the_strait_contender_eliminated = yes
+				battle_for_the_strait_morocco_holds_the_strait = yes
+			}
+			c:MOR = {
+				trigger_event_non_silently = battle_for_the_strait_events.3
+			}
+		}
+		else_if = {
+			limit = {
+				battle_for_the_strait_contender_eliminated = yes
+				battle_for_the_strait_granada_holds_the_strait = yes
+			}
+			c:GRA = {
+				trigger_event_non_silently = battle_for_the_strait_events.4
+			}
+		}
+		else = {
+			if = {
+				limit = { country_exists = c:GRA }
+				c:GRA = {
+					trigger_event_non_silently = battle_for_the_strait_events.5
+				}
+			}
+			if = {
+				limit = { country_exists = c:MOR }
+				c:MOR = {
+					trigger_event_non_silently = battle_for_the_strait_events.5
+				}
+			}
+			if = {
+				limit = { country_exists = c:CAS }
+				c:CAS = {
+					trigger_event_non_silently = battle_for_the_strait_events.5
+				}
+			}
+		}
+
+		if = {
+			limit = { country_exists = c:GRA }
+			c:GRA ?= {
+				remove_country_modifier = patronizing_shadhili_order_modifier
+				remove_country_modifier = enforcing_sovereignty_modifier
+				remove_country_modifier = dismantled_council_modifier
+				remove_country_modifier = expanded_vizier_influence_modifier
+			}
+		}
+	}
+
+	tooltip = {
+		if = {
+			limit = {
+				country_exists = c:CAS
+				owner ?= c:CAS
+			}
+			custom_tooltip = this_is_castile_tt
+		}
+		else_if = {
+			limit = {
+				
+				country_exists = c:MOR
+				owner ?= c:MOR
+			}
+			custom_tooltip = this_is_morocco_tt
+		}
+		else_if = {
+			limit = {
+				situation:battle_for_the_strait = {  }
+				country_exists = c:GRA
+				owner ?= c:GRA
+			}
+			custom_tooltip = this_is_granada_tt
+		}
+
+		if = {
+			limit = {
+				country_exists = c:CAS
+				owner ?= { is_subject_or_below_of = c:CAS }
+			}
+			custom_tooltip = this_is_a_subject_of_castile_tt
+		}
+		else_if = {
+			limit = {
+				country_exists = c:MOR
+				owner ?= { is_subject_or_below_of = c:MOR }
+			}
+			custom_tooltip = this_is_a_subject_of_morocco_tt
+		}
+		else_if = {
+			limit = {
+				country_exists = c:GRA
+				owner ?= { is_subject_or_below_of = c:GRA }
+			}
+			custom_tooltip = this_is_a_subject_of_granada_tt
+		}
+	}
+
+	map_color = {
+		if = {
+			limit = {
+				has_owner = yes
+				country_exists = c:CAS
+				owner ?= c:CAS
+			}
+			value = c:CAS.country_color
+		}
+		else_if = {
+			limit = {
+				has_owner = yes
+				country_exists = c:MOR
+				owner ?= c:MOR
+			}
+			value = c:MOR.country_color
+		}
+		else_if = {
+			limit = {
+				has_owner = yes
+				country_exists = c:GRA
+				owner ?= c:GRA
+			}
+			value = c:GRA.country_color
+		}
+		else = {
+			value = define:NMapColors|DEFAULT_COLOR
+		}
+	}
+
+	legend_key = {
+		desc = "this_is_castile_tt"
+		color = c:CAS.country_color
+		require_color_on_map = yes
+	}
+	legend_key = {
+		desc = "this_is_morocco_tt"
+		color = c:MOR.country_color
+		require_color_on_map = yes
+	}
+	legend_key = {
+		desc = "this_is_granada_tt"
+		color = c:GRA.country_color
+		require_color_on_map = yes
+	}
+
+	secondary_map_color = {
+		if = {
+			limit = {
+				country_exists = c:CAS
+				owner ?= { is_subject_or_below_of = c:CAS }
+			}
+			value = c:CAS.country_color
+		}
+		else_if = {
+			limit = {
+				
+				country_exists = c:MOR
+				owner ?= { is_subject_or_below_of = c:MOR }
+			}
+			value = c:MOR.country_color
+		}
+		else_if = {
+			limit = {
+				situation:battle_for_the_strait = {  }
+				country_exists = c:GRA
+				owner ?= { is_subject_or_below_of = c:GRA }
+			}
+			value = c:GRA.country_color
+		}
+	}
+}

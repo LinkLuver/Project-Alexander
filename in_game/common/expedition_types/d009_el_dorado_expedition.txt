@@ -1,0 +1,186 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+el_dorado_expedition = {
+
+	unique = yes
+	repeatable = no
+	should_end_at_last_waypoint = no
+	travel_speed = 0.75
+	origin = closest_non_rural_port
+
+	# Search the Orinoco interior for the gilded king the Muisca remembered.
+	# Staging route ends at cumana on the Venezuelan coast; the terminal
+	# (tumeremo) is appended dynamically once leads are sufficient.
+	waypoints = {
+		cumana
+	}
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		capital = { sub_continent = sub_continent:western_europe }
+		has_discovered_area = area:guayana_sea_zones_area
+		NOT = { has_global_variable = el_dorado_found }
+		NOT = { has_variable = el_dorado_expedition_attempted }
+	}
+
+	can_start = {
+		gold >= 100
+		has_non_rural_port = yes
+		at_war = no
+	}
+
+	leader = {
+		is_explorer = yes
+	}
+
+	on_start = {
+		scope:expedition = {
+			set_variable = { name = target_city_id value = 3 }
+			set_variable = { name = leads_found value = 1 }
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 5
+		}
+		add_country_modifier = {
+			modifier = searching_for_el_dorado
+			days = -1
+		}
+	}
+
+	on_arrive_to_new_location = {
+		scope:location = { discover_location = root }
+		if = {
+			limit = {
+				scope:location = {
+					is_land = yes
+					sub_continent = sub_continent:south_america
+				}
+			}
+			random_list = {
+				75 = { }
+				25 = {
+					random_list = {
+						10 = { trigger_event_non_silently = seven_cities.10 }
+						10 = { trigger_event_non_silently = seven_cities.11 }
+						10 = { trigger_event_non_silently = seven_cities.12 }
+						1 = { trigger_event_non_silently = seven_cities.13 }
+						10 = { trigger_event_non_silently = seven_cities.14 }
+						10 = { trigger_event_non_silently = seven_cities.15 }
+						10 = { trigger_event_non_silently = seven_cities.16 }
+						10 = {
+							trigger = { scope:location = { is_port = yes } }
+							trigger_event_non_silently = seven_cities.17
+						}
+						10 = {
+							trigger = { scope:location = { is_port = yes } }
+							trigger_event_non_silently = seven_cities.18
+						}
+						10 = {
+							trigger = { scope:expedition = { NOT = { has_variable = el_dorado_1 } } }
+							trigger_event_non_silently = d009_el_dorado_events.1
+						}
+						10 = {
+							trigger = { scope:expedition = { NOT = { has_variable = el_dorado_2 } } }
+							trigger_event_non_silently = d009_el_dorado_events.2
+						}
+						10 = {
+							trigger = { scope:expedition = { NOT = { has_variable = el_dorado_3 } } }
+							trigger_event_non_silently = d009_el_dorado_events.3
+						}
+						10 = {
+							trigger = { scope:expedition = { NOT = { has_variable = el_dorado_4 } } }
+							trigger_event_non_silently = d009_el_dorado_events.4
+						}
+						10 = {
+							trigger = { scope:expedition = { NOT = { has_variable = el_dorado_5 } } }
+							trigger_event_non_silently = d009_el_dorado_events.5
+						}
+					}
+				}
+			}
+			random_list = {
+				90 = { }
+				4 = { trigger_event_non_silently = seven_cities.20 }
+				3 = { trigger_event_non_silently = seven_cities.21 }
+				3 = { trigger_event_non_silently = seven_cities.22 }
+			}
+		}
+	}
+
+	on_arrive_to_waypoint = {
+		if = {
+			limit = {
+				scope:location = location:cumana
+				scope:expedition = { NOT = { has_variable = city_revealed } }
+			}
+			scope:expedition = { set_variable = { name = city_revealed value = 1 } }
+			if = {
+				limit = { scope:expedition = { var:leads_found >= 1 } }
+				scope:expedition = {
+					add_new_waypoint = location:tumeremo
+					add_new_waypoint = root.capital
+				}
+			}
+			else = {
+				trigger_event_non_silently = seven_cities.30
+			}
+		}
+		else_if = {
+			limit = {
+				scope:location = location:tumeremo
+				scope:expedition = { has_variable = city_revealed }
+			}
+			if = {
+				limit = { scope:expedition = { var:leads_found >= 5 } }
+				trigger_event_non_silently = seven_cities_el_dorado.3
+			}
+			else_if = {
+				limit = { scope:expedition = { var:leads_found >= 1 } }
+				trigger_event_non_silently = seven_cities_el_dorado.2
+			}
+			else = {
+				trigger_event_non_silently = seven_cities_el_dorado.1
+			}
+		}
+	}
+
+	on_end = {
+		remove_country_modifier = searching_for_el_dorado
+		set_global_variable = { name = el_dorado_found value = 1 }
+		set_variable = { name = el_dorado_expedition_attempted value = 1 }
+	}
+
+	on_fail = {
+		remove_country_modifier = searching_for_el_dorado
+		set_variable = { name = el_dorado_expedition_attempted value = 1 }
+	}
+
+	ai_chance_to_check = {
+		value = define:NAI|EXPEDITION_DEFAULT_CHANCE_TO_CHECK
+		if = {
+			limit = { any_character = { has_trait = treasure_hunter } }
+			multiply = 2
+		}
+	}
+
+	utility = {
+		value = 12
+		if = {
+			limit = { any_character = { has_trait = treasure_hunter } }
+			add = 4
+		}
+		if = { limit = { has_global_variable = cibola_found } add = -2 }
+		if = { limit = { has_global_variable = quivira_found } add = -2 }
+		if = { limit = { has_global_variable = fountain_of_youth_found } add = -2 }
+		if = { limit = { has_global_variable = city_of_caesars_found } add = -2 }
+		if = { limit = { has_global_variable = sierra_de_la_plata_found } add = -2 }
+		if = { limit = { has_global_variable = norumbega_found } add = -2 }
+		if = { limit = { has_global_variable = saguenay_found } add = -2 }
+	}
+
+	leader_utility = {
+		value = 1
+		if = {
+			limit = { has_trait = treasure_hunter }
+			add = 4
+		}
+	}
+}

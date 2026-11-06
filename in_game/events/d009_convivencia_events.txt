@@ -1,0 +1,787 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = d009_convivencia
+
+d009_convivencia.1 = { #The Three Communities
+	type = country_event
+	title = d009_convivencia.1.title
+	desc = d009_convivencia.1.desc
+	outcome = neutral
+	historical_info = d009_convivencia.1.historical_info
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		religion = religion:catholic
+
+		culture = {
+			has_culture_group = culture_group:iberian_group
+		}
+
+		NOT = {
+			any_in_global_list = {
+				variable = d009_convivencia_intro_locations
+				owner = root
+			}
+		}
+
+		has_presence_in = region:iberia_region
+
+		"religion_population_in_country(religion:sunni)" > 0
+		"religion_population_in_country(religion:judaism)" > 0
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:clergy_estate }
+
+		region:iberia_region = {
+			ordered_ownable_location_in_region = {
+				limit = {
+					owner = root
+				}
+
+				order_by = {
+					add = "religion_percentage(religion:sunni)"
+					if = {
+						limit = { "religion_percentage(religion:judaism)" > 0 }
+						multiply = 1000
+					}
+				}
+
+				max = 1
+				check_range_bounds = no
+				save_scope_as = target_location
+			}
+		}
+
+		add_to_global_variable_list = { name = d009_convivencia_intro_locations target = scope:target_location }
+
+		if = {
+			limit = {
+				owns = location:toledo
+			}
+
+			trigger_event_non_silently = {
+				id = d009_convivencia.2
+				months = { 12 60 }
+			}
+		}
+
+		set_variable = {
+			name = d009_convivencia_courts_delay
+			years = { 10 15 }
+		}
+	}
+
+	option = {
+		name = d009_convivencia.1.a
+
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_right
+		}
+
+		if = {
+			limit = {
+				is_situation_active = situation:golden_century
+				has_global_variable = battle_for_the_strait_winner_country
+				this = global_var:battle_for_the_strait_winner_country
+			}
+			gc_change_european_dominance = { value = gc_dominance_weak_bonus }
+		}
+
+		if = {
+			limit = {
+				is_situation_active = situation:battle_for_the_strait
+				country_exists = c:GRA
+
+				OR = {
+					has_or_had_tag = CAS
+					has_or_had_tag = MOR
+				}
+			}
+			change_influence_over_granada_effect = { value = -2 }
+		}
+
+		scope:target_location = {
+			custom_tooltip = {
+				text = d009_convivencia.1.a.tt
+
+				every_pop = {
+					limit = {
+						owner ?= root
+
+						OR = {
+							religion = religion:sunni
+							religion = religion:judaism
+						}
+					}
+
+					add_pop_satisfaction = pop_satisfaction_mild_bonus
+				}
+			}
+		}
+	}
+
+	option = {
+		name = d009_convivencia.1.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_left
+		}
+
+		if = {
+			limit = {
+				is_situation_active = situation:golden_century
+				has_global_variable = battle_for_the_strait_winner_country
+				this = global_var:battle_for_the_strait_winner_country
+			}
+			gc_change_european_dominance = { value = gc_dominance_weak_penalty }
+		}
+
+		if = {
+			limit = {
+				is_situation_active = situation:battle_for_the_strait
+				country_exists = c:GRA
+
+				OR = {
+					has_or_had_tag = CAS
+					has_or_had_tag = MOR
+				}
+			}
+			change_influence_over_granada_effect = { value = 2 }
+		}
+
+		scope:target_location = {
+			custom_tooltip = {
+				text = d009_convivencia.1.b.tt
+
+				every_pop = {
+					limit = {
+						owner ?= root
+
+						OR = {
+							religion = religion:sunni
+							religion = religion:judaism
+						}
+					}
+
+					add_pop_satisfaction = pop_satisfaction_mild_penalty
+				}
+			}
+		}
+	}
+}
+
+d009_convivencia.2 = { #The Tránsito Synagogue
+	type = country_event
+	title = d009_convivencia.2.title
+	desc = d009_convivencia.2.desc
+	outcome = neutral
+	historical_info = d009_convivencia.2.historical_info
+
+	fire_only_once = yes
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		owns = location:toledo
+
+		custom_tooltip = {
+			text = d009_convivencia_2_judaism_population_tt
+
+			location:toledo = {
+				any_pop = {
+					religion = religion:judaism
+				}
+			}
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				character:cas_samuel_halevi_abulafia = {
+					is_alive = yes
+				}
+			}
+			character:cas_samuel_halevi_abulafia = {
+				if = {
+					limit = { exists = owner }
+					owner = {
+						save_scope_as = target_character_previous_owner
+					}
+				}
+				save_scope_as = target_character
+			}
+		}
+		else = {
+			create_character = {
+				adm = { 60 80 }
+				dip = { 50 70 }
+				mil = { 5 20 }
+				culture = culture:sephardi
+				religion = religion:judaism
+				female = no
+				min_age = 30
+				estate = estate_type:burghers_estate
+				create_in_limbo = yes
+				save_scope_as = target_character
+			}
+		}
+
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+	}
+
+	option = {
+		name = d009_convivencia.2.a
+
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = spiritualist_vs_humanist
+			value = societal_value_move_to_right
+		}
+
+		location:toledo = {
+			change_prosperity = prosperity_severe_bonus
+		}
+
+		scope:target_character = {
+			if = {
+				limit = {
+					NOT = { employer = root }
+				}
+
+				move_country = root
+			}
+		}
+	}
+
+	option = {
+		name = d009_convivencia.2.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = spiritualist_vs_humanist
+			value = societal_value_move_to_left
+		}
+
+		custom_tooltip = {
+			text = d009_convivencia.2.b.tt
+			location:toledo = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:judaism
+					}
+
+					add_pop_satisfaction = pop_satisfaction_mild_penalty
+				}
+			}
+		}
+	}
+}
+
+d009_convivencia.3 = { #Hasdai Crescas and the Question of Faith
+	type = country_event
+	title = d009_convivencia.3.title
+	desc = d009_convivencia.3.desc
+	outcome = neutral
+	historical_info = d009_convivencia.3.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = ARA
+		tag = CAS
+		from = 1385.1.1
+		to = 1415.1.1
+		monthly_chance = 15
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+
+		custom_tooltip = {
+			text = d009_convivencia_3_judaism_population_tt
+			"religion_population_in_country(religion:judaism)" > 0
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		ordered_owned_location = {
+			limit = {
+				"religion_population(religion:judaism)" > 0
+			}
+
+			order_by = {
+				value = "religion_percentage(religion:judaism)"
+			}
+
+			max = 5
+			check_range_bounds = no
+			add_to_list = d009_convivencia_crescas_location_list
+		}
+
+		random_in_list = {
+			list = d009_convivencia_crescas_location_list
+			save_scope_as = target_location
+		}
+
+		create_character = {
+			first_name = name_hasdai
+			last_name = Crescas
+			adm = { 60 75 }
+			dip = { 70 90 }
+			mil = { 10 30 }
+			culture = culture:sephardi
+			religion = religion:judaism
+			min_age = 40
+			birth_location = scope:target_location
+			create_in_limbo = yes
+			estate = estate_type:burghers_estate
+			artist = artist_type:philosopher
+			artist_skill = { 0.6 0.8 }
+			save_scope_as = target_character
+		}
+
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:burghers_estate }
+	}
+
+	option = {
+		name = d009_convivencia.3.a
+
+		add_religious_influence = religious_influence_weak_penalty
+
+		change_societal_value = {
+			type = traditionalist_vs_innovative
+			value = societal_value_move_to_right
+		}
+
+		custom_tooltip = {
+			text = d009_convivencia.3.a.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:judaism
+					}
+
+					add_pop_satisfaction = pop_satisfaction_mild_bonus
+				}
+			}
+		}
+
+		scope:target_character = {
+			move_country = root
+		}
+	}
+
+	option = {
+		name = d009_convivencia.3.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = traditionalist_vs_innovative
+			value = societal_value_move_to_left
+		}
+
+		hidden_effect = {
+			kill_character_silently = scope:target_character
+		}
+	}
+}
+
+d009_convivencia.4 = { #The Mudéjar Craftsmen
+	type = country_event
+	title = d009_convivencia.4.title
+	desc = d009_convivencia.4.desc
+	outcome = neutral
+	historical_info = d009_convivencia.4.historical_info
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		religion = religion:catholic
+
+		culture = {
+			has_culture_group = culture_group:iberian_group
+		}
+
+		NOT = {
+			has_variable = d009_convivencia_4_fired
+		}
+
+		OR = {
+			has_estate_privilege = estate_privilege:mudejar_aljamas
+			any_town_rights_in_country = {
+				this.town_rights_type = town_rights_type:iberian_aljama_charter
+			}
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:nobles_estate }
+
+		set_variable = { name = d009_convivencia_4_fired years = 20 }
+	}
+
+	option = {
+		name = d009_convivencia.4.a
+
+		add_country_modifier = {
+			modifier = mudejar_architecture_prestige
+			years = 20
+			mode = replace
+		}
+
+		add_prestige = prestige_mild_bonus
+
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_right
+		}
+	}
+
+	option = {
+		name = d009_convivencia.4.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_left
+		}
+	}
+}
+
+d009_convivencia.5 = { #Jewish Financiers and the Crown
+	type = country_event
+	title = d009_convivencia.5.title
+	desc = d009_convivencia.5.desc
+	outcome = neutral
+	historical_info = d009_convivencia.5.historical_info
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		religion = religion:catholic
+
+		culture = {
+			has_culture_group = culture_group:iberian_group
+		}
+
+		current_year < 1390
+
+		NOT = {
+			has_variable = d009_convivencia_5_fired
+		}
+
+		"religion_population_in_country(religion:judaism)" > 0
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		if = {
+			limit = { is_ai = no }
+
+			ordered_pop = {
+				limit = {
+					culture = culture:sephardi
+					religion = religion:judaism
+					pop_type = pop_type:burghers
+				}
+				max = 1
+				order_by = pop_size
+				order_by = select_important_pop_value
+				save_scope_as = target_pop
+			}
+
+			if = {
+				limit = { NOT = { exists = scope:target_pop } }
+				ordered_pop = {
+					limit = { religion = religion:judaism }
+					max = 1
+					order_by = pop_size
+					order_by = {
+						value = 0
+						add = {
+							if = {
+								limit = { pop_type = pop_type:burghers }
+								value = 1000
+							}
+						}
+						add = {
+							if = {
+								limit = { culture = culture:sephardi }
+								value = 100
+							}
+						}
+					}
+					save_scope_as = target_pop
+				}
+			}
+
+			ordered_pop = {
+				limit = { culture = culture:castilian }
+				max = 1
+				order_by = pop_size
+				order_by = select_important_pop_value
+				save_scope_as = target_pop_bckg
+			}
+		}
+
+		set_variable = { name = d009_convivencia_5_fired years = 20 }
+	}
+
+	option = {
+		name = d009_convivencia.5.a
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+		change_gold_effect = { scale = 1 }
+
+		change_societal_value = {
+			type = capital_economy_vs_traditional_economy
+			value = societal_value_move_to_left
+		}
+	}
+
+	option = {
+		name = d009_convivencia.5.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+		change_gold_effect = { scale = -1 }
+
+		change_societal_value = {
+			type = capital_economy_vs_traditional_economy
+			value = societal_value_move_to_right
+		}
+	}
+}
+
+d009_convivencia.6 = { #A Case Before the Aljama Courts
+	type = country_event
+	title = d009_convivencia.6.title
+	desc = d009_convivencia.6.desc
+	outcome = neutral
+	historical_info = d009_convivencia.6.historical_info
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		religion = religion:catholic
+
+		culture = {
+			has_culture_group = culture_group:iberian_group
+		}
+
+		any_in_global_list = {
+			variable = d009_convivencia_intro_locations
+			owner = root
+		}
+
+		NOT = {
+			has_variable = d009_convivencia_courts_delay
+		}
+
+		has_presence_in = region:iberia_region
+
+		OR = {
+			"religion_population_in_country(religion:sunni)" > 0
+			"religion_population_in_country(religion:judaism)" > 0
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:nobles_estate }
+
+		region:iberia_region = {
+			ordered_ownable_location_in_region = {
+				limit = {
+					owner = root
+				}
+
+				order_by = {
+					add = "religion_percentage(religion:sunni)"
+					add = "religion_percentage(religion:judaism)"
+				}
+
+				max = 1
+				check_range_bounds = no
+				save_scope_as = target_location
+			}
+		}
+
+		set_variable = {
+			name = d009_convivencia_courts_delay
+			years = 15
+		}
+	}
+
+	option = {
+		name = d009_convivencia.6.a
+
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = serfdom_vs_free_subjects
+			value = societal_value_move_to_right
+		}
+
+		custom_tooltip = {
+			text = d009_convivencia.6.a.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+
+						OR = {
+							religion = religion:sunni
+							religion = religion:judaism
+						}
+					}
+
+					add_pop_satisfaction = pop_satisfaction_mild_bonus
+				}
+			}
+		}
+	}
+
+	option = {
+		name = d009_convivencia.6.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = serfdom_vs_free_subjects
+			value = societal_value_move_to_left
+		}
+
+		custom_tooltip = {
+			text = d009_convivencia.6.b.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+
+						OR = {
+							religion = religion:sunni
+							religion = religion:judaism
+						}
+					}
+
+					add_pop_satisfaction = pop_satisfaction_mild_penalty
+				}
+			}
+		}
+	}
+}
+
+d009_convivencia.7 = { #Nasrid Granada's Jewish Vizier
+	type = country_event
+	title = d009_convivencia.7.title
+	desc = d009_convivencia.7.desc
+	outcome = neutral
+	historical_info = d009_convivencia.7.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = GRA
+		from = 1337.1.1
+		to = 1391.1.1
+		monthly_chance = 15
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+
+		custom_tooltip = {
+			text = d009_convivencia_7_judaism_population_tt
+			"religion_population_in_country(religion:judaism)" > 0
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		create_character = {
+			adm = { 65 85 }
+			dip = { 60 80 }
+			mil = { 10 30 }
+			culture = culture:sephardi
+			religion = religion:judaism
+			min_age = 35
+			create_in_limbo = yes
+			estate = estate_type:burghers_estate
+			save_scope_as = target_character
+		}
+
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:clergy_estate }
+	}
+
+	option = {
+		name = d009_convivencia.7.a
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+		add_stability = stability_mild_bonus
+
+		change_societal_value = {
+			type = mysticism_vs_jurisprudence
+			value = societal_value_move_to_right
+		}
+
+		scope:target_character = {
+			move_country = root
+		}
+	}
+
+	option = {
+		name = d009_convivencia.7.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = mysticism_vs_jurisprudence
+			value = societal_value_move_to_left
+		}
+
+		hidden_effect = {
+			kill_character_silently = scope:target_character
+		}
+	}
+}

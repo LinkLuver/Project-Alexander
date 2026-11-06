@@ -1,0 +1,342 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = flavor_tle
+
+# Oran Fatwa
+flavor_tle.8 = {
+	type = country_event
+	title = flavor_tle.8.title
+	desc = flavor_tle.8.desc
+	outcome = positive
+
+	illustration_tags = {
+		10 = happy
+		10 = interior
+	}
+
+	major = yes
+	major_trigger = {
+		OR = { 
+			has_presence_in = region:iberia_region
+			has_presence_in = region:maghreb_region
+		}
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+	}
+
+	immediate = {
+		event_illustration_estate_effect = {
+			background = estate_type:clergy_estate
+			foreground = estate_type:clergy_estate
+		}
+		set_global_variable = tle_enable_free_the_mudejar_cb
+	}
+
+	option = {
+		name = flavor_tle.8.a
+
+		oran_fatwa_effect = yes
+	}
+}
+
+scripted_effect apply_mudejar_calculation = {
+	set_local_variable = {
+		name = mudejar_count
+		value = 0
+	}
+	scope:target = {
+		every_pop = {
+			limit = {
+				religion = religion:sunni
+			}
+			change_local_variable = {
+				name = mudejar_count
+				add = {
+					value = pop_size
+					multiply = { 0.025 0.5 }
+				}
+			}
+		}
+		every_pop = {
+			limit = {
+				religion.group = religion_group:christian
+			}
+			change_local_variable = {
+				name = mudejar_count
+				add = {
+					value = pop_size
+					multiply = { 0.005 0.01 }
+				}
+			}
+		}
+	}
+	"scope:target.owner.war_with_country(root)" = {
+		add_to_variable_list = {
+			name = mudejar_locations_liberated
+			target = scope:target
+		}
+	}
+}
+
+# Liberation of the Mudejar
+flavor_tle.9 = {
+	type = country_event
+	title = flavor_tle.9.title
+	desc = flavor_tle.9.desc
+	outcome = positive
+
+	illustration_tags = {
+		10 = happy
+		10 = exterior
+	}
+
+	trigger = {
+		scope:target = { is_province_capital = yes }
+	}
+
+	on_trigger_fail = {
+		apply_mudejar_calculation = yes
+		add_manpower = local_var:mudejar_count
+		scope:target = {
+			every_pop = {
+				limit = {
+					religion.group = religion_group:christian
+				}
+				split_pop = {
+					religion = religion:sunni
+					fraction = { 0.1 0.2 }
+				}
+			}
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = {
+			background = estate_type:burghers_estate
+			foreground = estate_type:burghers_estate
+		}
+		apply_mudejar_calculation = yes
+	}
+
+	option = {
+		name = flavor_tle.9.a
+		
+		add_manpower = local_var:mudejar_count
+		scope:target = {
+			every_pop = {
+				limit = {
+					religion.group = religion_group:christian
+				}
+				split_pop = {
+					religion = religion:sunni
+					fraction = { 0.1 0.2 }
+				}
+			}
+		}
+		custom_tooltip = tle_fires_for_all_locations
+	}
+}
+
+# Arabicization of Tlemcen
+flavor_tle.10 = {
+	type = country_event
+	title = flavor_tle.10.title
+	desc = flavor_tle.10.desc
+	outcome = neutral
+
+	fire_only_once = yes
+	dynamic_historical_event = {
+		tag = TLE
+		from = 1337.1.1
+		to = 1380.1.1
+		monthly_chance = 1
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		is_subject = no
+		at_war = no
+		any_pop = {
+			pop_type = pop_type:tribesmen
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = {
+			background = estate_type:tribes_estate
+			foreground = estate_type:tribes_estate
+		}
+		save_scope_as = from_country
+		ruler_or_regent ?= { 
+			save_scope_as = portrait
+		}
+		ordered_pop = {
+			limit = {
+				NOT = { location.location_rank = location_rank:rural_settlement }
+				culture = {
+					has_culture_group = culture_group:amazigh_group
+				}
+			}
+			max = 3
+			add_to_list = pops_to_be_converted
+		} 
+	}
+
+	option = {
+		name = flavor_tle.10.a
+		
+		historical_option = yes
+
+		ai_chance = {
+			factor = 50
+		}
+
+		change_societal_value = {
+			type = individualism_vs_communalism
+			value = societal_value_move_to_right
+		}
+		change_societal_value = {
+			type = traditionalist_vs_innovative
+			value = societal_value_move_to_right
+		}
+
+		culture = {
+			add_cultural_influence = cultural_influence_severe_bonus
+		}
+		add_country_modifier = {
+			modifier = TLE_stayed_berber
+			years = -1
+		}
+	}
+
+	option = {
+		name = flavor_tle.10.b
+		
+		ai_chance = {
+			factor = 50
+		}
+
+		change_culture = culture:algerian
+		change_culture_for_ruler_and_family = { country = scope:from_country culture = culture:algerian }
+		add_country_modifier = {
+			modifier = TLE_algerian
+			years = -1
+		}
+
+		if = {
+			limit = {
+				NOT = { country_exists = c:ALG }
+			}
+			form_country = formable_country:ALG_f
+		}
+
+		every_in_list = {
+			list = pops_to_be_converted
+			split_pop = {
+				culture = culture:algerian
+				fraction = { 0.1 0.2 }
+			}
+		}
+	}
+}
+
+
+# The Tribal Roots of [ROOT.GetCountry.GetName]
+flavor_tle.12 = {
+	type = country_event
+	title = flavor_tle.12.title
+	desc = flavor_tle.12.desc
+	outcome = neutral
+	
+	fire_only_once = yes
+	dynamic_historical_event = {
+		tag = TLE
+		tag = ALG
+		from = 1337.1.1
+		to = 1821.1.1
+		monthly_chance = 5
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		has_reform = government_reform:tle_support_of_banu_al_wad
+		can_revoke_tle_support_banu_al_wad_reform = { scale = 0.75 }
+	}
+
+	immediate = {
+		government_reform:tle_support_of_banu_al_wad = {
+			save_scope_as = target_government_reform
+		}
+
+		save_scope_as = target_country
+		location:tlemcen = {
+			save_scope_as = target_location
+		}
+
+		ruler ?= {
+			save_scope_as = portrait_ruler
+		}
+
+		dynasty:zayyanid_dynasty = {
+			save_scope_as = target_dynasty
+		}
+
+		event_illustration_estate_effect = {
+			background = estate_type:tribes_estate
+			foreground = estate_type:tribes_estate
+		}
+
+		"estate(estate_type:tribes_estate)" = {
+			save_scope_as = target_estate
+		}
+	}
+
+	option = {
+		name = flavor_tle.12.a
+
+		ai_chance = {
+			factor = 75
+		}
+		
+		remove_reform = scope:target_government_reform
+
+		add_estate_satisfaction = {
+			type = scope:target_estate.estate_type
+			value = estate_satisfaction_severe_penalty
+		}
+		add_stability = stability_mild_penalty
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_left
+		}
+	}
+
+	option = {
+		name = flavor_tle.12.b
+
+		ai_chance = {
+			factor = 25
+		}
+		
+		custom_tooltip = {
+			text = tle_empower_banu_al_wad_reform
+			set_variable = tle_empower_banu_al_wad_reform_var
+		}
+
+		add_estate_satisfaction = {
+			type = estate_type:nobles_estate
+			value = estate_satisfaction_severe_penalty
+		}
+	}
+}

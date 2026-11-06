@@ -1,0 +1,1265 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = seven_cities
+
+# ============================================================================
+# Shared Seven Cities of Gold events. Each city's expedition fires the same
+# wayside events (rumours of a shining city, supplies running short, ambush in
+# a canyon, ruins of a vanished people, the trail going cold). Per-city
+# conclusion events live in seven_cities_<city>_events.txt and fire from each
+# expedition type's on_arrive_to_waypoint after the city tile has been added
+# via add_new_waypoint.
+#
+# The mechanic: leads_found is an expedition variable adjusted by the options
+# of the shared events fired from on_arrive_to_new_location while wandering
+# the search region; it can go negative when false trails mislead the
+# expedition. When the expedition reaches its staging waypoint, the
+# per-expedition on_arrive_to_waypoint reads leads_found and either appends
+# the city as the next destination (if leads >= 1) or fires seven_cities.30
+# (the trail goes cold).
+# ============================================================================
+
+# seven_cities.10 — Natives Speak of a Shining City
+seven_cities.10 = {
+	type = country_event
+	title = seven_cities.10.title
+	desc = seven_cities.10.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = { is_land = yes }
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 5
+		}
+		scope:location = { 
+			save_scope_as = target_location 
+			
+			province_definition = { save_scope_as = target_province_definition }
+		}
+
+		random_province = {
+			limit = {
+				province_capital = { proximity > 0 }
+			}
+
+			province_capital = { save_scope_as = target_province_capital }
+		}
+	}
+
+	# Press the natives for more — gifts loosen tongues
+	option = {
+		name = seven_cities.10.a
+		change_gold_effect = { scale = -1 }
+
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+
+			if = {
+				limit = { exists = scope:expedition }
+				scope:expedition = { change_variable = { name = leads_found add = 1 } }
+			}
+		}
+
+		random_list = {
+			1 = {
+				trigger = {
+					scope:target_province_definition = {
+						OR = {
+							any_location_in_province_definition = {
+								NOT = { 
+									ROOT = { has_discovered = PREV }
+								}
+							}
+							any_neighbor_province_definition = {
+								any_location_in_province_definition = {
+									is_ownable = yes
+									NOT = { 
+										ROOT = { has_discovered = PREV }
+									}
+								}
+							}
+						}
+					}
+				}
+				show_chance = no
+				desc = natives_provide_crudely_drawn_map_tt
+
+				if = {
+					limit = { exists = scope:expedition }
+					scope:expedition = { set_expedition_status_to_traveling = yes }
+				}
+
+				scope:target_province_definition = {
+					random_location_in_province_definition = {
+						limit = { 
+							is_ownable = yes
+							ROOT = {
+								NOT = { has_discovered = PREV }
+							}
+						}
+						discover_location = ROOT
+					}
+					if = {
+						limit = { 
+							scope:target_province_definition = {
+								any_neighbor_province_definition = {
+									any_location_in_province_definition = {
+										is_ownable = yes
+										NOT = { 
+											ROOT = { has_discovered = PREV }
+										}
+									}
+								}
+							}
+						}
+						scope:target_province_definition = {
+							random_neighbor_province_definition = {
+								limit = {
+									any_location_in_province_definition = {
+										is_ownable = yes
+										NOT = { 
+											ROOT = { has_discovered = PREV }
+										}
+									}
+								}
+								random_location_in_province_definition = {
+									limit = { 
+										is_ownable = yes
+										NOT = { 
+											ROOT = { has_discovered = PREV }
+										}
+									}
+									discover_location = ROOT
+								}
+							}
+						}
+					}
+				}
+			}
+			1 = {
+				trigger = {
+					trigger_if = {
+						limit = { exists = scope:expedition }
+						scope:expedition = {
+							NOT = { has_variable = chance_avoid_calamity_variable }
+						}
+					}
+					trigger_else = { always = no }
+				}
+				show_chance = no
+				desc = expedition_learns_of_potential_dangers
+
+				custom_tooltip = {
+					text = should_calamity_occur_chance_to_avoid_tt
+
+					if = {
+						limit = { exists = scope:expedition }
+						scope:expedition = {
+							set_variable = {
+								name = chance_avoid_calamity_variable
+								months = 6
+							}
+						}
+					}
+				}
+			}
+
+			1 = {
+				trigger = { exists = scope:target_province_capital }
+				show_chance = no
+				desc = bonding_over_alcohol_locals_migrate_tt
+
+				add_migration = {
+					owner = scope:target_location.owner
+					from = scope:target_province_definition
+					to_location = scope:target_province_capital
+					amount = {
+						value = scope:target_province_definition.population
+						multiply = 0.005
+					}
+					months = 3
+				}
+
+				if = {
+					limit = {
+						scope:target_location = {
+							exists = dominant_culture
+							dominant_culture = {
+								NOR = {
+									this = ROOT.culture
+									is_accepted_in = ROOT
+								}
+							}
+						}
+					}
+					custom_tooltip = {
+						text = improve_root_culture_view_of_location_dominant_culture_tt
+						ROOT.culture = {
+							change_cultural_view = {
+								target = scope:target_location.dominant_culture
+								change = 1
+							}
+						}
+					}
+				}
+			}
+
+			1 = {
+				show_chance = no
+				desc = expedition_observes_local_innovations
+
+				add_research_progress = research_progress_weak_bonus
+			}
+
+			1 = {
+				show_chance = no
+				desc = expedition_receives_artifacts_as_gifts
+
+				if = {
+					limit = { exists = scope:expedition }
+					scope:expedition = {
+						if = {
+							limit = {
+								NOT = { has_variable = expedition_receives_artifacts_as_gifts_variable }
+							}
+							set_variable = {
+								name = expedition_receives_artifacts_as_gifts_variable
+								value = 0
+							}
+						}
+						change_variable = {
+							name = expedition_receives_artifacts_as_gifts_variable
+							add = 1
+						}
+						set_variable = {
+							name = last_artifact_location
+							value = scope:target_location
+						}
+					}
+				}
+
+				culture = { add_cultural_influence = cultural_influence_weak_bonus }
+			}
+		}
+	}
+
+	# Take the lead at face value and march on
+	option = {
+		name = seven_cities.10.b
+		custom_tooltip = seven_cities.10.b.tt
+	}
+
+	historical_info = seven_cities.10.historical_info
+}
+
+# seven_cities.11 — A Feast of Welcome
+seven_cities.11 = {
+	type = country_event
+	title = seven_cities.11.title
+	desc = seven_cities.11.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = { is_land = yes }
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities.11.a
+		change_gold_effect = { scale = -1 }
+
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+
+			if = {
+				limit = { exists = scope:expedition }
+				scope:expedition = { change_variable = { name = leads_found add = 1 } }
+			}
+		}
+
+		random_list = {
+			1 = {
+				show_chance = no
+				desc = expedition_receives_artifacts_as_gifts
+
+				if = {
+					limit = { exists = scope:expedition }
+					scope:expedition = {
+						if = {
+							limit = {
+								NOT = { has_variable = expedition_receives_artifacts_as_gifts_variable }
+							}
+							set_variable = {
+								name = expedition_receives_artifacts_as_gifts_variable
+								value = 0
+							}
+						}
+						change_variable = {
+							name = expedition_receives_artifacts_as_gifts_variable
+							add = 1
+						}
+						set_variable = {
+							name = last_artifact_location
+							value = scope:target_location
+						}
+					}
+				}
+
+				culture = { add_cultural_influence = cultural_influence_weak_bonus }
+			}
+
+			1 = {
+				show_chance = no
+				desc = expedition_receives_exotic_goods
+
+				scope:expedition = {
+					if = {
+						limit = {
+							NOT = { has_variable = expedition_receives_exotic_goods_variable }
+						}
+						set_variable = {
+							name = expedition_receives_exotic_goods_variable
+							value = 0
+						}
+					}
+					change_variable = {
+						name = expedition_receives_exotic_goods_variable
+						add = 0.2
+					}
+					if = {
+						limit = { scope:target_location = { exists = raw_material } }
+						set_variable = {
+							name = last_exotic_good
+							value = scope:target_location.raw_material
+						}
+					}
+				}
+
+				culture = { add_cultural_influence = cultural_influence_weak_bonus }
+			}
+
+			1 = {
+				trigger = {
+					scope:expedition = {
+						NOT = { has_variable = expedition_receives_guides_and_porters_variable }
+					}
+				}
+				show_chance = no
+				desc = expedition_receives_guides_and_porters
+
+				custom_tooltip = {
+					text = expedition_less_likely_to_stall_tt
+					scope:expedition = {
+						if = {
+							limit = {
+								NOT = { has_variable = expedition_receives_guides_and_porters_variable }
+							}
+							set_variable = expedition_receives_guides_and_porters_variable
+						}
+					}
+				}
+
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities.11.b
+		custom_tooltip = seven_cities.11.b.tt
+	}
+
+	historical_info = seven_cities.11.historical_info
+}
+
+# seven_cities.12 — The Eager Guide
+seven_cities.12 = {
+	type = country_event
+	title = seven_cities.12.title
+	desc = seven_cities.12.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = { 
+			is_land = yes 
+			province_definition = {
+				any_neighbor_province_definition = {
+					any_location_in_province_definition = {
+						is_ownable = yes
+						has_owner = yes
+						owner != ROOT
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:location = { 
+			save_scope_as = target_location 
+		
+			province_definition = {
+				random_neighbor_province_definition = {
+					limit = {
+						any_location_in_province_definition = {
+							is_ownable = yes
+							has_owner = yes
+							owner != ROOT
+						}
+					}
+					save_scope_as = target_neighbor_province
+
+					random_location_in_province_definition = {
+						limit = { 
+							is_ownable = yes
+							has_owner = yes
+							owner != ROOT
+						}
+
+						save_scope_as = target_new_waypoint
+					}
+				}
+			}
+		}
+
+		scope:target_location = { 
+			random_present_culture_in_location = { save_scope_as = target_culture }
+			random_present_religion_in_location = { save_scope_as = target_religion }
+		}
+
+		create_character = {
+			age = { 18 24 }
+			religion = scope:target_religion
+			culture = scope:target_culture
+			birth_location = scope:target_location
+			estate = estate_type:peasants_estate
+			save_scope_as = target_character
+			create_in_limbo = yes
+		}
+	}
+
+	option = {
+		name = seven_cities.12.a
+		change_gold_effect = { scale = -1 }
+
+		scope:target_new_waypoint = { discover_location = ROOT }
+
+		random_list = {
+			1 = {
+				show_chance = no
+				desc = expedition_uncovers_riches_in_new_waypoint
+
+				custom_tooltip = {
+					text = may_bring_us_closer_to_uncovering_goal_tt
+
+					scope:expedition = { change_variable = { name = leads_found add = 1 } }
+				}
+
+				scope:expedition = {
+					if = {
+						limit = {
+							NOT = { has_variable = uncovered_riches_variable }
+						}
+						
+						set_variable = {
+							name = uncovered_riches_variable
+							value = 0
+						}
+					}
+
+					change_variable = {
+						name = uncovered_riches_variable
+						add = { 0.1 0.2 }
+					}
+				}
+			}
+			2 = {
+				show_chance = no
+				desc = expedition_led_to_deathly_trap
+
+				seven_cities_expedition_calamity_effect = yes
+			}
+			3 = {
+				show_chance = no
+				desc = guide_lied_waste_of_time
+
+				custom_tooltip = target_character_flogged_tt
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities.12.b
+		custom_tooltip = seven_cities.12.b.tt
+	}
+
+	after = {
+		hidden_effect = { kill_character_silently = scope:target_character }
+	}
+
+	historical_info = seven_cities.12.historical_info
+}
+
+# seven_cities.13 — A Familiar Tongue
+seven_cities.13 = {
+	type = country_event
+	title = seven_cities.13.title
+	desc = seven_cities.13.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = { 
+			is_land = yes 
+			has_owner = yes
+			top_owner != ROOT
+		}
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:location = { 
+			save_scope_as = target_location 
+			area = {
+				ordered_location_in_area = {
+					limit = { 
+						is_ownable = yes 
+						has_owner = yes
+						NOT = { top_owner = ROOT }
+					}
+
+					order_by = {
+						value = population
+						divide = "distance_to_squared(scope:target_location)"
+					}
+					check_range_bounds = no
+					max = 3
+
+					add_to_list = seven_cities_13_list
+				}
+			}	
+		}
+
+		random_in_list = {
+			list = seven_cities_13_list
+
+			save_scope_as = target_settling_location
+
+			owner = { save_scope_as = target_country }
+		}
+	}
+
+	option = {
+		name = seven_cities.13.a
+
+		if = {
+			limit = { scope:expedition = { has_variable = chance_avoid_calamity_variable } }
+			custom_tooltip = {
+				text = warned_expedition_avoids_calamity_tt
+				scope:expedition = { remove_variable = chance_avoid_calamity_variable }
+			}
+		}
+		else = {
+			fail_expedition = scope:expedition
+
+			scope:target_leader = { move_country = scope:target_country }
+		}
+	}
+
+	historical_info = seven_cities.13.historical_info
+}
+
+# seven_cities.14 — The Fountain of Youth?
+seven_cities.14 = {
+	type = country_event
+	title = seven_cities.14.title
+	desc = seven_cities.14.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = { is_land = yes }
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities.14.a
+		change_gold_effect = { scale = -1 }
+
+		random_list = {
+			1 = {
+				show_chance = no
+				desc = spend_some_time_recovering
+
+				seven_cities_expedition_stall_effect = { MIN = 5 MAX = 15 }
+
+				custom_tooltip = {
+					text = may_bring_us_closer_to_uncovering_goal_tt
+
+					random_list = {
+						4 = { }
+						1 = {
+							scope:expedition = { change_variable = { name = leads_found add = 1 } }
+						}
+					}
+				}
+			}
+			1 = {
+				show_chance = no
+				desc = retrieve_some_rejuvenating_water
+
+				scope:expedition = {
+					if = {
+						limit = { NOT = { has_variable = rejuvenating_water_variable } }
+						set_variable = {
+							name = rejuvenating_water_variable
+							value = 0
+						}
+					}
+					change_variable = {
+						name = rejuvenating_water_variable
+						add = { 0.2 0.4 }
+					}
+				}
+
+				custom_tooltip = {
+					text = may_bring_us_closer_to_uncovering_goal_tt
+
+					random_list = {
+						3 = { }
+						1 = {
+							scope:expedition = { change_variable = { name = leads_found add = 1 } }
+						}
+					}
+				}
+			}
+			1 = {
+				show_chance = no
+				desc = just_water_hole
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities.14.b
+		custom_tooltip = seven_cities.14.b.tt
+	}
+
+	historical_info = seven_cities.14.historical_info
+}
+
+# seven_cities.15 — A Glint in the Riverbed
+seven_cities.15 = {
+	type = country_event
+	title = seven_cities.15.title
+	desc = seven_cities.15.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = { 
+			is_land = yes 
+			province_definition = {
+				any_location_in_province_definition = { 
+					is_mining_rgo = yes
+				}
+			}
+		}
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:location = { 
+			save_scope_as = target_location 
+		}
+
+		if = {
+			limit = { scope:target_location = { is_mining_rgo = yes } }
+			scope:target_location = { save_scope_as = target_mining_location }
+		}
+		else = {
+			scope:target_location.province_definition = {
+				random_location_in_province_definition = {
+					limit = { is_mining_rgo = yes }
+					save_scope_as = target_mining_location
+				}
+			}
+		}
+
+		scope:target_mining_location = {
+			raw_material ?= { save_scope_as = target_material }
+		}
+	}
+
+	option = {
+		name = seven_cities.15.a
+
+		random_list = {
+			1 = {
+				show_chance = no
+				desc = expedition_brings_back_valuable_materials
+
+				seven_cities_expedition_stall_effect = { MIN = 11 MAX = 15 }
+
+				sell_goods_to_market = {
+					market = capital.market
+					amount = { 25 50 }
+					goods = scope:target_mining_location.raw_material
+				}
+			}
+			1 = {
+				show_chance = no
+				desc = study_their_technique
+
+				seven_cities_expedition_stall_effect = { MIN = 15 MAX = 30 }
+
+				add_country_modifier = {
+					modifier = efficient_mining_expansion_plans_modifier
+					months = modifier_duration_months_long
+					mode = extend
+				}
+
+				ordered_owned_location = {
+					limit = { is_mining_rgo = yes }
+					order_by = {
+						value = rgo_workers
+						multiply = local_control
+					}
+					check_range_bounds = no
+					max = 3
+
+					add_location_modifier = {
+						modifier = benefits_from_mining_discoveries_modifier
+						years = modifier_duration_years_short
+						mode = extend
+					}
+				}
+			}
+
+			1 = {
+				show_chance = no
+				desc = men_are_met_by_hunger_and_false_legends
+
+				seven_cities_expedition_stall_effect = { MIN = 5 MAX = 10 }
+
+				if = {
+					limit = { 
+						scope:expedition = {
+							has_variable = leads_found
+							var:leads_found > 1
+						}
+					}
+
+					custom_tooltip = {
+						text = expedition_outcome_severely_hindered_tt
+						scope:expedition = { change_variable = { name = leads_found subtract = 1 } }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities.15.b
+
+		custom_tooltip = hunt_for_precious_metals_target_mining_location_goes_cold_tt
+	}
+
+	historical_info = seven_cities.15.historical_info
+}
+
+# seven_cities.16 — A Chieftain's Hospitality
+seven_cities.16 = {
+	type = country_event
+	title = seven_cities.16.title
+	desc = seven_cities.16.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = { is_land = yes }
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities.16.a
+
+		seven_cities_expedition_stall_effect = { MIN = 3 MAX = 7 }
+
+		random_list = {
+			5 = {
+				show_chance = no
+				desc = the_captive_chief_yields_guides
+
+				custom_tooltip = {
+					text = may_bring_us_closer_to_uncovering_goal_tt
+					scope:expedition = { change_variable = { name = leads_found add = 1 } }
+				}
+				custom_tooltip = {
+					text = expedition_less_likely_to_stall_tt
+					scope:expedition = {
+						if = {
+							limit = { NOT = { has_variable = expedition_receives_guides_and_porters_variable } }
+							set_variable = expedition_receives_guides_and_porters_variable
+						}
+					}
+				}
+				if = {
+					limit = {
+						scope:target_location = {
+							exists = dominant_culture
+							dominant_culture = { NOR = { this = ROOT.culture  is_accepted_in = ROOT } }
+						}
+					}
+					custom_tooltip = {
+						text = coerced_locals_resent_us_tt
+						ROOT.culture = { change_cultural_view = { target = scope:target_location.dominant_culture  change = -1 } }
+					}
+				}
+			}
+			3 = {
+				show_chance = no
+				desc = the_chiefs_hall_is_plundered
+
+				scope:expedition = {
+					if = {
+						limit = { NOT = { has_variable = expedition_receives_artifacts_as_gifts_variable } }
+						set_variable = { name = expedition_receives_artifacts_as_gifts_variable  value = 0 }
+					}
+					change_variable = { name = expedition_receives_artifacts_as_gifts_variable  add = 1 }
+					set_variable = { name = last_artifact_location  value = scope:target_location }
+				}
+				if = {
+					limit = {
+						scope:target_location = {
+							exists = dominant_culture
+							dominant_culture = { NOR = { this = ROOT.culture  is_accepted_in = ROOT } }
+						}
+					}
+					custom_tooltip = {
+						text = coerced_locals_resent_us_tt
+						ROOT.culture = { change_cultural_view = { target = scope:target_location.dominant_culture  change = -1 } }
+					}
+				}
+			}
+			2 = {
+				show_chance = no
+				desc = the_village_empties_before_us
+
+				if = {
+					limit = { scope:expedition = { var:leads_found > 0 } }
+					custom_tooltip = {
+						text = expedition_outcome_severely_hindered_tt
+						scope:expedition = { change_variable = { name = leads_found subtract = 1 } }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities.16.b
+
+		change_gold_effect = { scale = -1 }
+
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		if = {
+			limit = {
+				scope:target_location = {
+					exists = dominant_culture
+					dominant_culture = { NOR = { this = ROOT.culture  is_accepted_in = ROOT } }
+				}
+			}
+			custom_tooltip = {
+				text = improve_root_culture_view_of_location_dominant_culture_tt
+				ROOT.culture = { change_cultural_view = { target = scope:target_location.dominant_culture  change = 1 } }
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities.16.c
+		custom_tooltip = seven_cities.16.c.tt
+	}
+
+	historical_info = seven_cities.16.historical_info
+}
+
+# seven_cities.17 — Word from the Shore
+seven_cities.17 = {
+	type = country_event
+	title = seven_cities.17.title
+	desc = seven_cities.17.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = {
+			is_land = yes
+			is_port = yes
+		}
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities.17.a
+
+		change_gold_effect = { scale = -1 }
+
+		random_list = {
+			5 = {
+				show_chance = no
+				desc = the_shore_folk_point_the_way
+
+				custom_tooltip = {
+					text = may_bring_us_closer_to_uncovering_goal_tt
+					scope:expedition = { change_variable = { name = leads_found add = 1 } }
+				}
+			}
+			4 = {
+				show_chance = no
+				desc = the_shore_market_yields_goods
+
+				custom_tooltip = {
+					text = may_bring_us_closer_and_fill_our_holds_tt
+					scope:expedition = { change_variable = { name = leads_found add = 1 } }
+				}
+				scope:expedition = {
+					if = {
+						limit = { NOT = { has_variable = expedition_receives_exotic_goods_variable } }
+						set_variable = { name = expedition_receives_exotic_goods_variable  value = 0 }
+					}
+					change_variable = { name = expedition_receives_exotic_goods_variable  add = 0.2 }
+					if = {
+						limit = { scope:target_location = { exists = raw_material } }
+						set_variable = { name = last_exotic_good  value = scope:target_location.raw_material }
+					}
+				}
+			}
+			3 = {
+				show_chance = no
+				desc = the_shore_folk_send_us_at_their_rivals
+
+				if = {
+					limit = { scope:expedition = { var:leads_found > 0 } }
+					custom_tooltip = {
+						text = expedition_outcome_severely_hindered_tt
+						scope:expedition = { change_variable = { name = leads_found subtract = 1 } }
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities.17.b
+		custom_tooltip = seven_cities.17.b.tt
+	}
+
+	historical_info = seven_cities.17.historical_info
+}
+
+# seven_cities.18 — A Harbor of Refuge
+seven_cities.18 = {
+	type = country_event
+	title = seven_cities.18.title
+	desc = seven_cities.18.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = {
+			is_land = yes
+			is_port = yes
+		}
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities.18.a
+
+		change_gold_effect = { scale = -1 }
+		seven_cities_expedition_stall_effect = { MIN = 10 MAX = 20 }
+
+		custom_tooltip = {
+			text = should_calamity_occur_chance_to_avoid_tt
+			scope:expedition = {
+				set_variable = {
+					name = chance_avoid_calamity_variable
+					months = 6
+				}
+			}
+		}
+
+		random_list = {
+			5 = {
+				show_chance = no
+				desc = the_refit_goes_smoothly
+
+				add_research_progress = research_progress_weak_bonus
+			}
+			3 = {
+				show_chance = no
+				desc = a_wreck_yields_salvage
+
+				scope:expedition = {
+					if = {
+						limit = { NOT = { has_variable = uncovered_riches_variable } }
+						set_variable = { name = uncovered_riches_variable  value = 0 }
+					}
+					change_variable = { name = uncovered_riches_variable  add = { 0.1 0.2 } }
+				}
+			}
+			2 = {
+				show_chance = no
+				desc = the_crew_falls_to_brawling
+
+				seven_cities_expedition_stall_effect = { MIN = 10 MAX = 20 }
+				add_prestige = prestige_weak_penalty
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities.18.b
+		custom_tooltip = seven_cities.18.b.tt
+	}
+
+	historical_info = seven_cities.18.historical_info
+}
+
+# seven_cities.20 — Supplies Running Short
+# Fires from on_arrive_to_new_location at ~10% chance.
+seven_cities.20 = {
+	type = country_event
+	title = seven_cities.20.title
+	desc = seven_cities.20.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = { is_land = yes }
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 7
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	# Pay for fresh supplies from the natives
+	option = {
+		name = seven_cities.20.a
+		change_gold_effect = { scale = -2 }
+	}
+
+	# Press on with what we have. The men can tighten their belts.
+	option = {
+		name = seven_cities.20.b
+		seven_cities_expedition_stall_effect = { MIN = 14 MAX = 14 }
+	}
+
+	historical_info = seven_cities.20.historical_info
+}
+
+# seven_cities.21 — Ambushed at the Canyon
+# Fires from on_arrive_to_new_location at ~10% chance.
+seven_cities.21 = {
+	type = country_event
+	title = seven_cities.21.title
+	desc = seven_cities.21.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = { is_land = yes }
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 7
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	# Charge them. Steel breaks ambushes.
+	option = {
+		name = seven_cities.21.a
+		change_gold_effect = { scale = -1 }
+	}
+
+	# Withdraw and find another path. There is no profit in dying here.
+	option = {
+		name = seven_cities.21.b
+		seven_cities_expedition_stall_effect = { MIN = 14 MAX = 14 }
+	}
+
+	historical_info = seven_cities.21.historical_info
+}
+
+# seven_cities.22 — Ancient Ruins Discovered
+# Fires from on_arrive_to_new_location at ~10% chance. Small prestige reward.
+seven_cities.22 = {
+	type = country_event
+	title = seven_cities.22.title
+	desc = seven_cities.22.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+		scope:location = { is_land = yes }
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 7
+		}
+		scope:location = {
+			save_scope_as = target_location
+			discover_location = root
+		}
+	}
+
+	# Catalogue what we see. Even a dead city tells a story.
+	option = {
+		name = seven_cities.22.a
+		add_prestige = prestige_weak_bonus
+	}
+
+	historical_info = seven_cities.22.historical_info
+}
+
+# seven_cities.30 — The Trail Goes Cold
+# Fires from on_arrive_to_waypoint at the staging waypoint when leads_found = 0.
+# Option A: abandon and return home. Option B: press on blindly toward the
+# city anyway — appends the city tile as a new waypoint with no leads
+# accumulated, which guarantees the bad outcome at conclusion.
+#
+# This is the only event in the shared pool that fires per-city — the relevant
+# city is named by the expedition variable target_city_id (1=cibola, 2=quivira,
+# 3=el_dorado, 4=fountain_of_youth, 5=city_of_caesars, 6=sierra_de_la_plata,
+# 7=norumbega, 8=saguenay).
+seven_cities.30 = {
+	type = country_event
+	title = seven_cities.30.title
+	desc = seven_cities.30.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = {
+		scope:expedition = { exists = expedition_leader }
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 14
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	# Press on regardless. The men will not turn back now.
+	option = {
+		name = seven_cities.30.a
+		if = {
+			limit = { exists = scope:expedition }
+			scope:expedition = {
+				switch = {
+					trigger = var:target_city_id
+					1 = { add_new_waypoint = location:halona_idiwana }
+					2 = { add_new_waypoint = location:quivira }
+					3 = { add_new_waypoint = location:tumeremo }
+					4 = { add_new_waypoint = location:timucua }
+					5 = { add_new_waypoint = location:patagonia }
+					6 = { add_new_waypoint = location:ccantumarcani }
+					7 = { add_new_waypoint = location:penobscot }
+					8 = { add_new_waypoint = location:saguenay_fjord }
+				}
+				add_new_waypoint = root.capital
+			}
+		}
+	}
+
+	# Turn back. Better an honest report than another grave in the wilderness.
+	option = {
+		name = seven_cities.30.b
+		add_prestige = -5
+		fail_expedition = scope:expedition
+	}
+
+	historical_info = seven_cities.30.historical_info
+}

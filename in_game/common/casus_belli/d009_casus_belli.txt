@@ -1,0 +1,153 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+cb_partition = {
+
+	war_goal_type = partition_superiority
+
+	create_visible = {
+		always = no
+	}
+	create_enabled = {
+		always = no
+	}
+
+	speed = 10
+
+	ai_will_do = {
+		add = {
+			desc = "BASE"
+			value = 25
+		}
+	}
+}
+
+cb_restore_ummayad_caliphate = {
+	create_visible = {
+		always = no
+	}
+	create_enabled = {
+		always = no
+	}
+	speed = 10
+	war_goal_type = restore_ummayad_caliphate
+}
+
+cb_grand_alliance = {
+	create_visible = {
+		always = no
+	}
+	create_enabled = {
+		always = no
+	}
+
+	war_goal_type = grand_alliance_superiority
+
+	additional_war_enthusiasm_attacker = 0.25
+
+	can_expire          = no
+	cut_down_in_size_cb = yes
+	ai_subjugation_desire   = -1000
+	ai_cede_location_desire = -1000
+	allow_release_areas  = yes
+	allow_separate_peace = no
+
+	ai_will_do = {
+		add = {
+			desc  = "CB_REASON_IMPORTANT_CB"
+			value = 100
+		}
+	}
+}
+
+cb_reconquer_iberia = {
+	war_goal_type = reconquer_iberia
+
+	speed = 10
+
+	create_visible = {
+		has_variable = can_reconquer_iberia
+		scope:target = {
+			owns_or_has_subject_in = region:iberia_region
+		}
+	}
+	create_enabled = {
+		has_variable = can_reconquer_iberia
+		scope:target = {
+			owns_or_has_subject_in = region:iberia_region
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc  = "BASE"
+			value = 25
+		}
+	}
+}
+
+cb_demand_andalusi_submission = {
+	war_goal_type = demand_andalusi_submission
+
+	speed = 10
+	years = 15
+
+	max_warscore_from_battles = 75
+
+	create_visible = {
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		OR = {
+			has_or_had_tag = CAS
+			has_or_had_tag = MOR
+		}
+		c:GRA ?= scope:target
+	}
+	create_enabled = {
+		c:GRA ?= scope:target
+		NOT = { has_truce_with = scope:target }
+		can_demand_andalusi_submission = yes
+	}
+	declare_enabled = {
+		c:GRA ?= scope:target
+		can_demand_andalusi_submission = yes
+	}
+
+	ai_subjugation_desire   = 1000
+	ai_cede_location_desire = -1000
+
+	ai_will_do = {
+		add = {
+			desc  = "BASE"
+			value = 25
+		}
+		if = {
+			limit = {
+				situation:battle_for_the_strait = { 
+					has_variable = influence_over_granada 
+					var:influence_over_granada < 0
+				}
+			}
+			add = {
+				desc     = "BFTS_INFLUENCE_AXIS_POSITION"
+				value    = situation:battle_for_the_strait.var:influence_over_granada
+				multiply = -0.5
+				min      = 0
+				max      = 50
+			}
+		}
+		else_if = {
+			limit = {
+				situation:battle_for_the_strait = { 
+					has_variable = influence_over_granada 
+					var:influence_over_granada > 0
+				}
+			}
+			add = {
+				desc     = "BFTS_INFLUENCE_AXIS_POSITION"
+				value    = situation:battle_for_the_strait.var:influence_over_granada
+				multiply = 0.5
+				min      = 0
+				max      = 50
+			}
+		}
+	}
+}

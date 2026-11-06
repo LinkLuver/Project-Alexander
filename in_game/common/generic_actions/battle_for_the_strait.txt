@@ -1,0 +1,2293 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+gra_reduce_castilian_influence = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:CAS
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		scope:actor = c:GRA
+	}
+
+	allow = {
+		situation:battle_for_the_strait.var:influence_over_granada < 0
+	}
+
+	cooldown = {
+		type = gra_reduce_castilian_influence
+		years = 3
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		change_influence_over_granada_effect = { value = bfts_pull_toward_mor_mid }
+		scope:actor = {
+			if = {
+				limit = {
+					is_subject_of = c:CAS
+				}
+				add_liberty_desire = liberty_desire_mild_plus
+			}
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				situation:battle_for_the_strait = { has_variable = influence_over_granada }
+				situation:battle_for_the_strait.var:influence_over_granada < 25
+			}
+			add = {
+				desc = "BFTS_INFLUENCE_AXIS_POSITION"
+				value    = situation:battle_for_the_strait.var:influence_over_granada
+				multiply = -100
+			}
+		}
+	}
+}
+
+gra_reduce_moroccan_influence = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:MOR
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		
+		scope:actor = c:GRA
+	}
+
+	allow = {
+		situation:battle_for_the_strait.var:influence_over_granada > 0
+	}
+
+	cooldown = {
+		type = gra_reduce_moroccan_influence
+		years = 3
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		change_influence_over_granada_effect = { value = bfts_pull_toward_cas_mid }
+		scope:actor = {
+
+			if = {
+				limit = {
+					is_subject_of = c:MOR
+				}
+				add_liberty_desire = liberty_desire_mild_plus
+			}
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				situation:battle_for_the_strait = { has_variable = influence_over_granada }
+				situation:battle_for_the_strait.var:influence_over_granada > 25
+			}
+			add = {
+				desc = "BFTS_INFLUENCE_AXIS_POSITION"
+				value    = situation:battle_for_the_strait.var:influence_over_granada
+				multiply = 100
+			}
+		}
+	}
+}
+
+gra_construct_alhambra = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+	show_in_gui_list = no
+
+	ai_tick = monthly
+	ai_tick_frequency = 1
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		
+		scope:actor = {
+			this = c:GRA
+			NOT = { has_variable = may_upgrade_alhambra_variable }
+		}
+		scope:actor = {
+			exists = capital
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			custom_tooltip = {
+				text = gra_construct_alhambra_max_tt
+				OR = {
+					NOT = { has_variable = alhambra_extension_level }
+					var:alhambra_extension_level < 3
+				}
+			}
+			owns = location:granada
+			at_war = no
+			is_during_bankruptcy = no
+			gold > 150
+		}
+		location:granada = { counts_as_capital = yes }
+	}
+
+	cooldown = {
+		type = gra_construct_alhambra
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		custom_tooltip = {
+			text = unlock_upgrade_alhambra_decision_tt
+			scope:actor = { 
+				set_variable = may_upgrade_alhambra_variable 
+			}
+		}
+	}
+
+	ai_will_do = {
+
+		add = {
+			desc = "BASE_VALUE"
+			value = -200
+		}
+
+		add = {
+			desc = "[gold|e]"
+			value = scope:actor.gold
+		}
+
+		add = {
+			desc = "[political_influence|e]"
+			value = scope:actor.political_influence_percentage
+			multiply = 25
+		}
+	}
+}
+
+gra_enforce_sovereignty = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+	show_in_gui_list = no
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = BFTS_ACTION_REQUIRES_GRANADA
+			scope:actor = c:GRA
+		}
+	}
+
+	cooldown = {
+		type = gra_enforce_sovereignty
+		years = 3
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			if = {
+				limit = { NOT = { has_country_modifier = enforcing_sovereignty_modifier } }
+				add_country_modifier = {
+					modifier = enforcing_sovereignty_modifier
+					years = -1
+					mode = replace
+					desc = until_we_cease_our_projection_efforts_tt
+				}
+				set_variable = {
+					name = duration_of_enforcing_variable
+					value = {
+						add = current_year
+						add = 3
+					}
+				}
+			}
+			else = {
+				remove_country_modifier = enforcing_sovereignty_modifier
+
+				hidden_effect = { remove_variable = duration_of_enforcing_variable }
+			}
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = { 
+				scope:actor = {
+					NOT = { has_country_modifier = enforcing_sovereignty_modifier }
+				}
+			}
+			add = {
+				desc = "Low [granadan_sovereignty|e] calls for projection"
+				value = 100
+				subtract = situation:battle_for_the_strait.var:granadan_sovereignty
+			}
+			add = {
+				desc = "Do we have any loans? -10/loan"
+				value = {
+					add = scope:actor.num_loans
+					multiply = -10
+				}
+			}
+		}
+		else = {
+			add = {
+				desc = "Low [granadan_sovereignty|e] calls for projection"
+				value = situation:battle_for_the_strait.var:granadan_sovereignty
+				subtract = 50
+			}
+		}
+
+		if = {
+			limit = { scope:actor = { has_variable = duration_of_enforcing_variable } }
+			add = {
+				desc = "How long have we had this active for?"
+				value = {
+					add = scope:actor.var:duration_of_enforcing_variable
+					subtract = current_year
+					multiply = -5
+				}
+			}
+		}
+		else = {
+			add = {
+				value = 1
+				desc = "BASE_VALUE"
+			}
+			add = {
+				desc = "How healthy is our monthly balance?"
+				value = {
+					add = scope:actor.monthly_balance
+					multiply = 0.1
+				}
+			}
+			add = {
+				desc = "How big is our treasury?"
+				value = scope:actor.gold
+				multiply = 0.01
+			}
+		}
+		
+	}
+}
+
+attract_andalusi_refugees = {
+	type = situation
+	show_message = no
+	show_in_gui_list = no
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = BFTS_ACTION_REQUIRES_GRANADA
+			scope:actor = c:GRA
+		}
+		scope:actor = {
+			at_war = no
+		}
+	}
+
+	cooldown = {
+		type = attract_andalusi_refugees
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		interaction_source_list = {
+			situation:battle_for_the_strait = {
+				add_to_list = source
+			}
+		}
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		target_flag = target_province_origin
+		interaction_source_list = {
+			region:iberia_region = {
+				every_country_with_capital_in_geography = {
+					limit = {
+						this != scope:actor
+						"culture_percentage_in_country(culture:andalusi)" > 0
+					}
+					every_province = {
+						limit = {
+							culture_percentage = {
+								culture = culture:andalusi
+								value > 0
+							}
+						}
+						add_to_list = source
+					}
+				}
+			}
+		}
+		name = "attract_refugees_choose_source"
+		none_available_msg_key = "no_provinces_available"
+		column = { data = name }
+		column = { data = owner_flag }
+		column = { data = population }
+		column = { data = province_andalusi_population }
+		enabled = {
+			owner = {
+				at_war = no
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target_province_destination
+		name = "attract_refugees_choose_destination"
+		none_available_msg_key = "no_provinces_available"
+		column = { data = name }
+		column = { data = population }
+		column = { data = province_culture_percentage }
+		enabled = {
+			province_average_integration >= 1
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target_province_origin
+				exists = scope:target_province_destination
+			}
+			scope:actor = { trigger_event_non_silently = battle_for_the_strait_events.21 }
+		}
+		else = {
+			custom_tooltip = bfts_attract_andalusi_refugees_tt
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			value = 20
+			desc = "BASE_VALUE"
+		}
+		if = {
+			limit = {
+				exists = scope:target_province_origin
+				exists = scope:target_province_destination
+			}
+
+			add = {
+				desc = "[target_province_origin.GetName] [population|e]"
+				value = scope:target_province_origin.population
+			}
+			add = {
+				desc = "[target_province_destination.GetName] [tax_base|e]"
+				value = scope:target_province_destination.province_tax_base
+			}
+			add = {
+				desc = "[target_province_destination.GetName] [control|e]"
+				value = 10
+				multiply = scope:target_province_destination.province_average_control
+			}
+		}
+	}
+}
+
+gra_patronize_shadhili_order = {
+	type = situation
+	show_message = no
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		if = {
+			limit = {
+				scope:actor = { has_country_modifier = patronizing_shadhili_order_modifier }
+			}
+			add = {
+				desc = "action_active"
+				value = 0
+			}
+		}
+		else = {
+			add = 1
+			add = {
+				desc = "bfts_actions_cost"
+				value = scope:actor.modifier:bfts_actions_cost
+			}
+		}
+	}
+
+	potential = {
+		scope:actor = {
+			has_variable = gra_shadhili_invited
+		}
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		
+	}
+
+	cooldown = {
+		type = gra_patronize_shadhili_order
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		interaction_source_list = {
+			situation:battle_for_the_strait = {
+				add_to_list = source
+			}
+		}
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+
+		scope:actor = {
+			if = {
+				limit = { has_country_modifier = patronizing_shadhili_order_modifier }
+
+				custom_tooltip = {
+					text = stop_patronizing_shadhili_order_tt
+					remove_country_modifier = patronizing_shadhili_order_modifier
+				}
+			}
+			else = {
+				custom_tooltip = {
+					text = start_patronizing_shadhili_order_tt
+					add_country_modifier = {
+						modifier = patronizing_shadhili_order_modifier
+						mode = replace
+						years = -1
+						desc = until_we_cease_our_patronship_tt
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = { 
+				scope:actor = { 
+					NOT = { has_country_modifier = patronizing_shadhili_order_modifier } 
+				}
+			}
+
+			add = {
+				value = scope:actor.num_loans
+				multiply = -10
+				desc = "[loans|e]"
+			}
+			if = {
+				limit = {
+					situation:battle_for_the_strait = { has_variable = granadan_sovereignty }
+				}
+				add = {
+					desc = "Low [granadan_sovereignty|e] makes patronage more valuable"
+					value = 50
+					subtract = situation:battle_for_the_strait.var:granadan_sovereignty
+				}
+			}
+		}
+		else = {
+			add = {
+				value = scope:actor.num_loans
+				multiply = 10
+				desc = "[loans|e]"
+			}
+			if = {
+				limit = {
+					situation:battle_for_the_strait = {
+						has_variable = granadan_sovereignty
+						var:granadan_sovereignty > 50
+					}
+				}
+				add = {
+					desc = "High [granadan_sovereignty|e] makes patronage less valuable"
+					value = situation:battle_for_the_strait.var:granadan_sovereignty
+					subtract = 80
+				}
+			}
+		}
+		
+	}
+}
+
+hire_granadan_jinetes = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+	show_in_gui_list = no
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = BFTS_ACTION_REQUIRES_CASTILE
+			c:CAS ?= scope:actor
+		}
+		custom_tooltip = {
+			text = unlocked_jinetes_via_decision_tt
+			scope:actor = {
+				OR = {
+					culture = culture:andalusi
+					has_variable = unlock_jinetes_variable
+				}
+			}
+		}
+		c:GRA = {
+			OR = {
+				is_subject_or_below_of = scope:actor
+				is_allied_with = { target = scope:actor }
+			}
+		}
+	}
+
+	cooldown = {
+		type = hire_granadan_jinetes
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor.capital ?= {
+			if = {
+				limit = {
+					c:GRA ?= {
+						has_advance = gra_mailed_jinetes
+					}
+				}
+				custom_tooltip = hire_granadan_jinetes_modern_tt
+				hidden_effect = {
+					while = {
+						count = 2
+						create_sub_unit_with_owner = {
+							type = a_granadan_jinetes_2
+							owner = scope:actor
+							culture = culture:andalusi
+							religion = religion:sunni
+							origin = this
+							experience = 100
+						}
+					}
+				}
+			}
+			else = {
+				custom_tooltip = hire_granadan_jinetes_traditional_tt
+				hidden_effect = {
+					while = {
+						count = 2
+						create_sub_unit_with_owner = {
+							type = a_granadan_jinetes
+							owner = scope:actor
+							culture = culture:andalusi
+							religion = religion:sunni
+							origin = this
+							experience = 100
+						}
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 25
+		}
+		add = {
+			desc = "[gold|e] reserves"
+			value    = scope:actor.gold
+			multiply = 0.01
+		}
+		if = {
+			limit = { scope:actor = { monthly_balance < 0 } }
+			add = {
+				desc = "Negative monthly balance"
+				value = -50
+			}
+		}
+		if = {
+			limit = { scope:actor = { monthly_manpower > 0 } }
+			add = {
+				desc = "Positive monthly [manpower|e]"
+				value = 30
+			}
+		}
+	}
+}
+
+#####################################################################
+# Demand Muslim Converts
+#####################################################################
+cas_demand_muslim_converts = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+		if = {
+			limit = { exists = scope:target }
+			add = {
+				desc = "cas_demand_muslim_converts_price_abilities"
+				value = scope:target.total_abilities
+				multiply = 0.001
+			}
+		}
+	}
+
+	potential = {
+		country_exists = c:CAS
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = BFTS_ACTION_REQUIRES_CASTILE
+			c:CAS ?= scope:actor
+		}
+		scope:actor = {
+			at_war = no
+			NOT = { religion.group = religion_group:muslim }
+		}
+		c:GRA ?= { at_war = no }
+	}
+
+	cooldown = { type = cas_demand_muslim_converts years = 10 }
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		interaction_source_list = {
+			c:GRA ?= {
+				every_character = {
+					limit = {
+						is_alive = yes
+						is_adult = yes
+						religion.group = religion_group:muslim
+						is_ruler = no
+						is_heir = no
+						is_consort = no
+						is_regent = no
+						in_cabinet = no
+						is_general = no
+						is_admiral = no
+						is_explorer = no
+						modifier:blocked_from_character_interactions = no
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target
+		name = "cas_demand_muslim_converts_select_title"
+		none_available_msg_key = "cas_demand_muslim_converts_no_characters"
+		column = { data = character_info }
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				save_scope_as = converted_character
+				move_country = scope:actor
+				change_character_religion = scope:actor.religion
+				estate_type ?= { save_scope_as = converted_character_estate }
+				add_trait = trait:court_favorite
+			}
+			scope:actor = {
+				if = {
+					limit = { exists = scope:converted_character_estate }
+					if = {
+						limit = { scope:converted_character_estate = estate_type:crown_estate }
+						add_country_modifier = {
+							modifier = dmc_crown_estate_convert_modifier
+							years = modifier_duration_years_short
+							mode = add
+						}
+					}
+					else = {
+						add_estate_satisfaction = {
+							type = scope:converted_character_estate
+							value = estate_satisfaction_extreme_bonus
+						}
+					}
+				}
+				trigger_event_non_silently = battle_for_the_strait_events.30
+			}
+		}
+		else = {
+			custom_tooltip = cas_demand_muslim_converts_effect_tt
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = -20
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					any_cabinet_character = {
+						total_abilities < 150
+					}
+				}
+			}
+			add = {
+				desc = "Weak member in our cabinet"
+				value = 50
+			}
+		}
+		if = {
+			limit = {
+				
+				country_exists = c:GRA
+				c:GRA ?= {
+					is_subject_of = scope:actor
+					subject_loyalty > 80
+				}
+			}
+			add = {
+				desc = "Granada is very loyal"
+				value = 100
+			}
+		}
+
+		if = {
+			limit = { exists = scope:target }
+			add = scope:target.total_abilities
+		}
+	}
+}
+
+#####################################################################
+# Dismantle Fortifications
+#####################################################################
+cas_dismantle_fortifications = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:CAS
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		
+		
+		c:CAS ?= scope:actor
+		c:GRA ?= {
+			is_subject_of = scope:actor
+		}
+	}
+
+	allow = {
+		scope:actor = { at_war = no }
+		c:GRA ?= {
+			at_war = no
+			subject_loyalty >= MIN_SUBJECT_LOYALTY_FOR_ACTION
+			liberty_desire < MAX_SUBJECT_LIBERTY_DESIRE_FOR_ACTION
+		}
+	}
+
+	cooldown = { type = cas_dismantle_fortifications years = 2 }
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		interaction_source_list = {
+			c:GRA ?= {
+				every_owned_location = {
+					limit = {
+						any_buildings_in_location = { building_category = defense_category }
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target
+		source_flags = only_actual_locations
+		name = "cas_dismantle_fortifications_select_title"
+		none_available_msg_key = "cas_dismantle_fortifications_no_locations"
+		column = { data = name }
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				every_buildings_in_location = {
+					limit = {
+						building_category = defense_category
+					}
+					save_temporary_scope_as = target_building
+					PREV = {
+						destroy_building = scope:target_building
+					}
+				}
+			}
+
+			custom_tooltip = {
+				text = cas_dismantle_fortifications_salvage_tt
+				scope:actor = {
+					every_market_present_in_country = {
+						limit = {
+							location.owner = scope:actor
+						}
+						add_temporary_demand = { type = demand:cas_dismantled_forts_salvage years = 2 scale_with_pop = 0.01 }
+					}
+				}
+			}
+
+			c:GRA ?= {
+				add_liberty_desire = liberty_desire_severe_plus
+				add_opinion = {
+					target = scope:actor
+					modifier = opinion_dismantled_our_forts
+				}
+			}
+
+			change_granadan_sovereignty_effect = { value = -5 }
+		}
+		else = {
+			custom_tooltip = cas_dismantle_fortifications_effect_tt
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 15
+		}
+		if = {
+			limit = {
+				
+				country_exists = c:GRA
+			}
+			add = {
+				desc = "Our regard for Granada"
+				value    = 100
+				subtract = "scope:actor.opinion(c:GRA)"
+			}
+			if = {
+				limit = {
+					c:GRA ?= {
+						is_subject_of = scope:actor
+						subject_loyalty < 85
+					}
+				}
+				add = {
+					desc = "Granada subject loyalty too low to risk this"
+					value = -200
+				}
+			}
+		}
+	}
+}
+
+#####################################################################
+# Reduce Granadan Sovereignty
+#####################################################################
+cas_reduce_granadan_sovereignty = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:CAS
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+
+		scope:actor = {
+			OR = {
+				has_or_had_tag = CAS
+				has_or_had_tag = MOR
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = { at_war = no }
+		c:GRA ?= { at_war = no }
+		custom_tooltip = {
+			text = BFTS_REDUCE_SOVEREIGNTY_REQUIRES_HOLD
+			OR = {
+				c:GRA ?= { is_subject_of = scope:actor }
+				has_ascendancy_over_granada = yes
+			}
+		}
+	}
+
+	cooldown = {
+		type = cas_reduce_granadan_sovereignty
+		years = {
+			if = {
+				limit = { has_ascendancy_over_granada = yes }
+				value = 5
+			}
+			else = {
+				value = 10
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { has_ascendancy_over_granada = yes }
+			change_granadan_sovereignty_effect = { value = -15 }
+			c:GRA ?= {
+				if = {
+					limit = { is_subject_of = scope:actor }
+					add_liberty_desire = liberty_desire_weak_plus
+				}
+				add_opinion = {
+					target = scope:actor
+					modifier = opinion_pressured_our_sovereignty
+					scale = 0.5
+				}
+			}
+		}
+		else = {
+			change_granadan_sovereignty_effect = { value = -10 }
+			c:GRA ?= {
+				add_liberty_desire = liberty_desire_mild_plus
+				add_opinion = {
+					target = scope:actor
+					modifier = opinion_pressured_our_sovereignty
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = -33
+		}
+		if = {
+			limit = {
+
+				country_exists = c:GRA
+			}
+			add = {
+				desc = "Our regard for Granada"
+				value    = 100
+				subtract = "scope:actor.opinion(c:GRA)"
+			}
+			if = {
+				limit = {
+					situation:battle_for_the_strait.var:granadan_sovereignty > 50
+				}
+				add = {
+					desc = "[granadan_sovereignty|e] is high (more room to reduce)"
+					value    = situation:battle_for_the_strait.var:granadan_sovereignty
+					subtract = 50
+				}
+			}
+			if = {
+				limit = { has_ascendancy_over_granada = yes }
+				add = {
+					desc = "Our ascendancy lets us press with little backlash"
+					value = 60
+				}
+			}
+			if = {
+				limit = {
+					c:GRA ?= {
+						is_subject_of = scope:actor
+						subject_loyalty < 85
+					}
+					NOT = { has_ascendancy_over_granada = yes }
+				}
+				add = {
+					desc = "Granada subject loyalty too low to risk this"
+					value = -200
+				}
+			}
+		}
+	}
+}
+
+#####################################################################
+# Force Tribute (Castile)
+#####################################################################
+cas_force_tribute = {
+	icon = demand_parias
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+	show_in_gui_list = no
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = BFTS_ACTION_REQUIRES_CASTILE
+			scope:actor = { has_or_had_tag = CAS }
+		}
+		trigger_if = {
+			limit = { country_exists = c:GRA }
+			scope:actor = {
+				at_war = no
+				NOT = { has_truce_with = c:GRA }
+			}
+			c:GRA ?= {
+				NOT = { has_truce_with = scope:actor }
+				custom_tooltip = {
+					text = BFTS_ACTION_GRANADA_NOT_RECENTLY_VICTORIOUS
+					NOT = { has_variable = bfts_won_war_against_castile }
+				}
+				at_war = no
+				is_subject = no
+				relative_strength = {
+					target = scope:actor
+					value < 0.4
+				}
+			}
+			situation:battle_for_the_strait = {
+				has_variable = influence_over_granada
+				var:influence_over_granada <= -25
+			}
+		}
+		trigger_else = { country_exists = c:GRA }
+	}
+
+	cooldown = { type = cas_force_tribute years = 10 }
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			trigger_event_non_silently = battle_for_the_strait_events.61
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 25
+		}
+		if = {
+			limit = {
+				country_exists = c:GRA
+				scope:actor = {
+					relative_military_strength = {
+						target = c:GRA
+						value > 0.6
+					}
+				}
+			}
+			add = {
+				desc = "We are stronger than Granada"
+				value = 75
+			}
+		}
+		if = {
+			limit = { scope:actor = { at_war = yes } }
+			add = {
+				desc = "Already at war"
+				value = -50
+			}
+		}
+	}
+}
+
+#####################################################################
+# Force Tribute
+#####################################################################
+mor_force_tribute = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+	show_in_gui_list = no
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = BFTS_ACTION_REQUIRES_MOROCCO
+			scope:actor = { has_or_had_tag = MOR }
+		}
+		trigger_if = {
+			limit = { country_exists = c:GRA }
+			scope:actor = { 
+				at_war = no 
+				NOT = { has_truce_with = c:GRA }
+			}
+			c:GRA ?= {
+				NOT = { has_truce_with = scope:actor }
+				at_war = no
+				is_subject = no
+				relative_strength = {
+					target = scope:actor
+					value < 0.4
+				}
+			}
+			situation:battle_for_the_strait = {
+				has_variable = influence_over_granada
+				var:influence_over_granada > 25
+			}
+		}
+		trigger_else = { country_exists = c:GRA }
+		
+	}
+
+	cooldown = { type = mor_force_tribute years = 10 }
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			trigger_event_non_silently = battle_for_the_strait_events.32
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 25
+		}
+		if = {
+			limit = {
+				
+				country_exists = c:GRA
+				scope:actor = {
+					relative_military_strength = {
+						target = c:GRA
+						value > 0.6
+					}
+				}
+			}
+			add = {
+				desc = "We are stronger than Granada"
+				value = 75
+			}
+		}
+		if = {
+			limit = { scope:actor = { at_war = yes } }
+			add = {
+				desc = "Already at war"
+				value = -50
+			}
+		}
+	}
+}
+
+#####################################################################
+# Invite Granadan Scholars
+#####################################################################
+mor_invite_granadan_scholars = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:MOR
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		
+		
+		c:MOR ?= scope:actor
+	}
+
+	allow = {
+		scope:actor = { at_war = no }
+	}
+
+	cooldown = { type = mor_invite_granadan_scholars years = 10 }
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			change_societal_value = {
+				type = mysticism_vs_jurisprudence
+				value = societal_value_move_to_right
+			}
+			add_country_modifier = {
+				modifier = mor_granadan_scholars_modifier
+				years = 10
+				mode = add
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 25
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					societal_value:mysticism_vs_jurisprudence < -50
+				}
+			}
+			add = {
+				desc = "Already deep into mysticism"
+				value = -50
+			}
+		}
+	}
+}
+
+#####################################################################
+# Invite Granadan Advisor
+#####################################################################
+mor_invite_granadan_advisor = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:MOR
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		
+		
+		c:MOR ?= scope:actor
+	}
+
+	allow = {
+		scope:actor = { at_war = no }
+	}
+
+	cooldown = { type = mor_invite_granadan_advisor years = 10 }
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			create_character = {
+				culture = culture:andalusi
+				religion = scope:actor.religion
+				estate = estate_type:clergy_estate
+				female = no
+				adm = { 50 100 }
+				dip = { 50 100 }
+				mil = { 50 100 }
+				#show_stats = no
+				save_scope_as = target_character
+				custom_tooltip = {
+					text = mor_invite_granadan_advisor_traits_tt
+					random_list = {
+						1 = { add_trait = trait:theologian }
+						1 = { add_trait = trait:bureaucrat }
+						1 = { add_trait = trait:administrator }
+						1 = { add_trait = trait:charismatic_orator }
+					}
+					random_list = {
+						1 = { add_trait = trait:reverend_teacher }
+						1 = { add_trait = trait:efficient_administrator }
+						1 = { add_trait = trait:devout }
+						1 = { add_trait = trait:alms_giver }
+					}
+				}
+			}
+			add_opinion_mutual_effect = {
+				target = c:GRA
+				modifier = opinion_andalusi_scholarly_exchange
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 25
+		}
+		add = {
+			desc = "[political_influence|e] available"
+			value    = scope:actor.political_influence_percentage
+			multiply = 30
+		}
+	}
+}
+
+#####################################################################
+# Garrison Granadan Strongholds
+#####################################################################
+mor_garrison_granadan_strongholds = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:MOR
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		
+		
+		c:MOR ?= scope:actor
+		c:GRA ?= {
+			OR = {
+				is_subject_of = scope:actor
+				is_allied_with = { target = scope:actor }
+			}
+		}
+	}
+
+	cooldown = { type = mor_garrison_granadan_strongholds years = 10 }
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		interaction_source_list = {
+			c:GRA ?= {
+				every_province = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target
+		name = "mor_garrison_granadan_strongholds_select_title"
+		none_available_msg_key = "mor_garrison_granadan_strongholds_no_provinces"
+		column = { data = name }
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			scope:target = {
+				add_province_modifier = {
+					modifier = mor_garrisoned_stronghold_modifier
+					years = 10
+					mode = replace
+				}
+			}
+		}
+		else = {
+			custom_tooltip = mor_garrison_granadan_strongholds_effect_tt
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 25
+		}
+		if = {
+			limit = {
+				
+				
+				country_exists = c:CAS
+				country_exists = c:GRA
+				c:CAS ?= {
+					is_at_war_with = c:GRA
+				}
+			}
+			add = {
+				desc = "Castile is at war with Granada"
+				value = 75
+			}
+		}
+		if = {
+			limit = {
+				
+				
+				country_exists = c:CAS
+				country_exists = c:GRA
+				c:CAS ?= {
+					opinion = {
+						target = c:GRA
+						value < 0
+					}
+				}
+			}
+			add = {
+				desc = "Castile holds Granada in low regard"
+				value = 30
+			}
+		}
+	}
+}
+
+#####################################################################
+# Attract Andalusi Craftsmen
+#####################################################################
+mor_attract_andalusi_craftsmen = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+	show_in_gui_list = no
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		country_exists = c:MOR
+		country_exists = c:GRA
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = BFTS_ACTION_REQUIRES_MOROCCO
+			c:MOR ?= scope:actor
+		}
+		scope:actor = { at_war = no }
+		c:GRA ?= { at_war = no }
+	}
+
+	cooldown = { type = mor_attract_andalusi_craftsmen years = 3 }
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		interaction_source_list = {
+			c:GRA ?= {
+				every_province = {
+					limit = {
+						culture_percentage = {
+							culture = culture:andalusi
+							value > 0.10
+						}
+					}
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target_province_origin
+		name = "mor_attract_andalusi_craftsmen_choose_source"
+		none_available_msg_key = "mor_attract_andalusi_craftsmen_no_source"
+		column = { data = name }
+		column = { data = population }
+	}
+
+	select_trigger = {
+		looking_for_a = province
+		interaction_source_list = {
+			scope:actor = {
+				every_province = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target_province_destination
+		name = "mor_attract_andalusi_craftsmen_choose_destination"
+		none_available_msg_key = "mor_attract_andalusi_craftsmen_no_destination"
+		column = { data = name }
+		column = { data = population }
+		visible = {
+			owner ?= scope:actor
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:target_province_origin
+				exists = scope:target_province_destination
+			}
+			add_migration = {
+				owner = scope:target_province_origin.owner
+				from = scope:target_province_origin.province_definition
+				to = scope:target_province_destination.province_definition
+				culture = culture:andalusi
+				religion = scope:actor.religion
+				amount = {
+					value = scope:target_province_origin.population
+					multiply = 0.01
+				}
+				months = 4
+			}
+			scope:target_province_destination = {
+				add_province_modifier = {
+					modifier = mor_andalusi_craftsmen_modifier
+					years = 3
+					mode = replace
+				}
+			}
+		}
+		else = {
+			custom_tooltip = mor_attract_andalusi_craftsmen_effect_tt
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 20
+		}
+		add = {
+			desc = "[gold|e] reserves"
+			value    = scope:actor.gold
+			multiply = 0.005
+		}
+	}
+}
+
+#####################################################################
+# Vassalize Granada
+#####################################################################
+vassalize_granada = {
+	type = situation
+	show_message_if = {
+		is_battle_for_the_strait_principal = yes
+	}
+	show_in_gui_list = no
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		country_exists = c:GRA
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = BFTS_ACTION_REQUIRES_CASTILE
+			c:CAS ?= scope:actor
+		}
+		scope:actor = { at_war = no }
+		situation:battle_for_the_strait.var:influence_over_granada <= -100
+		c:GRA ?= {
+			at_war = no
+			OR = {
+				NOT = { is_subject_of = scope:actor }
+				AND = {
+					is_subject_of = scope:actor
+					NOT = { is_subject_type = vassal }
+				}
+			}
+		}
+	}
+
+	cooldown = { type = vassalize_granada years = 10 }
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			trigger_event_non_silently = battle_for_the_strait_events.31
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 100
+		}
+	}
+}
+
+mor_vassalize_granada = {
+	type = situation
+	show_message = no
+	show_in_gui_list = no
+
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		country_exists = c:GRA
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = BFTS_ACTION_REQUIRES_MOROCCO
+			c:MOR ?= scope:actor
+		}
+		scope:actor = { at_war = no }
+		situation:battle_for_the_strait.var:influence_over_granada >= 100
+		c:GRA ?= {
+			at_war = no
+			OR = {
+				NOT = { is_subject_of = scope:actor }
+				AND = {
+					is_subject_of = scope:actor
+					NOR = {
+						is_subject_type = vassal
+						is_subject_type = taifa
+					}
+				}
+			}
+		}
+	}
+
+	cooldown = { type = mor_vassalize_granada years = 10 }
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			trigger_event_non_silently = battle_for_the_strait_events.31
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 100
+		}
+	}
+}
+
+claim_andalusi_inheritance = {
+	type = situation
+	show_message_if = {
+		OR = {
+			is_battle_for_the_strait_principal = yes
+			AND = {
+				exists = scope:target_country
+				this = scope:target_country
+			}
+		}
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	price = price:bfts_actions_price
+	price_modifier = {
+		add = 1
+		add = {
+			desc = "bfts_actions_cost"
+			value = scope:actor.modifier:bfts_actions_cost
+		}
+	}
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = BFTS_ACTION_REQUIRES_GRANADA_OR_MOROCCO
+			OR = {
+				scope:actor = c:GRA
+				c:MOR ?= scope:actor
+			}
+		}
+		scope:actor = {
+			at_war = no
+			has_raised_levies = no
+		}
+	}
+
+	cooldown = { type = claim_andalusi_inheritance years = 5 }
+
+	select_trigger = {
+		looking_for_a = situation
+		target_flag = recipient
+		name = "choose_situation"
+		column = { data = name }
+		visible = {
+			situation:battle_for_the_strait = this
+			situation_is_active = yes
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = target_country
+		name = "choose_target_country"
+		none_available_msg_key = "no_countries_available"
+		column = { data = name }
+		interaction_source_list = {
+			region:iberia_region = {
+				every_country_with_capital_in_geography = {
+					limit = {
+						NOT = { this = scope:actor }
+						num_locations > 0
+						NOT = { has_truce_with = scope:actor }
+						scope:actor = { can_declare_war_on = prev }
+					}
+					add_to_list = source
+				}
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target_country }
+			scope:actor = {
+				add_casus_belli = {
+					type = casus_belli:cb_reclaim_andalucia
+					target = scope:target_country
+					years = 5
+				}
+				if = {
+					limit = {
+						is_ai = yes
+						num_of_diplomats >= 1
+						can_declare_war_on = scope:target_country
+					}
+					declare_war_with_cb = {
+						target = scope:target_country
+						type = casus_belli:cb_reclaim_andalucia
+						apply_declaration_costs = yes
+					}
+				}
+			}
+		}
+		else = {
+			custom_tooltip = claim_andalusi_inheritance_no_target_tt
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = { exists = scope:target_country }
+
+			if = {
+				limit = {
+					scope:target_country = {
+						is_subject = yes
+						top_overlord ?= scope:actor
+					}
+				}
+				add = { value = -1000 desc = "our subject" }
+			}
+			if = {
+				limit = { scope:actor = { is_during_bankruptcy = yes } }
+				subtract = { desc = "[bankruptcy|e]" value = 1000 }
+			}
+			if = {
+				limit = { scope:actor = { num_loans > 0 } }
+				subtract = { desc = "loans" value = 1000 }
+			}
+			if = {
+				limit = { scope:actor = { stability < 0 } }
+				subtract = { desc = "low stability" value = 1000 }
+			}
+			if = {
+				limit = { scope:actor = { has_any_active_disaster = yes } }
+				subtract = { desc = "ongoing disaster" value = 1000 }
+			}
+			if = {
+				limit = { scope:actor = { has_truce_with = scope:target_country } }
+				add = { value = -1000 desc = "[truce|e]" }
+			}
+			if = {
+				limit = { scope:actor = { has_casus_belli_on = scope:target_country } }
+				add = { value = -10000 desc = "we already have a CB on them" }
+			}
+			if = {
+				limit = { scope:actor = { is_allied_with = { target = scope:target_country } } }
+				add = { value = -1000 desc = "our ally" }
+			}
+			# MOR needs a fleet to cross the strait.
+			if = {
+				limit = {
+					scope:actor = {
+						NOT = { capital.region = region:iberia_region }
+						navy_size < 10
+					}
+				}
+				subtract = { value = 2500 desc = "insufficient navy to cross the strait" }
+			}
+
+			if = {
+				limit = { scope:actor = { wants_to_attack = scope:target_country } }
+				add = { value = 2000 desc = "we want to attack them" }
+			}
+			else = {
+				add = { value = -2000 desc = "we do not want to attack them" }
+			}
+
+			add = {
+				desc = "RELATIVE_STRENGTH"
+				value = "scope:actor.relative_defensive_alliance_strength(scope:target_country)"
+				multiply = 150
+				subtract = 60
+			}
+			add = {
+				desc = "we want their land"
+				value = "scope:actor.conquer_desire(scope:target_country)"
+				divide = 5
+			}
+			add = {
+				desc = "CURRENT_MANPOWER_TOOLTIP"
+				value = scope:actor.manpower_percentage
+				multiply = 10
+			}
+			add = {
+				desc = "navy size"
+				value = scope:actor.navy_size
+				divide = 5
+			}
+			add = {
+				value = scope:actor.modifier:aggressiveness_modifier
+				subtract = scope:actor.modifier:carefulness_modifier
+				multiply = 50
+				desc = "aggressiveness modifier minus carefulness modifier"
+			}
+			if = {
+				limit = { scope:target_country = { num_locations < 5 } }
+				divide = { value = 3 desc = "very small enemy" }
+			}
+		}
+		else = {
+			add = { value = 25 desc = BASE_VALUE }
+		}
+	}
+}

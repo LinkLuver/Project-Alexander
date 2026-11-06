@@ -1,0 +1,136 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+gc_decision = {
+	decision_category = country_specific_decisions
+	only_once = yes
+
+	image_list = "golden_century_illustration"
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		has_global_variable = battle_for_the_strait_winner_country
+		global_var:battle_for_the_strait_winner_country = ROOT
+		situation:golden_century = {
+			situation_is_active = no
+			situation_has_ended = no
+		}
+	}
+
+	allow = {
+		current_age_or_later = { age = age_3_discovery }
+		is_subject = no
+		at_war = no
+		is_during_bankruptcy = no
+		trigger_if = {
+			limit = { has_or_had_tag = CAS }
+			OR = {
+				has_or_had_tag = SPA
+				AND = {
+					has_or_had_tag = CAS
+					custom_tooltip = {
+						text = gc_decision_iberian_union_leader_tt
+						exists = union
+						union = {
+							has_variable = iberian_union_active
+							modifier:union_integration_level >= 3
+						}
+						has_special_status_in_international_organization = {
+							type = special_status:senior_partner
+							international_organization = union
+						}
+					}
+				}
+			}
+		}
+		trigger_else = {
+			custom_tooltip = {
+				text = gc_decision_muslim_branch_tt
+				OR = {
+					has_or_had_tag = ADU
+					has_or_had_tag = MOR
+				}
+			}
+		}
+		area:granada_area = { owned_by_or_its_subjects = ROOT }
+		area:andalusia_area = { owned_by_or_its_subjects = ROOT }
+		area:murcia_area = { owned_by_or_its_subjects = ROOT }
+	}
+
+	ai_will_do = {
+		value = 100
+	}
+
+	option = {
+		name = gc_decision.a
+		ai_chance = { value = 100 }
+		effect = {
+			activate_situation = situation:golden_century
+		}
+	}
+}
+
+restore_cordoba = {
+	decision_category = country_specific_decisions
+
+	potential = {
+		has_variable = restore_cordoba_variable
+	}
+
+	allow = {
+		owns = location:cordoba
+		at_war = no
+		religion.group = religion_group:muslim
+
+		location:cordoba = {
+			OR = { 
+				location_rank = location_rank:city  
+				location_rank = location_rank:megalopolis 
+			}
+			OR = {
+				location_population_percentage >= 0.5
+				prosperity > 0.5
+				total_building_levels > 75
+			}
+			
+		}
+
+		political_influence >= {
+			value = political_influence_radical_penalty
+			multiply = -1
+		}
+	}
+
+	ai_will_do = {
+		value = 100
+	}
+
+	option = {
+		name = restore_cordoba.a
+		ai_chance = { value = 100 }
+		effect = {
+			hidden_effect = { 
+				remove_variable = restore_cordoba_variable 
+				location:cordoba = {
+					destroy_building = "building(building_type:library|owner)"
+				}
+			}
+			add_political_influence = political_influence_radical_penalty
+			unlock_building_effect = { type = library_cordoba }
+			location:cordoba = {
+				construct_building = {
+					building_type = building_type:library_cordoba
+				}
+
+				if = {
+					limit = { 
+						NOT = { has_building = building_type:great_madrasa }
+					}
+					construct_building = {
+						building_type = building_type:great_madrasa
+					}
+				}
+
+				change_development = development_extreme_bonus
+			}
+		}
+	}
+}

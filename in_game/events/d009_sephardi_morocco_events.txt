@@ -1,0 +1,812 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = d009_sephardi_morocco
+
+d009_sephardi_morocco.1 = { #The Megorashim Arrive
+	type = country_event
+	title = d009_sephardi_morocco.1.title
+	desc = d009_sephardi_morocco.1.desc
+	outcome = neutral
+	historical_info = d009_sephardi_morocco.1.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = MOR
+		from = 1492.1.1
+		to = 1520.1.1
+		monthly_chance = 25
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		religion = religion:sunni
+		owns = location:fez
+		owns = location:tetouan
+
+		any_in_global_list = {
+			variable = crypto_jewish_community_locations
+			owner = {
+				culture = { has_culture_group = culture_group:iberian_group }
+				NOT = { this = root }
+			}
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:nobles_estate }
+
+		random_in_global_list = {
+			variable = crypto_jewish_community_locations
+			limit = {
+				owner = {
+					culture = { has_culture_group = culture_group:iberian_group }
+					NOT = { this = root }
+				}
+			}
+
+			owner = { save_scope_as = origin_country }
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.1.a
+		historical_option = yes
+
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = outward_vs_inward
+			value = societal_value_move_to_right
+		}
+
+		if = {
+			limit = {
+				is_situation_active = situation:golden_century
+				has_global_variable = battle_for_the_strait_winner_country
+				this = global_var:battle_for_the_strait_winner_country
+			}
+			gc_change_european_dominance = { value = gc_dominance_weak_bonus }
+		}
+
+		scope:origin_country = {
+			d009_crypto_jewish_exodus_effect = {
+				FRACTION = 0.2
+				AMOUNT = 0.3
+				DESTINATION = location:fez
+			}
+		}
+
+		if = {
+			limit = {
+				location:fez = {
+					"religion_population(religion:judaism)" > 0
+				}
+			}
+
+			location:fez = {
+				add_location_modifier = {
+					modifier = mellah_split
+					mode = add
+				}
+			}
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.1.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = outward_vs_inward
+			value = societal_value_move_to_left
+		}
+
+		scope:origin_country = {
+			d009_crypto_jewish_exodus_effect = {
+				FRACTION = 0.1
+				AMOUNT = 0.15
+				DESTINATION = location:tetouan
+			}
+		}
+	}
+}
+
+d009_sephardi_morocco.2 = { #Megorashim vs. Toshavim
+	type = country_event
+	title = d009_sephardi_morocco.2.title
+	desc = d009_sephardi_morocco.2.desc
+	outcome = neutral
+	historical_info = d009_sephardi_morocco.2.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = MOR
+		from = 1494.1.1
+		to = 1600.1.1
+		monthly_chance = 10
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		owns = location:fez
+
+		location:fez = {
+			has_location_modifier = mellah_split
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:burghers_estate }
+	}
+
+	option = {
+		name = d009_sephardi_morocco.2.a
+		historical_option = yes
+
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = individualism_vs_communalism
+			value = societal_value_move_to_right
+		}
+
+		add_stability = stability_mild_bonus
+
+		location:fez = {
+			remove_location_modifier = mellah_split
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.2.b
+
+		change_societal_value = {
+			type = individualism_vs_communalism
+			value = societal_value_move_to_left
+		}
+
+		location:fez = {
+			remove_location_modifier = mellah_split
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.2.c
+
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_penalty }
+
+		add_stability = stability_weak_bonus
+
+		location:fez = {
+			remove_location_modifier = mellah_split
+		}
+	}
+}
+
+d009_sephardi_morocco.3 = { #Tetouan — City of the Exiles
+	type = country_event
+	title = d009_sephardi_morocco.3.title
+	desc = d009_sephardi_morocco.3.desc
+	outcome = neutral
+	historical_info = d009_sephardi_morocco.3.historical_info
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		owns = location:tetouan
+
+		NOT = {
+			has_variable = d009_sephardi_morocco_3_fired
+		}
+
+		location:tetouan = {
+			"culture_population(culture:sephardi)" > 0
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+
+		set_variable = d009_sephardi_morocco_3_fired
+	}
+
+	option = {
+		name = d009_sephardi_morocco.3.a
+		historical_option = yes
+
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = capital_economy_vs_traditional_economy
+			value = societal_value_move_to_left
+		}
+
+		change_gold_effect = { scale = -4 }
+
+		location:tetouan = {
+			change_prosperity = prosperity_mild_bonus
+
+			add_location_modifier = {
+				modifier = tetouan_sephardi_city
+				mode = add
+			}
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.3.b
+
+		change_societal_value = {
+			type = capital_economy_vs_traditional_economy
+			value = societal_value_move_to_right
+		}
+	}
+}
+
+d009_sephardi_morocco.4 = { #The Sa'di Court Jews
+	type = country_event
+	title = d009_sephardi_morocco.4.title
+	desc = d009_sephardi_morocco.4.desc
+	outcome = neutral
+	historical_info = d009_sephardi_morocco.4.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = MOR
+		from = 1549.1.1
+		to = 1659.1.1
+		monthly_chance = 10
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		has_ruler = yes
+		ruler = {
+			has_dynasty = yes
+			dynasty = dynasty:saadi_dynasty
+		}
+
+		owns = location:marrakesh
+
+		location:marrakesh = {
+			"religion_population(religion:judaism)" > 0
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:nobles_estate }
+
+		create_character = {
+			first_name = name_james
+			last_name = Rosales
+			adm = { 60 80 }
+			dip = { 60 80 }
+			mil = { 10 30 }
+			culture = culture:sephardi
+			religion = religion:judaism
+			female = no
+			min_age = 40
+			estate = estate_type:burghers_estate
+			create_in_limbo = yes
+			save_scope_as = target_character
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.4.a
+		historical_option = yes
+
+		change_societal_value = {
+			type = aristocracy_vs_plutocracy
+			value = societal_value_move_to_right
+		}
+
+		location:marrakesh = {
+			change_prosperity = prosperity_mild_bonus
+		}
+
+		scope:target_character = {
+			move_country = root
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.4.b
+
+		change_societal_value = {
+			type = aristocracy_vs_plutocracy
+			value = societal_value_move_to_left
+		}
+
+		hidden_effect = {
+			kill_character_silently = scope:target_character
+		}
+	}
+}
+
+d009_sephardi_morocco.5 = { #Ransoming the Captives
+	type = country_event
+	title = d009_sephardi_morocco.5.title
+	desc = d009_sephardi_morocco.5.desc
+	outcome = neutral
+	historical_info = d009_sephardi_morocco.5.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = MOR
+		from = 1450.1.1
+		to = 1700.1.1
+		monthly_chance = 5
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+
+		country_exists = c:POR
+
+		OR = {
+			has_truce_with = c:POR
+			AND = {
+				c:POR = {
+					is_subject = yes
+					has_limited_diplomacy = yes
+				}
+				has_truce_with = c:POR.overlord
+			}
+		}
+
+		custom_tooltip = {
+			text = d009_morocco_has_jewish_pops_tt
+
+			"religion_population_in_country(religion:judaism)" > 0
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:peasants_estate }
+	}
+
+	option = {
+		name = d009_sephardi_morocco.5.a
+		historical_option = yes
+
+		add_prestige = prestige_mild_bonus
+		change_gold_effect = { scale = 1 }
+
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_right
+		}
+
+		c:POR = {
+			add_opinion = { target = root modifier = opinion_pleased }
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.5.b
+
+		change_gold_effect = { scale = 0.5 }
+
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_left
+		}
+	}
+}
+
+d009_sephardi_morocco.6 = { #The Meknes Mellah
+	type = country_event
+	title = d009_sephardi_morocco.6.title
+	desc = d009_sephardi_morocco.6.desc
+	outcome = neutral
+	historical_info = d009_sephardi_morocco.6.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = MOR
+		from = 1666.1.1
+		to = 1800.1.1
+		monthly_chance = 10
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		owns = location:meknes
+
+		custom_tooltip = {
+			text = d009_morocco_has_jewish_pops_tt
+
+			"religion_population_in_country(religion:judaism)" > 0
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:nobles_estate }
+
+		create_character = {
+			first_name = name_joseph
+			last_name = Maimaran
+			adm = { 60 80 }
+			dip = { 50 70 }
+			mil = { 10 30 }
+			culture = culture:sephardi
+			religion = religion:judaism
+			female = no
+			min_age = 40
+			estate = estate_type:burghers_estate
+			create_in_limbo = yes
+			save_scope_as = target_character
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.6.a
+		historical_option = yes
+
+		change_societal_value = {
+			type = traditionalist_vs_innovative
+			value = societal_value_move_to_right
+		}
+
+		grant_estate_privilege = estate_privilege:mellah_charter
+
+		scope:target_character = {
+			move_country = root
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.6.b
+
+		change_societal_value = {
+			type = traditionalist_vs_innovative
+			value = societal_value_move_to_left
+		}
+
+		hidden_effect = {
+			kill_character_silently = scope:target_character
+		}
+	}
+}
+
+d009_sephardi_morocco.7 = { #Samuel Pallache — The Diplomatic Corsair
+	type = country_event
+	title = d009_sephardi_morocco.7.title
+	desc = d009_sephardi_morocco.7.desc
+	outcome = neutral
+	historical_info = d009_sephardi_morocco.7.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = MOR
+		from = 1600.1.1
+		to = 1620.1.1
+		monthly_chance = 50
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+
+		country_exists = c:HOL
+
+		OR = {
+			owns = location:sale
+			owns = location:tetouan
+		}
+
+		"culture_population_in_country(culture:sephardi)" > 0
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:burghers_estate }
+
+		create_character = {
+			first_name = name_samuel
+			last_name = Pallache
+			adm = { 40 60 }
+			dip = { 70 90 }
+			mil = { 30 50 }
+			culture = culture:sephardi
+			religion = religion:judaism
+			female = no
+			min_age = 35
+			estate = estate_type:burghers_estate
+			create_in_limbo = yes
+			save_scope_as = target_character
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.7.a
+		historical_option = yes
+
+		change_societal_value = {
+			type = mercantilism_vs_free_trade
+			value = societal_value_move_to_left
+		}
+
+		c:HOL = {
+			add_opinion = { target = root modifier = opinion_pleased }
+		}
+
+		scope:target_character = {
+			move_country = root
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.7.b
+
+		change_societal_value = {
+			type = mercantilism_vs_free_trade
+			value = societal_value_move_to_right
+		}
+
+		hidden_effect = {
+			kill_character_silently = scope:target_character
+		}
+	}
+}
+
+d009_sephardi_morocco.8 = { #Tangier Under English Rule
+	type = country_event
+	title = d009_sephardi_morocco.8.title
+	desc = d009_sephardi_morocco.8.desc
+	outcome = neutral
+	historical_info = d009_sephardi_morocco.8.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = ENG
+		tag = GBR
+		from = 1661.1.1
+		to = 1684.1.1
+		monthly_chance = 50
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+
+		owns = location:tangier
+
+		location:tangier = {
+			"religion_population(religion:judaism)" > 0
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:peasants_estate }
+	}
+
+	option = {
+		name = d009_sephardi_morocco.8.a
+		historical_option = yes
+
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = serfdom_vs_free_subjects
+			value = societal_value_move_to_right
+		}
+
+		location:tangier = {
+			change_prosperity = prosperity_mild_bonus
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.8.b
+
+		change_societal_value = {
+			type = serfdom_vs_free_subjects
+			value = societal_value_move_to_left
+		}
+
+		custom_tooltip = {
+			text = d009_sephardi_morocco.8.b.tt
+			location:tangier = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:judaism
+					}
+
+					add_pop_satisfaction = pop_satisfaction_severe_penalty
+				}
+			}
+		}
+	}
+}
+
+d009_sephardi_morocco.9 = { #Mogador — The Sultan's Merchants
+	type = country_event
+	title = d009_sephardi_morocco.9.title
+	desc = d009_sephardi_morocco.9.desc
+	outcome = neutral
+	historical_info = d009_sephardi_morocco.9.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = MOR
+		from = 1764.1.1
+		to = 1800.1.1
+		monthly_chance = 50
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		owns = location:mogador
+
+		location:mogador = {
+			"religion_population(religion:judaism)" > 0
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = d009_sephardi_morocco.9.a
+		historical_option = yes
+
+		change_societal_value = {
+			type = absolutism_vs_liberalism
+			value = societal_value_move_to_left
+		}
+
+		location:mogador = {
+			add_location_modifier = {
+				modifier = essaouira_sultan_merchants
+				mode = add
+			}
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.9.b
+
+		change_societal_value = {
+			type = absolutism_vs_liberalism
+			value = societal_value_move_to_right
+		}
+	}
+}
+
+d009_sephardi_morocco.10 = { #The Mellah of Fez
+	type = country_event
+	title = d009_sephardi_morocco.10.title
+	desc = d009_sephardi_morocco.10.desc
+	outcome = neutral
+	historical_info = d009_sephardi_morocco.10.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = MOR
+		from = 1438.1.1
+		to = 1550.1.1
+		monthly_chance = 10
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		owns = location:fez
+
+		NOT = {
+			has_estate_privilege = estate_privilege:mellah_charter
+		}
+
+		location:fez = {
+			"religion_population(religion:judaism)" > 0
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = d009_sephardi_morocco.10.a
+		historical_option = yes
+
+		grant_estate_privilege = estate_privilege:mellah_charter
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_left
+		}
+
+		custom_tooltip = {
+			text = d009_sephardi_morocco.10.a.tt
+			location:fez = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:judaism
+					}
+
+					add_pop_satisfaction = pop_satisfaction_mild_penalty
+				}
+			}
+		}
+	}
+
+	option = {
+		name = d009_sephardi_morocco.10.b
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_right
+		}
+
+		location:fez = {
+			every_pop = {
+				limit = {
+					owner ?= root
+					religion = religion:judaism
+				}
+
+				add_pop_satisfaction = pop_satisfaction_mild_bonus
+			}
+		}
+	}
+}

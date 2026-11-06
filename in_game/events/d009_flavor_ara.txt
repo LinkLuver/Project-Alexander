@@ -1,0 +1,1076 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = flavor_ara
+
+flavor_ara.31 = { #Weakness of the Catalan Company. This would normally not fire due to Athens always being a subject, but it is there in case they somehow break free from Sicily, to make it less irritating for the player
+	type = country_event
+	title = flavor_ara.31.title
+	desc = flavor_ara.31.desc
+	outcome = positive
+
+	dynamic_historical_event = {
+		tag = ARA
+		from = 1350.1.1
+		to = 1500.1.1
+		monthly_chance = 3
+	}
+
+	fire_only_once = yes
+	
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		country_exists = c:ATH
+
+		c:ATH = { 
+			owns_or_non_sovereign_subject_owns_entire_province = province_definition:attica_province 
+			is_subject = no
+		}
+	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+	}
+
+	option = {
+		name = flavor_ara.31.a
+
+		add_casus_belli = {
+			target = c:ATH
+			type = casus_belli:cb_conquer_province
+			province = location:athens.province
+		}
+
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_left
+		}
+	}
+
+	option = {
+		name = flavor_ara.31.b
+		
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_right
+		}
+	}
+}
+
+flavor_ara.32 = { #The Claim of Naples
+	type = country_event
+	title = flavor_ara.32.title
+	desc = flavor_ara.32.desc
+	outcome = neutral
+
+	dynamic_historical_event = {
+		tag = ARA
+		from = 1350.1.1
+		to = 1500.1.1
+		monthly_chance = 3
+	}
+
+	fire_only_once = yes
+	
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		owns_or_non_sovereign_subject_owns_entire_province = province_definition:demena_province
+		owns_or_non_sovereign_subject_owns_entire_province = province_definition:girgenti_province
+		owns_or_non_sovereign_subject_owns_entire_province = province_definition:mazara_province
+
+		province_definition:noto_province = { #Malta starts owned by a subject of Sicily, so in case Sicily is vassalized, it should check for top owner
+			any_location_in_province_definition = {
+				percent = 1
+				OR = {
+					top_owner ?= root
+					has_owner = no
+					is_ownable = no
+				} 
+			}
+		}
+
+		government_type = government_type:monarchy
+
+		country_exists = c:NAP
+
+		c:NAP = {
+			is_subject = no
+			is_junior_partner = no
+		}
+	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+
+		ruler_or_regent ?= {
+			save_scope_as = target_character
+		}
+
+		c:NAP = {
+			ruler_or_regent ?= {
+				save_scope_as = target_character2
+			}
+
+			capital ?= {
+				save_scope_as = target_location
+			}
+		}
+	}
+
+	option = {
+		name = flavor_ara.32.a
+
+		add_casus_belli = {
+			target = c:NAP
+			type = casus_belli:cb_claim_throne_of_naples
+			years = 30
+		}
+
+		custom_tooltip = ara_allows_naples_fiefdom_regardless_of_warscore_cost
+	}
+
+	option = {
+		name = flavor_ara.32.b
+		
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_right
+		}
+	}
+}
+
+flavor_ara.33 = { #Victory in Naples
+	type = country_event
+	title = flavor_ara.33.title
+	desc = flavor_ara.33.desc
+	outcome = positive
+	
+	illustration_tags = {
+		10 = happy
+		10 = exterior
+	}
+	
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+
+		ruler_or_regent ?= {
+			save_scope_as = target_character
+		}
+	}
+
+	option = {
+		name = flavor_ara.33.a
+
+		c:NAP = {
+			add_liberty_desire = liberty_desire_ultimate_minus
+		}
+	}
+}
+
+flavor_ara.35 = { #Sicilian Claims - Ignoring the Treaty from the Sicilian Vespers. Decision to break the treaty instead
+	type = country_event
+	title = flavor_ara.35.title
+	desc = flavor_ara.35.desc
+	outcome = neutral
+
+	dynamic_historical_event = {
+		tag = ARA
+		from = 1337.1.1
+		to = 1400.1.1
+		monthly_chance = 3
+	}
+
+	fire_only_once = yes
+	
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		country_exists = c:SIC
+
+		ruler_or_heir_if_regent ?= {
+			has_dynasty = yes
+		}
+
+		c:SIC = {
+			is_subject = no
+			at_war = no
+			is_great_power = no
+			ruler_or_heir_if_regent ?= {
+				has_dynasty = yes
+			}
+			ruler_or_heir_if_regent.dynasty ?= root.ruler_or_heir_if_regent.dynasty
+			is_junior_partner = no
+		}
+	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+
+		ruler_or_heir_if_regent ?= {
+			save_scope_as = target_character
+		}
+
+		c:SIC.ruler_or_heir_if_regent ?= {
+			save_scope_as = target_character2
+		}
+	}
+
+	option = {
+		name = flavor_ara.35.a
+
+		ai_will_select = { 
+			value = 1 
+			if = {
+				limit = {
+					c:SIC = {
+						is_ai = no
+					}
+				}
+				multiply = 0
+			}
+		}
+
+		custom_tooltip = {
+			text = ara_unlock_decision_to_unite_sicily_and_aragon_crowns_tt
+			set_variable = ara_unite_de_barcelona_dynasty
+		}
+	}
+
+	option = {
+		name = flavor_ara.35.b
+
+		ai_will_select = { 
+			value = 0
+			if = {
+				limit = {
+					c:SIC = {
+						is_ai = no
+					}
+				}
+				add = 1
+			}
+		}
+
+		ruler_or_regent ?= {
+			add_character_modifier = {
+				mode = add
+				modifier = ara_honorable_ruler
+				years = modifier_duration_permanent
+			}
+		}
+	}
+}
+
+flavor_ara.36 = { #Has both Sicily and Naples. Establish a second Court in Italy
+	type = country_event
+	title = flavor_ara.36.title
+	desc = flavor_ara.36.desc
+	outcome = neutral
+
+	dynamic_historical_event = {
+		tag = ARA
+		from = 1400.1.1
+		to = 1500.1.1
+		monthly_chance = 3
+	}
+
+	fire_only_once = yes
+	
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		owns = location:palma
+		owns = location:naples
+	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+
+		ruler_or_regent ?= {
+			save_scope_as = target_character
+		}
+
+		unlock_policy_effect = {
+			type = ara_italian_dual_court
+		}
+	}
+
+	option = {
+		name = flavor_ara.36.a
+
+		add_policy = policy:ara_italian_dual_court
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_right
+		}
+
+		custom_tooltip = {
+			text = ara_all_italian_pops_become_satisfied_tt
+			every_pop = {
+				limit = {
+					owner ?= root
+					culture = { has_culture_group = culture_group:italian_group }
+				}
+				add_pop_satisfaction = pop_satisfaction_severe_bonus
+			}
+		}
+	}
+
+	option = {
+		name = flavor_ara.36.b
+
+		capital ?= {
+			add_location_modifier = {
+				modifier = ara_main_court
+				years = modifier_duration_years_extended
+				mode = add
+			}
+		}
+
+		ruler_or_regent ?= {
+			add_adm = 10
+			add_dip = 15
+		}
+	}
+}
+
+flavor_ara.37 = { #Expanding the Fortifications in Italy
+	type = country_event
+	title = flavor_ara.37.title
+	desc = flavor_ara.37.desc
+	outcome = neutral
+
+	dynamic_historical_event = {
+		tag = ARA
+		from = 1400.1.1
+		to = 1600.1.1
+		monthly_chance = 3
+	}
+
+	fire_only_once = yes
+	
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		has_presence_in = region:italy_region
+
+		has_policy = ara_italian_dual_court
+
+		total_effective_building_levels:italian_court_building > 0
+
+		any_border_location = {
+			is_capital = no
+			region = region:italy_region
+			has_fort = no
+		}
+	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+
+		random_owned_non_rural_location = {
+			limit = {
+				has_building = building_type:italian_court_building
+			}
+			save_scope_as = italian_court
+		}
+
+		ruler_or_regent ?= {
+			save_scope_as = target_character
+		}
+
+		ordered_border_location = {
+			order_by = population
+			limit = {
+				is_capital = no
+				region = region:italy_region
+				has_fort = no
+			}
+			check_range_bounds = no
+			max = 1
+			save_scope_as = target_location
+		}
+	}
+
+	option = {
+		name = flavor_ara.37.a
+
+		scope:target_location = {
+			construct_latest_fort_building = {
+				cost_multiplier = 0.5
+			}
+		}
+
+		scope:italian_court = {
+			change_prosperity = prosperity_mild_bonus
+		}
+
+		add_all_estate_satisfaction = {
+			value = estate_satisfaction_mild_bonus
+		}
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_right
+		}
+	}
+
+	option = {
+		name = flavor_ara.37.b
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_left
+		}
+
+		capital ?= {
+			change_prosperity = prosperity_mild_bonus
+		}
+	}
+}
+
+flavor_ara.38 = { #A Palace for the Court in Italy. This palace was in Palermo and built by a merchant family
+	type = country_event
+	title = flavor_ara.38.title
+	desc = flavor_ara.38.desc
+	outcome = neutral
+
+	dynamic_historical_event = {
+		tag = ARA
+		from = 1400.1.1
+		to = 1600.1.1
+		monthly_chance = 3
+	}
+
+	fire_only_once = yes
+	
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		has_presence_in = region:italy_region
+
+		has_policy = ara_italian_dual_court
+
+		total_effective_building_levels:italian_court_building > 0
+	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+
+		random_owned_non_rural_location = {
+			limit = {
+				has_building = building_type:italian_court_building
+			}
+			save_scope_as = italian_court
+		}
+
+		ruler_or_regent ?= {
+			save_scope_as = target_character
+		}
+
+		unlock_building_effect = {
+			type = palazzo_ajutamicristo
+		}
+	}
+
+	option = {
+		name = flavor_ara.38.a
+
+		add_prestige = prestige_mild_bonus
+
+		scope:italian_court = {
+			change_prosperity = prosperity_mild_bonus
+
+			construct_building = {
+				building_type = building_type:palazzo_ajutamicristo
+				cost_multiplier = 0.5
+				cost_multiplier_reason = "game_concept_event"
+			}
+		}
+
+		add_all_estate_satisfaction = {
+			value = estate_satisfaction_mild_bonus
+		}
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_right
+		}
+	}
+
+	option = {
+		name = flavor_ara.38.b
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_left
+		}
+
+		add_political_influence = political_influence_mild_bonus
+
+		show_as_tooltip = {
+			unlock_building_effect = {
+				type = palazzo_ajutamicristo
+			}
+		}
+	}
+}
+
+flavor_ara.39 = { #Event notifying Aragon of their claims over the Maghreb islands
+	type = country_event
+	title = flavor_ara.39.title
+	desc = flavor_ara.39.desc
+	outcome = neutral
+
+	dynamic_historical_event = {
+		tag = ARA
+		from = 1337.1.1
+		to = 1370.1.1
+		monthly_chance = 10
+	}
+
+	fire_only_once = yes
+	
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		country_exists = c:TUN
+
+		c:TUN = {
+			is_subject = no
+			NOT = { is_allied_with = { target = root } }
+		}
+
+		location:sidi_fredj = {
+			top_owner ?= c:TUN
+		}
+
+		location:ajim = {
+			top_owner ?= c:TUN
+		}
+	}
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+
+		ruler_or_regent ?= {
+			save_scope_as = target_character
+		}
+
+		c:TUN.ruler_or_regent = {
+			save_scope_as = target_character2
+		}
+	}
+
+	option = {
+		name = flavor_ara.39.a
+
+		add_casus_belli = {
+			target = c:TUN
+			type = casus_belli:cb_conquer_province
+			province = location:sidi_fredj.province
+		}
+
+		add_casus_belli = {
+			target = c:TUN
+			type = casus_belli:cb_conquer_province
+			province = location:ajim.province
+		}
+
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_left
+		}
+	}
+}
+
+
+flavor_ara.42 = { #Event triggered from ara_unite_barcelona_dynasty decision
+	type = country_event
+	title = flavor_ara.42.title
+	desc = flavor_ara.42.desc
+	outcome = negative
+
+	major =  yes
+	major_trigger = {
+		this = scope:from_country
+	}
+	
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+	
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+
+		ruler_or_regent ?= {
+			save_scope_as = target_character
+		}
+	}
+
+	option = {
+		name = flavor_ara.42.a
+
+		ai_will_select = { 
+			value = 10
+			add = "opinion(scope:from_country)"
+			add = scope:from_country.modifier:diplomatic_reputation
+			add = {
+				value = modifier:monthly_towards_conciliatory
+				subtract = modifier:monthly_towards_belligerent
+				multiply = 15
+			}
+
+			subtract = {
+				value = "relative_strength(scope:from_country)"
+				multiply = 25
+			}
+
+			subtract = {
+				value = manpower_percentage
+				multiply = 5
+			}
+
+			if = { #Would you submit to your enemies?
+				limit = {
+					OR = {
+						is_rival_of = scope:from_country
+						is_enemy_of = scope:from_country
+					}
+				}
+				subtract = 50
+			}
+		}
+
+		if = {
+			limit = {
+				scope:from_country ?= {
+					union ?= {
+						country_has_special_status = {
+							type = special_status:senior_partner
+							country = scope:from_country
+						}
+					}
+				}
+			}
+			scope:from_country = { create_union = root }
+		}
+		else = {
+			scope:from_country = {
+				create_union = root
+				set_senior_partner = yes
+
+				hidden_effect = {
+					union ?= {
+						add_policy_to_international_organization = policy:union_establish_seniority_policy
+						international_organization_add_special_status = {
+							type = special_status:senior_partner
+							country = scope:from_country
+						}
+					}
+				}
+			}
+		}
+
+		change_heir_selection = scope:from_country.succession_law
+
+		hidden_effect = {
+			scope:from_country = {
+				drop_antagonism_bomb = {
+					target = root.capital
+					modifier = antagonism_ignore_sicilian_treaty
+				}
+			}
+		}
+	}
+
+	option = {
+		name = flavor_ara.42.b
+
+		ai_will_select = { 
+			value = 25
+			subtract = "opinion(scope:from_country)"
+			subtract = scope:from_country.modifier:diplomatic_reputation
+			add = {
+				value = modifier:monthly_towards_belligerent
+				subtract = modifier:monthly_towards_conciliatory
+				multiply = 15
+			}
+
+			add = {
+				value = "relative_strength(scope:from_country)"
+				multiply = 25
+			}
+
+			add = {
+				value = manpower_percentage
+				multiply = 5
+			}
+
+			if = { #Would you submit to your enemies?
+				limit = {
+					OR = {
+						is_rival_of = scope:from_country
+						is_enemy_of = scope:from_country
+					}
+				}
+				add = 50
+			}
+		}
+
+		scope:from_country = {
+			add_casus_belli = {
+				target = root
+				type = casus_belli:cb_claim_throne
+			}
+		}
+	}
+}
+
+flavor_ara.43 = { #Event triggered from ara_unite_barcelona_dynasty decision - Become Our Subject version
+	type = country_event
+	title = flavor_ara.43.title
+	desc = flavor_ara.43.desc
+	outcome = negative
+
+	major =  yes
+	major_trigger = {
+		this = scope:from_country
+	}
+	
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+	
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+
+		ruler_or_regent ?= {
+			save_scope_as = target_character
+		}
+	}
+
+	option = {
+		name = flavor_ara.43.a
+
+		ai_will_select = { #I would be less likely to submit as a subject
+			value = 5
+			add = {
+				value = "opinion(scope:from_country)"
+				divide = 2
+			}
+			add = scope:from_country.modifier:diplomatic_reputation
+			add = {
+				value = modifier:monthly_towards_conciliatory
+				subtract = modifier:monthly_towards_belligerent
+				multiply = 15
+			}
+
+			subtract = {
+				value = "relative_strength(scope:from_country)"
+				multiply = 25
+			}
+
+			subtract = {
+				value = manpower_percentage
+				multiply = 5
+			}
+
+			if = { #Would you submit to your enemies?
+				limit = {
+					OR = {
+						is_rival_of = scope:from_country
+						is_enemy_of = scope:from_country
+					}
+				}
+				subtract = 50
+			}
+		}
+
+		make_subject_of = {
+			target = scope:from_country
+			type = subject_type:fiefdom
+		}
+
+		hidden_effect = {
+			scope:from_country = {
+				drop_antagonism_bomb = {
+					target = root.capital
+					modifier = antagonism_ignore_sicilian_treaty_harsher
+				}
+			}
+		}
+	}
+
+	option = {
+		name = flavor_ara.43.b
+
+		ai_will_select = { 
+			value = 50
+			subtract = "opinion(scope:from_country)"
+			subtract = scope:from_country.modifier:diplomatic_reputation
+			add = {
+				value = modifier:monthly_towards_belligerent
+				subtract = modifier:monthly_towards_conciliatory
+				multiply = 15
+			}
+
+			add = {
+				value = "relative_strength(scope:from_country)"
+				multiply = 25
+			}
+
+			add = {
+				value = manpower_percentage
+				multiply = 5
+			}
+
+			if = { #Would you submit to your enemies?
+				limit = {
+					OR = {
+						is_rival_of = scope:from_country
+						is_enemy_of = scope:from_country
+					}
+				}
+				add = 50
+			}
+		}
+
+		scope:from_country = {
+			add_casus_belli = {
+				target = root
+				type = casus_belli:cb_subjugation
+			}
+		}
+	}
+}
+
+
+#Bosnian Event Chain. Whilst Bosnia itself will almost always be a subject before this event happens, or even not exist, it's a nice nod to Stjepan Vukčić Kosača, who decided to become a vassal of Aragon.
+flavor_ara.1100 = {
+	type = country_event
+	title = flavor_ara.1100.title
+	desc = flavor_ara.1100.desc
+	outcome = neutral
+
+	dynamic_historical_event = {
+		tag = ARA
+		from = 1440.1.1
+		to = 1600.1.1
+		monthly_chance = 3
+	}
+
+	fire_only_once = yes
+
+	illustration_tags = {
+        10 = regular
+        10 = interior
+    }
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		country_exists = c:BOS
+
+		c:BOS ?= {
+			is_subject = no
+			is_junior_partner = no
+			at_war = no
+		}
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		c:BOS ?= {
+			ruler_or_regent ?= {
+				save_scope_as = target_character
+			}
+		}
+
+		ruler_or_regent ?= {
+			save_scope_as = target_character2
+		}
+	}
+
+	option = {
+		name = flavor_ara.1100.a
+
+		custom_tooltip = {
+			text = ara_unlock_decision_to_demand_vassalization_of_bosnia_tt
+			set_variable = ara_bosnian_vassalization_unlocked
+		}
+	}
+}
+
+flavor_ara.1101 = {
+	type = country_event
+	title = flavor_ara.1101.title
+	desc = flavor_ara.1101.desc
+	outcome = neutral
+
+	major = yes
+
+	major_trigger = {
+		this = scope:from_country
+	}
+
+	illustration_tags = {
+        10 = angry
+        10 = interior
+    }
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		ruler_or_regent ?= {
+			save_scope_as = target_character
+		}
+
+		scope:from_country = {
+			ruler_or_regent ?= {
+				save_scope_as = target_character2
+			}
+		}
+	}
+
+	option = {
+		name = flavor_ara.1101.a
+
+		ai_will_select = {
+			value = 15
+			add = {
+				value = "opinion(scope:from_country)"
+				divide = 2
+			}
+			add = scope:from_country.modifier:diplomatic_reputation
+			add = {
+				value = modifier:monthly_towards_conciliatory
+				subtract = modifier:monthly_towards_belligerent
+				multiply = 15
+			}
+
+			subtract = {
+				value = "relative_strength(scope:from_country)"
+				multiply = 25
+			}
+
+			subtract = {
+				value = manpower_percentage
+				multiply = 5
+			}
+
+			if = { #Would you submit to your enemies?
+				limit = {
+					OR = {
+						is_rival_of = scope:from_country
+						is_enemy_of = scope:from_country
+					}
+				}
+				subtract = 50
+			}
+		}
+
+		make_subject_of = {
+			target = scope:from_country
+			type = subject_type:vassal
+		}
+
+		add_liberty_desire = liberty_desire_ultimate_minus
+	}
+
+	option = {
+		name = flavor_ara.1101.b
+
+		ai_will_select = { 
+			value = 30
+			subtract = "opinion(scope:from_country)"
+			subtract = scope:from_country.modifier:diplomatic_reputation
+			add = {
+				value = modifier:monthly_towards_belligerent
+				subtract = modifier:monthly_towards_conciliatory
+				multiply = 15
+			}
+
+			add = {
+				value = "relative_strength(scope:from_country)"
+				multiply = 25
+			}
+
+			add = {
+				value = manpower_percentage
+				multiply = 5
+			}
+
+			if = { #Would you submit to your enemies?
+				limit = {
+					OR = {
+						is_rival_of = scope:from_country
+						is_enemy_of = scope:from_country
+					}
+				}
+				add = 50
+			}
+		}
+
+		add_opinion_mutual_effect = {
+			target = scope:from_country
+			modifier = opinion_rejected_our_protection
+		}
+
+		scope:from_country = {
+			add_casus_belli = {
+				target = root
+				type = casus_belli:cb_subjugation
+			}
+		}
+
+		add_all_estate_satisfaction = {
+			value = estate_satisfaction_mild_penalty
+		}
+	}
+}

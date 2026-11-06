@@ -1,0 +1,72 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+cas_pressure_andalusi_court = {
+	ability = dip
+	allow_multiple = no
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		situation:battle_for_the_strait = {
+			has_variable = influence_over_granada
+		}
+		has_or_had_tag = CAS
+		country_exists = c:GRA
+	}
+
+	allow = {
+		is_situation_active = situation:battle_for_the_strait
+		country_exists = c:GRA
+		NOR = { 
+			is_subject_of = c:GRA 
+			is_subject_of = c:MOR
+		}
+		NOT = {
+			any_country_at_war_with = { has_or_had_tag = GRA }
+		}
+	}
+
+	is_finished = {
+		OR = {
+			NOT = { is_situation_active = situation:battle_for_the_strait }
+			NOT = { country_exists = c:GRA }
+			any_country_at_war_with = { has_or_had_tag = GRA }
+		}
+	}
+
+	country_modifier = {
+		monthly_influence_over_castile = 0.25
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 100
+		}
+		scope:actor = {
+			if = {
+				limit = {
+					situation:battle_for_the_strait = { has_variable = influence_over_granada }
+				}
+				add = {
+					desc = "BFTS_INFLUENCE_AXIS_POSITION"
+					value    = situation:battle_for_the_strait.var:influence_over_granada
+					multiply = 0.4
+				}
+			}
+			subtract = {
+				desc = "BFTS_GOOD_RELATIONS_RESTRAINT"
+				value    = "trust(c:GRA)"
+				multiply = 0.3
+			}
+			add = {
+				c:GRA = {
+					scope:actor = {
+						value = this_opinion_of_prev
+						multiply = -0.1
+					}
+				}
+				desc = "our opinion of Granada"
+			}
+		}
+	}
+}

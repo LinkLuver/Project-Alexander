@@ -1,0 +1,341 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = seven_cities_cibola
+
+seven_cities_cibola.1 = {
+# .1 — bad outcome (leads_found <= 0, press-on path)
+#The Pueblo is Just a Village
+	type = country_event
+	title = seven_cities_cibola.1.title
+	desc = seven_cities_cibola.1.desc
+	historical_info = seven_cities_cibola.1.historical_info
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 14
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_cibola.1.a
+		add_prestige = prestige_severe_penalty
+		fail_expedition = scope:expedition
+	}
+
+}
+
+seven_cities_cibola.2 = {
+# .2 — medium outcome (leads_found >= 1)
+#A City of Turquoise and Adobe
+	type = country_event
+	title = seven_cities_cibola.2.title
+	desc = seven_cities_cibola.2.desc
+	historical_info = seven_cities_cibola.2.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 14
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_cibola.2.a
+		add_prestige = prestige_mild_bonus
+		change_gold_effect = { scale = 2 }
+		scope:location = {
+			add_location_modifier = {
+				modifier = cibola_discovered
+				days = -1
+			}
+		}
+		grant_seven_cities_expedition_loot_effect = yes
+		end_expedition = scope:expedition
+	}
+}
+
+seven_cities_cibola.3 = {
+# .3 — good outcome (leads_found >= 4)
+#The Seven Cities Confirmed
+	type = country_event
+	title = seven_cities_cibola.3.title
+	desc = seven_cities_cibola.3.desc
+	historical_info = seven_cities_cibola.3.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 14
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_cibola.3.a
+		add_prestige = prestige_extreme_bonus
+		change_gold_effect = { scale = 5 }
+		scope:location = {
+			add_location_modifier = {
+				modifier = cibola_discovered
+				days = -1
+			}
+		}
+		grant_seven_cities_expedition_loot_effect = yes
+		end_expedition = scope:expedition
+	}
+}
+
+seven_cities_cibola.10 = {
+#The Friar's Sworn Report
+	type = country_event
+	title = seven_cities_cibola.10.title
+	desc = seven_cities_cibola.10.desc
+	historical_info = seven_cities_cibola.10.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_home_departure }
+
+	trigger = { 
+		scope:expedition = { exists = expedition_leader }
+	}
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+
+		create_character = {
+			age = { 30 50 }
+			culture = root.culture
+			religion = root.religion
+			birth_location = root.capital
+			estate = estate_type:clergy_estate
+			save_scope_as = target_character
+			create_in_limbo = yes
+		}
+	}
+
+	option = {
+		name = seven_cities_cibola.10.a
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		custom_tooltip = {
+			text = cibola_friar_sails_tt
+			scope:expedition = { 
+				set_variable = { name = cibola_friar_aboard value = 1 } 
+				set_variable = {
+					name = friar_character_var
+					value = scope:target_character
+				}
+			}
+		}
+		add_estate_satisfaction = {
+			type = estate_type:clergy_estate
+			value = estate_satisfaction_mild_bonus
+		}
+	}
+
+	option = {
+		name = seven_cities_cibola.10.b
+		custom_tooltip = {
+			text = expedition_less_likely_to_stall_tt
+			scope:expedition = {
+				if = {
+					limit = { NOT = { has_variable = expedition_receives_guides_and_porters_variable } }
+					set_variable = expedition_receives_guides_and_porters_variable
+				}
+			}
+		}
+		add_estate_satisfaction = {
+			type = estate_type:clergy_estate
+			value = estate_satisfaction_mild_penalty
+		}
+		hidden_effect = { kill_character_silently = scope:target_character }
+	}
+}
+
+seven_cities_cibola.11 = {
+#Crosses on the Trail
+	type = country_event
+	title = seven_cities_cibola.11.title
+	desc = seven_cities_cibola.11.desc
+	historical_info = seven_cities_cibola.11.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_overland_caravan }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			expedition_current_location = { save_scope_as = target_location }
+		}
+	}
+
+	option = {
+		name = seven_cities_cibola.11.a
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		hidden_effect = {
+			trigger_event_silently = {
+				id = seven_cities_cibola.13
+				days = { 10 15 }
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities_cibola.11.b
+		custom_tooltip = {
+			text = should_calamity_occur_chance_to_avoid_tt
+			scope:expedition = {
+				set_variable = {
+					name = chance_avoid_calamity_variable
+					months = 6
+				}
+			}
+		}
+	}
+}
+
+seven_cities_cibola.12 = {
+#The Despoblado
+	type = country_event
+	title = seven_cities_cibola.12.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:expedition = { has_variable = cibola_friar_aboard } }
+				desc = seven_cities_cibola.12.desc_friar
+			}
+			triggered_desc = { desc = seven_cities_cibola.12.desc }
+		}
+	}
+	historical_info = seven_cities_cibola.12.historical_info
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 10
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_cibola.12.a
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		seven_cities_expedition_stall_effect = { MIN = 15 MAX = 25 }
+	}
+
+	option = {
+		name = seven_cities_cibola.12.b
+		scope:expedition = { pause_expedition = { 15 20 } }
+		custom_tooltip = {
+			text = should_calamity_occur_chance_to_avoid_tt
+			scope:expedition = {
+				set_variable = {
+					name = chance_avoid_calamity_variable
+					months = 6
+				}
+			}
+		}
+	}
+}
+
+seven_cities_cibola.13 = {
+#A Cross the Height of a Man
+	type = country_event
+	title = seven_cities_cibola.13.title
+	desc = seven_cities_cibola.13.desc
+	historical_info = seven_cities_cibola.13.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_overland_caravan }
+
+	trigger = { scope:expedition ?= { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+	}
+
+	option = {
+		name = seven_cities_cibola.13.a
+		high_risk_option = yes
+		custom_tooltip = seven_cities_cibola.13.a.tt
+		hidden_effect = {
+			trigger_event_silently = {
+				id = seven_cities_cibola.14
+				days = { 3 5 }
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities_cibola.13.b
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		add_research_progress = research_progress_weak_bonus
+	}
+}
+
+seven_cities_cibola.14 = {
+#Killed at the Gates
+	type = country_event
+	title = seven_cities_cibola.14.title
+	desc = seven_cities_cibola.14.desc
+	historical_info = seven_cities_cibola.14.historical_info
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = { scope:expedition ?= { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+	}
+
+	option = {
+		name = seven_cities_cibola.14.a
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		seven_cities_expedition_stall_effect = { MIN = 10 MAX = 20 }
+	}
+}

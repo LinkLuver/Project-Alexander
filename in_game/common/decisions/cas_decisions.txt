@@ -1,0 +1,122 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+demand_conversion_of_granada = {
+	decision_category = country_specific_decisions
+	only_once = yes
+
+	tags = { CAS }
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		is_situation_active = situation:battle_for_the_strait
+		country_exists = c:GRA
+	}
+
+	allow = {
+		situation:battle_for_the_strait.var:influence_over_granada <= -100
+		c:GRA ?= {
+			religion != root.religion
+			at_war = no
+		}
+		at_war = no
+	}
+
+	ai_will_do = {
+		value = 100
+	}
+
+	option = {
+		name = demand_conversion_of_granada.a
+		ai_chance = { value = 100 }
+		effect = {
+			every_country_sub_unit = {
+				limit = { sub_unit_type = unit_type:a_granadan_jinetes }
+				change_subunit_type = unit_type:a_iberian_jinetes
+			}
+			c:GRA ?= {
+				change_religion = root.religion
+				change_religion_for_ruler_and_family = { 
+					country = c:GRA
+					religion = root.religion
+				}
+				if = {
+					limit = { root.religion = religion:catholic }
+					custom_tooltip = {
+						text = gra_pops_becomes_root_religion_tt
+						every_pop = {
+							limit = {
+								religion.group != religion_group:christian
+							}
+							split_pop = {
+								fraction = { 0.25 0.5 }
+								religion = root.religion
+							}
+						}
+					}
+				}
+				if = {
+					limit = { is_subject_of = root }
+					add_liberty_desire = liberty_desire_severe_plus
+				}
+			}
+		}
+	}
+
+	option = {
+		name = demand_conversion_of_granada.b
+		ai_chance = { value = 0 }
+		effect = {
+			change_societal_value = {
+				type = spiritualist_vs_humanist
+				value = societal_value_ultimate_move_to_right
+			}
+			ruler ?= { add_trait = trait:tolerant }
+			custom_tooltip = {
+				text = unlock_jinetes_variable_tt
+				set_variable = unlock_jinetes_variable
+			}
+			unlock_estate_privilege_effect = { type = mor_andalusian_refugees }
+			culture = {
+				set_cultural_view = {
+					target = culture:andalusi
+					value = kindred
+				}
+			}
+			culture:andalusi = {
+				set_cultural_view = {
+					target = root.culture
+					value = kindred
+				}
+			}
+		}
+	}
+}
+
+cas_found_the_santa_hermandad_decision = {
+	decision_category = country_specific_decisions
+	only_once = yes
+
+	tags = { CAS SPA }
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		current_age_or_later = {
+			age = age_3_discovery
+		}
+	}
+
+	allow = {
+		has_advance = cas_santa_hermandad
+	}
+
+	ai_will_do = {
+		value = 100
+	}
+
+	option = {
+		name = cas_found_the_santa_hermandad_decision.a
+		ai_chance = { value = 100 }
+		effect = {
+			unlock_government_reform_effect = { type = cas_santa_hermandad_reform }
+		}
+	}
+}

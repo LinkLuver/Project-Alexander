@@ -1,0 +1,153 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+ga_declare_war_on_hegemon = {
+	type = internationalorganization
+	show_message = no
+	force_click_and_confirm_or_hold = yes
+
+	ai_tick = monthly
+	ai_tick_frequency = 3
+
+	automation_tick = never
+	automation_tick_frequency = 12
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+	}
+
+	allow = {
+		custom_tooltip = {
+			text = ga_only_leader_may_declare_tt
+			scope:actor = {
+				this = scope:recipient.leader_country
+			}
+		}
+		exists = scope:recipient.international_organization_target
+		custom_tooltip = {
+			text = ga_dominance_threshold_tt
+			trigger_if = {
+				limit = {
+					situation:golden_century = { has_variable = gc_european_dominance }
+				}
+				OR = {
+					situation:golden_century.var:gc_european_dominance >= 75
+					situation:golden_century.var:gc_colonial_dominance >= 75
+				}
+			}
+			trigger_else = { always = no }
+		}
+		custom_tooltip = {
+			text = ga_alliance_war_cooldown_tt
+			scope:recipient = {
+				NOT = { has_cooldown = ga_declare_war_on_hegemon }
+			}
+		}
+		scope:actor = {
+			at_war = no
+			can_declare_war_on = scope:recipient.international_organization_target
+			NOT = { has_truce_with = scope:recipient.international_organization_target }
+			NOT = { is_at_war_with = scope:recipient.international_organization_target }
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_international_organization"
+		none_available_msg_key = "no_valid_international_organizations"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:grand_alliance
+		}
+	}
+
+	cooldown = {
+		type = ga_declare_war_on_hegemon
+		years = 20
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:recipient
+				exists = scope:recipient.international_organization_target
+			}
+			scope:actor = {
+				declare_war_with_cb = {
+					target = scope:recipient.international_organization_target
+					type = casus_belli:cb_grand_alliance
+				}
+			}
+			scope:recipient = {
+				add_cooldown = {
+					type = ga_declare_war_on_hegemon
+					years = 20
+				}
+			}
+		}
+		else = {
+			custom_tooltip = ga_will_declare_war_on_target_tt
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = BASE_VALUE
+			value = -100
+		}
+		add = {
+			desc = "ga_alliance_strength_advantage"
+			value = 0
+			if = {
+				limit = {
+					exists = scope:recipient
+					exists = scope:recipient.international_organization_target
+				}
+				add = scope:recipient.io_total_military_strength
+				subtract = {
+					value = scope:recipient.international_organization_target.military_strength
+					multiply = 0.9
+				}
+			}
+			min = 0
+			max = 150
+		}
+		add = {
+			desc = "ga_alliance_economic_advantage"
+			value = 0
+			if = {
+				limit = {
+					exists = scope:recipient
+					exists = scope:recipient.international_organization_target
+				}
+				add = scope:recipient.international_organization_economical_base
+				subtract = {
+					value = scope:recipient.international_organization_target.country_economical_base
+					multiply = 0.9
+				}
+				multiply = 0.25
+			}
+			min = 0
+			max = 25
+		}
+		if = {
+			limit = {
+				situation:golden_century = { 
+					has_variable = gc_european_dominance 
+					has_variable = gc_colonial_dominance
+				}
+			}
+			add = {
+				desc = "ga_dominance_pressure"
+				add = situation:golden_century.var:gc_european_dominance
+				add = situation:golden_century.var:gc_colonial_dominance
+				multiply = 0.05
+				min = 0
+				max = 10
+			}
+		}
+		
+	}
+}

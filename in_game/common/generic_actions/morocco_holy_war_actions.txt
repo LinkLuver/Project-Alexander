@@ -1,0 +1,992 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+# Marinid / Moroccan-flavored, DLC-gated (d009_across_the_pillars) jihad-side exclusive actions.
+
+summon_volunteers_of_the_faith = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 60
+	automation_tick = never
+
+	price = price:summon_volunteers_of_the_faith_price
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		scope:actor = {
+			religion.group = religion_group:muslim
+			capital = {
+				OR = {
+					region = region:iberia_region
+					region = region:maghreb_region
+				}
+			}
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:jihad
+				leader_country ?= scope:actor
+				international_organization_target ?= {
+					religion = religion:catholic
+					capital = { region = region:iberia_region }
+				}
+			}
+		}
+	}
+	allow = {
+		scope:actor = {
+			at_war = yes
+			any_enemy_war_leader = {
+				NOT = { religion.group = scope:actor.religion.group }
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:jihad
+			leader_country = scope:actor
+			international_organization_target ?= {
+				religion = religion:catholic
+				capital = { region = region:iberia_region }
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = culture
+		source = actor
+		target_flag = target
+		name = "choose_tribe_for_volunteers"
+		none_available_msg_key = "summon_volunteers_no_tribes"
+		column = {
+			data = name
+		}
+		visible = {
+			has_culture_group = culture_group:amazigh_group
+			NOT = { exists = var:ghuzat_regiment }
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			hidden_effect = {
+				set_variable = { name = ghuzat_tier value = 0 }
+				if = {
+					limit = { any_current_bureaucracy = { bureaucracy_type = bureaucracy_type:ghuzat_mujahidin_bureaucracy } }
+					change_variable = { name = ghuzat_tier add = 1 }
+				}
+			}
+			if = {
+				limit = {
+					trigger_if = {
+						limit = { exists = scope:target }
+						OR = {
+							scope:target = { this = culture:zenati }
+							scope:target = { this = culture:tuareg }
+						}
+					}
+					trigger_else = {
+						always = no
+					}
+				}
+				if = {
+					limit = {
+						trigger_if = {
+							limit = { has_variable = ghuzat_tier }
+							var:ghuzat_tier = 2
+						}
+						trigger_else = {
+							always = no
+						}
+					}
+					custom_tooltip = {
+						text = summon_volunteers_cavalry_tier2_tt
+						create_mercenary = {
+							name = ghuzat_regiment_name
+							home = scope:actor.capital
+							categories = {
+								army_light_cavalry  = 10
+								army_light_infantry = 4
+								army_heavy_cavalry  = 2
+							}
+							save_scope_as = ghuzat_company
+							months = 60
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						trigger_if = {
+							limit = { has_variable = ghuzat_tier }
+							var:ghuzat_tier = 1
+						}
+						trigger_else = {
+							always = no
+						}
+					}
+					custom_tooltip = {
+						text = summon_volunteers_cavalry_tier1_tt
+						create_mercenary = {
+							name = ghuzat_regiment_name
+							home = scope:actor.capital
+							categories = {
+								army_light_cavalry  = 8
+								army_light_infantry = 4
+							}
+							save_scope_as = ghuzat_company
+							months = 60
+						}
+					}
+				}
+				else = {
+					custom_tooltip = {
+						text = summon_volunteers_cavalry_tier0_tt
+						create_mercenary = {
+							name = ghuzat_regiment_name
+							home = scope:actor.capital
+							categories = {
+								army_light_cavalry  = 6
+								army_light_infantry = 3
+							}
+							save_scope_as = ghuzat_company
+							months = 60
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					trigger_if = {
+						limit = { exists = scope:target }
+						OR = {
+							scope:target = { this = culture:sanhaja }
+							scope:target = { this = culture:masmuda }
+						}
+					}
+					trigger_else = {
+						always = no
+					}
+				}
+				if = {
+					limit = {
+						trigger_if = {
+							limit = { has_variable = ghuzat_tier }
+							var:ghuzat_tier = 2
+						}
+						trigger_else = {
+							always = no
+						}
+					}
+					custom_tooltip = {
+						text = summon_volunteers_infantry_tier2_tt
+						create_mercenary = {
+							name = ghuzat_regiment_name
+							home = scope:actor.capital
+							categories = {
+								army_heavy_infantry = 8
+								army_light_infantry = 4
+								army_heavy_cavalry  = 1
+							}
+							save_scope_as = ghuzat_company
+							months = 60
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						trigger_if = {
+							limit = { has_variable = ghuzat_tier }
+							var:ghuzat_tier = 1
+						}
+						trigger_else = {
+							always = no
+						}
+					}
+					custom_tooltip = {
+						text = summon_volunteers_infantry_tier1_tt
+						create_mercenary = {
+							name = ghuzat_regiment_name
+							home = scope:actor.capital
+							categories = {
+								army_heavy_infantry = 6
+								army_light_infantry = 4
+							}
+							save_scope_as = ghuzat_company
+							months = 60
+						}
+					}
+				}
+				else = {
+					custom_tooltip = {
+						text = summon_volunteers_infantry_tier0_tt
+						create_mercenary = {
+							name = ghuzat_regiment_name
+							home = scope:actor.capital
+							categories = {
+								army_heavy_infantry = 4
+								army_light_infantry = 4
+							}
+							save_scope_as = ghuzat_company
+							months = 60
+						}
+					}
+				}
+			}
+			else = {
+				if = {
+					limit = {
+						trigger_if = {
+							limit = { has_variable = ghuzat_tier }
+							var:ghuzat_tier = 2
+						}
+						trigger_else = {
+							always = no
+						}
+					}
+					custom_tooltip = {
+						text = summon_volunteers_mixed_tier2_tt
+						create_mercenary = {
+							name = ghuzat_regiment_name
+							home = scope:actor.capital
+							categories = {
+								army_light_cavalry  = 7
+								army_light_infantry = 5
+								army_heavy_infantry = 2
+							}
+							save_scope_as = ghuzat_company
+							months = 60
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						trigger_if = {
+							limit = { has_variable = ghuzat_tier }
+							var:ghuzat_tier = 1
+						}
+						trigger_else = {
+							always = no
+						}
+					}
+					custom_tooltip = {
+						text = summon_volunteers_mixed_tier1_tt
+						create_mercenary = {
+							name = ghuzat_regiment_name
+							home = scope:actor.capital
+							categories = {
+								army_light_cavalry  = 6
+								army_light_infantry = 5
+							}
+							save_scope_as = ghuzat_company
+							months = 60
+						}
+					}
+				}
+				else = {
+					custom_tooltip = {
+						text = summon_volunteers_mixed_tier0_tt
+						create_mercenary = {
+							name = ghuzat_regiment_name
+							home = scope:actor.capital
+							categories = {
+								army_light_cavalry  = 4
+								army_light_infantry = 4
+							}
+							save_scope_as = ghuzat_company
+							months = 60
+						}
+					}
+				}
+			}
+			if = {
+				limit = { exists = scope:ghuzat_company }
+				hire_mercenary = scope:ghuzat_company
+			}
+			hidden_effect = {
+				remove_variable = ghuzat_tier
+			}
+		}
+		if = {
+			limit = { scope:actor = { any_current_bureaucracy = { bureaucracy_type = bureaucracy_type:ghuzat_mujahidin_bureaucracy } } }
+			scope:actor = { custom_tooltip = { text = summon_volunteers_bureaucracy_bonus_tt } }
+		}
+		custom_tooltip = {
+			text = summon_volunteers_of_the_faith_effect_tt
+			scope:recipient = {
+				change_variable = { name = religious_zeal add = 5 }
+				clamp_variable = { name = religious_zeal max = 100 min = 0 }
+			}
+		}
+		if = {
+			limit = {
+				trigger_if = {
+					limit = { exists = scope:ghuzat_company }
+					exists = scope:target
+				}
+				trigger_else = {
+					always = no
+				}
+			}
+			scope:target = {
+				set_variable = {
+					name = ghuzat_regiment
+					value = scope:ghuzat_company
+					years = 5
+				}
+			}
+		}
+		scope:actor = {
+			trigger_event_non_silently = {
+				id = d009_holy_war.3
+				months = { 1 2 }
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 50
+		if = {
+			limit = { scope:actor = { army_size < 20 } }
+			add = 40
+		}
+		if = {
+			limit = { scope:actor = { war_exhaustion >= 5 } }
+			add = 20
+		}
+	}
+}
+
+
+proclaim_the_ghazw = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		scope:actor = {
+			religion.group = religion_group:muslim
+			capital = {
+				OR = {
+					region = region:iberia_region
+					region = region:maghreb_region
+				}
+			}
+			any_international_organizations_member_of = {
+				trigger_if = {
+					limit = {
+						international_organization_type = international_organization_type:jihad
+						has_variable = phase
+					}
+					var:phase = 1
+				}
+				trigger_else = {
+					always = no
+				}
+				leader_country ?= { religion.group ?= religion_group:muslim }
+				international_organization_target ?= {
+					religion = religion:catholic
+					capital = { region = region:iberia_region }
+				}
+			}
+		}
+	}
+	allow = {
+		scope:actor = {
+			any_international_organizations_member_of = {
+				trigger_if = {
+					limit = {
+						international_organization_type = international_organization_type:jihad
+						has_variable = phase
+					}
+					var:phase = 1
+				}
+				trigger_else = {
+					always = no
+				}
+				leader_country ?= { religion.group ?= religion_group:muslim }
+				international_organization_target ?= {
+					religion = religion:catholic
+					capital = { region = region:iberia_region }
+					any_neighbor_country = { this = scope:actor }
+				}
+			}
+		}
+	}
+	cooldown = {
+		type = proclaim_the_ghazw
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war"
+		column = {
+			data = name
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					international_organization_type = international_organization_type:jihad
+					has_variable = phase
+				}
+				var:phase = 1
+			}
+			trigger_else = {
+				always = no
+			}
+			leader_country ?= { religion.group ?= religion_group:muslim }
+			international_organization_target ?= {
+				religion = religion:catholic
+				capital = { region = region:iberia_region }
+				any_neighbor_country = { this = scope:actor }
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = province
+		target_flag = target_province
+		name = "choose_province_for_ghazw"
+		none_available_msg_key = "proclaim_the_ghazw_no_provinces"
+		column = {
+			data = name
+		}
+		interaction_source_list = {
+			scope:recipient.international_organization_target = {
+				every_province = {
+					add_to_list = source
+				}
+			}
+		}
+		visible = {
+			any_location_in_province = {
+				has_fort = no
+				NOT = { any_unit_in_location = { always = yes } }
+			}
+			any_location_in_province = { is_neighbor_of = scope:actor }
+		}
+		map_color = {
+			if = {
+				limit = {
+					province = { any_location_in_province = { is_neighbor_of = scope:actor } }
+				}
+				if = {
+					limit = {
+						has_fort = no
+						NOT = { any_unit_in_location = { always = yes } }
+					}
+					value = define:NMapColors|MAP_COLOR_HIGH
+				}
+				else = {
+					value = define:NMapColors|MAP_COLOR_LOW
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = { save_scope_as = ghazw_raider }
+		scope:actor = {
+			add_manpower = {
+				value = monthly_manpower
+				multiply = -12
+			}
+		}
+		custom_tooltip = {
+			text = proclaim_the_ghazw_tt
+			scope:recipient = {
+				change_variable = { name = religious_zeal add = -10 }
+				clamp_variable = { name = religious_zeal max = 100 min = 0 }
+				change_variable = { name = preparation add = -10 }
+				clamp_variable = { name = preparation max = 100 min = 0 }
+			}
+		}
+		custom_tooltip = {
+			text = proclaim_the_ghazw_loot_tt
+			if = {
+				limit = { exists = scope:target_province }
+				scope:target_province = {
+					every_location_in_province = {
+						limit = {
+							has_fort = no
+							NOT = { any_unit_in_location = { always = yes } }
+						}
+						scope:actor = { loot_location = prev }
+						change_development = development_mild_penalty
+					}
+				}
+			}
+		}
+		scope:recipient.international_organization_target = {
+			trigger_event_non_silently = { id = holy_war.15 }
+		}
+		scope:actor = {
+			trigger_event_non_silently = {
+				id = d009_holy_war.5
+				months = { 1 2 }
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 40
+		if = {
+			limit = { scope:actor = { gold < 100 } }
+			add = 20
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					any_international_organizations_member_of = {
+						international_organization_type = international_organization_type:jihad
+						leader_country ?= { religion.group ?= religion_group:muslim }
+						var:preparation > 90
+					}
+				}
+			}
+			multiply = 0
+		}
+	}
+}
+
+
+cross_the_strait = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 60
+	automation_tick = never
+
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		scope:actor = {
+			religion.group = religion_group:muslim
+			capital = { region = region:maghreb_region }
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:jihad
+				leader_country ?= { religion.group ?= religion_group:muslim }
+				international_organization_target ?= {
+					religion = religion:catholic
+					capital = { region = region:iberia_region }
+				}
+			}
+		}
+	}
+	allow = {
+		scope:actor = {
+			has_ports = yes
+		}
+	}
+	cooldown = {
+		type = cross_the_strait
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war"
+		column = {
+			data = name
+		}
+		visible = {
+			international_organization_type = international_organization_type:jihad
+			leader_country ?= { religion.group ?= religion_group:muslim }
+			international_organization_target ?= {
+				religion = religion:catholic
+				capital = { region = region:iberia_region }
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = location
+		interaction_source_list = {
+			scope:actor = {
+				every_port_in_country = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = target_port
+		name = "choose_port_for_crossing"
+		none_available_msg_key = "cross_the_strait_no_ports"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			if = {
+				limit = { exists = scope:target_port }
+				if = {
+					limit = { potential_army_size >= 80 }
+					create_mercenary = {
+						name = cross_the_strait_fleet_name
+						home = scope:target_port
+						categories = {
+							navy_transport  = 20
+							navy_light_ship = 2
+						}
+						save_scope_as = strait_fleet
+						months = 60
+					}
+					change_gold_effect = { scale = -20 }
+				}
+				else_if = {
+					limit = { potential_army_size >= 60 }
+					create_mercenary = {
+						name = cross_the_strait_fleet_name
+						home = scope:target_port
+						categories = {
+							navy_transport  = 15
+							navy_light_ship = 2
+						}
+						save_scope_as = strait_fleet
+						months = 60
+					}
+					change_gold_effect = { scale = -15 }
+				}
+				else_if = {
+					limit = { potential_army_size >= 40 }
+					create_mercenary = {
+						name = cross_the_strait_fleet_name
+						home = scope:target_port
+						categories = {
+							navy_transport  = 10
+							navy_light_ship = 1
+						}
+						save_scope_as = strait_fleet
+						months = 60
+					}
+					change_gold_effect = { scale = -10 }
+				}
+				else_if = {
+					limit = { potential_army_size >= 30 }
+					create_mercenary = {
+						name = cross_the_strait_fleet_name
+						home = scope:target_port
+						categories = {
+							navy_transport  = 8
+							navy_light_ship = 1
+						}
+						save_scope_as = strait_fleet
+						months = 60
+					}
+					change_gold_effect = { scale = -8 }
+				}
+				else_if = {
+					limit = { potential_army_size >= 20 }
+					create_mercenary = {
+						name = cross_the_strait_fleet_name
+						home = scope:target_port
+						categories = {
+							navy_transport  = 5
+							navy_light_ship = 1
+						}
+						save_scope_as = strait_fleet
+						months = 60
+					}
+					change_gold_effect = { scale = -5 }
+				}
+				else_if = {
+					limit = { potential_army_size >= 10 }
+					create_mercenary = {
+						name = cross_the_strait_fleet_name
+						home = scope:target_port
+						categories = {
+							navy_transport = 3
+						}
+						save_scope_as = strait_fleet
+						months = 60
+					}
+					change_gold_effect = { scale = -3 }
+				}
+				else = {
+					create_mercenary = {
+						name = cross_the_strait_fleet_name
+						home = scope:target_port
+						categories = {
+							navy_transport = 2
+						}
+						save_scope_as = strait_fleet
+						months = 60
+					}
+					change_gold_effect = { scale = -2 }
+				}
+				if = {
+					limit = { exists = scope:strait_fleet }
+					custom_tooltip = {
+						text = cross_the_strait_hire_tt
+						hire_mercenary = {
+							target = scope:strait_fleet
+							location = scope:target_port
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			text = cross_the_strait_effect_tt
+			scope:recipient = {
+				change_variable = { name = religious_zeal add = -10 }
+				clamp_variable = { name = religious_zeal max = 100 min = 0 }
+			}
+		}
+		scope:actor = {
+			set_variable = {
+				name = has_crossed_the_strait
+				years = 5
+			}
+			trigger_event_non_silently = {
+				id = d009_holy_war.4
+				months = { 1 2 }
+			}
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = { scope:actor = { has_variable = has_crossed_the_strait } }
+			multiply = 0
+		}
+		add = 40
+		if = {
+			limit = { scope:actor = { at_war = yes } }
+			add = 30
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					any_army = {
+						count = all
+						unit_location = { region = region:iberia_region }
+					}
+				}
+			}
+			add = -100
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					any_navy = {
+						any_sub_unit = {
+							sub_unit_category = sub_unit_category:navy_transport
+							count >= 10
+						}
+					}
+				}
+			}
+			multiply = 0
+		}
+	}
+}
+
+
+raid_the_shores = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		scope:actor = {
+			religion.group = religion_group:muslim
+			capital = {
+				OR = {
+					region = region:iberia_region
+					region = region:maghreb_region
+				}
+			}
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:jihad
+				trigger_if = {
+					limit = { has_variable = phase }
+					var:phase = 1
+				}
+				trigger_else = {
+					always = no
+				}
+				leader_country ?= { religion.group ?= religion_group:muslim }
+				international_organization_target ?= {
+					religion = religion:catholic
+					capital = { region = region:iberia_region }
+				}
+			}
+		}
+	}
+	allow = {
+		scope:actor = {
+			any_international_organizations_member_of = {
+				international_organization_type = international_organization_type:jihad
+				trigger_if = {
+					limit = { has_variable = phase }
+					var:phase = 1
+				}
+				trigger_else = {
+					always = no
+				}
+				leader_country ?= { religion.group ?= religion_group:muslim }
+				international_organization_target ?= {
+					religion = religion:catholic
+					capital = { region = region:iberia_region }
+					any_port_in_country = {
+						sea_zone = { has_privateers_from = scope:actor }
+					}
+				}
+			}
+		}
+	}
+	cooldown = {
+		type = raid_the_shores
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war"
+		column = {
+			data = name
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					international_organization_type = international_organization_type:jihad
+					has_variable = phase
+				}
+				var:phase = 1
+			}
+			trigger_else = {
+				always = no
+			}
+			leader_country ?= { religion.group ?= religion_group:muslim }
+			international_organization_target ?= {
+				religion = religion:catholic
+				capital = { region = region:iberia_region }
+				any_port_in_country = {
+					sea_zone = { has_privateers_from = scope:actor }
+				}
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = province
+		target_flag = target_province
+		name = "choose_province_for_shore_raid"
+		none_available_msg_key = "raid_the_shores_no_provinces"
+		column = {
+			data = name
+		}
+		interaction_source_list = {
+			scope:recipient.international_organization_target = {
+				every_province = {
+					add_to_list = source
+				}
+			}
+		}
+		visible = {
+			any_location_in_province = {
+				is_port = yes
+				sea_zone = { has_privateers_from = scope:actor }
+				has_fort = no
+				NOT = { any_unit_in_location = { always = yes } }
+			}
+		}
+		map_color = {
+			if = {
+				limit = {
+					is_port = yes
+					sea_zone = { has_privateers_from = scope:actor }
+				}
+				if = {
+					limit = {
+						has_fort = no
+						NOT = { any_unit_in_location = { always = yes } }
+					}
+					value = define:NMapColors|MAP_COLOR_HIGH
+				}
+				else = {
+					value = define:NMapColors|MAP_COLOR_LOW
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = { save_scope_as = shore_raider }
+		custom_tooltip = {
+			text = raid_the_shores_tt
+			scope:recipient = {
+				change_variable = { name = religious_zeal add = -10 }
+				clamp_variable = { name = religious_zeal max = 100 min = 0 }
+				change_variable = { name = preparation add = -10 }
+				clamp_variable = { name = preparation max = 100 min = 0 }
+			}
+		}
+		custom_tooltip = {
+			text = raid_the_shores_loot_tt
+			scope:target_province = {
+				every_location_in_province = {
+					limit = {
+						is_port = yes
+						sea_zone = { has_privateers_from = scope:actor }
+						has_fort = no
+						NOT = { any_unit_in_location = { always = yes } }
+					}
+					scope:actor = { loot_location = prev }
+					change_development = development_weak_penalty
+					every_pop = {
+						limit = {
+							religion = religion:catholic
+							pop_type = pop_type:peasants
+						}
+						enslave_pop = {
+							target = scope:actor.capital
+							operator = multiply
+							value = 0.01
+						}
+					}
+				}
+			}
+		}
+		scope:recipient.international_organization_target = {
+			trigger_event_non_silently = { id = holy_war.16 }
+		}
+		scope:actor = {
+			trigger_event_non_silently = {
+				id = d009_holy_war.6
+				months = { 1 2 }
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 40
+		if = {
+			limit = { scope:actor = { gold < 100 } }
+			add = 20
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					any_international_organizations_member_of = {
+						international_organization_type = international_organization_type:jihad
+						leader_country ?= { religion.group ?= religion_group:muslim }
+						var:preparation > 90
+					}
+				}
+			}
+			multiply = 0
+		}
+	}
+}

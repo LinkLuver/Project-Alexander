@@ -1,0 +1,876 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = d009_sephardi_catastrophe
+
+d009_sephardi_catastrophe.1 = { #The Preaching of Ferrand Martinez
+	type = country_event
+	title = d009_sephardi_catastrophe.1.title
+	desc = d009_sephardi_catastrophe.1.desc
+	outcome = neutral
+	historical_info = d009_sephardi_catastrophe.1.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = CAS
+		tag = ARA
+		from = 1391.1.1
+		to = 1393.1.1
+		monthly_chance = 50
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+
+		OR = {
+			AND = {
+				owns = location:sevilla
+				location:sevilla = {
+					"religion_population(religion:judaism)" > 0
+				}
+			}
+
+			AND = {
+				owns = location:cordoba
+				location:cordoba = {
+					"religion_population(religion:judaism)" > 0
+				}
+			}
+		}
+	}
+
+	illustration_tags = {
+		10 = angry
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:peasants_estate }
+
+		create_character = {
+			first_name = name_ferdinand
+			last_name = Martinez
+			adm = { 40 60 }
+			dip = { 60 80 }
+			mil = { 10 30 }
+			culture = culture:castilian
+			religion = religion:catholic
+			female = no
+			min_age = 45
+			estate = estate_type:clergy_estate
+			create_in_limbo = yes
+			save_scope_as = target_character
+		}
+
+		if = {
+			limit = {
+				owns = location:sevilla
+				location:sevilla = {
+					"religion_population(religion:judaism)" > 0
+				}
+			}
+			location:sevilla = {
+				save_scope_as = target_location
+			}
+		}
+		else = {
+			location:cordoba = {
+				save_scope_as = target_location
+			}
+		}
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.1.a
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+		add_stability = stability_mild_bonus
+
+		change_societal_value = {
+			type = spiritualist_vs_humanist
+			value = societal_value_move_to_right
+		}
+
+		if = {
+			limit = {
+				is_situation_active = situation:battle_for_the_strait
+				country_exists = c:GRA
+
+				OR = {
+					has_or_had_tag = CAS
+					has_or_had_tag = MOR
+				}
+			}
+			change_influence_over_granada_effect = { value = bfts_pull_toward_cas_small }
+		}
+
+		scope:target_character = {
+			banish_character = yes
+		}
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.1.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = spiritualist_vs_humanist
+			value = societal_value_move_to_left
+		}
+
+		if = {
+			limit = {
+				is_situation_active = situation:battle_for_the_strait
+				country_exists = c:GRA
+
+				OR = {
+					has_or_had_tag = CAS
+					has_or_had_tag = MOR
+				}
+			}
+			change_influence_over_granada_effect = { value = bfts_pull_toward_mor_small }
+		}
+
+		hidden_effect = {
+			kill_character_silently = scope:target_character
+		}
+
+		scope:target_location = {
+			add_location_modifier = {
+				modifier = crypto_jewish_community
+				years = crypto_community_duration
+				mode = add
+			}
+			every_pop = {
+				limit = {
+					religion = religion:judaism
+				}
+
+				split_pop = {
+					fraction = 0.5
+					religion = religion:catholic
+				}
+			}
+		}
+
+		add_to_global_variable_list = { name = crypto_jewish_community_locations target = scope:target_location }
+		set_global_variable = d009_pogroms_spreading
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.1.c
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_severe_bonus }
+
+		change_societal_value = {
+			type = spiritualist_vs_humanist
+			value = societal_value_move_to_left
+		}
+
+		scope:target_character = {
+			move_country = root
+		}
+
+		scope:target_location = {
+			add_location_modifier = {
+				modifier = crypto_jewish_community
+				years = crypto_community_duration
+				mode = add
+			}
+
+			every_pop = {
+				limit = {
+					religion = religion:judaism
+				}
+
+				split_pop = {
+					fraction = 0.8
+					religion = religion:catholic
+				}
+			}
+		}
+
+		add_to_global_variable_list = { name = crypto_jewish_community_locations target = scope:target_location }
+		set_global_variable = d009_pogroms_spreading
+	}
+}
+
+d009_sephardi_catastrophe.2 = { #The Pogroms Spread
+	type = country_event
+	title = d009_sephardi_catastrophe.2.title
+	desc = d009_sephardi_catastrophe.2.desc
+	outcome = negative
+	historical_info = d009_sephardi_catastrophe.2.historical_info
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		religion = religion:catholic
+
+		culture = {
+			has_culture_group = culture_group:iberian_group
+		}
+
+		NOT = {
+			has_variable = d009_sephardi_catastrophe_2_fired
+		}
+
+		has_global_variable = d009_pogroms_spreading
+
+		OR = {
+			AND = {
+				owns = location:toledo
+				location:toledo = {
+					"religion_population(religion:judaism)" > 0
+				}
+			}
+
+			AND = {
+				owns = location:valencia
+				location:valencia = {
+					"religion_population(religion:judaism)" > 0
+				}
+			}
+
+			AND = {
+				owns = location:palma
+				location:palma = {
+					"religion_population(religion:judaism)" > 0
+				}
+			}
+
+			AND = {
+				owns = location:barcelona
+				location:barcelona = {
+					"religion_population(religion:judaism)" > 0
+				}
+			}
+		}
+	}
+
+	illustration_tags = {
+		10 = angry
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:peasants_estate }
+
+		set_variable = d009_sephardi_catastrophe_2_fired
+
+		random_owned_location = {
+			limit = {
+				OR = {
+					this = location:toledo
+					this = location:valencia
+					this = location:palma
+					this = location:barcelona
+				}
+
+				"religion_population(religion:judaism)" > 0
+			}
+
+			save_scope_as = target_location
+		}
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.2.a
+
+		add_stability = stability_weak_penalty
+
+		scope:target_location = {
+			every_pop = {
+				limit = {
+					religion = religion:judaism
+				}
+
+				split_pop = {
+					fraction = 0.2
+					religion = religion:catholic
+				}
+			}
+		}
+	}
+}
+
+d009_sephardi_catastrophe.3 = { #The Disputation of Tortosa
+	type = country_event
+	title = d009_sephardi_catastrophe.3.title
+	desc = d009_sephardi_catastrophe.3.desc
+	outcome = neutral
+	historical_info = d009_sephardi_catastrophe.3.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = ARA
+		from = 1413.1.1
+		to = 1415.1.1
+		monthly_chance = 50
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		owns = location:tortosa
+
+		location:tortosa = {
+			"religion_population(religion:judaism)" > 0
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:burghers_estate }
+
+		location:tortosa = {
+			save_scope_as = target_location
+		}
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.3.a
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = individualism_vs_communalism
+			value = societal_value_move_to_left
+		}
+
+		scope:target_location = {
+			add_location_modifier = {
+				modifier = crypto_jewish_community
+				years = crypto_community_duration
+				mode = add
+			}
+
+			every_pop = {
+				limit = {
+					religion = religion:judaism
+				}
+
+				split_pop = {
+					fraction = 0.3
+					religion = religion:catholic
+				}
+			}
+		}
+
+		add_to_global_variable_list = { name = crypto_jewish_community_locations target = scope:target_location }
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.3.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+
+		change_societal_value = {
+			type = individualism_vs_communalism
+			value = societal_value_move_to_right
+		}
+
+		custom_tooltip = {
+			text = d009_sephardi_catastrophe.3.b.tt
+			scope:target_location = {
+				every_pop = {
+					limit = {
+						owner ?= root
+						religion = religion:judaism
+					}
+
+					add_pop_satisfaction = pop_satisfaction_mild_bonus
+				}
+			}
+		}
+	}
+}
+
+d009_sephardi_catastrophe.4 = { #The Inquisition's New Target
+	type = country_event
+	title = d009_sephardi_catastrophe.4.title
+	desc = d009_sephardi_catastrophe.4.desc
+	outcome = neutral
+	historical_info = d009_sephardi_catastrophe.4.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = CAS
+		tag = ARA
+		from = 1478.1.1
+		to = 1550.1.1
+		monthly_chance = 10
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+
+		OR = {
+			AND = {
+				has_or_had_tag = CAS
+
+				custom_tooltip = {
+					text = variable_tt_spa_holy_inquisition
+					has_variable = spa_holy_inquisition
+				}
+			}
+
+			AND = {
+				has_or_had_tag = ARA
+				in_union_with = c:CAS
+
+				union = {
+					custom_tooltip = {
+						text = variable_iberian_union_active_tt
+						has_variable = iberian_union_active
+					}
+				}
+
+				c:CAS = {
+					custom_tooltip = {
+						text = variable_tt_spa_holy_inquisition
+						has_variable = spa_holy_inquisition
+					}
+				}
+			}
+		}
+
+		any_owned_location = {
+			has_location_modifier = crypto_jewish_community
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:burghers_estate }
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.4.a
+
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_penalty }
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_left
+		}
+
+		set_variable = d009_inquisition_active
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.4.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_right
+		}
+	}
+}
+
+d009_sephardi_catastrophe.5 = { #The Navarre Expulsion
+	type = country_event
+	title = d009_sephardi_catastrophe.5.title
+	desc = d009_sephardi_catastrophe.5.desc
+	outcome = negative
+	historical_info = d009_sephardi_catastrophe.5.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = NAV
+		from = 1498.1.1
+		to = 1500.1.1
+		monthly_chance = 50
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		religion = religion:catholic
+
+		any_owned_location = {
+			"religion_population(religion:judaism)" > 0
+		}
+
+		scripted_geography:d009_maghreb_coastal_geography = {
+			any_location_in_scripted_geography = {
+				has_owner = yes
+				owner != root
+				dominant_religion ?= religion:sunni
+				is_coastal = yes
+			}
+		}
+	}
+
+	illustration_tags = {
+		10 = angry
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:peasants_estate }
+
+		scripted_geography:d009_maghreb_coastal_geography = {
+			random_location_in_scripted_geography = {
+				limit = {
+					has_owner = yes
+					owner != root
+					dominant_religion ?= religion:sunni
+					is_coastal = yes
+				}
+
+				save_scope_as = escape_target
+			}
+		}
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.5.a
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		every_owned_location = {
+			limit = {
+				"religion_population(religion:judaism)" > 0
+			}
+
+			add_migration = {
+				owner = root
+				from = this.province_definition
+				to = scope:escape_target.province_definition
+				religion = religion:judaism
+				amount = {
+					value = "this.religion_population(religion:judaism)"
+				}
+				months = 36
+			}
+		}
+	}
+}
+
+d009_sephardi_catastrophe.6 = { #The Massacre of Lisbon
+	type = country_event
+	title = d009_sephardi_catastrophe.6.title
+	desc = d009_sephardi_catastrophe.6.desc
+	outcome = negative
+	historical_info = d009_sephardi_catastrophe.6.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = POR
+		from = 1506.1.1
+		to = 1508.1.1
+		monthly_chance = 50
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+
+		location:lisbon = {
+			has_location_modifier = crypto_jewish_community
+		}
+
+		scripted_geography:d009_maghreb_coastal_geography = {
+			any_location_in_scripted_geography = {
+				has_owner = yes
+				owner != root
+				dominant_religion ?= religion:sunni
+				is_coastal = yes
+			}
+		}
+	}
+
+	illustration_tags = {
+		10 = angry
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:burghers_estate }
+
+		scripted_geography:d009_maghreb_coastal_geography = {
+			random_location_in_scripted_geography = {
+				limit = {
+					has_owner = yes
+					owner != root
+					dominant_religion ?= religion:sunni
+					is_coastal = yes
+				}
+
+				save_scope_as = escape_target
+			}
+		}
+
+		religion = {
+			random_religious_order_in_religion = {
+				limit = {
+					any_location_in_religious_order = { this = location:bologna }
+				}
+				save_scope_as = massacre_dominican_order
+			}
+		}
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.6.a
+
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_bonus }
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_right
+		}
+
+		if = {
+			limit = { exists = scope:massacre_dominican_order }
+			scope:massacre_dominican_order = {
+				change_religious_order_zeal = religious_order_mild_penalty
+			}
+		}
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.6.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = belligerent_vs_conciliatory
+			value = societal_value_move_to_left
+		}
+
+		add_migration = {
+			owner = root
+			from_location = location:lisbon
+			to_location = scope:escape_target
+			culture = culture:sephardi
+			amount = {
+				value = "location:lisbon.culture_population(culture:sephardi)"
+				multiply = 0.3
+			}
+			months = 24
+		}
+
+		if = {
+			limit = { exists = scope:massacre_dominican_order }
+			scope:massacre_dominican_order = {
+				change_religious_order_zeal = religious_order_mild_bonus
+			}
+		}
+	}
+}
+
+d009_sephardi_catastrophe.7 = { #The Portuguese Inquisition Turns on Conversos
+	type = country_event
+	title = d009_sephardi_catastrophe.7.title
+	desc = d009_sephardi_catastrophe.7.desc
+	outcome = neutral
+	historical_info = d009_sephardi_catastrophe.7.historical_info
+
+	fire_only_once = yes
+
+	dynamic_historical_event = {
+		tag = POR
+		from = 1536.1.1
+		to = 1580.1.1
+		monthly_chance = 15
+	}
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+		has_policy = local_courts
+
+		any_owned_location = {
+			has_location_modifier = crypto_jewish_community
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:burghers_estate }
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.7.a
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_bonus }
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_left
+		}
+
+		set_variable = d009_por_inquisition_active
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.7.b
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_mild_penalty }
+
+		change_societal_value = {
+			type = centralization_vs_decentralization
+			value = societal_value_move_to_right
+		}
+	}
+}
+
+d009_sephardi_catastrophe.8 = { #Auto-da-fe
+	type = country_event
+	title = d009_sephardi_catastrophe.8.title
+	desc = d009_sephardi_catastrophe.8.desc
+	outcome = neutral
+	historical_info = d009_sephardi_catastrophe.8.historical_info
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+
+		OR = {
+			has_variable = d009_inquisition_active
+			has_variable = d009_por_inquisition_active
+		}
+
+		any_owned_location = {
+			has_location_modifier = crypto_jewish_community
+		}
+	}
+
+	illustration_tags = {
+		10 = angry
+		10 = interior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:clergy_estate background = estate_type:burghers_estate }
+
+		random_owned_location = {
+			limit = {
+				has_location_modifier = crypto_jewish_community
+			}
+
+			save_scope_as = target_location
+		}
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.8.a
+
+		add_religious_influence = religious_influence_weak_bonus
+		add_stability = stability_weak_bonus
+
+		random_list = {
+			20 = {
+				scope:target_location = {
+					remove_location_modifier = crypto_jewish_community
+				}
+
+				remove_list_global_variable = { name = crypto_jewish_community_locations target = scope:target_location }
+			}
+
+			80 = {
+			}
+		}
+	}
+}
+
+d009_sephardi_catastrophe.9 = { #The Marrano Escape Network
+	type = country_event
+	title = d009_sephardi_catastrophe.9.title
+	desc = d009_sephardi_catastrophe.9.desc
+	outcome = neutral
+	historical_info = d009_sephardi_catastrophe.9.historical_info
+
+	trigger = {
+		has_dlc = "d009_across_the_pillars"
+
+		OR = {
+			has_variable = d009_inquisition_active
+			has_variable = d009_por_inquisition_active
+		}
+
+		culture_population_in_country = {
+			culture = culture:sephardi
+			value > 0
+		}
+
+		any_owned_location = {
+			has_location_modifier = crypto_jewish_community
+			"culture_population(culture:sephardi)" > 0
+		}
+
+		scripted_geography:d009_maghreb_coastal_geography = {
+			any_location_in_scripted_geography = {
+				has_owner = yes
+				owner != root
+				dominant_religion ?= religion:sunni
+				is_coastal = yes
+			}
+		}
+	}
+
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:burghers_estate background = estate_type:clergy_estate }
+
+		random_owned_location = {
+			limit = {
+				has_location_modifier = crypto_jewish_community
+				"culture_population(culture:sephardi)" > 0
+			}
+
+			save_scope_as = target_location
+		}
+
+		scripted_geography:d009_maghreb_coastal_geography = {
+			random_location_in_scripted_geography = {
+				limit = {
+					has_owner = yes
+					owner != root
+					dominant_religion ?= religion:sunni
+					is_coastal = yes
+				}
+
+				save_scope_as = escape_target
+			}
+		}
+	}
+
+	option = {
+		name = d009_sephardi_catastrophe.9.a
+
+		add_estate_satisfaction = { type = estate_type:clergy_estate value = estate_satisfaction_weak_penalty }
+
+		add_migration = {
+			owner = root
+			from_location = scope:target_location
+			to_location = scope:escape_target
+			culture = culture:sephardi
+			amount = {
+				value = "scope:target_location.culture_population(culture:sephardi)"
+				multiply = 0.1
+			}
+			months = 24
+		}
+	}
+}

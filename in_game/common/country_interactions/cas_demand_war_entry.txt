@@ -1,0 +1,201 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+cas_demand_war_entry = {
+	type = diplomacy
+	category = CATEGORY_HOSTILE_ACTIONS
+
+	potential = {
+		scope:actor = {
+			has_dlc = "d009_across_the_pillars"
+			is_situation_active = situation:battle_for_the_strait
+			country_exists = c:GRA
+			OR = {
+				AND = {
+					has_or_had_tag = CAS
+					situation:battle_for_the_strait = {
+						trigger_if = {
+							limit = { has_variable = influence_over_granada }
+							var:influence_over_granada <= -50
+						}
+						trigger_else = { always = no }
+					}
+					any_current_war = {
+						OR = {
+							AND = {
+								attacker_leader = scope:actor
+								defender_leader ?= { has_or_had_tag = MOR }
+							}
+							AND = {
+								defender_leader = scope:actor
+								attacker_leader ?= { has_or_had_tag = MOR }
+							}
+						}
+					}
+				}
+				AND = {
+					country_exists = c:MOR
+					c:MOR ?= this
+					situation:battle_for_the_strait = {
+						trigger_if = {
+							limit = { has_variable = influence_over_granada }
+							var:influence_over_granada >= 50
+						}
+						trigger_else = { always = no }
+					}
+					any_current_war = {
+						OR = {
+							AND = {
+								attacker_leader = scope:actor
+								defender_leader ?= { has_or_had_tag = CAS }
+							}
+							AND = {
+								defender_leader = scope:actor
+								attacker_leader ?= { has_or_had_tag = CAS }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			has_dlc = "d009_across_the_pillars"
+			is_situation_active = situation:battle_for_the_strait
+			country_exists = c:GRA
+		}
+		c:GRA ?= { at_war = no }
+		scope:actor = {
+			OR = {
+				AND = {
+					has_or_had_tag = CAS
+					situation:battle_for_the_strait = {
+						has_variable = influence_over_granada
+						var:influence_over_granada <= -50
+					}
+					custom_tooltip = {
+						text = bfts_demand_war_entry_at_war_with_rival_tt
+						any_current_war = {
+							OR = {
+								AND = {
+									attacker_leader = scope:actor
+									defender_leader ?= { has_or_had_tag = MOR }
+								}
+								AND = {
+									defender_leader = scope:actor
+									attacker_leader ?= { has_or_had_tag = MOR }
+								}
+							}
+						}
+					}
+				}
+				AND = {
+					has_or_had_tag = MOR
+					situation:battle_for_the_strait = {
+						has_variable = influence_over_granada
+						var:influence_over_granada >= 50
+					}
+					custom_tooltip = {
+						text = bfts_demand_war_entry_at_war_with_rival_tt
+						any_current_war = {
+							OR = {
+								AND = {
+									attacker_leader = scope:actor
+									defender_leader ?= { has_or_had_tag = CAS }
+								}
+								AND = {
+									defender_leader = scope:actor
+									attacker_leader ?= { has_or_had_tag = CAS }
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		interaction_source_list = {
+			c:GRA ?= {
+				add_to_list = source
+			}
+		}
+		name = "choose_country"
+		column = {
+			data = name
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			every_current_war = {
+				limit = {
+					OR = {
+						AND = {
+							attacker_leader = scope:actor
+							defender_leader ?= {
+								trigger_if = {
+									limit = { scope:actor = { has_or_had_tag = CAS } }
+									has_or_had_tag = MOR
+								}
+								trigger_else = {
+									has_or_had_tag = CAS
+								}
+							}
+						}
+						AND = {
+							defender_leader = scope:actor
+							attacker_leader ?= {
+								trigger_if = {
+									limit = { scope:actor = { has_or_had_tag = CAS } }
+									has_or_had_tag = MOR
+								}
+								trigger_else = {
+									has_or_had_tag = CAS
+								}
+							}
+						}
+					}
+				}
+				save_scope_as = bfts_join_this_war
+				if = {
+					limit = { attacker_leader = scope:actor }
+					scope:recipient = {
+						join_war_as_attacker = { war = scope:bfts_join_this_war }
+					}
+				}
+				else = {
+					scope:recipient = {
+						join_war_as_defender = { war = scope:bfts_join_this_war }
+					}
+				}
+			}
+		}
+		scope:recipient = {
+			add_opinion = {
+				target = scope:actor
+				modifier = opinion_called_into_war_by_overlord
+			}
+		}
+	}
+
+	cooldown = { years = 10 }
+
+	accept = {
+		add = {
+			desc = "DIPLOREASON_ENFORCED_DEMAND"
+			value = 10
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE_VALUE"
+			value = 100
+		}
+	}
+}

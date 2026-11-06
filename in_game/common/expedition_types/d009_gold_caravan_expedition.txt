@@ -1,0 +1,179 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+gold_caravan_expedition = {
+
+	unique = yes
+	repeatable = yes
+	returns_home = yes
+	travel_speed = 0.75
+	dynamic_first_waypoint = yes
+	triggers_regency = no
+	category = commercial
+
+	potential = {
+		OR = { has_or_had_tag = ADU has_or_had_tag = MOR }
+		has_variable = gold_caravan_setup
+	}
+
+	can_start = {
+		at_war = no
+	}
+
+	leader = {
+		is_adult = yes
+		is_alive = yes
+		is_ruler = no
+		is_regent = no
+		is_heir = no
+	}
+
+	on_start = {
+		remove_variable = gold_caravan_setup
+		scope:expedition = {
+			set_variable = { name = gold_secured value = 0 }
+			set_variable = { name = gold_haul value = 0 }
+		}
+		scripted_geography:sahel_gold_geography = {
+			ordered_location_in_scripted_geography = {
+				limit = {
+					raw_material = goods:goods_gold
+					has_owner = yes
+				}
+				order_by = {
+					value = { integer_range = { min = 0 max = 1000000 } }
+				}
+				check_range_bounds = no
+				max = 10
+				scope:expedition = { add_new_waypoint = prev }
+			}
+		}
+	}
+
+	on_arrive_to_new_location = {
+		discover_area = scope:location.area
+	}
+
+	on_arrive_to_waypoint = {
+		if = {
+			limit = {
+				scope:location = {
+					raw_material = goods:goods_gold
+					is_in_scripted_geography = scripted_geography:sahel_gold_geography
+				}
+			}
+			scope:expedition = {
+				set_variable = { name = gold_secured value = 1 }
+				change_variable = {
+					name = gold_haul
+					add = {
+						value = scope:location.rgo_level
+						multiply = scope:location.local_control
+						add = 1
+						add = {
+							value = 1
+							add = scope:location.prosperity
+						}
+					}
+				}
+			}
+			set_variable = {
+				name = gold_caravan_last_haul
+				value = scope:expedition.var:gold_haul
+			}
+		}
+	}
+
+	on_end = {
+		if = {
+			limit = { scope:expedition.var:gold_secured >= 1 }
+			scope:expedition = {
+				expedition_leader ?= { save_scope_as = caravan_leader }
+			}
+			custom_tooltip = {
+				text = gold_caravan_expedition_haul_tt
+				root.capital.market = {
+					add_goods_supply = {
+						goods = goods:goods_gold
+						amount = root.var:gold_caravan_last_haul
+					}
+				}
+			}
+			if = {
+				limit = {
+					is_situation_active = situation:golden_century
+					has_global_variable = battle_for_the_strait_winner_country
+					this = global_var:battle_for_the_strait_winner_country
+				}
+				gc_change_colonial_dominance = { value = gc_bump_caravan }
+			}
+			if = {
+				limit = { exists = scope:caravan_leader }
+				add_gold = {
+					value = var:gold_caravan_last_haul
+					multiply = scope:caravan_leader.total_abilities
+					divide = 50
+					max = 5000
+				}
+			}
+			else = {
+				add_gold = {
+					value = var:gold_caravan_last_haul
+					multiply = 2
+					max = 5000
+				}
+			}
+			random_list = {
+				1 = {
+					desc = gold_caravan_outcome_windfall
+					show_chance = no
+					add_country_modifier = {
+						modifier = gold_caravan_windfall_modifier
+						years = 5
+						mode = add_and_extend
+					}
+				}
+				1 = {
+					trigger = {
+						scope:caravan_leader ?= { has_nickname = no }
+					}
+					desc = gold_caravan_outcome_nickname
+					show_chance = no
+					scope:caravan_leader = { set_nickname = nick_the_golden }
+				}
+				1 = {
+					trigger = {
+						ruler_or_regent ?= {
+							num_of_traits < 3
+							NOR = {
+								has_trait = midas_touched
+								has_trait = greedy
+							}
+						}
+					}
+					desc = gold_caravan_outcome_midas
+					show_chance = no
+					ruler_or_regent = { add_trait = trait:midas_touched }
+				}
+				1 = {
+					trigger = {
+						exists = scope:caravan_leader
+					}
+					desc = gold_caravan_outcome_leader_skills
+					show_chance = no
+					scope:caravan_leader = {
+						add_adm = { 1 5 }
+						add_dip = { 1 5 }
+						add_mil = { 1 5 }
+					}
+				}
+			}
+		}
+	}
+
+	utility = {
+		value = 5
+		if = {
+			limit = { gold < 100 }
+			add = 5
+		}
+	}
+}

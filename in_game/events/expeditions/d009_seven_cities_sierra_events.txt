@@ -1,0 +1,363 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = seven_cities_sierra
+
+seven_cities_sierra.1 = {
+# .1 — bad outcome
+#The White King's Mountain
+	type = country_event
+	title = seven_cities_sierra.1.title
+	desc = seven_cities_sierra.1.desc
+	historical_info = seven_cities_sierra.1.historical_info
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 14
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_sierra.1.a
+		add_prestige = prestige_weak_penalty
+		fail_expedition = scope:expedition
+	}
+}
+
+seven_cities_sierra.2 = {
+# .2 — medium outcome
+#Silver in the Foothills
+	type = country_event
+	title = seven_cities_sierra.2.title
+	desc = seven_cities_sierra.2.desc
+	historical_info = seven_cities_sierra.2.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_court_audience }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 14
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_sierra.2.a
+		add_estate_satisfaction = {
+			type = estate_type:nobles_estate
+			value = estate_satisfaction_mild_bonus
+		}
+		change_gold_effect = { scale = 2 }
+		scope:location = {
+			add_location_modifier = {
+				modifier = sierra_plata_discovered
+				days = -1
+			}
+		}
+		grant_seven_cities_expedition_loot_effect = yes
+		end_expedition = scope:expedition
+	}
+}
+
+seven_cities_sierra.3 = {
+# .3 — good outcome
+#The Mountain of Silver
+	type = country_event
+	title = seven_cities_sierra.3.title
+	desc = seven_cities_sierra.3.desc
+	historical_info = seven_cities_sierra.3.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 14
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_sierra.3.a
+		add_prestige = prestige_extreme_bonus
+		add_country_modifier = {
+			modifier = focus_on_land_exploration_modifier
+			years = modifier_duration_years_short
+		}
+		change_gold_effect = { scale = 8 }
+		scope:location = {
+			add_location_modifier = {
+				modifier = sierra_plata_discovered
+				days = -1
+			}
+		}
+		grant_seven_cities_expedition_loot_effect = yes
+		end_expedition = scope:expedition
+	}
+}
+
+seven_cities_sierra.10 = {
+#Silver Out of the West
+	type = country_event
+	title = seven_cities_sierra.10.title
+	desc = seven_cities_sierra.10.desc
+	historical_info = seven_cities_sierra.10.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_home_departure }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		create_character = {
+			age = { 30 45 }
+			culture = root.culture
+			religion = root.religion
+			birth_location = root.capital
+			estate = estate_type:peasants_estate
+			save_scope_as = target_character
+			create_in_limbo = yes
+		}
+	}
+
+	option = {
+		name = seven_cities_sierra.10.a
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		custom_tooltip = {
+			text = plata_castaway_road_tt
+			scope:expedition = {
+				set_variable = { name = plata_castaway_road value = 1 }
+				set_variable = {
+					name = plata_castaway_character_var
+					value = scope:target_character
+				}
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities_sierra.10.b
+		change_gold_effect = { scale = -1 }
+		custom_tooltip = {
+			text = plata_silver_in_hand_tt
+			scope:expedition = {
+				if = {
+					limit = { NOT = { has_variable = uncovered_riches_variable } }
+					set_variable = {
+						name = uncovered_riches_variable
+						value = 0
+					}
+				}
+				change_variable = {
+					name = uncovered_riches_variable
+					add = 0.1
+				}
+			}
+		}
+		hidden_effect = { kill_character_silently = scope:target_character }
+	}
+}
+
+seven_cities_sierra.11 = {
+#A Host Without Banners
+	type = country_event
+	title = seven_cities_sierra.11.title
+	desc = seven_cities_sierra.11.desc
+	historical_info = seven_cities_sierra.11.historical_info
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_overland_caravan }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			expedition_current_location = { save_scope_as = target_location }
+		}
+	}
+
+	option = {
+		name = seven_cities_sierra.11.a
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+		custom_tooltip = {
+			text = expedition_less_likely_to_stall_tt
+			scope:expedition = {
+				if = {
+					limit = { NOT = { has_variable = expedition_receives_guides_and_porters_variable } }
+					set_variable = expedition_receives_guides_and_porters_variable
+				}
+			}
+		}
+		hidden_effect = {
+			scope:expedition = { set_variable = { name = plata_host_joined value = 1 } }
+		}
+	}
+
+	option = {
+		name = seven_cities_sierra.11.b
+		change_gold_effect = { scale = -1 }
+		custom_tooltip = {
+			text = should_calamity_occur_chance_to_avoid_tt
+			scope:expedition = {
+				set_variable = {
+					name = chance_avoid_calamity_variable
+					months = 6
+				}
+			}
+		}
+	}
+}
+
+seven_cities_sierra.12 = {
+#The Frontier of the White King
+	type = country_event
+	title = seven_cities_sierra.12.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:expedition = { has_variable = plata_castaway_road } }
+				desc = seven_cities_sierra.12.desc_castaway
+			}
+			triggered_desc = { desc = seven_cities_sierra.12.desc }
+		}
+	}
+	historical_info = seven_cities_sierra.12.historical_info
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+			pause_expedition = 10
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_sierra.12.a
+		high_risk_option = yes
+		random_list = {
+			2 = {
+				show_chance = no
+				desc = plata_silver_seized
+				scope:expedition = {
+					if = {
+						limit = { NOT = { has_variable = uncovered_riches_variable } }
+						set_variable = {
+							name = uncovered_riches_variable
+							value = 0
+						}
+					}
+					change_variable = {
+						name = uncovered_riches_variable
+						add = 0.3
+					}
+				}
+				custom_tooltip = {
+					text = may_bring_us_closer_to_uncovering_goal_tt
+					scope:expedition = { change_variable = { name = leads_found add = 1 } }
+				}
+			}
+			2 = {
+				trigger = { scope:expedition = { has_variable = plata_host_joined } }
+				show_chance = no
+				desc = plata_host_shields_the_raid
+				scope:expedition = {
+					if = {
+						limit = { NOT = { has_variable = uncovered_riches_variable } }
+						set_variable = {
+							name = uncovered_riches_variable
+							value = 0
+						}
+					}
+					change_variable = {
+						name = uncovered_riches_variable
+						add = 0.3
+					}
+				}
+				custom_tooltip = {
+					text = may_bring_us_closer_to_uncovering_goal_tt
+					scope:expedition = { change_variable = { name = leads_found add = 1 } }
+				}
+			}
+			1 = {
+				show_chance = no
+				desc = plata_frontier_rises
+				seven_cities_expedition_calamity_effect = yes
+			}
+		}
+	}
+
+	option = {
+		name = seven_cities_sierra.12.b
+		change_gold_effect = { scale = -1 }
+		custom_tooltip = {
+			text = may_bring_us_closer_to_uncovering_goal_tt
+			scope:expedition = { change_variable = { name = leads_found add = 1 } }
+		}
+	}
+}
+
+seven_cities_sierra.13 = {
+#The Sweet Sea
+	type = country_event
+	title = seven_cities_sierra.13.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:expedition = { has_variable = plata_castaway_road } }
+				desc = seven_cities_sierra.13.desc_castaway
+			}
+			triggered_desc = { desc = seven_cities_sierra.13.desc }
+		}
+	}
+	historical_info = seven_cities_sierra.13.historical_info
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	trigger = { scope:expedition = { exists = expedition_leader } }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = { save_scope_as = target_leader }
+		}
+		scope:location = { save_scope_as = target_location }
+	}
+
+	option = {
+		name = seven_cities_sierra.13.a
+		culture = { add_cultural_influence = cultural_influence_weak_bonus }
+		add_prestige = prestige_weak_bonus
+	}
+
+	option = {
+		name = seven_cities_sierra.13.b
+		add_research_progress = research_progress_weak_bonus
+	}
+}

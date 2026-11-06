@@ -1,0 +1,387 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+# Castile-flavored, DLC-gated (d009_across_the_pillars) crusade-side exclusive actions.
+
+petition_for_the_bula_de_cruzada = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+
+	price = price:petition_for_the_bula_de_cruzada_price
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		scope:actor = {
+			religion = religion:catholic
+			capital = { region = region:iberia_region }
+		}
+	}
+	allow = {
+		scope:actor = {
+			has_special_status_in_international_organization = {
+				type = special_status:crusade_temporal_leader
+				international_organization = international_organization:crusade
+			}
+		}
+		international_organization:crusade.leader_country ?= {
+			opinion = {
+				target = scope:actor
+				value >= 25
+			}
+		}
+	}
+	cooldown = {
+		type = petition_for_the_bula_de_cruzada
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war"
+		column = {
+			data = name
+		}
+		visible = {
+			this = international_organization:crusade
+			international_organization_target ?= {
+				religion.group ?= religion_group:muslim
+				capital = {
+					OR = {
+						region = region:iberia_region
+						region = region:maghreb_region
+					}
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			custom_tooltip = {
+				text = petition_for_the_bula_de_cruzada_tt
+				set_variable = {
+					name = has_bula_de_cruzada
+					value = yes
+					years = 3
+				}
+			}
+			trigger_event_non_silently = {
+				id = d009_holy_war.2
+				months = { 1 3 }
+			}
+		}
+	}
+
+	ai_will_do = {
+		add = 1000
+	}
+}
+
+
+summon_iberian_military_orders_crusade = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 60
+	automation_tick = never
+
+	price = price:summon_iberian_military_orders_price
+
+	potential = {
+		scope:actor = {
+			can_summon_iberian_military_orders = yes
+		}
+	}
+	allow = {
+		scope:actor = {
+			at_war = yes
+			any_enemy_war_leader = {
+				NOT = { religion.group = scope:actor.religion.group }
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war"
+		column = {
+			data = name
+		}
+		visible = {
+			this = international_organization:crusade
+		}
+	}
+	select_trigger = {
+		looking_for_a = religious_order
+		target_flag = target
+		name = "choose_military_order_to_summon"
+		none_available_msg_key = "summon_iberian_military_orders_no_orders"
+		column = {
+			data = name
+		}
+		interaction_source_list = {
+			scope:actor.religion = {
+				every_religious_order_in_religion = {
+					add_to_list = source
+				}
+			}
+		}
+		visible = {
+			order_type ?= religious_order_type:iberian_military_order_type
+		}
+		show_why_not_enabled = yes
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:target }
+			summon_iberian_military_orders_effect = yes
+			scope:target = {
+				save_scope_as = summoned_order
+			}
+			scope:actor = {
+				trigger_event_non_silently = {
+					id = d009_holy_war.1
+					months = { 1 2 }
+				}
+			}
+		}
+		else = {
+			custom_tooltip = summon_iberian_military_orders_no_target_tt
+			custom_tooltip = summon_iberian_military_orders_order_tt
+			custom_tooltip = d009_order_recent_service_tt
+			custom_tooltip = summon_iberian_military_orders_event_tt
+		}
+	}
+
+	ai_will_do = {
+		add = 50
+		if = {
+			limit = { scope:actor = { army_size < 20 } }
+			add = 40
+		}
+		if = {
+			limit = { scope:actor = { war_exhaustion >= 5 } }
+			add = 20
+		}
+	}
+}
+
+
+launch_a_cabalgada = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		scope:actor = {
+			religion = religion:catholic
+			capital = { region = region:iberia_region }
+		}
+	}
+	allow = {
+		scope:actor = {
+			is_neighbor_of = international_organization:crusade.international_organization_target
+		}
+	}
+	cooldown = {
+		type = launch_a_cabalgada
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war"
+		column = {
+			data = name
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					this = international_organization:crusade
+					has_variable = phase
+				}
+				var:phase = 1
+			}
+			trigger_else = {
+				always = no
+			}
+			international_organization_target ?= {
+				religion.group ?= religion_group:muslim
+				capital = {
+					OR = {
+						region = region:iberia_region
+						region = region:maghreb_region
+					}
+				}
+			}
+		}
+	}
+	select_trigger = {
+		looking_for_a = province
+		target_flag = target_province
+		name = "choose_province_for_cabalgada"
+		none_available_msg_key = "launch_a_cabalgada_no_provinces"
+		column = {
+			data = name
+		}
+		interaction_source_list = {
+			international_organization:crusade.international_organization_target = {
+				every_province = {
+					add_to_list = source
+				}
+			}
+		}
+		visible = {
+			any_location_in_province = {
+				has_fort = no
+				NOT = { any_unit_in_location = { always = yes } }
+			}
+			any_location_in_province = { is_neighbor_of = scope:actor }
+		}
+		map_color = {
+			if = {
+				limit = {
+					province = { any_location_in_province = { is_neighbor_of = scope:actor } }
+				}
+				if = {
+					limit = {
+						has_fort = no
+						NOT = { any_unit_in_location = { always = yes } }
+					}
+					value = define:NMapColors|MAP_COLOR_HIGH
+				}
+				else = {
+					value = define:NMapColors|MAP_COLOR_LOW
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = { save_scope_as = cabalgada_raider }
+		scope:actor = {
+			add_manpower = {
+				value = monthly_manpower
+				multiply = -12
+			}
+		}
+		custom_tooltip = {
+			text = launch_a_cabalgada_tt
+			international_organization:crusade = {
+				change_variable = { name = religious_zeal add = -10 }
+				clamp_variable = { name = religious_zeal max = 100 min = 0 }
+				change_variable = { name = preparation add = -10 }
+				clamp_variable = { name = preparation max = 100 min = 0 }
+			}
+		}
+		custom_tooltip = {
+			text = launch_a_cabalgada_loot_tt
+			scope:target_province = {
+				every_location_in_province = {
+					limit = {
+						has_fort = no
+						NOT = { any_unit_in_location = { always = yes } }
+					}
+					scope:actor = { loot_location = prev }
+					change_development = development_mild_penalty
+				}
+			}
+		}
+		international_organization:crusade.international_organization_target = {
+			trigger_event_non_silently = { id = holy_war.11 }
+		}
+	}
+
+	ai_will_do = {
+		add = 40
+		if = {
+			limit = { scope:actor = { gold < 100 } }
+			add = 20
+		}
+		if = {
+			limit = { international_organization:crusade = { var:preparation > 90 } }
+			multiply = 0
+		}
+	}
+}
+
+
+demand_parias = {
+	type = internationalorganization
+	ai_tick = monthly
+	ai_tick_frequency = 12
+	automation_tick = never
+
+	potential = {
+		has_dlc = "d009_across_the_pillars"
+		scope:actor = {
+			religion = religion:catholic
+			capital = { region = region:iberia_region }
+		}
+	}
+	allow = {
+		scope:actor = {
+			has_special_status_in_international_organization = {
+				type = special_status:crusade_temporal_leader
+				international_organization = international_organization:crusade
+			}
+		}
+	}
+	cooldown = {
+		type = demand_parias
+		years = 1
+	}
+
+	select_trigger = {
+		looking_for_a = international_organization
+		source = actor
+		target_flag = recipient
+		name = "choose_holy_war"
+		column = {
+			data = name
+		}
+		visible = {
+			trigger_if = {
+				limit = {
+					this = international_organization:crusade
+					has_variable = phase
+				}
+				var:phase = 1
+			}
+			trigger_else = {
+				always = no
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = { save_scope_as = parias_demander }
+		international_organization:crusade.international_organization_target = {
+			trigger_event_non_silently = { id = holy_war.12 }
+		}
+	}
+
+	ai_will_do = {
+		add = 20
+		if = {
+			limit = { scope:actor = { gold < 100 } }
+			add = 20
+		}
+		if = {
+			limit = { international_organization:crusade = { var:preparation > 90 } }
+			multiply = 0
+		}
+		if = {
+			limit = { international_organization:crusade = { gold > 20000 } }
+			multiply = 0
+		}
+	}
+}
