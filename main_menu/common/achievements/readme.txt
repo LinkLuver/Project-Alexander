@@ -1,5 +1,4 @@
-﻿#P:A TODO Review imported vanilla file (1.4.7)
-# possible - filters out achivements on game start so we dont have to check everything all the time
+﻿# possible - filters out achivements on game start so we dont have to check everything all the time
 # happened - checks if achivement happened
 # add the achievement to the chosen group (very easy, easy, medium, hard, very hard) in game\main_menu\common\achievement_groups.txt
 
