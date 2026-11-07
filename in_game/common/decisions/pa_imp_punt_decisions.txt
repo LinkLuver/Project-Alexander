@@ -1,0 +1,112 @@
+﻿#P:A Imported from Invictus: decisions/punt_decisions.txt
+#   Skipped (tag- or date-bound): city_of_angels_decision_3, city_of_angels_decision_4, consolidation_of_zingis_decision (APC).
+#P:A TODO No EU5 equivalent: highlight (map highlight of the target territory) has no decision field in EU5; dropped from every decision in this file
+
+#P:A TODO Verify placement, was Apocopa (8704) in IR
+city_of_angels_decision_1 = {
+	decision_category = economy_decisions
+
+	potential = {
+		location:barbacadle = {
+			owner ?= root
+		}
+		NOT = { has_global_variable = city_of_angels_taken }
+	}
+
+	allow = {
+		location:barbacadle = {
+			population >= 25 #P:A TODO Approximate: Imperator total_population >= 25 pops converted 1:1 to EU5 population (thousands)
+		}
+	}
+
+	ai_will_do = {
+		value = 10000
+	}
+
+	option = {
+		name = city_of_angels_decision_1.a
+		ai_chance = { value = 100 }
+		effect = {
+			set_global_variable = city_of_angels_taken
+			location:barbacadle = {
+				add_location_modifier = {
+					modifier = city_of_angels_mod
+					days = -1
+					mode = add
+				}
+				ordered_pop = {
+					order_by = pop_size
+					max = 1
+					check_range_bounds = no
+					save_temporary_scope_as = pa_majority_pop
+				}
+				if = { #P:A TODO Approximate: Imperator create_state_pop = citizen twice (2 pops) -> size 2 burghers with the location's largest pop's culture and religion
+					limit = { exists = scope:pa_majority_pop }
+					add_pop = {
+						type = pop_type:burghers
+						size = 2
+						culture = scope:pa_majority_pop.culture
+						religion = scope:pa_majority_pop.religion
+					}
+				}
+			}
+		}
+	}
+}
+
+#P:A TODO Verify placement, was Apocopa (8704) in IR
+city_of_angels_decision_2 = {
+	decision_category = economy_decisions
+
+	potential = {
+		location:barbacadle = {
+			owner ?= root
+		}
+		has_global_variable = city_of_angels_taken
+		NOT = { has_global_variable = city_of_angels_taken_2 }
+	}
+
+	allow = {
+		location:barbacadle = {
+			population >= 50 #P:A TODO Approximate: Imperator total_population >= 50 pops converted 1:1 to EU5 population (thousands)
+		}
+	}
+
+	ai_will_do = {
+		value = 10000
+	}
+
+	option = {
+		name = city_of_angels_decision_2.a
+		ai_chance = { value = 100 }
+		effect = {
+			set_global_variable = city_of_angels_taken_2
+			location:barbacadle = {
+				add_location_modifier = {
+					modifier = city_of_angels_mod
+					days = -1
+					mode = add
+				}
+				ordered_pop = {
+					order_by = pop_size
+					max = 1
+					check_range_bounds = no
+					save_temporary_scope_as = pa_majority_pop
+				}
+				if = { #P:A TODO Approximate: Imperator create_state_pop = citizen five times (5 pops) -> size 5 burghers with the location's largest pop's culture and religion
+					limit = { exists = scope:pa_majority_pop }
+					add_pop = {
+						type = pop_type:burghers
+						size = 5
+						culture = scope:pa_majority_pop.culture
+						religion = scope:pa_majority_pop.religion
+					}
+				}
+			}
+			# current_ruler.family = {
+			# 	add_prestige = 250
+			# }
+			#P:A TODO No EU5 equivalent: +250 prestige for the ruler's family (Imperator family prestige; EU5 dynasties have no prestige effect of this kind)
+		}
+	}
+}

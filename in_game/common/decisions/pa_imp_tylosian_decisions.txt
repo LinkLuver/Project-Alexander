@@ -1,0 +1,44 @@
+﻿#P:A Imported from Invictus: decisions/tylosian_decisions.txt
+#   Imperator treasures are EU5 works of art (main_menu/setup/450/11_art.txt, branch dev). The work of art
+#   treasure_giant_shark_statue is commented out there with "Event needed for its creation": this decision creates it.
+
+giant_shark_statue_treasure = {
+	decision_category = other_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		NOT = {
+			has_variable = made_giant_shark_statue
+		}
+		culture = culture:babylonian # Imperator primary_culture = babylonian
+		# NOT = { exists = treasure:treasure_giant_shark_statue } #P:A TODO No EU5 equivalent: no trigger checks whether a specific work of art exists; the variable above covers this country only
+	}
+
+	allow = {
+		gold >= 50 # Imperator treasury
+		political_influence >= 25
+	}
+
+	ai_will_do = {
+		value = 100
+	}
+
+	option = {
+		name = giant_shark_statue_treasure.a
+		ai_chance = { value = 100 }
+		effect = {
+			set_variable = made_giant_shark_statue
+			add_gold = -50
+			add_political_influence = -25
+			capital ?= {
+				#P:A TODO Approximate: Imperator create_country_treasure (icon treasure_architecture); EU5 creates the work of art in the capital, type and quality as in 11_art.txt (which placed it at manama)
+				create_art = {
+					type = work_of_art_type:statue
+					quality = 40
+					key = treasure_giant_shark_statue
+				}
+			}
+			# modifier = { local_monthly_food_modifier = 0.05 local_state_trade_routes = 1 } #P:A TODO No EU5 equivalent: the treasure gave +5% monthly food and +1 trade route where it was kept (EU5 works of art have no modifiers)
+		}
+	}
+}

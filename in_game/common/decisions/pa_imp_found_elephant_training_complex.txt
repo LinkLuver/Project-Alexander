@@ -1,0 +1,64 @@
+﻿#P:A Imported from Invictus: decisions/found_elephant_training_complex.txt
+#P:A TODO No EU5 equivalent: highlight (map highlight of the target territory) has no decision field in EU5; dropped
+
+#P:A TODO Verify placement, was Rocat (3321) in IR
+found_elephant_training_complex = {
+	decision_category = other_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		owns = location:atbara
+		NOR = {
+			has_variable = founded_elephant_training_complex
+		}
+		OR = {
+			culture = { has_culture_group = culture_group:nubian_group } # Imperator country_culture_group = meroitic_group
+			culture = { has_culture_group = culture_group:ethiopian_group } # Imperator country_culture_group = aksumite_group
+			any_accepted_culture = { #P:A TODO Approximate: Imperator any_integrated_culture -> EU5 accepted cultures
+				pa_imp_is_old_egyptian_culture_group_trigger = yes
+			}
+		}
+	}
+
+	allow = {
+		gold >= 100 # Imperator treasury
+		# military_experience >= 40 #P:A TODO No EU5 equivalent: 40 military experience (EU5 army tradition is not a spendable currency)
+		capital ?= {
+			development >= 15 #P:A TODO Approximate: Imperator civilization_value >= 30 (0-100) read as EU5 development 15
+		}
+		OR = {
+			AND = {
+				societal_value:centralization_vs_decentralization <= -50 #P:A TODO Approximate: Imperator centralization >= 50
+				government_type = government_type:tribe # Imperator is_tribal = yes
+			}
+			government_type = government_type:monarchy # Imperator is_monarchy = yes
+			government_type = government_type:republic # Imperator is_republic = yes
+		}
+		owns = location:atbara
+	}
+
+	ai_will_do = {
+		value = 100
+	}
+
+	option = {
+		name = found_elephant_training_complex.a
+		ai_chance = { value = 100 }
+		effect = {
+			set_variable = founded_elephant_training_complex
+			add_gold = -100
+			# add_military_experience = -40 #P:A TODO No EU5 equivalent: cost 40 military experience (EU5 army tradition is not a spendable currency)
+			add_country_modifier = {
+				modifier = elephant_training_programme
+				days = -1
+			}
+			location:atbara = {
+				add_location_modifier = {
+					modifier = elephant_training_complex
+					days = -1
+				}
+				change_raw_material = goods:elephants # Imperator set_trade_goods = elephants
+			}
+		}
+	}
+}

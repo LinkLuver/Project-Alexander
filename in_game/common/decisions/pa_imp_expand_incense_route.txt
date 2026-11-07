@@ -1,0 +1,59 @@
+﻿#P:A Imported from Invictus: decisions/expand_incense_route.txt
+#P:A TODO No EU5 equivalent: highlight (map highlight of the target territory) has no decision field in EU5; dropped
+
+#P:A TODO Verify placement, was 'Adan (4650) in IR
+expand_incense_route = {
+	decision_category = economy_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		owns = location:adan
+		NOR = {
+			has_variable = founded_incense_route_hub
+		}
+		OR = {
+			culture = { has_culture_group = culture_group:west_arabian_group } #P:A TODO Approximate: Imperator country_culture_group = south_levantine -> the mod's west_arabian_group
+			culture = { has_culture_group = culture_group:south_arabian_group } # Imperator country_culture_group = south_arabian
+			any_accepted_culture = { #P:A TODO Approximate: Imperator any_integrated_culture -> EU5 accepted cultures
+				pa_imp_is_arabian_decision_culture_group_trigger = yes
+			}
+		}
+	}
+
+	allow = {
+		gold >= 800 # Imperator treasury
+		political_influence >= 20
+		capital ?= {
+			development >= 5 #P:A TODO Approximate: Imperator civilization_value >= 10 (0-100) read as EU5 development 5
+		}
+		OR = {
+			AND = {
+				societal_value:centralization_vs_decentralization <= -50 #P:A TODO Approximate: Imperator centralization >= 50
+				government_type = government_type:tribe # Imperator is_tribal = yes
+			}
+			government_type = government_type:monarchy # Imperator is_monarchy = yes
+			government_type = government_type:republic # Imperator is_republic = yes
+		}
+		owns = location:adan
+	}
+
+	ai_will_do = {
+		value = 100
+	}
+
+	option = {
+		name = expand_incense_route.a
+		ai_chance = { value = 100 }
+		effect = {
+			set_variable = founded_incense_route_hub
+			add_gold = -800
+			add_political_influence = -20
+			location:adan.province = { # Imperator p:4650.state
+				add_province_modifier = {
+					modifier = incense_route_hub
+					days = -1
+				}
+			}
+		}
+	}
+}

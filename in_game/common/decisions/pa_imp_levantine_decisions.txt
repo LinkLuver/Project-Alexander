@@ -1,0 +1,87 @@
+﻿#P:A Imported from Invictus: decisions/levantine_decisions.txt
+#   Skipped (tag- or date-bound): egypt_cypriot_kings, egypt_philokles_sidon (EGY), antigonid_cypriot_kings (PRY),
+#   colonize_dioskourides (SEL/EGY, dated).
+#P:A TODO No EU5 equivalent: highlight (map highlight of the target territory) has no decision field in EU5; dropped
+
+#P:A TODO Verify placement, was Kition (332) in IR
+expand_kition_kothon = {
+	decision_category = infrastructure_decisions
+
+	potential = {
+		always = no #P:A TODO No EU5 equivalent: the decision builds the Imperator great work "kition_kothon" (begin_great_work_construction) and then fires me_phoenicia.2400, a mission event that was not imported; EU5 has no great works, so nothing but the cost would happen
+		num_locations >= 1 # Imperator num_of_cities
+		NOT = { has_global_variable = expanded_kition_kothon_var }
+		OR = {
+			culture = culture:phoenician # Imperator primary_culture = phoenician
+			owns = location:kition # Kition
+		}
+	}
+
+	allow = {
+		owns_or_non_sovereign_subject_owns = location:kition
+		# trigger_if = {
+		# 	limit = {
+		# 		is_ai = yes
+		# 	}
+		# 	p:332 = {
+		# 		has_no_ongoing_construction = yes
+		# 		great_work_locator_is_free = primary_great_work
+		# 	}
+		# }
+		# trigger_else = {
+		# 	p:332 = {
+		# 		free_building_slots >= 1
+		# 		great_work_locator_is_free = primary_great_work
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: Kition needed a free great work slot and a free building slot (AI: no construction running); EU5 has no great works or building slots
+		trigger_if = {
+			limit = { culture = culture:phoenician }
+			gold >= 500 # Imperator treasury
+		}
+		trigger_else = {
+			gold >= 1500 # Imperator treasury
+		}
+		trigger_if = {
+			limit = { is_ai = no }
+			stability > 50
+		}
+	}
+
+	ai_will_do = {
+		value = 1
+		if = {
+			limit = { at_war = yes }
+			multiply = 0
+		}
+	}
+
+	option = {
+		name = expand_kition_kothon.a
+		ai_chance = { value = 100 }
+		effect = {
+			if = {
+				limit = { culture = culture:phoenician }
+				add_gold = -500
+			}
+			else = { add_gold = -1500 }
+			# hidden_effect = {
+			# 	p:332 = {
+			# 		begin_great_work_construction = {
+			# 			great_work = "kition_kothon"
+			# 			locator = great_work
+			# 			is_ancient = yes
+			# 		}
+			# 	}
+			# }
+			#P:A TODO No EU5 equivalent: began building the great work "kition_kothon" in Kition (EU5 has no great works)
+			set_global_variable = expanded_kition_kothon_var
+			# custom_tooltip = expand_kition_kothon_deadline
+			# trigger_event = {
+			# 	id = me_phoenicia.2400
+			# 	days = 1825 # 5 years
+			# }
+			#P:A TODO Associated event was not imported: me_phoenicia.2400 (Phoenician mission event, fired after 5 years)
+		}
+	}
+}

@@ -1,0 +1,55 @@
+﻿#P:A Imported from Invictus: decisions/celtiberian_treasure.txt
+#   Imperator treasures are EU5 works of art (main_menu/setup/450/11_art.txt, branch dev). The work of art
+#   treasure_celtiberian_plaques is commented out there with "Event needed for its creation": this decision creates it.
+
+celtiberian_plaques_treasure = {
+	decision_category = other_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		NOT = {
+			has_variable = made_celtiberian_plaques
+		}
+		culture = culture:celtiberian # Imperator primary_culture = celtiberian
+		# NOT = { exists = treasure:treasure_celtiberian_plaques } #P:A TODO No EU5 equivalent: no trigger checks whether a specific work of art exists; the variable above covers this country only
+	}
+
+	allow = {
+		gold >= 350 # Imperator treasury
+		political_influence >= 100
+		capital ?= {
+			development >= 25 #P:A TODO Approximate: Imperator civilization_value >= 50 (0-100) read as EU5 development 25
+		}
+		OR = {
+			AND = {
+				societal_value:centralization_vs_decentralization <= -60 #P:A TODO Approximate: Imperator centralization >= 60
+				government_type = government_type:tribe # Imperator is_tribal = yes
+			}
+			government_type = government_type:monarchy # Imperator is_monarchy = yes
+			government_type = government_type:republic # Imperator is_republic = yes
+		}
+	}
+
+	ai_will_do = {
+		value = 100
+	}
+
+	option = {
+		name = celtiberian_plaques_treasure.a
+		ai_chance = { value = 100 }
+		effect = {
+			set_variable = made_celtiberian_plaques
+			add_gold = -350
+			add_political_influence = -100
+			capital ?= {
+				#P:A TODO Approximate: Imperator create_country_treasure (icon treasure_chest); EU5 creates the work of art in the capital, type and quality as in 11_art.txt
+				create_art = {
+					type = work_of_art_type:treatise
+					quality = 55
+					key = treasure_celtiberian_plaques
+				}
+			}
+			# modifier = { local_happiness_for_same_culture_modifier = 0.1 } #P:A TODO No EU5 equivalent: the treasure gave +10% happiness to pops of the same culture where it was kept (EU5 works of art have no modifiers)
+		}
+	}
+}

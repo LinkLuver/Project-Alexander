@@ -1,0 +1,63 @@
+﻿#P:A Imported from Invictus: decisions/found_dromedary_training_complex.txt
+#P:A TODO No EU5 equivalent: highlight (map highlight of the target territory) has no decision field in EU5; dropped
+
+#P:A TODO Verify placement, was Resafa (803) in IR
+found_dromedary_training_complex = {
+	decision_category = other_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		owns = location:tabqah
+		NOR = {
+			has_variable = founded_dromedary_training_complex
+		}
+		OR = {
+			culture = { has_culture_group = culture_group:west_arabian_group } #P:A TODO Approximate: Imperator country_culture_group = south_levantine -> the mod's west_arabian_group
+			culture = { has_culture_group = culture_group:south_arabian_group } # Imperator country_culture_group = south_arabian
+			any_accepted_culture = { #P:A TODO Approximate: Imperator any_integrated_culture -> EU5 accepted cultures
+				pa_imp_is_arabian_decision_culture_group_trigger = yes
+			}
+		}
+	}
+
+	allow = {
+		gold >= 100 # Imperator treasury
+		# military_experience >= 65 #P:A TODO No EU5 equivalent: 65 military experience (EU5 army tradition is not a spendable currency)
+		capital ?= {
+			development >= 5 #P:A TODO Approximate: Imperator civilization_value >= 10 (0-100) read as EU5 development 5
+		}
+		OR = {
+			AND = {
+				societal_value:centralization_vs_decentralization <= -50 #P:A TODO Approximate: Imperator centralization >= 50
+				government_type = government_type:tribe # Imperator is_tribal = yes
+			}
+			government_type = government_type:monarchy # Imperator is_monarchy = yes
+			government_type = government_type:republic # Imperator is_republic = yes
+		}
+		owns = location:tabqah
+	}
+
+	ai_will_do = {
+		value = 100
+	}
+
+	option = {
+		name = found_dromedary_training_complex.a
+		ai_chance = { value = 100 }
+		effect = {
+			set_variable = founded_dromedary_training_complex
+			add_gold = -100
+			# add_military_experience = -65 #P:A TODO No EU5 equivalent: cost 65 military experience (EU5 army tradition is not a spendable currency)
+			add_country_modifier = {
+				modifier = dromedary_training_programme
+				days = -1
+			}
+			location:tabqah = {
+				add_location_modifier = {
+					modifier = dromedary_training_complex
+					days = -1
+				}
+			}
+		}
+	}
+}

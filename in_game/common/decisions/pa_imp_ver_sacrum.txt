@@ -1,0 +1,86 @@
+﻿#P:A Imported from Invictus: decisions/ver_sacrum.txt
+#   Old practice of ver sacrum, "sacred spring": a Bronze Age migration rite that survived into the Iron Age in the
+#   Samnites and Sabinians until Romanization.
+
+ver_sacrum = {
+	decision_category = religious_decisions
+
+	potential = {
+		OR = { # Imperator religion = italic_pantheon (maps/tables.json: same OR as roman_pantheon)
+			religion = religion:roman_pantheon
+			religion = religion:hellenic_pantheon
+		}
+		culture = culture:samnite # Imperator primary_culture = samnite, localised as Sabellian
+	}
+
+	allow = {
+		total_population >= 20 #P:A TODO Approximate: Imperator country_population >= 20 pops converted 1:1 to EU5 population (thousands)
+		custom_tooltip = {
+			text = ver_sacrum_cooldown_tt
+			NOT = {
+				has_variable = ver_sacrum_cooldown
+			}
+		}
+		custom_tooltip = {
+			text = ver_sacrum_req_tt
+			any_owned_location = {
+				population >= pa_imp_ver_sacrum_territory_svalue #P:A TODO Approximate: Imperator population_cap * 0.95; EU5 location_max_population * 0.95
+				any_pop = {
+					culture = culture:samnite
+					OR = { # Imperator pop_religion = italic_pantheon
+						religion = religion:roman_pantheon
+						religion = religion:hellenic_pantheon
+					}
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 100 # Imperator had no ai_will_do (the AI took it whenever it could)
+	}
+
+	option = {
+		name = ver_sacrum.a
+		ai_chance = { value = 100 }
+		effect = {
+			set_variable = {
+				name = ver_sacrum_cooldown
+				days = 5475 # 15 years
+			}
+			if = {
+				limit = {
+					has_variable = ver_sacrum_num_var
+				}
+				change_variable = {
+					name = ver_sacrum_num_var
+					add = 1
+				}
+			}
+			else = {
+				set_variable = {
+					name = ver_sacrum_num_var
+					value = 1
+				}
+			}
+			# trigger_event = samnium_event.1001
+			# show_as_tooltip = {
+			# 	add_stability = 8
+			# 	custom_tooltip = ver_sacrum_pop_movement_tt
+			# 	if = {
+			# 		limit = {
+			# 			has_variable = sam_res_ver_sacrum_bonus
+			# 		}
+			# 		add_military_experience = 5
+			# 	}
+			# 	if = {
+			# 		limit = {
+			# 			has_variable = sam_sync_ver_sacrum_bonus
+			# 		}
+			# 		add_political_influence = 15
+			# 	}
+			# }
+			#P:A TODO Associated event was not imported: samnium_event.1001 (Samnium mission event) did the rite itself: +8 stability, pops migrate to neighbouring territories and the country gains a claim there, plus mission bonuses; until it is ported the decision only sets its counters
+		}
+	}
+}

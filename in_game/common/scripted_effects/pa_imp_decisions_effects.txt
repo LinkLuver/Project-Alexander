@@ -1,0 +1,219 @@
+﻿# Imperator scripted effects for the Invictus/Indomita decision import (2026-11-07).
+
+#P:A Imported from Invictus: change_religion_effect (common/scripted_effects/00_religions.txt)
+# Country scope, parameter RELIGION (an EU5 religion key).
+pa_imp_change_religion_effect = {
+	# custom_tooltip = religion_conversion_tooltip #P:A TODO No EU5 equivalent: every character of another faith lost 20 loyalty (EU5 characters have no loyalty)
+	custom_tooltip = religion_conversion_family_tooltip
+	# if = {
+	# 	limit = {
+	# 		is_republic = yes
+	# 		has_party_type = traditionalist_party
+	# 	}
+	# 	add_party_approval = {
+	# 		party_type = traditionalist_party
+	# 		value = -10
+	# 	}
+	# }
+	# (the same for boni_party)
+	#P:A TODO No EU5 equivalent: republics lost 10 approval with the traditionalist and boni parties (EU5 has no parties)
+	if = {
+		limit = {
+			# Set this variable in events so costs can be handled outside of this effect
+			NOT = { has_variable = free_religion_conversion }
+		}
+		add_political_influence = -200
+		add_stability = -30
+	}
+	add_country_modifier = {
+		modifier = recent_convert_modifier
+		days = 3650
+	}
+	change_religion = religion:$RELIGION$
+	ruler ?= {
+		if = {
+			limit = {
+				NOT = { religion = religion:$RELIGION$ }
+			}
+			change_character_religion = religion:$RELIGION$
+		}
+	}
+	hidden_effect = {
+		# every_character = {
+		# 	limit = { NOT = { has_same_religion_as = employer.current_ruler } }
+		# 	add_loyalty = national_conversion_l
+		# }
+		#P:A TODO No EU5 equivalent: loyalty penalty for characters of another faith (EU5 characters have no loyalty)
+		ruler ?= {
+			dynasty ?= {
+				every_character_in_dynasty = {
+					limit = {
+						employer ?= root
+						#P:A TODO Approximate: Imperator converted only family members with 60+ loyalty; EU5 has no loyalty, every family member at court converts
+						NOT = { religion = religion:$RELIGION$ }
+					}
+					change_character_religion = religion:$RELIGION$
+				}
+			}
+		}
+	}
+	# ordered_character = {
+	# 	limit = {
+	# 		loyalty >= 60
+	# 		NOT = { has_religion = $RELIGION$ }
+	# 		is_ruler = no
+	# 		from_ruler_family = no
+	# 	}
+	# 	max = 6
+	# 	order_by = prominence
+	# 	check_range_bounds = no
+	# 	set_character_religion = $RELIGION$
+	# }
+	#P:A TODO No EU5 equivalent: the 6 most prominent loyal characters outside the ruler's family converted too (EU5 characters have no loyalty or prominence)
+	# if = {
+	# 	limit = {
+	# 		has_senate_approval < 60
+	# 		is_republic = yes
+	# 		NOT = { has_variable = dictatorship_enabled }
+	# 	}
+	# 	add_tyranny = { ... }
+	# }
+	#P:A TODO No EU5 equivalent: republics without 60% senate approval gained tyranny (EU5 has no senate or tyranny)
+}
+
+#P:A New: Imperator change_government = <form>. The Imperator forms are the government reforms of
+# in_game/common/government_reforms/pa_imperator_governments.txt (branch dev).
+# Country scope. TYPE = monarchy/republic/tribe/theocracy, REFORM = the Imperator form.
+pa_imp_change_ir_government_effect = {
+	if = {
+		limit = {
+			NOT = { government_type = government_type:$TYPE$ }
+		}
+		change_government_type = government_type:$TYPE$
+	}
+	hidden_effect = {
+		if = { limit = { has_reform = government_reform:aristocratic_republic } remove_reform = government_reform:aristocratic_republic }
+		if = { limit = { has_reform = government_reform:theocratic_republic } remove_reform = government_reform:theocratic_republic }
+		if = { limit = { has_reform = government_reform:oligarchic_republic } remove_reform = government_reform:oligarchic_republic }
+		if = { limit = { has_reform = government_reform:democratic_republic } remove_reform = government_reform:democratic_republic }
+		if = { limit = { has_reform = government_reform:plutocratic_republic } remove_reform = government_reform:plutocratic_republic }
+		if = { limit = { has_reform = government_reform:dictatorship } remove_reform = government_reform:dictatorship }
+		if = { limit = { has_reform = government_reform:despotic_monarchy } remove_reform = government_reform:despotic_monarchy }
+		if = { limit = { has_reform = government_reform:aristocratic_monarchy } remove_reform = government_reform:aristocratic_monarchy }
+		if = { limit = { has_reform = government_reform:stratocratic_monarchy } remove_reform = government_reform:stratocratic_monarchy }
+		if = { limit = { has_reform = government_reform:theocratic_monarchy } remove_reform = government_reform:theocratic_monarchy }
+		if = { limit = { has_reform = government_reform:plutocratic_monarchy } remove_reform = government_reform:plutocratic_monarchy }
+		if = { limit = { has_reform = government_reform:imperial_cult } remove_reform = government_reform:imperial_cult }
+		if = { limit = { has_reform = government_reform:tribal_chiefdom } remove_reform = government_reform:tribal_chiefdom }
+		if = { limit = { has_reform = government_reform:tribal_kingdom } remove_reform = government_reform:tribal_kingdom }
+		if = { limit = { has_reform = government_reform:tribal_federation } remove_reform = government_reform:tribal_federation }
+	}
+	add_reform = government_reform:$REFORM$
+}
+
+#P:A Imported from Invictus: trade_good_decision_spread_effect (common/scripted_effects/00_india_effects.txt), REGION = yes
+# Location scope, parameter TRADE_GOOD (an EU5 goods key). Somewhere in the same region gets the trade good.
+pa_imp_trade_good_decision_spread_region_effect = {
+	region ?= {
+		random_location_in_region = {
+			limit = {
+				owner ?= root
+				NOT = { raw_material = goods:$TRADE_GOOD$ }
+				pa_imp_valuable_trade_good_trigger = no
+				area ?= {
+					NOT = {
+						any_location_in_area = {
+							raw_material = goods:$TRADE_GOOD$
+						}
+					}
+				}
+			}
+			change_raw_material = goods:$TRADE_GOOD$
+		}
+	}
+}
+
+#P:A Imported from Invictus: trade_good_decision_spread_effect (common/scripted_effects/00_india_effects.txt), REGION = no
+# Location scope, parameter TRADE_GOOD (an EU5 goods key). A neighboring area gets the trade good.
+pa_imp_trade_good_decision_spread_neighbor_effect = {
+	area ?= {
+		random_neighbor_area = {
+			limit = {
+				any_location_in_area = {
+					owner ?= root
+					NOT = { raw_material = goods:$TRADE_GOOD$ }
+					pa_imp_valuable_trade_good_trigger = no
+				}
+			}
+			random_location_in_area = {
+				limit = {
+					owner ?= root
+					NOT = { raw_material = goods:$TRADE_GOOD$ }
+				}
+				change_raw_material = goods:$TRADE_GOOD$
+			}
+		}
+	}
+}
+
+#P:A Imported from Imperator: add_4_free_province_investments (common/scripted_effects/00_decision_effects.txt)
+# Country scope.
+pa_imp_add_4_free_province_investments = {
+	# custom_tooltip = "gain_4_free_investment_tt"
+	#P:A TODO No EU5 equivalent: free province investments (Imperator province investments do not exist in EU5); the variable is still kept, but nothing in EU5 reads it
+	if = {
+		limit = {
+			NOT = {
+				has_variable = free_investments
+			}
+		}
+		set_variable = {
+			name = free_investments
+			value = 4
+		}
+	}
+	else = {
+		change_variable = {
+			name = free_investments
+			add = 4
+		}
+	}
+}
+
+#P:A Imported from Imperator: capital_formable_large_effect (common/scripted_effects/00_event_effects.txt)
+# Imperator province scope -> EU5 location scope. Imperator created 4 citizen, 4 freemen and 4 slave pops of the
+# state's culture and religion (create_state_pop).
+pa_imp_capital_formable_large_effect = {
+	custom_tooltip = capital_formable_large_effect_tooltip
+	hidden_effect = {
+		ordered_pop = {
+			order_by = pop_size
+			max = 1
+			check_range_bounds = no
+			save_temporary_scope_as = pa_majority_pop
+		}
+		if = { #P:A TODO Approximate: Imperator pop count converted 1:1 to EU5 size; the state culture/religion is taken from the location's largest pop
+			limit = {
+				exists = scope:pa_majority_pop
+			}
+			add_pop = {
+				type = pop_type:burghers # Imperator citizen
+				size = 4
+				culture = scope:pa_majority_pop.culture
+				religion = scope:pa_majority_pop.religion
+			}
+			add_pop = {
+				type = pop_type:peasants # Imperator freemen
+				size = 4
+				culture = scope:pa_majority_pop.culture
+				religion = scope:pa_majority_pop.religion
+			}
+			add_pop = {
+				type = pop_type:slaves
+				size = 4
+				culture = scope:pa_majority_pop.culture
+				religion = scope:pa_majority_pop.religion
+			}
+		}
+	}
+}

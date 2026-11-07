@@ -1,0 +1,752 @@
+﻿#P:A Imported from Invictus: decisions/conversions.txt
+#   Government conversion decisions. Imperator government forms are the government reforms of
+#   in_game/common/government_reforms/pa_imperator_governments.txt (branch dev): "government = X" is written as
+#   "has_reform = government_reform:X", "change_government = X" as pa_imp_change_ir_government_effect.
+#   Skipped (tag- or mission-bound): proclaim_*_republic, proclaim_punic_republic, proclaim_dictatorship (ROM/CAR),
+#   create_empire (mission 01_horn_of_africa).
+
+become_tribal_chiefdom = {
+	decision_category = government_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		OR = {
+			has_reform = government_reform:tribal_federation
+			has_reform = government_reform:tribal_kingdom
+		}
+	}
+
+	allow = {
+		societal_value:centralization_vs_decentralization > 25 #P:A TODO Approximate: Imperator centralization < -25
+		# capital_scope = {
+		# 	custom_tooltip = {
+		# 		text = pops_to_decivilize_pop
+		# 		num_of_tribesmen > num_of_citizen
+		# 		num_of_tribesmen > num_of_freemen
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: the capital needed more tribesmen than citizens and than freemen (no trigger compares two pop-type sizes; a script value could)
+		# custom_tooltip = {
+		# 	text = tribal_reform_decision_trigger_tt
+		# 	NOT = {
+		# 		any_character = {
+		# 			is_clan_chief = yes
+		# 			loyalty < 33
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: no clan chief could be below 33 loyalty (EU5 has no clan chiefs or loyalty)
+	}
+
+	ai_will_do = {
+		value = 1
+		if = {
+			limit = {
+				OR = {
+					NOT = {
+						has_reform = government_reform:tribal_kingdom
+					}
+					any_owned_location = {
+						has_location_modifier = tribal_civilization_pmod
+					}
+					at_war = yes
+				}
+			}
+			multiply = 0
+		}
+	}
+
+	option = {
+		name = become_tribal_chiefdom.a
+		ai_chance = { value = 100 }
+		effect = {
+			add_political_influence = 25 # influence_large
+			if = {
+				limit = {
+					has_reform = government_reform:tribal_kingdom
+				}
+				add_stability = -10
+			}
+			else = {
+				add_stability = -30
+			}
+			pa_imp_change_ir_government_effect = { TYPE = tribe REFORM = tribal_chiefdom }
+			pa_imp_switch_government_type_event_clearup_effect = yes
+			if = {
+				limit = {
+					any_owned_location = { has_location_modifier = tribal_civilization_pmod }
+				}
+				every_owned_location = {
+					limit = { has_location_modifier = tribal_civilization_pmod }
+					remove_location_modifier = tribal_civilization_pmod
+				}
+			}
+		}
+	}
+}
+
+become_tribal_kingdom = {
+	decision_category = government_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		has_reform = government_reform:tribal_chiefdom
+	}
+
+	allow = {
+		# custom_tooltip = {
+		# 	text = cannot_stop_migrating_tooltip
+		# 	NOT = {
+		# 		any_unit = {
+		# 			num_of_migrants > 0
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: no army could be carrying migrating pops (EU5 armies carry no migrants)
+		societal_value:centralization_vs_decentralization < -25 #P:A TODO Approximate: Imperator centralization > 25
+		# custom_tooltip = {
+		# 	text = tribal_reform_decision_trigger_tt
+		# 	NOT = {
+		# 		any_character = {
+		# 			is_clan_chief = yes
+		# 			loyalty < 33
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: no clan chief could be below 33 loyalty (EU5 has no clan chiefs or loyalty)
+	}
+
+	ai_will_do = {
+		value = 1
+		if = {
+			limit = { at_war = yes }
+			multiply = 0
+		}
+	}
+
+	option = {
+		name = become_tribal_kingdom.a
+		ai_chance = { value = 100 }
+		effect = {
+			add_political_influence = 25 # influence_large
+			pa_imp_remove_stability_effect = yes
+			pa_imp_change_ir_government_effect = { TYPE = tribe REFORM = tribal_kingdom }
+			pa_imp_switch_government_type_event_clearup_effect = yes
+		}
+	}
+}
+
+# AI only: the event nation_forming.3 turns the tribe into an autocratic monarchy
+become_despotic_monarchy_tribal = {
+	decision_category = government_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		OR = {
+			has_reform = government_reform:tribal_federation
+			has_reform = government_reform:tribal_kingdom
+		}
+		is_ai = yes
+	}
+
+	allow = {
+		pa_imp_ai_is_allowed_to_reform_tribe = yes
+		# has_law = absolute_authority #P:A TODO No EU5 equivalent: the tribal law "absolute authority" (EU5 laws differ)
+		# NOT = {
+		# 	any_character = {
+		# 		is_clan_chief = yes
+		# 		loyalty < 33
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: no clan chief could be below 33 loyalty (EU5 has no clan chiefs or loyalty)
+	}
+
+	ai_will_do = {
+		value = 1000
+		if = {
+			limit = { at_war = yes }
+			multiply = 0
+		}
+	}
+
+	option = {
+		name = become_despotic_monarchy_tribal.a
+		ai_chance = { value = 100 }
+		effect = {
+			add_political_influence = -100
+			trigger_event_silently = {
+				id = nation_forming.3
+			}
+		}
+	}
+}
+
+# AI only: the event nation_forming.4 turns the tribe into a democratic republic
+become_democracy_tribal = {
+	decision_category = government_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		OR = {
+			has_reform = government_reform:tribal_kingdom
+			has_reform = government_reform:tribal_federation
+		}
+		is_ai = yes
+	}
+
+	allow = {
+		pa_imp_ai_is_allowed_to_reform_tribe = yes
+		# has_law = increased_council_powers #P:A TODO No EU5 equivalent: the tribal law "increased council powers" (EU5 laws differ)
+		# NOT = {
+		# 	any_character = {
+		# 		is_clan_chief = yes
+		# 		loyalty < 33
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: no clan chief could be below 33 loyalty (EU5 has no clan chiefs or loyalty)
+	}
+
+	ai_will_do = {
+		value = 1000
+		if = {
+			limit = { at_war = yes }
+			multiply = 0
+		}
+	}
+
+	option = {
+		name = become_democracy_tribal.a
+		ai_chance = { value = 100 }
+		effect = {
+			add_political_influence = -100
+			trigger_event_silently = {
+				id = nation_forming.4
+			}
+		}
+	}
+}
+
+#P:A TODO No EU5 equivalent: in Imperator this unlocked the tribal reform mission tree; EU5 has no missions, so only the variable is set
+tribal_reform_decision = {
+	decision_category = government_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		OR = {
+			has_reform = government_reform:tribal_federation
+			has_reform = government_reform:tribal_kingdom
+		}
+		is_ai = no
+		NOT = {
+			has_variable = can_tribal_reform
+		}
+	}
+
+	allow = {
+		stability >= 40
+		societal_value:centralization_vs_decentralization <= -60 #P:A TODO Approximate: Imperator centralization >= 60
+		# custom_tooltip = {
+		# 	text = tribal_reform_decision_trigger_tt
+		# 	NOT = {
+		# 		any_character = {
+		# 			is_clan_chief = yes
+		# 			loyalty < 33
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: no clan chief could be below 33 loyalty (EU5 has no clan chiefs or loyalty)
+	}
+
+	ai_will_do = {
+		value = 1
+		if = {
+			limit = {
+				ruler ?= {
+					pa_imp_char_is_bad_leader_trigger = yes
+				}
+			}
+			multiply = 0
+		}
+	}
+
+	option = {
+		name = tribal_reform_decision.a
+		ai_chance = { value = 100 }
+		effect = {
+			custom_tooltip = allows_tribal_reform_mission
+			set_variable = {
+				name = can_tribal_reform
+			}
+		}
+	}
+}
+
+become_plutocratic_monarchy = {
+	decision_category = government_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		OR = {
+			has_reform = government_reform:despotic_monarchy
+			has_reform = government_reform:stratocratic_monarchy
+			has_reform = government_reform:theocratic_monarchy
+			has_reform = government_reform:aristocratic_monarchy
+		}
+	}
+
+	allow = {
+		stability >= 40
+		capital ?= {
+			development >= 30 #P:A TODO Approximate: Imperator civilization_value >= 60 (0-100) read as EU5 development 30
+		}
+		# has_law = local_investment_policy #P:A TODO No EU5 equivalent: the monarchy law "local investment policy" (EU5 laws differ)
+	}
+
+	ai_will_do = {
+		value = 1
+		if = {
+			limit = {
+				ruler ?= {
+					pa_imp_char_is_bad_leader_trigger = yes
+				}
+			}
+			multiply = 0
+		}
+		if = {
+			limit = {
+				OR = {
+					has_reform = government_reform:stratocratic_monarchy
+					has_reform = government_reform:theocratic_monarchy
+					has_reform = government_reform:aristocratic_monarchy
+				}
+			}
+			multiply = 0
+		}
+	}
+
+	option = {
+		name = become_plutocratic_monarchy.a
+		ai_chance = { value = 100 }
+		effect = {
+			if = {
+				limit = {
+					OR = {
+						has_reform = government_reform:stratocratic_monarchy
+						has_reform = government_reform:theocratic_monarchy
+						has_reform = government_reform:aristocratic_monarchy
+					}
+				}
+				add_stability = -30
+			}
+			else = {
+				add_stability = -10
+			}
+			pa_imp_change_ir_government_effect = { TYPE = monarchy REFORM = plutocratic_monarchy }
+			pa_imp_switch_government_type_event_clearup_effect = yes
+		}
+	}
+}
+
+become_aristocratic_monarchy = {
+	decision_category = government_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		OR = {
+			has_reform = government_reform:despotic_monarchy
+			has_reform = government_reform:stratocratic_monarchy
+			has_reform = government_reform:theocratic_monarchy
+			has_reform = government_reform:plutocratic_monarchy
+		}
+	}
+
+	allow = {
+		stability >= 40
+		capital ?= {
+			development >= 30 #P:A TODO Approximate: Imperator civilization_value >= 60 (0-100) read as EU5 development 30
+		}
+		# has_law = heritage_tax_exemption #P:A TODO No EU5 equivalent: the monarchy law "heritage tax exemption" (EU5 laws differ)
+	}
+
+	ai_will_do = {
+		value = 1
+		if = {
+			limit = {
+				ruler ?= {
+					pa_imp_char_is_paranoid_trigger = yes
+				}
+			}
+			multiply = 0
+		}
+		if = {
+			limit = {
+				OR = {
+					has_reform = government_reform:stratocratic_monarchy
+					has_reform = government_reform:theocratic_monarchy
+					has_reform = government_reform:plutocratic_monarchy
+				}
+			}
+			multiply = 0
+		}
+	}
+
+	option = {
+		name = become_aristocratic_monarchy.a
+		ai_chance = { value = 100 }
+		effect = {
+			if = {
+				limit = {
+					OR = {
+						has_reform = government_reform:stratocratic_monarchy
+						has_reform = government_reform:theocratic_monarchy
+						has_reform = government_reform:plutocratic_monarchy
+					}
+				}
+				add_stability = -30
+			}
+			else = {
+				add_stability = -10
+			}
+			pa_imp_change_ir_government_effect = { TYPE = monarchy REFORM = aristocratic_monarchy }
+			pa_imp_switch_government_type_event_clearup_effect = yes
+		}
+	}
+}
+
+become_stratocratic_monarchy = {
+	decision_category = government_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		OR = {
+			has_reform = government_reform:despotic_monarchy
+			has_reform = government_reform:aristocratic_monarchy
+			has_reform = government_reform:theocratic_monarchy
+			has_reform = government_reform:plutocratic_monarchy
+		}
+	}
+
+	allow = {
+		stability >= 40
+		capital ?= {
+			development >= 30 #P:A TODO Approximate: Imperator civilization_value >= 60 (0-100) read as EU5 development 30
+		}
+		# has_law = relaxed_recruiting_standards #P:A TODO No EU5 equivalent: the monarchy law "relaxed recruiting standards" (EU5 laws differ)
+	}
+
+	ai_will_do = {
+		value = 1
+		if = {
+			limit = {
+				NOT = {
+					ruler ?= {
+						pa_imp_char_is_decent_trigger = yes
+					}
+				}
+			}
+			multiply = 0
+		}
+		if = {
+			limit = {
+				OR = {
+					has_reform = government_reform:plutocratic_monarchy
+					has_reform = government_reform:theocratic_monarchy
+					has_reform = government_reform:aristocratic_monarchy
+				}
+			}
+			multiply = 0
+		}
+	}
+
+	option = {
+		name = become_stratocratic_monarchy.a
+		ai_chance = { value = 100 }
+		effect = {
+			if = {
+				limit = {
+					OR = {
+						has_reform = government_reform:aristocratic_monarchy
+						has_reform = government_reform:stratocratic_monarchy # sic: Invictus lists stratocratic here and leaves theocratic out
+						has_reform = government_reform:plutocratic_monarchy
+					}
+				}
+				add_stability = -30
+			}
+			else = {
+				add_stability = -10
+			}
+			pa_imp_change_ir_government_effect = { TYPE = monarchy REFORM = stratocratic_monarchy }
+			pa_imp_switch_government_type_event_clearup_effect = yes
+		}
+	}
+}
+
+become_theocratic_monarchy = {
+	decision_category = government_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		OR = {
+			has_reform = government_reform:despotic_monarchy
+			has_reform = government_reform:aristocratic_monarchy
+			has_reform = government_reform:stratocratic_monarchy
+			has_reform = government_reform:plutocratic_monarchy
+		}
+	}
+
+	allow = {
+		stability >= 40
+		capital ?= {
+			development >= 30 #P:A TODO Approximate: Imperator civilization_value >= 60 (0-100) read as EU5 development 30
+		}
+		# religious_tech >= 6 #P:A TODO No EU5 equivalent: religious technology level 6 (EU5 has no tech tracks of this kind)
+	}
+
+	ai_will_do = {
+		value = 1
+		if = {
+			limit = {
+				NOT = {
+					ruler ?= {
+						pa_imp_char_is_decent_trigger = yes
+					}
+				}
+			}
+			multiply = 0
+		}
+		if = {
+			limit = {
+				OR = {
+					has_reform = government_reform:stratocratic_monarchy
+					has_reform = government_reform:plutocratic_monarchy
+					has_reform = government_reform:aristocratic_monarchy
+				}
+			}
+			multiply = 0
+		}
+	}
+
+	option = {
+		name = become_theocratic_monarchy.a
+		ai_chance = { value = 100 }
+		effect = {
+			if = {
+				limit = {
+					OR = {
+						has_reform = government_reform:aristocratic_monarchy
+						has_reform = government_reform:stratocratic_monarchy
+						has_reform = government_reform:plutocratic_monarchy
+					}
+				}
+				add_stability = -30
+			}
+			else = {
+				add_stability = -10
+			}
+			pa_imp_change_ir_government_effect = { TYPE = monarchy REFORM = theocratic_monarchy }
+			pa_imp_switch_government_type_event_clearup_effect = yes
+		}
+	}
+}
+
+deify_emperor = {
+	decision_category = government_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		OR = {
+			# government = imperium #P:A TODO No EU5 equivalent: the mod has no imperium reform
+			has_reform = government_reform:aristocratic_monarchy
+			has_reform = government_reform:stratocratic_monarchy
+			has_reform = government_reform:theocratic_monarchy
+			has_reform = government_reform:plutocratic_monarchy
+			has_reform = government_reform:despotic_monarchy
+			has_reform = government_reform:plutocratic_republic
+			has_reform = government_reform:aristocratic_republic
+			has_reform = government_reform:theocratic_republic
+			has_reform = government_reform:oligarchic_republic
+			# government = punic_republic #P:A TODO No EU5 equivalent: the mod has no punic_republic reform
+		}
+	}
+
+	allow = {
+		# is_monotheist_religion = no #P:A TODO No EU5 equivalent: monotheist faiths could not deify their ruler (EU5 religions have no monotheism flag)
+		num_locations >= 200 #P:A TODO Approximate: Imperator num_of_cities >= 200 (territories); EU5 owned locations
+		# trigger_if = {
+		# 	limit = { has_dlc = "Magna Graecia" }
+		# 	num_of_deified_rulers_in_pantheon = 4
+		# }
+		# trigger_else = {
+		ruler ?= {
+			dip >= 40 # Imperator charisma >= 8
+			adm >= 40 # Imperator finesse >= 8
+			mil >= 40 # Imperator martial >= 8
+			# zeal >= 10 #P:A TODO No EU5 equivalent: zeal 10 (EU5 characters have no zeal skill)
+		}
+		# }
+		# has_law = elevate_monarch_monarchy #P:A TODO No EU5 equivalent: the law "elevate the monarch" (EU5 laws differ)
+	}
+
+	ai_will_do = {
+		value = 1
+	}
+
+	option = {
+		name = deify_emperor.a
+		ai_chance = { value = 100 }
+		effect = {
+			add_stability = -30
+			# republic_to_monarchy_law_variable_effect = yes # decide which legion law should be transferred
+			# republic_to_monarchy_law_change_effect = yes # change legion law based on variable if present
+			#P:A TODO No EU5 equivalent: carried the republic's military law over to the matching monarchy law (EU5 laws differ)
+			pa_imp_change_ir_government_effect = { TYPE = monarchy REFORM = imperial_cult }
+			pa_imp_add_4_free_province_investments = yes
+			pa_imp_switch_government_type_event_clearup_effect = yes
+			# imperium_rename_effect = yes
+			#P:A TODO No EU5 equivalent: renamed ROM, TRE, MAC, EGY, PRY and others to their imperial names (tag-bound name keys not imported)
+		}
+	}
+}
+
+tribal_civilization = {
+	decision_category = government_decisions
+
+	potential = {
+		num_locations >= 1 # Imperator num_of_cities
+		government_type = government_type:tribe # Imperator is_tribal = yes
+		NOT = {
+			capital ?= { has_location_modifier = tribal_civilization_pmod }
+		}
+	}
+
+	allow = {
+		pa_imp_tribal_civilization_allow = yes
+		# custom_tooltip = {
+		# 	text = tri_civ_cla_chi_tt
+		# 	NOT = { # No clan chiefs are too disloyal
+		# 		any_character = {
+		# 			is_clan_chief = yes
+		# 			loyalty < 50
+		# 		}
+		# 	}
+		# }
+		#P:A TODO No EU5 equivalent: no clan chief could be below 50 loyalty (EU5 has no clan chiefs or loyalty)
+	}
+
+	ai_will_do = {
+		value = 1000
+		if = {
+			limit = {
+				at_war = yes
+				# OR = { war = yes AND = { is_advanced_ai_enabled = yes ... rank_by_num_territories >= regional_power } }
+				#P:A TODO No EU5 equivalent: the Invictus advanced-AI game rule also turned this off for large tribes
+			}
+			multiply = 0
+		}
+	}
+
+	option = {
+		name = tribal_civilization.a
+		ai_chance = { value = 100 }
+		effect = {
+			add_political_influence = -100
+			add_gold = -50
+			capital ?= {
+				add_location_modifier = {
+					modifier = tribal_civilization_pmod
+					days = -1
+				}
+				change_development = 5 #P:A TODO Approximate: Imperator add_civilization_value = 10 (0-100) read as EU5 development 5
+			}
+			if = {
+				limit = {
+					any_owned_location = {
+						is_capital = no
+						has_location_modifier = tribal_civilization_pmod
+					}
+				}
+				every_owned_location = {
+					limit = {
+						is_capital = no
+						has_location_modifier = tribal_civilization_pmod
+					}
+					remove_location_modifier = tribal_civilization_pmod
+				}
+			}
+		}
+	}
+}
+
+create_spartan_empire = {
+	decision_category = government_decisions
+
+	potential = {
+		always = no #P:A TODO No EU5 equivalent: needs the Invictus government spartan_monarchy and grants spartan_imperium; the mod has neither reform (spartan_citizen_military_state in country_specific.txt may be the closest)
+		num_locations >= 1 # Imperator num_of_cities
+		# government = spartan_monarchy
+	}
+
+	allow = {
+		num_locations >= 600 #P:A TODO Approximate: Imperator num_of_cities >= 600 (territories); EU5 owned locations
+		# current_ruler = {
+		# 	popularity >= 90
+		# }
+		#P:A TODO No EU5 equivalent: the ruler needed 90 popularity (EU5 characters have no popularity)
+		in_civil_war = no # Imperator has_civil_war = no
+	}
+
+	ai_will_do = {
+		value = 1
+	}
+
+	option = {
+		name = create_spartan_empire.a
+		ai_chance = { value = 100 }
+		effect = {
+			add_stability = -10
+			# change_government = spartan_imperium
+			pa_imp_add_3_free_province_investments = yes
+			pa_imp_switch_government_type_event_clearup_effect = yes
+		}
+	}
+}
+
+deify_spartan_emperor = {
+	decision_category = government_decisions
+
+	potential = {
+		always = no #P:A TODO No EU5 equivalent: needs the Invictus governments spartan_imperium/spartan_monarchy and grants spartan_imperial_cult; the mod has none of these reforms
+		num_locations >= 1 # Imperator num_of_cities
+		# OR = {
+		# 	government = spartan_imperium
+		# 	government = spartan_monarchy
+		# }
+	}
+
+	allow = {
+		# is_monotheist_religion = no #P:A TODO No EU5 equivalent: monotheist faiths could not deify their ruler (EU5 religions have no monotheism flag)
+		num_locations >= 200 #P:A TODO Approximate: Imperator num_of_cities >= 200 (territories); EU5 owned locations
+		ruler ?= {
+			dip >= 40 # Imperator charisma >= 8
+			adm >= 40 # Imperator finesse >= 8
+			mil >= 40 # Imperator martial >= 8
+			# zeal >= 10 #P:A TODO No EU5 equivalent: zeal 10 (EU5 characters have no zeal skill)
+		}
+		# has_law = elevate_monarch_monarchy #P:A TODO No EU5 equivalent: the law "elevate the monarch" (EU5 laws differ)
+	}
+
+	ai_will_do = {
+		value = 1
+	}
+
+	option = {
+		name = deify_spartan_emperor.a
+		ai_chance = { value = 100 }
+		effect = {
+			add_stability = -30
+			# change_government = spartan_imperial_cult
+			pa_imp_add_4_free_province_investments = yes
+			pa_imp_switch_government_type_event_clearup_effect = yes
+		}
+	}
+}

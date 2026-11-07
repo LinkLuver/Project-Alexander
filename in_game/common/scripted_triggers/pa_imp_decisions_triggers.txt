@@ -1,0 +1,176 @@
+﻿# Imperator scripted triggers for the Invictus/Indomita decision import (2026-11-07).
+# Imperator government forms are the government reforms in in_game/common/government_reforms/pa_imperator_governments.txt
+# (branch dev), so "government = X" is written as "has_reform = government_reform:X".
+
+#P:A Imported from Invictus: potential_change_religion_trigger (common/scripted_triggers/00_religions.txt)
+# Country scope, parameter RELIGION (an EU5 religion key). A character of the target faith serves the country.
+pa_imp_potential_change_religion_trigger = {
+	NOT = { religion = religion:$RELIGION$ }
+	any_character = {
+		religion = religion:$RELIGION$
+		#P:A Removed: prisoner = no is always true in EU5
+		# country = employer #P:A Removed: EU5 any_character already lists the country's own characters
+		is_adult = yes
+		trigger_if = {
+			limit = {
+				root = { modifier:gender_equality = no }
+			}
+			is_female = no
+		}
+		# NOT = { has_character_modifier = foreign_citizen } #P:A TODO No EU5 equivalent: Imperator foreign citizens did not count (EU5 has no citizenship)
+		# NOT = { has_trait = olympic_competitor } #P:A TODO No EU5 equivalent: Olympic competitors did not count (the mod has no olympic_competitor trait)
+	}
+}
+
+#P:A Imported from Invictus: could_change_religion_trigger (common/scripted_triggers/00_religions.txt)
+# Country scope, parameter RELIGION (an EU5 religion key).
+pa_imp_could_change_religion_trigger = {
+	political_influence >= 200
+	trigger_if = { #monarchy
+		limit = { government_type = government_type:monarchy }
+		legitimacy >= 70
+	}
+	# trigger_else_if = { #Republic
+	# 	limit = { is_republic = yes }
+	# 	has_senate_approval >= 0.3
+	# }
+	#P:A TODO No EU5 equivalent: republics needed 30% senate approval (EU5 has no senate)
+	# trigger_else = { #Tribe
+	# 	any_character = {
+	# 		count = all
+	# 		OR = {
+	# 			is_clan_chief = no
+	# 			loyalty >= 60
+	# 		}
+	# 	}
+	# }
+	#P:A TODO No EU5 equivalent: tribes needed every clan chief at 60 loyalty (EU5 has no clan chiefs or loyalty)
+	NOT = {
+		has_country_modifier = recent_convert_modifier
+	}
+	OR = {
+		capital ?= {
+			custom_tooltip = {
+				text = big_religion_in_capital_tooltip
+				#P:A TODO Approximate: Imperator counted free (non-slave) pops of the faith against half the capital's free population; EU5 checks half of all capital population
+				religion_percentage = {
+					religion = religion:$RELIGION$
+					value >= 0.5
+				}
+			}
+		}
+		AND = {
+			custom_tooltip = {
+				text = big_religion_in_country_tooltip
+				#P:A TODO Approximate: Imperator 20 pops of the faith, read as 20 (thousand) EU5 population
+				religion_population_in_country = {
+					religion = religion:$RELIGION$
+					value >= 20
+				}
+			}
+			# custom_tooltip = {
+			# 	text = pantheon_deity_tooltip
+			# 	any_pantheon_deity = {
+			# 		deity_religion = $RELIGION$
+			# 	}
+			# }
+			#P:A TODO No EU5 equivalent: a deity of the faith also had to be in the pantheon (EU5 has no deities)
+		}
+	}
+}
+
+#P:A Imported from Invictus: trade_good_decision_allow (common/scripted_triggers/00_country_events_inv_1_0.txt)
+# Location scope. Imperator passed DIFFICULTY = 1-4; one trigger per difficulty here.
+pa_imp_trade_good_decision_allow_1 = {
+	NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+	# num_goods_produced >= 2 #P:A TODO No EU5 equivalent: the territory had to produce 2 trade goods (EU5 production is not counted in goods)
+	population >= 20 #P:A TODO Approximate: Imperator total_population >= 20 pops converted 1:1 to EU5 population (thousands)
+}
+
+pa_imp_trade_good_decision_allow_2 = {
+	NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+	population >= 30 #P:A TODO Approximate: Imperator total_population >= 30 pops converted 1:1 to EU5 population (thousands)
+	# num_goods_produced >= 2 #P:A TODO No EU5 equivalent: the territory had to produce 2 trade goods (EU5 production is not counted in goods)
+}
+
+pa_imp_trade_good_decision_allow_3 = {
+	NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+	population >= 40 #P:A TODO Approximate: Imperator total_population >= 40 pops converted 1:1 to EU5 population (thousands)
+	# num_goods_produced >= 3 #P:A TODO No EU5 equivalent: the territory had to produce 3 trade goods (EU5 production is not counted in goods)
+	# free_building_slots = 0 #P:A TODO No EU5 equivalent: every building slot had to be used (EU5 has no building slots)
+	# has_no_ongoing_construction = yes #P:A TODO No EU5 equivalent: nothing could be under construction in the territory (no location-wide construction trigger found)
+}
+
+pa_imp_trade_good_decision_allow_4 = {
+	NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+	population >= 50 #P:A TODO Approximate: Imperator total_population >= 50 pops converted 1:1 to EU5 population (thousands)
+	# num_goods_produced >= 4 #P:A TODO No EU5 equivalent: the territory had to produce 4 trade goods (EU5 production is not counted in goods)
+	# free_building_slots = 0 #P:A TODO No EU5 equivalent: every building slot had to be used (EU5 has no building slots)
+	# has_no_ongoing_construction = yes #P:A TODO No EU5 equivalent: nothing could be under construction in the territory (no location-wide construction trigger found)
+}
+
+#P:A Imported from Imperator: tribal_civilization_allow (common/scripted_triggers)
+# Country scope.
+pa_imp_tribal_civilization_allow = {
+	political_influence >= 100
+	gold >= 50 # Imperator treasury
+	societal_value:centralization_vs_decentralization <= -50 #P:A TODO Approximate: Imperator centralization >= 50 (Is fairly centralized)
+	capital ?= {
+		development >= 20 #P:A TODO Approximate: Imperator civilization_value >= 40 (0-100) read as EU5 development 20
+	}
+	# has_law = oppidi_law_tribal #P:A TODO No EU5 equivalent: the tribal law "oppidi" (EU5 laws differ)
+	NOT = { has_reform = government_reform:tribal_chiefdom } # Not migratory
+}
+
+#P:A Imported from Imperator: ai_is_allowed_to_reform_tribe (common/scripted_triggers)
+# Country scope.
+pa_imp_ai_is_allowed_to_reform_tribe = {
+	# Fair requirements, same as what player need to meet to go through the mission tree
+	stability >= 40
+	societal_value:centralization_vs_decentralization <= -60 #P:A TODO Approximate: Imperator centralization >= 60
+	capital ?= {
+		development >= 20 #P:A TODO Approximate: Imperator civilization_value >= 40 (0-100) read as EU5 development 20
+		NOT = { location_rank = location_rank:rural_settlement } # Imperator has_city_status = yes
+	}
+	exists = ruler
+	# current_ruler = {
+	# 	popularity >= 80
+	# }
+	#P:A TODO No EU5 equivalent: the ruler needed 80 popularity (EU5 characters have no popularity)
+	political_influence >= 100
+	# Artificial limitations to reduce the amount of reforming tribes
+	country_rank_level >= 3 #P:A TODO Approximate: Imperator rank_by_num_territories >= regional_power; EU5 kingdom rank or higher
+	# OR = {
+	# 	AND = {
+	# 		is_advanced_ai_enabled = yes
+	# 		NOT = {
+	# 			has_global_variable = game_rule_advanced_ai_tribal_development
+	# 		}
+	# 	}
+	#P:A TODO No EU5 equivalent: the Invictus advanced-AI game rule was an alternative to the capital modifier below
+	capital ?= {
+		has_location_modifier = tribal_civilization_pmod # tribal_civilization (Codify State Lands) decision
+	}
+	# }
+}
+
+#P:A Imported from Invictus: is_arabian_decision_culture_group_trigger (common/scripted_triggers)
+# Culture scope.
+pa_imp_is_arabian_decision_culture_group_trigger = {
+	OR = {
+		has_culture_group = culture_group:west_arabian_group #P:A TODO Approximate: Imperator south_levantine group (Nabataeans, Qedarites ...) -> the mod's west_arabian_group
+		has_culture_group = culture_group:south_arabian_group # Imperator south_arabian
+	}
+}
+
+#P:A Imported from Invictus: is_old_egyptian_culture_group_trigger (common/scripted_triggers)
+# Culture scope.
+pa_imp_is_old_egyptian_culture_group_trigger = {
+	OR = {
+		has_culture_group = culture_group:ethiopian_group # Imperator aksumite_group
+		has_culture_group = culture_group:nubian_group # Imperator meroitic_group
+		has_culture_group = culture_group:nilotic_group
+		has_culture_group = culture_group:amazigh_group #P:A TODO Approximate: Imperator north_african group -> the mod's amazigh_group and libyan_group
+		has_culture_group = culture_group:libyan_group
+	}
+}
