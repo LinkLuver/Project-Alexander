@@ -1,0 +1,87 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+return_lent_unit = {
+	type = owncountry
+
+	potential = {
+		scope:actor = {
+			any_hired_mercenary = { is_lent_unit = yes }
+		}
+	}
+
+	allow = {
+	}
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	# Pick which borrowed unit to return to its owner.
+	# The default mercenary enumeration only surfaces units a country has put up for hire
+	# (_MercenariesForHire); lent units are never added there, so the candidate list must be
+	# built explicitly from the borrower's hired mercenaries.
+	select_trigger = {
+		looking_for_a = mercenary
+		target_flag = return_merc_target
+		interaction_source_list = {
+			scope:actor = {
+				every_hired_mercenary = {
+					limit = {
+						is_lent_unit = yes
+						# Skip embarked units — RecallLentUnit() destroys and recreates the
+						# underlying unit, which would tear the embark link and drown loaded armies.
+						NOT = { is_carrying_or_loaded_unit = yes }
+					}
+					add_to_list = source
+				}
+			}
+		}
+		cache_interaction_source_list = yes
+		name = "return_lent_unit_choose_unit"
+		none_available_msg_key = "return_lent_unit_no_units"
+		column = { data = name }
+		visible = {
+			is_lent_unit = yes
+			NOT = { is_carrying_or_loaded_unit = yes }
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:return_merc_target
+			}
+			# Goodwill: the lender appreciates getting their troops back voluntarily
+			scope:return_merc_target = {
+				owner = {
+					save_temporary_scope_as = lender
+				}
+			}
+			if = {
+				limit = {
+					exists = scope:lender
+				}
+				scope:lender = {
+					add_opinion = {
+						target = scope:actor
+						modifier = opinion_returned_lent_unit
+					}
+				}
+			}
+			scope:return_merc_target = {
+				recall_lent_unit = {}
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+
+		# AI returns lent units only once it is at peace, and actively wants to then.
+		# While still at war it keeps the borrowed troops (base value stays 0).
+		if = {
+			limit = {
+				scope:actor = { at_war = no }
+			}
+			add = 100
+		}
+	}
+}

@@ -1,0 +1,62 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+enforced_tariff_exemption = {
+	type = diplomacy
+	relation_type = oneway
+	break_on_war = yes
+	annulled_by_peace_treaty = yes
+	is_exempt_from_import_tariff = yes
+	category = {
+		offer = CATEGORY_ECONOMY_ACTIONS
+		request = CATEGORY_ECONOMY_ACTIONS
+		cancellation = CATEGORY_ECONOMY_ACTIONS
+		break = CATEGORY_ECONOMY_ACTIONS
+	}
+
+	offer_visible = { always = no }
+	request_visible = { always = no }
+	break_visible = { always = no }
+
+	cancel_enabled = {
+		scope:actor = {
+			NOT = { has_truce_with = scope:recipient }
+		}
+	}
+
+	will_expire_trigger = {
+		scope:first = { has_markets = no }
+	}
+
+	wants_to_keep = {
+		add = {
+			desc = "BASE"
+			value = -25
+		}
+
+		add = {
+			desc = "THEIR_OPINION_TOOLTIP"
+			value = "scope:actor.opinion(scope:recipient)"
+			if = {
+				limit = { "scope:actor.opinion(scope:recipient)" > 0 }
+				divide = 5
+			}
+		}
+
+		add = {
+			desc = "THEIR_TRUST_TOOLTIP"
+			value = "scope:actor.trust(scope:recipient)"
+			divide = 2
+		}
+
+		if = {
+			limit = {
+				scope:actor = {
+					is_rival_of = scope:recipient
+				}
+			}
+			add = {
+				desc = "game_concept_rival"
+				value = -100
+			}
+		}
+	}
+}

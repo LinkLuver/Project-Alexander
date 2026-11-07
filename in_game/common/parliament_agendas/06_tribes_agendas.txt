@@ -1,0 +1,143 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+pa_tribes_pasture_rights = {
+	type = country
+	estate = tribes_estate
+
+	importance = 1.5
+
+	potential = {
+		NOT = { has_country_modifier = tribes_estate_pasture_rights }
+	}
+
+	on_accept = {
+		add_country_modifier = { modifier = tribes_estate_pasture_rights years = 5 mode = add_and_extend }
+		add_estate_satisfaction = { type = scope:target value = 0.05 }
+	}
+
+	can_bribe = {
+		can_bribe_default_trigger = yes
+	}
+	on_bribe = {
+		on_bribe_default_effect = yes
+	}
+
+	chance = 10
+}
+
+pa_tribes_subsidies = {
+	type = country
+	estate = tribes_estate
+
+	importance = 1.5
+
+	potential = {
+		NOT = { has_country_modifier = tribes_estate_subsidies }
+	}
+
+	on_accept = {
+		add_country_modifier = { modifier = tribes_estate_subsidies years = 5 mode = add_and_extend }
+		add_estate_satisfaction = { type = scope:target value = 0.05 }
+	}
+
+	can_bribe = {
+		can_bribe_default_trigger = yes
+	}
+	on_bribe = {
+		on_bribe_default_effect = yes
+	}
+
+	chance = 10
+}
+
+pa_tribes_punish_rival = {
+	type = country
+	estate = tribes_estate
+
+	importance = 1.5
+
+	potential = {
+		OR = {
+			government_type = government_type:tribe
+			"estate_power(estate_type:tribes_estate)" > 0
+		}
+		#NOT = { #P:A Removed vanilla reference
+			#is_member_of_international_organization_of_type = { type = high_kingship } #P:A Removed vanilla reference
+		#} #P:A Removed vanilla reference
+		any_neighbor_country = {
+			OR = {
+				government_type = government_type:tribe
+				"estate_power(estate_type:tribes_estate)" > 0
+			}
+			NOT = { is_subject_of = root }
+			NOT = { is_allied_with = { target = root } }
+			NOT = {
+				root = {
+					has_casus_belli_of_type_on = {
+						target = prev
+						type = casus_belli:cb_tribal_feud
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		random_neighbor_country = {
+			limit = {
+				OR = {
+					government_type = government_type:tribe
+					"estate_power(estate_type:tribes_estate)" > 0
+				}
+				NOT = { is_subject_of = root }
+				NOT = { is_allied_with = { target = root } }
+				NOT = {
+					root = {
+						has_casus_belli_of_type_on = {
+							target = prev
+							type = casus_belli:cb_tribal_feud
+						}
+					}
+				}
+			}
+			save_scope_as = tribes_punish_rival_target
+		}
+		if = {
+			limit = {
+				exists = scope:tribes_punish_rival_target
+			}
+			add_casus_belli = {
+				target = scope:tribes_punish_rival_target
+				type = casus_belli:cb_tribal_feud
+			}
+			add_estate_satisfaction = { type = scope:target value = 0.05 }
+		}
+	}
+
+	can_bribe = {
+		can_bribe_default_trigger = yes
+	}
+	on_bribe = {
+		on_bribe_default_effect = yes
+	}
+
+	ai_will_do = {
+		subtract = {
+			if = {
+				limit = {
+					at_war = yes
+				}
+				value = 50
+			}
+		}
+		subtract = {
+			if = {
+				limit = {
+					estate_satisfaction = { estate_type = scope:target value > 0.5 }
+				}
+				value = 10
+			}
+		}
+	}
+
+	chance = 10
+}

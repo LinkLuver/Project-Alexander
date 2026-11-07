@@ -1,0 +1,677 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = gold_fleet_nueva_espana_events
+
+gold_fleet_nueva_espana_events.1 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.1.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:expedition = { has_variable = silver_source has_variable = dye_source } }
+				desc = gold_fleet_nueva_espana_events.1.desc.rich
+			}
+			desc = gold_fleet_nueva_espana_events.1.desc
+		}
+	}
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_home_departure }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			var:departure_port = { save_scope_as = departure_port }
+			if = {
+				limit = { has_variable = silver_source }
+				var:silver_source = { save_scope_as = silver_source }
+			}
+			if = {
+				limit = { has_variable = dye_source }
+				var:dye_source = { save_scope_as = dye_source }
+			}
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.1.a
+		change_gold_effect = { scale = -2 }
+		add_prestige = prestige_weak_bonus
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.1.historical_info
+}
+
+gold_fleet_nueva_espana_events.2 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.2.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:expedition = { has_variable = silver_source has_variable = dye_source } }
+				desc = gold_fleet_nueva_espana_events.2.desc.rich
+			}
+			desc = gold_fleet_nueva_espana_events.2.desc
+		}
+	}
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			var:primary_loot_port = { save_scope_as = loot_port }
+			var:departure_port = { save_scope_as = departure_port }
+			var:cuba_rendezvous = { save_scope_as = rendezvous_port }
+			if = {
+				limit = { has_variable = silver_source }
+				var:silver_source = { save_scope_as = silver_source }
+			}
+			if = {
+				limit = { has_variable = dye_source }
+				var:dye_source = { save_scope_as = dye_source }
+			}
+			if = {
+				limit = { has_variable = secondary_loot_port }
+				var:secondary_loot_port = { save_scope_as = secondary_port }
+			}
+			pause_expedition = 30
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.2.a
+		change_gold_effect = { scale = -2 }
+		custom_tooltip = gold_fleet_shared_events.cargo_loaded_tt
+		scope:expedition = {
+			set_variable = {
+				name = gold_fleet_cargo
+				value = {
+					value = scope:location.owner.produced_in_country:silver
+					multiply = "scope:location.owner.capital.market.market_price(goods:silver)"
+					multiply = 24
+				}
+			}
+			change_variable = {
+				name = gold_fleet_cargo
+				add = {
+					value = scope:location.owner.produced_in_country:goods_gold
+					multiply = "scope:location.owner.capital.market.market_price(goods:goods_gold)"
+					multiply = 24
+				}
+			}
+		}
+		scope:location.area = {
+			every_present_country = {
+				limit = { is_subject_of = root }
+				trigger_event_non_silently = gold_fleet_shared_events.4
+			}
+		}
+		if = {
+			limit = { scope:expedition = { has_variable = secondary_loot_port } }
+			trigger_event_non_silently = gold_fleet_nueva_espana_events.10
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.2.b
+		custom_tooltip = gold_fleet_shared_events.cargo_loaded_tt
+		scope:expedition = {
+			set_variable = {
+				name = gold_fleet_cargo
+				value = {
+					value = scope:location.owner.produced_in_country:silver
+					multiply = "scope:location.owner.capital.market.market_price(goods:silver)"
+					multiply = 24
+					multiply = 0.5
+				}
+			}
+			change_variable = {
+				name = gold_fleet_cargo
+				add = {
+					value = scope:location.owner.produced_in_country:goods_gold
+					multiply = "scope:location.owner.capital.market.market_price(goods:goods_gold)"
+					multiply = 24
+					multiply = 0.5
+				}
+			}
+		}
+		scope:location.area = {
+			every_present_country = {
+				limit = { is_subject_of = root }
+				trigger_event_non_silently = gold_fleet_shared_events.4
+			}
+		}
+		if = {
+			limit = { scope:expedition = { has_variable = secondary_loot_port } }
+			trigger_event_non_silently = gold_fleet_nueva_espana_events.10
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.2.c
+		custom_tooltip = gold_fleet_shared_events.cargo_loaded_tt
+		scope:expedition = {
+			set_variable = {
+				name = gold_fleet_cargo
+				value = {
+					value = scope:location.owner.produced_in_country:silver
+					multiply = "scope:location.owner.capital.market.market_price(goods:silver)"
+					multiply = 24
+					multiply = 0.1
+				}
+			}
+			change_variable = {
+				name = gold_fleet_cargo
+				add = {
+					value = scope:location.owner.produced_in_country:goods_gold
+					multiply = "scope:location.owner.capital.market.market_price(goods:goods_gold)"
+					multiply = 24
+					multiply = 0.1
+				}
+			}
+			clear_expedition_waypoints = yes
+		}
+		expedition_return_home = scope:expedition
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.2.historical_info
+}
+
+gold_fleet_nueva_espana_events.3 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.3.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { scope:expedition = { var:gf_havana_state = 2 } }
+				desc = gold_fleet_nueva_espana_events.3.desc.together
+			}
+			desc = gold_fleet_nueva_espana_events.3.desc.alone
+		}
+	}
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			var:cuba_rendezvous = { save_scope_as = rendezvous_port }
+			pause_expedition = 30
+			if = {
+				limit = { has_variable = gf_show_together_tt }
+				remove_variable = gf_show_together_tt
+				custom_tooltip = gold_fleet_nueva_espana_events.havana_together_danger_tt
+			}
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.3.a
+		trigger = { scope:expedition = { NOT = { var:gf_havana_state = 2 } } }
+		change_gold_effect = { scale = -1 }
+		add_prestige = prestige_weak_bonus
+		scope:expedition = {
+			custom_tooltip = gold_fleet_shared_events.danger_down_1_tt
+			change_variable = { name = gold_fleet_danger add = -1 }
+			clamp_variable = { name = gold_fleet_danger min = 1 }
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.3.b
+		scope:expedition = {
+			custom_tooltip = gold_fleet_shared_events.danger_up_1_tt
+			change_variable = { name = gold_fleet_danger add = 1 }
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.3.c
+		scope:expedition = {
+			pause_expedition = 90
+		}
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.3.historical_info
+}
+
+gold_fleet_nueva_espana_events.8 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.8.title
+	desc = gold_fleet_nueva_espana_events.8.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			var:cuba_rendezvous = { save_scope_as = rendezvous_port }
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.8.a
+		custom_tooltip = gold_fleet_nueva_espana_events.awaiting_fleet_tt
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.8.historical_info
+}
+
+gold_fleet_nueva_espana_events.9 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.9.title
+	desc = gold_fleet_nueva_espana_events.9.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			var:cuba_rendezvous = { save_scope_as = rendezvous_port }
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.9.a
+		ai_chance = { base = 25 }
+		custom_tooltip = gold_fleet_nueva_espana_events.hold_longer_tt
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.9.b
+		ai_chance = { base = 75 }
+		scope:expedition = {
+			remove_variable = gf_awaiting_rendezvous
+			set_variable = { name = gf_havana_state value = 0 }
+			custom_tooltip = gold_fleet_shared_events.danger_up_1_tt
+			change_variable = { name = gold_fleet_danger add = 1 }
+		}
+		trigger_event_non_silently = gold_fleet_nueva_espana_events.3
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.9.historical_info
+}
+
+gold_fleet_nueva_espana_events.10 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.10.title
+	desc = gold_fleet_nueva_espana_events.10.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			var:secondary_loot_port = { save_scope_as = secondary_port }
+			var:primary_loot_port = { save_scope_as = loot_port }
+			var:cuba_rendezvous = { save_scope_as = rendezvous_port }
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.10.a
+		custom_tooltip = gold_fleet_nueva_espana_events.10.a.tt
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.10.b
+		scope:expedition = {
+			pause_expedition = 45
+			set_variable = gf_fleet_divided
+			set_variable = gf_pending_port_reunion
+			custom_tooltip = gold_fleet_nueva_espana_events.10.danger_tt
+			change_variable = { name = gold_fleet_danger add = 1 }
+		}
+		trigger_event_non_silently = { id = gold_fleet_nueva_espana_events.11 days = 45 }
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.10.c
+		scope:expedition = {
+			set_variable = gf_fleet_divided
+			set_variable = gf_pending_sea_reunion
+			custom_tooltip = gold_fleet_nueva_espana_events.10.danger_tt
+			change_variable = { name = gold_fleet_danger add = 1 }
+		}
+		trigger_event_non_silently = { id = gold_fleet_nueva_espana_events.12 days = 45 }
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.10.historical_info
+}
+
+gold_fleet_nueva_espana_events.11 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.11.title
+	desc = gold_fleet_nueva_espana_events.11.desc
+	outcome = neutral
+
+	trigger = {
+		any_expedition = { has_variable = gf_pending_port_reunion }
+	}
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	immediate = {
+		random_expedition = {
+			limit = { has_variable = gf_pending_port_reunion }
+			save_scope_as = expedition
+		}
+		scope:expedition = {
+			remove_variable = gf_pending_port_reunion
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			var:secondary_loot_port = { save_scope_as = secondary_port }
+			var:primary_loot_port = { save_scope_as = loot_port }
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.11.a
+		scope:expedition = {
+			custom_tooltip = gold_fleet_shared_events.cargo_gain_tt
+			change_variable = {
+				name = gold_fleet_cargo
+				add = {
+					value = scope:secondary_port.owner.produced_in_country:goods_gold
+					multiply = "scope:secondary_port.owner.capital.market.market_price(goods:goods_gold)"
+					multiply = 24
+				}
+			}
+			remove_variable = gf_fleet_divided
+			custom_tooltip = gold_fleet_shared_events.danger_down_1_tt
+			change_variable = { name = gold_fleet_danger add = -1 }
+			clamp_variable = { name = gold_fleet_danger min = 1 }
+		}
+		scope:secondary_port.area = {
+			every_present_country = {
+				limit = { is_subject_of = root }
+				trigger_event_non_silently = gold_fleet_shared_events.4
+			}
+		}
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.11.historical_info
+}
+
+gold_fleet_nueva_espana_events.12 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.12.title
+	desc = gold_fleet_nueva_espana_events.12.desc
+	outcome = neutral
+
+	trigger = {
+		any_expedition = { has_variable = gf_pending_sea_reunion }
+	}
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		random_expedition = {
+			limit = { has_variable = gf_pending_sea_reunion }
+			save_scope_as = expedition
+		}
+		scope:expedition = {
+			remove_variable = gf_pending_sea_reunion
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			var:secondary_loot_port = { save_scope_as = secondary_port }
+			var:cuba_rendezvous = { save_scope_as = rendezvous_port }
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.12.a
+		scope:expedition = {
+			custom_tooltip = gold_fleet_shared_events.cargo_gain_tt
+			change_variable = {
+				name = gold_fleet_cargo
+				add = {
+					value = scope:secondary_port.owner.produced_in_country:goods_gold
+					multiply = "scope:secondary_port.owner.capital.market.market_price(goods:goods_gold)"
+					multiply = 24
+				}
+			}
+			remove_variable = gf_fleet_divided
+			custom_tooltip = gold_fleet_shared_events.danger_down_1_tt
+			change_variable = { name = gold_fleet_danger add = -1 }
+			clamp_variable = { name = gold_fleet_danger min = 1 }
+		}
+		scope:secondary_port.area = {
+			every_present_country = {
+				limit = { is_subject_of = root }
+				trigger_event_non_silently = gold_fleet_shared_events.4
+			}
+		}
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.12.historical_info
+}
+
+gold_fleet_nueva_espana_events.15 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.15.title
+	desc = gold_fleet_nueva_espana_events.15.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			set_variable = gf_norther_done
+			pause_expedition = 5
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.15.a
+		random_list = {
+			70 = {
+				custom_tooltip = gold_fleet_nueva_espana_events.15.deep_safe_tt
+			}
+			30 = {
+				custom_tooltip = gold_fleet_nueva_espana_events.15.deep_loss_tt
+				add_prestige = prestige_weak_penalty
+				scope:expedition = {
+					set_variable = {
+						name = gold_fleet_cargo
+						value = {
+							value = var:gold_fleet_cargo
+							multiply = 0.7
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.15.b
+		scope:expedition = {
+			pause_expedition = 45
+			custom_tooltip = gold_fleet_shared_events.cargo_loss_tt
+			set_variable = {
+				name = gold_fleet_cargo
+				value = {
+					value = var:gold_fleet_cargo
+					multiply = 0.9
+				}
+			}
+		}
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.15.historical_info
+}
+
+gold_fleet_nueva_espana_events.16 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.16.title
+	desc = gold_fleet_nueva_espana_events.16.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			set_variable = gf_silvertrain_done
+			var:silver_source = {
+				save_scope_as = silver_source
+			}
+			pause_expedition = 5
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.16.a
+		change_gold_effect = { scale = -2 }
+		scope:expedition = {
+			pause_expedition = 30
+			custom_tooltip = gold_fleet_shared_events.cargo_gain_tt
+			set_variable = {
+				name = gold_fleet_cargo
+				value = {
+					value = var:gold_fleet_cargo
+					multiply = 1.2
+				}
+			}
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.16.b
+		add_prestige = prestige_weak_penalty
+		scope:expedition = {
+			custom_tooltip = gold_fleet_shared_events.cargo_loss_tt
+			set_variable = {
+				name = gold_fleet_cargo
+				value = {
+					value = var:gold_fleet_cargo
+					multiply = 0.85
+				}
+			}
+		}
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.16.historical_info
+}
+
+gold_fleet_nueva_espana_events.17 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.17.title
+	desc = gold_fleet_nueva_espana_events.17.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			set_variable = gf_careen_done
+			pause_expedition = 5
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.17.a
+		scope:expedition = {
+			pause_expedition = 45
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.17.b
+		scope:expedition = {
+			custom_tooltip = gold_fleet_shared_events.danger_up_1_tt
+			change_variable = { name = gold_fleet_danger add = 1 }
+		}
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.17.historical_info
+}
+
+gold_fleet_nueva_espana_events.18 = {
+	type = country_event
+	title = gold_fleet_nueva_espana_events.18.title
+	desc = gold_fleet_nueva_espana_events.18.desc
+	outcome = neutral
+
+	location_backdrop = { backdrop_preset = backdrop_wilderness_landing }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			set_variable = gf_logwood_done
+		}
+		scope:location.region = {
+			ordered_location_in_region = {
+				limit = {
+					top_owner ?= root
+					raw_material = goods:lumber
+				}
+				order_by = {
+					value = population
+					multiply = -1
+				}
+				max = 1
+				save_scope_as = logwood_source
+			}
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.18.a
+		add_prestige = prestige_weak_bonus
+		scope:expedition = {
+			custom_tooltip = gold_fleet_shared_events.cargo_gain_tt
+			set_variable = {
+				name = gold_fleet_cargo
+				value = {
+					value = var:gold_fleet_cargo
+					multiply = 1.1
+				}
+			}
+			custom_tooltip = gold_fleet_shared_events.danger_up_2_tt
+			change_variable = { name = gold_fleet_danger add = 2 }
+		}
+	}
+
+	option = {
+		name = gold_fleet_nueva_espana_events.18.b
+		change_gold_effect = { scale = -1 }
+		scope:expedition = {
+			custom_tooltip = gold_fleet_shared_events.danger_down_1_tt
+			change_variable = { name = gold_fleet_danger add = -1 }
+			clamp_variable = { name = gold_fleet_danger min = 1 }
+		}
+	}
+
+	historical_info = gold_fleet_nueva_espana_events.18.historical_info
+}

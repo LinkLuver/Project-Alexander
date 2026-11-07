@@ -62,9 +62,6 @@
 # can_overlord_build_buildings = <yes/no> whether or not the overlord can build buildings in the subjects locations
 # can_overlord_build_rgos = <yes/no> whether or not the overlord can build rgos in the subjects locations
 # overlord_share_exploration = <yes/no> whether or not the overlord will share their exploration or not
-# overlord_protects_external = <yes/no> whether or not the overlord will protect the subject from external attackers, defaults to yes
-# overlord_protects_other_subjects = <yes/no> whether or not the overlord will protect the subject from internal attackers (such as other subjects), defaults to no
-# counts_as_external = <yes/no> whether or not that subject type is seen as an external threat if it attacks other subjects of their overlord, in which case the overlord will consider overlord_protects_external against them, defaults to no
 # can_be_force_broken_in_peace_treaty = <yes/no> can this subject type be demanded to be broken in a peace treaty
 # overlord_can_enforce_peace_on_subject = <yes/no> can the overlord demand that the subject leave any wars they're in
 # war_score_cost = <script_value> how much will this subject cost to establish in wars, modifies the base war score cost calculation

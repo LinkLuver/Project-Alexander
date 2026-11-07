@@ -9,8 +9,8 @@
 #   subject_pays                        -> subject_pays (prices in prices/pa_imperator_subject_prices.txt)
 #   joins_overlord_in_war = yes         -> join_offensive_wars_always + join_defensive_wars_always
 #                                          (the subject joins when its overlord calls)
-#   protected_when_attacked = yes       -> overlord_protects_external = yes, and the overlord joins
-#                                          the subject's defensive wars (join_defensive_wars_always)
+#   protected_when_attacked = yes       -> the overlord joins the subject's defensive wars
+#                                          (join_defensive_wars_always; 1.4 removed overlord_protects_external)
 #   allowed_to_declare_war_against_others = yes -> allow_declaring_wars = { always = yes }
 #   has_overlords_ruler                 -> has_overlords_ruler
 #   can_be_integrated                   -> can_be_annexed

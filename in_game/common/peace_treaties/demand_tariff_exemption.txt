@@ -1,0 +1,66 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+demand_tariff_exemption = {
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 20
+		}
+	}
+
+	potential = {
+		scope:loser = {
+			has_markets = yes
+			NOT = {
+				giving_scripted_relation = {
+					type = relation_type:enforced_tariff_exemption
+					target = scope:winner
+				}
+			}
+		}
+	}
+	allow = {
+	}
+
+	effect = {
+		scope:winner = {
+			create_relation = {
+				first = scope:loser
+				second = scope:winner
+				type = relation_type:enforced_tariff_exemption
+			}
+		}
+	}
+
+	ai_desire = {
+		add = {
+			desc = "BASE"
+			value = 10
+		}
+
+		if = {
+			limit = {
+				scope:winner = {
+					"tariffs_paid_to(scope:loser)" <= 0
+				}
+			}
+			add = {
+				desc = "DEMAND_TARIFF_EXEMPTION_NO_TARIFFS"
+				value = -1000
+			}
+		}
+
+		if = {
+			limit = {
+				exists = scope:war
+				scope:war ?= {
+					has_casus_belli = yes
+					casus_belli = casus_belli:cb_tariff_dispute
+				}
+			}
+			add = {
+				desc = "DIPLOREASON_USED_CASUSBELLI"
+				value = 50
+			}
+		}
+	}
+}

@@ -1,0 +1,92 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+form_colonial_nation = {
+	is_available = {
+		scope:target = {
+			not = {
+				any_location_in_province_definition = {
+					controller ?= {
+						not = { this = scope:owner }
+					}
+				}
+			}
+			any_location_in_province_definition = {
+				would_be_overseas_for = scope:owner
+			}
+		}
+	}
+
+	default_priority = {
+		value = 50
+		# Downweight if a colonial subject already exists nearby
+		if = {
+			limit = {
+				scope:owner = {
+					any_subject = {
+						is_subject_type = colonial_nation
+						OR = {
+							capital.area = scope:target.area
+							capital.area = { any_neighbor_area = { this = scope:target.area } }
+						}
+					}
+				}
+			}
+			add = -100
+		}
+	}
+
+	effect = {
+		# Select the best capital location
+		if = {
+			limit = {
+				scope:target = {
+					any_location_in_province_definition = { is_city = yes  count = 0 }
+				}
+			}
+			scope:target = {
+				ordered_location_in_province_definition = {
+					max = 1
+					order_by = best_capital_for_colony
+					save_scope_as = new_town
+				}
+			}
+		}
+		if = {
+			limit = { exists = scope:new_town }
+			scope:new_town = {
+				change_location_rank = location_rank:town
+				cc_setup_new_town = yes
+			}
+		}
+		scope:target = {
+			create_location_country_from_province_definition = {
+				subject_type = subject_type:colonial_nation
+				from = scope:owner
+				capital = scope:new_town
+				hidden_effect = { setup_colonial_nation = yes }
+				add_truce_with = {
+					target = scope:owner
+					mutual = yes
+				}
+			}
+		}
+	}
+
+	ai_will_select = {
+		value = 1000
+		# Never if a subject already exists nearby (AI would use expand_subject instead)
+		if = {
+			limit = {
+				scope:owner = {
+					any_subject = {
+						is_subject_type = colonial_nation
+						OR = {
+							capital.area = scope:target.area
+							capital.area = { any_neighbor_area = { this = scope:target.area } }
+						}
+					}
+				}
+			}
+			add = -2000
+		}
+	}
+}

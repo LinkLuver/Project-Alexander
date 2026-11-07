@@ -1,0 +1,181 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+demand_war_leadership = {
+	type = diplomacy
+	category = CATEGORY_HOSTILE_ACTIONS
+
+	diplomatic_cost = demand_war_leadership_cost
+	diplomatic_cost_modifier = {
+		if = {
+			limit = {
+				scope:recipient = {
+					is_subject_of = scope:actor
+				}
+			}
+			value = 0
+		}
+		else = {
+			value = 1
+		}
+	}
+
+	potential = {
+		scope:actor = {
+			at_war = yes
+		}
+	}
+
+	allow = {
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		interaction_source_list = {
+			scope:actor = {
+				every_current_war = {
+					limit = {
+						not = {
+							attacker_leader = scope:actor
+							defender_leader = scope:actor
+						}
+					}
+					attacker_leader = { add_to_list = source }
+					defender_leader = { add_to_list = source }
+				}
+			}
+		}
+		name = "choose_country"
+		show_why_not_enabled = yes
+		default_sort = will
+		column = { data = country_diplomacy_info_military }
+		visible = { }
+		enabled = {
+			great_power_score < {
+				value = scope:actor.great_power_score
+			}
+			any_current_war = {
+				is_in_war = scope:actor
+				or = {
+					attacker_leader = root
+					defender_leader = root
+				}
+				not = {
+					attacker_leader = scope:actor
+					defender_leader = scope:actor
+				}
+				not = { is_civil_war_for = root }
+				trigger_if = {
+					limit = { is_an_attacker = scope:actor }
+					attacker_leader = root
+				}
+				trigger_else = {
+					defender_leader = root
+				}
+			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = war
+		target_flag = war
+		interaction_source_list = {
+			scope:actor = {
+				every_current_war = {
+					limit = {
+						is_in_war = scope:recipient
+						or = {
+							attacker_leader = scope:recipient
+							defender_leader = scope:recipient
+						}
+						not = {
+							attacker_leader = scope:actor
+							defender_leader = scope:actor
+						}
+						not = { is_civil_war_for = scope:recipient }
+					}
+					add_to_list = source
+				}
+			}
+		}
+		cache_interaction_source_list = yes
+		name = "choose_war_to_take_leadership"
+		column = { data = name }
+		visible = { }
+		enabled = { }
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				or = {
+					scope:recipient = {
+						is_subject_of = scope:actor
+					}
+					scope:war = {
+						or = {
+							attacker_leader = { is_rival_of = scope:actor }
+							defender_leader = { is_rival_of = scope:actor }
+						}
+					}
+				}
+
+			}
+			add = {
+				desc = "TARGET_ACCEPTANCE"
+				value = "scope:actor.country_interaction_acceptance(country_interaction:demand_war_leadership|scope:recipient)"
+			}
+		}
+	}
+
+	diplo_chance = {
+		base = -30
+		opinion = 0.4
+	}
+
+	accept = {
+		subtract = {
+			desc = "DIPLOREASON_LOSING_WAR_LEADERSHIP"
+			value = 30
+		}
+		add = {
+			desc = "DIPLOREASON_FAVOR_COMPENSATION"
+			value = 15
+		}
+		add = {
+			desc = "DIPLOREASON_POWER_DIFFERENCE"
+			value = "scope:actor.great_power_score"
+			subtract = "scope:recipient.great_power_score"
+			multiply = 0.05
+			max = 30
+		}
+	}
+
+	reject_effect = {
+		scope:recipient = {
+			add_opinion = {
+				target = scope:actor
+				modifier = opinion_refused_war_leadership_demand
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			set_war_leader = { war = scope:war }
+		}
+		scope:recipient = {
+			add_favors = {
+				target = scope:actor
+				value = 15
+			}
+			add_trust_equilibrium = {
+				target = scope:actor
+				modifier = trust_ceded_war_leadership
+			}
+			add_opinion = {
+				target = scope:actor
+				modifier = opinion_ceded_war_leadership
+			}
+		}
+	}
+}
