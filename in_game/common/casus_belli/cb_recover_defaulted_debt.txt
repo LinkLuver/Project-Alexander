@@ -1,0 +1,51 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+#root is country
+#scope:target is the target (the country that defaulted on us)
+
+
+cb_recover_defaulted_debt = {
+
+	create_visible = {
+		always = no
+	}
+	create_enabled = {
+		always = no
+	}
+
+	war_goal_type = recover_defaulted_debt_wargoal
+
+	ai_will_do = {
+		add = {
+			desc = "BASE"
+			value = 10
+		}
+		# Banks exist to lend; a defaulted-on bank is existentially motivated.
+		if = {
+			limit = { country_type = building }
+			multiply = 3
+		}
+		# Scale up with the size of the debt we lost. Opinion is at -100 from the
+		# was_defaulted_on bias; deeper negatives mean more recent / larger losses.
+		if = {
+			limit = {
+				opinion = { target = scope:target value <= -100 }
+			}
+			add = {
+				desc = "DEFAULTED_ON_US"
+				value = 20
+			}
+		}
+		# Restraint: don't pile in if much weaker.
+		if = {
+			limit = {
+				scope:target = {
+					army_size > {
+						value = root.army_size
+						multiply = 2
+					}
+				}
+			}
+			multiply = 0.3
+		}
+	}
+}

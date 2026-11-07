@@ -1,0 +1,46 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+attack_neighbors = {
+    attacker_potential = {
+        OR = {
+            AND = {
+                ai_personality = ai_personality:ai_expansionist
+                months_since_war >= 30
+            }
+            AND = {
+                ai_personality = ai_personality:ai_aggressive
+                months_since_war >= 60
+            }
+            AND = {
+                ai_personality != ai_personality:ai_isolationist
+                months_since_war >= 180 #15 years without a war
+            }
+        }
+    }
+    candidate_list = {
+        every_neighbor_country = {
+            add_to_list = source
+        }
+        every_subject_or_below = {
+            limit = {
+                is_neighbor_of = root
+            }
+
+            every_neighbor_country = {
+                limit = {
+                    NOT = {
+                        this = root
+                        is_subject_of = root
+                    }
+                }
+
+                add_to_list = source
+            }
+        }
+
+    }
+    score = {
+        add = scope:target.country_tax_base
+        divide = "scope:target.capital.distance_to(scope:attacker.capital)"
+        multiply = 10
+    }
+}

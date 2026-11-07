@@ -1,0 +1,147 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+iberian_wedding_pact = {
+	type = diplomacy
+	relation_type = mutual
+	called_in_defensively = mutual
+	disallow_war = yes
+	break_on_war = yes
+	category = {
+		offer = CATEGORY_FRIENDLY_ACTIONS
+		request = CATEGORY_FRIENDLY_ACTIONS
+		cancellation = CATEGORY_HOSTILE_ACTIONS
+		break = CATEGORY_HOSTILE_ACTIONS
+	}
+
+	relation_type_for_ai = friendly
+
+	visible = {
+		scope:actor = {
+			government_type = government_type:monarchy
+			has_mutual_scripted_relation = {
+				type = relation_type:iberian_wedding_pact
+				target = scope:recipient
+			}
+		}
+		scope:recipient = {
+			government_type = government_type:monarchy
+		}
+	}
+
+	request_visible = { always = no }
+
+	offer_enabled = {
+		always = no
+	}
+
+	offer_effect = {
+		scope:actor = {
+			change_heir_selection = heir_selection:iberian_union_succession
+			set_variable = {
+				name = iberian_wedding_partner
+				value = scope:recipient
+			}
+			add_trust_equilibrium = {
+				modifier = trust_union_of_crowns_pact
+				target = scope:recipient
+			}
+			add_country_modifier = {
+				modifier = union_of_crowns_pact_modifier
+				mode = add_and_extend
+				years = -1
+			}
+		}
+		scope:recipient = {
+			change_heir_selection = heir_selection:iberian_union_succession
+			set_variable = {
+				name = iberian_wedding_partner
+				value = scope:actor
+			}
+			add_trust_equilibrium = {
+				modifier = trust_union_of_crowns_pact
+				target = scope:actor
+			}
+			add_country_modifier = {
+				modifier = union_of_crowns_pact_modifier
+				mode = add_and_extend
+				years = -1
+			}
+		}
+	}
+
+	cancel_enabled = {
+		scope:actor = {
+			has_heir = yes
+		}
+	}
+
+	cancel_effect = {
+		scope:actor = {
+			remove_trust_equilibrium = {
+				modifier = trust_union_of_crowns_pact
+				target = scope:recipient
+			}
+			remove_variable = iberian_wedding_partner
+			remove_country_modifier = union_of_crowns_pact_modifier
+			change_heir_selection = heir_selection:cognatic_primogeniture
+		}
+		scope:recipient = {
+			remove_trust_equilibrium = {
+				modifier = trust_union_of_crowns_pact
+				target = scope:actor
+			}
+			remove_variable = iberian_wedding_partner
+			remove_country_modifier = union_of_crowns_pact_modifier
+			change_heir_selection = heir_selection:cognatic_primogeniture
+		}
+	}
+
+	break_effect = {
+		scope:actor = {
+			remove_trust_equilibrium = {
+				modifier = trust_union_of_crowns_pact
+				target = scope:recipient
+			}
+			remove_variable = iberian_wedding_partner
+			remove_country_modifier = union_of_crowns_pact_modifier
+			change_heir_selection = heir_selection:cognatic_primogeniture
+		}
+		scope:recipient = {
+			remove_trust_equilibrium = {
+				modifier = trust_union_of_crowns_pact
+				target = scope:actor
+			}
+			remove_variable = iberian_wedding_partner
+			remove_country_modifier = union_of_crowns_pact_modifier
+			change_heir_selection = heir_selection:cognatic_primogeniture
+		}
+	}
+
+	expire_effect = {
+		scope:first = {
+			remove_trust_equilibrium = {
+				modifier = trust_union_of_crowns_pact
+				target = scope:second
+			}
+			remove_variable = iberian_wedding_partner
+			remove_country_modifier = union_of_crowns_pact_modifier
+			change_heir_selection = heir_selection:cognatic_primogeniture
+		}
+		scope:second = {
+			remove_trust_equilibrium = {
+				modifier = trust_union_of_crowns_pact
+				target = scope:first
+			}
+			remove_variable = iberian_wedding_partner
+			remove_country_modifier = union_of_crowns_pact_modifier
+			change_heir_selection = heir_selection:cognatic_primogeniture
+		}
+	}
+
+	will_expire_trigger = {
+		OR = {
+			scope:first = { not = { government_type = government_type:monarchy } }
+			scope:second = { not = { government_type = government_type:monarchy } }
+			scope:first = { in_union_with = scope:second }
+		}
+	}
+}

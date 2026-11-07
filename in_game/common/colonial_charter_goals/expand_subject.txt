@@ -1,0 +1,119 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+expand_subject = {
+	needs_subject = yes
+	is_valid_subject = {
+		# ROOT = candidate subject country
+		# scope:owner = owner/actor country
+		# scope:target = province definition being colonized
+		is_subject_type = colonial_nation
+		is_subject_of = scope:owner
+		OR = {
+			capital.area = scope:target.area
+			capital.area = { any_neighbor_area = { this = scope:target.area } }
+			capital = { region = scope:target.region }
+		}
+	}
+
+	is_available = {
+		scope:target = {
+			not = {
+				any_location_in_province_definition = {
+					controller ?= {
+						not = { this = scope:owner }
+					}
+				}
+			}
+		}
+		scope:owner = {
+			any_subject = { is_subject_type = colonial_nation }
+		}
+	}
+
+	default_priority = {
+		value = 0
+		# Highest priority if a colonial subject exists in the same area
+		if = {
+			limit = {
+				scope:owner = {
+					any_subject = {
+						is_subject_type = colonial_nation
+						capital.area = scope:target.area
+					}
+				}
+			}
+			add = 200
+		}
+		# Still high if one is in an adjacent area
+		else_if = {
+			limit = {
+				scope:owner = {
+					any_subject = {
+						is_subject_type = colonial_nation
+						capital.area = { any_neighbor_area = { this = scope:target.area } }
+					}
+				}
+			}
+			add = 100
+		}
+	}
+
+	effect = {
+		# Select best capital location (same logic as form_colonial_nation)
+		if = {
+			limit = {
+				scope:target = {
+					any_location_in_province_definition = {
+						is_city = yes
+						count = 0
+					}
+				}
+			}
+			scope:target = {
+				ordered_location_in_province_definition = {
+					max = 1
+					order_by = best_capital_for_colony
+					save_scope_as = new_town
+				}
+			}
+		}
+		if = {
+			limit = { exists = scope:new_town }
+			scope:new_town = {
+				change_location_rank = location_rank:town
+				cc_setup_new_town = yes
+			}
+		}
+
+		scope:target = {
+			every_location_in_province_definition = {
+				change_location_owner = scope:goal_subject
+			}
+		}
+	}
+
+	ai_will_select = {
+		value = 0
+		if = {
+			limit = {
+				scope:owner = {
+					any_subject = {
+						is_subject_type = colonial_nation
+						capital.area = scope:target.area
+					}
+				}
+			}
+			add = 3000
+		}
+		else_if = {
+			limit = {
+				scope:owner = {
+					any_subject = {
+						is_subject_type = colonial_nation
+						capital.area = { any_neighbor_area = { this = scope:target.area } }
+					}
+				}
+			}
+			add = 2000
+		}
+	}
+}

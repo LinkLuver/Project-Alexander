@@ -1,0 +1,443 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+namespace = gold_fleet_shared_events
+
+gold_fleet_shared_events.1 = {
+	type = country_event
+	title = gold_fleet_shared_events.1.title
+	desc = gold_fleet_shared_events.1.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			set_variable = gf_pirates_done
+			pause_expedition = 7
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.1.a
+		random_list = {
+			90 = {
+				modifier = { add = -45  scope:expedition = { var:gold_fleet_danger = 2 } }
+				modifier = { add = -60  scope:expedition = { var:gold_fleet_danger >= 3 } }
+				add_prestige = prestige_weak_bonus
+				custom_tooltip = gold_fleet_shared_events.danger_down_1_tt
+				scope:expedition = {
+					change_variable = { name = gold_fleet_danger add = -1 }
+					clamp_variable = { name = gold_fleet_danger min = 1 }
+				}
+			}
+			10 = {
+				modifier = { add = 45  scope:expedition = { var:gold_fleet_danger = 2 } }
+				modifier = { add = 60  scope:expedition = { var:gold_fleet_danger >= 3 } }
+				custom_tooltip = gold_fleet_shared_events.pirate_fight_fail_tt
+				scope:expedition = {
+					set_variable = gf_cargo_damaged
+					set_variable = {
+						name = gold_fleet_cargo
+						value = {
+							value = var:gold_fleet_cargo
+							multiply = 0.5
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.1.b
+		change_gold_effect = { scale = -1 }
+		add_prestige = prestige_weak_penalty
+		custom_tooltip = gold_fleet_shared_events.danger_down_1_tt
+		scope:expedition = {
+			change_variable = { name = gold_fleet_danger add = -1 }
+			clamp_variable = { name = gold_fleet_danger min = 1 }
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.1.c
+		random_list = {
+			80 = {
+				modifier = { add = -40  scope:expedition = { var:gold_fleet_danger = 2 } }
+				modifier = { add = -53  scope:expedition = { var:gold_fleet_danger >= 3 } }
+				custom_tooltip = gold_fleet_shared_events.danger_down_1_tt
+				scope:expedition = {
+					change_variable = { name = gold_fleet_danger add = -1 }
+					clamp_variable = { name = gold_fleet_danger min = 1 }
+				}
+			}
+			20 = {
+				modifier = { add = 40  scope:expedition = { var:gold_fleet_danger = 2 } }
+				modifier = { add = 53  scope:expedition = { var:gold_fleet_danger >= 3 } }
+				custom_tooltip = gold_fleet_shared_events.pirate_flee_fail_tt
+				scope:expedition = {
+					set_variable = gf_cargo_damaged
+					set_variable = {
+						name = gold_fleet_cargo
+						value = {
+							value = var:gold_fleet_cargo
+							multiply = 0.75
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.1.d
+		trigger = { scope:expedition = { var:gf_havana_state = 2 } }
+		ai_chance = { base = 10000 }
+		add_prestige = prestige_mild_bonus
+	}
+
+	historical_info = gold_fleet_shared_events.1.historical_info
+}
+
+gold_fleet_shared_events.2 = {
+	type = country_event
+	title = gold_fleet_shared_events.2.title
+	desc = gold_fleet_shared_events.2.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			set_variable = gf_enemy_done
+			pause_expedition = 14
+		}
+		scope:location = {
+			random_unit_in_location = {
+				limit = { owner = { is_enemy_of = root } }
+				owner = { save_scope_as = intercepting_country }
+			}
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.2.a
+		random = {
+			chance = {
+				value = 90
+				divide = scope:expedition.var:gold_fleet_danger
+			}
+			set_variable = gf_ambush_success
+			add_prestige = prestige_weak_bonus
+		}
+		if = {
+			limit = { NOT = { has_variable = gf_ambush_success } }
+			custom_tooltip = gold_fleet_shared_events.warship_fight_fail_tt
+			scope:expedition = {
+				set_variable = gf_cargo_damaged
+				set_variable = {
+					name = gold_fleet_cargo
+					value = {
+						value = var:gold_fleet_cargo
+						multiply = 0.25
+					}
+				}
+			}
+		}
+		remove_variable = gf_ambush_success
+		scope:intercepting_country ?= {
+			trigger_event_non_silently = gold_fleet_shared_events.3
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.2.b
+		custom_tooltip = gold_fleet_shared_events.cargo_loss_tt
+		custom_tooltip = gold_fleet_shared_events.danger_up_1_tt
+		scope:expedition = {
+			set_variable = {
+				name = gold_fleet_cargo
+				value = {
+					value = var:gold_fleet_cargo
+					multiply = 0.85
+				}
+			}
+			change_variable = { name = gold_fleet_danger add = 1 }
+		}
+		scope:intercepting_country ?= {
+			trigger_event_non_silently = gold_fleet_shared_events.3
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.2.c
+		random = {
+			chance = {
+				value = 50
+				divide = scope:expedition.var:gold_fleet_danger
+			}
+			set_variable = gf_ambush_success
+		}
+		if = {
+			limit = { NOT = { has_variable = gf_ambush_success } }
+			custom_tooltip = gold_fleet_shared_events.warship_flee_fail_tt
+			scope:expedition = {
+				set_variable = gf_cargo_damaged
+				set_variable = {
+					name = gold_fleet_cargo
+					value = {
+						value = var:gold_fleet_cargo
+						multiply = 0.5
+					}
+				}
+			}
+		}
+		remove_variable = gf_ambush_success
+		scope:intercepting_country ?= {
+			trigger_event_non_silently = gold_fleet_shared_events.3
+		}
+	}
+
+	historical_info = gold_fleet_shared_events.2.historical_info
+}
+
+gold_fleet_shared_events.3 = {
+	type = country_event
+	title = gold_fleet_shared_events.3.title
+	desc = gold_fleet_shared_events.3.desc
+	outcome = positive
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	option = {
+		name = gold_fleet_shared_events.3.a
+		add_prestige = prestige_weak_bonus
+	}
+
+	historical_info = gold_fleet_shared_events.3.historical_info
+}
+
+gold_fleet_shared_events.4 = {
+	type = country_event
+	title = gold_fleet_shared_events.4.title
+	desc = gold_fleet_shared_events.4.desc
+	outcome = negative
+
+	trigger = {
+		NOT = { has_variable = gold_fleet_cargo_notification_shown }
+	}
+
+	location_backdrop = { backdrop_preset = backdrop_default }
+
+	immediate = {
+		set_variable = gold_fleet_cargo_notification_shown
+	}
+
+	option = {
+		name = gold_fleet_shared_events.4.a
+		add_estate_satisfaction = { type = estate_type:burghers_estate value = estate_satisfaction_mild_penalty }
+	}
+
+	historical_info = gold_fleet_shared_events.4.historical_info
+}
+
+gold_fleet_shared_events.5 = {
+	type = country_event
+	title = gold_fleet_shared_events.5.title
+	desc = gold_fleet_shared_events.5.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			set_variable = gf_storm_done
+			pause_expedition = 5
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.5.a
+		random_list = {
+			60 = {
+				custom_tooltip = gold_fleet_shared_events.5.unscathed_tt
+			}
+			35 = {
+				custom_tooltip = gold_fleet_shared_events.5.lose_fleet_tt
+				add_prestige = prestige_weak_penalty
+				scope:expedition = {
+					set_variable = gf_cargo_damaged
+					set_variable = {
+						name = gold_fleet_cargo
+						value = {
+							value = var:gold_fleet_cargo
+							multiply = 0.5
+						}
+					}
+				}
+			}
+			5 = {
+				custom_tooltip = gold_fleet_shared_events.5.lose_all_tt
+				add_prestige = prestige_mild_penalty
+				fail_expedition = scope:expedition
+			}
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.5.b
+		random_list = {
+			80 = {
+				custom_tooltip = gold_fleet_shared_events.5.lose_cargo_tt
+				scope:expedition = {
+					set_variable = gf_cargo_damaged
+					set_variable = {
+						name = gold_fleet_cargo
+						value = {
+							value = var:gold_fleet_cargo
+							multiply = 0.7
+						}
+					}
+				}
+			}
+			20 = {
+				custom_tooltip = gold_fleet_shared_events.5.lose_fleet_tt
+				add_prestige = prestige_weak_penalty
+				scope:expedition = {
+					set_variable = gf_cargo_damaged
+					set_variable = {
+						name = gold_fleet_cargo
+						value = {
+							value = var:gold_fleet_cargo
+							multiply = 0.5
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.5.c
+		trigger = {
+			scope:location = {
+				any_neighbor_location = {
+					is_port = yes
+					OR = {
+						top_owner = root
+						owner = { opinion = { target = root value > 100 } }
+					}
+				}
+			}
+		}
+		scope:expedition = {
+			pause_expedition = 90
+		}
+	}
+
+	historical_info = gold_fleet_shared_events.5.historical_info
+}
+
+gold_fleet_shared_events.6 = {
+	type = country_event
+	title = gold_fleet_shared_events.6.title
+	desc = gold_fleet_shared_events.6.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_at_sea }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			set_variable = gf_sickness_done
+			pause_expedition = 7
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.6.a
+		scope:expedition = {
+			pause_expedition = 30
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.6.b
+		scope:expedition = {
+			custom_tooltip = gold_fleet_shared_events.danger_up_1_tt
+			change_variable = { name = gold_fleet_danger add = 1 }
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.6.c
+		change_gold_effect = { scale = -1 }
+	}
+
+	historical_info = gold_fleet_shared_events.6.historical_info
+}
+
+gold_fleet_shared_events.7 = {
+	type = country_event
+	title = gold_fleet_shared_events.7.title
+	desc = gold_fleet_shared_events.7.desc
+	outcome = negative
+
+	location_backdrop = { backdrop_preset = backdrop_foreign_port_arrival }
+
+	immediate = {
+		scope:expedition = {
+			expedition_leader = {
+				save_scope_as = target_leader
+			}
+			set_variable = gf_leak_done
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.7.a
+		add_prestige = prestige_weak_penalty
+		scope:expedition = {
+			custom_tooltip = gold_fleet_shared_events.danger_up_1_tt
+			change_variable = { name = gold_fleet_danger add = 1 }
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.7.b
+		scope:expedition = {
+			pause_expedition = 30
+		}
+	}
+
+	option = {
+		name = gold_fleet_shared_events.7.c
+		random_list = {
+			50 = {
+				custom_tooltip = gold_fleet_shared_events.7.rumours_worse_tt
+				scope:expedition = {
+					change_variable = { name = gold_fleet_danger add = 1 }
+				}
+			}
+			50 = {
+				custom_tooltip = gold_fleet_shared_events.7.rumours_better_tt
+				scope:expedition = {
+					change_variable = { name = gold_fleet_danger add = -1 }
+					clamp_variable = { name = gold_fleet_danger min = 1 }
+				}
+			}
+		}
+	}
+
+	historical_info = gold_fleet_shared_events.7.historical_info
+}

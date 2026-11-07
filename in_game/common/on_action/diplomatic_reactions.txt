@@ -1,0 +1,110 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+on_scripted_relation_created = {
+	trigger = {
+		OR = {
+			scope:scripted_relation_type = relation_type:alliance
+			scope:scripted_relation_type = relation_type:guarantee
+			scope:scripted_relation_type = relation_type:embargo_nation
+		}
+	}
+	effect = {
+		if = {
+			limit = { scope:scripted_relation_type = relation_type:alliance }
+			every_known_country = {
+				limit = {
+					NOT = { this = root }
+					NOT = { this = scope:recipient }
+					OR = {
+						is_rival_of = scope:recipient
+						is_rival_of = root
+					}
+				}
+				if = {
+					limit = { is_rival_of = scope:recipient }
+					add_opinion = { modifier = opinion_allied_our_rival  target = root }
+				}
+				if = {
+					limit = { is_rival_of = root }
+					add_opinion = { modifier = opinion_allied_our_rival  target = scope:recipient }
+				}
+			}
+		}
+		else_if = {
+			limit = { scope:scripted_relation_type = relation_type:guarantee }
+			every_known_country = {
+				limit = {
+					NOT = { this = root }
+					NOT = { this = scope:recipient }
+					is_rival_of = scope:recipient
+				}
+				add_opinion = { modifier = opinion_guaranteed_our_rival  target = root }
+			}
+		}
+		else_if = {
+			limit = { scope:scripted_relation_type = relation_type:embargo_nation }
+			every_known_country = {
+				limit = {
+					NOT = { this = root }
+					NOT = { this = scope:recipient }
+					is_rival_of = scope:recipient
+				}
+				add_opinion = { modifier = opinion_embargoed_our_rival  target = root }
+			}
+		}
+	}
+}
+
+on_scripted_relation_broken = {
+}
+
+on_subject_subjugated = {
+	effect = {
+		every_known_country = {
+			limit = {
+				NOT = { this = root }
+				NOT = { this = scope:overlord }
+				is_neighbor_of = root
+			}
+			add_opinion = { modifier = opinion_subjugated_our_neighbor  target = scope:overlord }
+		}
+	}
+}
+
+on_royal_marriage = {
+	effect = {
+		every_known_country = {
+			limit = {
+				NOT = { this = scope:actor }
+				NOT = { this = scope:recipient }
+				OR = {
+					is_rival_of = scope:recipient
+					is_rival_of = scope:actor
+				}
+			}
+			if = {
+				limit = { is_rival_of = scope:recipient }
+				add_opinion = { modifier = opinion_married_our_rival  target = scope:actor }
+			}
+			if = {
+				limit = { is_rival_of = scope:actor }
+				add_opinion = { modifier = opinion_married_our_rival  target = scope:recipient }
+			}
+		}
+	}
+}
+
+on_truce_broken = {
+	effect = {
+		every_known_country = {
+			limit = {
+				NOT = { this = root }
+				NOT = { this = scope:recipient }
+				OR = {
+					has_mutual_scripted_relation = { target = scope:recipient type = relation_type:alliance }
+					giving_scripted_relation = { target = scope:recipient type = relation_type:guarantee }
+				}
+			}
+			add_opinion = { modifier = opinion_broke_treaty_with_friend  target = root }
+		}
+	}
+}

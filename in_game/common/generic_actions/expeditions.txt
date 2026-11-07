@@ -1,0 +1,82 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+# scope:actor = country
+# scope:target = expedition_type (selected via dialog or pre-set from UI)
+# scope:target_1 = character leader (selected via dialog)
+
+start_expedition = {
+	type = owncountry
+	
+
+	price = price:start_expedition
+
+	ai_tick = monthly
+	ai_tick_frequency = 6
+
+	allow = {
+		scope:target ?= {
+			can_start_expedition = scope:actor
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = expedition_type
+		target_flag = target
+		name = "start_expedition_select_type_title"
+		none_available_msg_key = "start_expedition_no_types"
+		column = {
+			data = name
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = character
+		source = actor
+		source_flags_ai_override = best_expedition_leaders
+		target_flag = target_1
+		cache_targets = yes
+		cache_order = yes
+		name = "start_expedition_select_leader_title"
+		none_available_msg_key = "start_expedition_no_leaders"
+		column = {
+			data = character_explorer
+		}
+		visible = {
+			NOT = { is_expedition_leader = yes }
+			OR = {
+				AND = {
+					NOT = { scope:target = { has_leader_requirements = yes } }
+					is_valid_for_exploration = yes
+				}
+				scope:target = {
+					has_leader_requirements = yes
+					can_lead_expedition = yes
+				}
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			if = {
+				limit = {
+					exists = scope:target
+					exists = scope:target_1
+				}
+				start_expedition = {
+					type = scope:target
+					leader = scope:target_1
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		if = {
+			limit = {
+				exists = scope:target
+				exists = scope:target_1
+			}
+			add = "scope:actor.expedition_start_utility(scope:target)"
+		}
+	}
+}

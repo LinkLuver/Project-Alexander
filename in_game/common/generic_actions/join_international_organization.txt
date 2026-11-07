@@ -1,0 +1,73 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+join_international_organization = {
+	type = internationalorganization
+	show_in_gui_list = no
+
+	automation_tick = never
+	automation_tick_frequency = 12
+	
+	potential = {
+	}
+
+	allow = {
+	}
+	
+	select_trigger = {
+		looking_for_a = international_organization
+		target_flag = recipient
+		name = "choose_international_organization"
+		none_available_msg_key = "join_international_organization_none"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:actor = {
+				NOT = { is_member_of_international_organization = root }
+			}
+			OR = {
+				AND = {
+					NOT = { international_organization_type = international_organization_type:hre }
+					international_organization_has_leader = no
+				}
+				leader_country ?= scope:actor
+			}
+		}
+		enabled = {
+			scope:actor = {
+				can_join_international_organization = root
+			}
+			custom_tooltip = {
+				text = join_international_organization_tt
+				save_temporary_scope_value_as = {
+					name = acceptance_to_join
+					value = {
+						value = 0
+						every_international_organization_member = {
+							add = "opinion(scope:actor)"
+						}
+						if = {
+							limit = { total_members > 0 }
+							divide = total_members
+						}
+					}
+				}
+				scope:acceptance_to_join >= MIN_AVERAGE_OPINION_TO_JOIN_IO
+			}
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:recipient
+			}
+			scope:recipient = {
+				add_country_to_international_organization = scope:actor
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = 0
+	}
+}

@@ -1,0 +1,164 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+default_on_creditor = {
+	type = diplomacy
+	category = CATEGORY_ECONOMY_ACTIONS
+
+	potential = {
+		scope:actor = {
+			num_loans > 0
+			is_during_bankruptcy = no
+			NOT = { has_country_modifier = recently_defaulted }
+		}
+	}
+
+	allow = {
+		scope:actor = {
+			num_loans >= 1
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		interaction_source_list = {
+			scope:actor = {
+				every_country_borrowed_from = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = recipient
+		name = "default_on_creditor_choose_creditor"
+		none_available_msg_key = "default_on_creditor_no_creditors"
+		default_sort = will
+		column = {
+			data = country_diplomacy_info_loan
+		}
+	}
+
+	effect = {
+		# 1. Wipe every loan from this creditor.
+		scope:actor = {
+			every_loan = {
+				limit = { owner ?= scope:recipient }
+				cancel_loan = this
+			}
+		}
+
+		# 2. Targeted creditor gets the CB plus a heavy opinion hit.
+		scope:recipient = {
+			add_casus_belli = {
+				type = casus_belli:cb_recover_defaulted_debt
+				target = scope:actor
+			}
+			add_opinion = {
+				target = scope:actor
+				modifier = opinion_was_defaulted_on
+			}
+		}
+
+		# 3. Ripple: every OTHER creditor takes a smaller opinion hit.
+		scope:actor = {
+			every_country_borrowed_from = {
+				limit = { NOT = { this = scope:recipient } }
+				add_opinion = {
+					target = scope:actor
+					modifier = opinion_others_were_defaulted_on
+				}
+			}
+		}
+
+		# 4. Apply the recently_defaulted country modifier (60 months).
+		#    Doubles as the country-wide cooldown gate in the potential block above.
+		scope:actor = {
+			add_country_modifier = {
+				modifier = recently_defaulted
+				years = 5
+			}
+			change_creditworthiness = -0.25
+		}
+	}
+
+	ai_will_do = {
+		add = {
+			desc = "BASE"
+			value = -1000
+		}
+
+		# Hard gate: never if already recently defaulted, bankrupt, or with very few loans.
+		if = {
+			limit = {
+				scope:actor = {
+					OR = {
+						is_during_bankruptcy = yes
+						has_country_modifier = recently_defaulted
+						num_loans < 3
+					}
+				}
+			}
+			add = {
+				desc = "HARD_GATE"
+				value = -100000
+			}
+		}
+
+		# Debt pressure on this specific creditor.
+		if = {
+			limit = {
+				scope:actor = {
+					any_loan = {
+						owner ?= scope:recipient
+						count >= 3
+					}
+				}
+			}
+			add = {
+				desc = "MANY_LOANS_FROM_CREDITOR"
+				value = 500
+			}
+		}
+
+		# Lesser-evil escape hatch: facing real cash trouble.
+		if = {
+			limit = {
+				scope:actor = { gold < 0 }
+			}
+			add = {
+				desc = "FACING_BANKRUPTCY"
+				value = 1500
+			}
+		}
+
+		# Pre-existing hostility makes default cheap.
+		if = {
+			limit = {
+				scope:actor = {
+					opinion = { target = scope:recipient value <= -50 }
+				}
+			}
+			add = {
+				desc = "BAD_RELATIONS"
+				value = 200
+			}
+		}
+		if = {
+			limit = { scope:recipient = { is_rival_of = scope:actor } }
+			add = {
+				desc = "CREDITOR_IS_RIVAL"
+				value = 300
+			}
+		}
+
+		# Restraint: don't default on someone strong enough to crush you.
+		if = {
+			limit = {
+				scope:recipient = {
+					army_size > {
+						value = scope:actor.army_size
+						multiply = 2
+					}
+				}
+			}
+			multiply = 0.2
+		}
+	}
+}

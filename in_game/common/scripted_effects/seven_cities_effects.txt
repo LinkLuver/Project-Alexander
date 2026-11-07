@@ -1,0 +1,114 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+grant_seven_cities_expedition_loot_effect = {
+	if = {
+		limit = { scope:expedition = { has_variable = uncovered_riches_variable } }
+		custom_tooltip = expedition_brought_back_riches_tt
+		capital.market = {
+			add_goods_supply = {
+				goods = goods:goods_gold
+				amount = {
+					value = scope:expedition.var:uncovered_riches_variable
+					multiply = { 20 30 }
+				}
+			}
+		}
+	}
+
+	if = {
+		limit = {
+			scope:expedition = {
+				has_variable = expedition_receives_exotic_goods_variable
+				has_variable = last_exotic_good
+			}
+		}
+		custom_tooltip = expedition_brought_back_exotic_goods_tt
+		capital.market = {
+			add_goods_supply = {
+				goods = scope:expedition.var:last_exotic_good
+				amount = {
+					value = scope:expedition.var:expedition_receives_exotic_goods_variable
+					multiply = { 20 30 }
+				}
+			}
+		}
+	}
+
+	if = {
+		limit = { scope:expedition = { has_variable = expedition_receives_artifacts_as_gifts_variable } }
+		custom_tooltip = expedition_brought_back_artifacts_tt
+		add_prestige = {
+			value = scope:expedition.var:expedition_receives_artifacts_as_gifts_variable
+			multiply = { 5 10 }
+		}
+		if = {
+			limit = {
+				scope:expedition = {
+					var:expedition_receives_artifacts_as_gifts_variable >= 2
+					has_variable = last_artifact_location
+				}
+			}
+			capital = {
+				create_art = {
+					type = work_of_art_type:regalia
+					artist = scope:target_leader
+					quality = {
+						value = 50
+						add = {
+							value = scope:expedition.var:expedition_receives_artifacts_as_gifts_variable
+							multiply = { 10 20 }
+							max = 50
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if = {
+		limit = { scope:expedition = { has_variable = healer_location } }
+		custom_tooltip = expedition_healer_joins_court_tt
+		scope:expedition.var:healer_location = {
+			random_present_culture_in_location = { save_scope_as = healer_culture }
+			random_present_religion_in_location = { save_scope_as = healer_religion }
+		}
+		create_character = {
+			age = { 35 60 }
+			culture = scope:healer_culture
+			religion = scope:healer_religion
+			birth_location = scope:expedition.var:healer_location
+			save_scope_as = new_healer
+		}
+		scope:new_healer = {
+			add_character_modifier = {
+				modifier = witch_doctor
+				years = -1
+			}
+		}
+	}
+}
+
+seven_cities_expedition_stall_effect = {
+	if = {
+		limit = { scope:expedition = { has_variable = expedition_receives_guides_and_porters_variable } }
+		custom_tooltip = {
+			text = porters_guides_prevent_stalling
+			scope:expedition = { remove_variable = expedition_receives_guides_and_porters_variable }
+		}
+	}
+	else = {
+		scope:expedition = { pause_expedition = { $MIN$ $MAX$ } }
+	}
+}
+
+seven_cities_expedition_calamity_effect = {
+	if = {
+		limit = { scope:expedition = { has_variable = chance_avoid_calamity_variable } }
+		custom_tooltip = {
+			text = warned_expedition_avoids_calamity_tt
+			scope:expedition = { remove_variable = chance_avoid_calamity_variable }
+		}
+	}
+	else = {
+		fail_expedition = scope:expedition
+	}
+}

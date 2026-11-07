@@ -1,0 +1,268 @@
+﻿#P:A TODO Review imported vanilla file (1.4.7)
+gra_trade_prestige_silk = {
+	category = CATEGORY_ECONOMY_ACTIONS
+	type = diplomacy
+
+	ai_tick = daily
+	ai_tick_frequency = 360
+
+	ai_prerequisite = {
+		exists = scope:actor
+		scope:actor = {
+			gold < { value = monthly_income_total multiply = 6 }
+		}
+	}
+
+	potential = {
+		scope:actor = {
+			has_unlocked_country_interaction_trigger = {
+				type = gra_trade_prestige_silk
+			}
+			capital = {
+                is_market_center = yes
+            }
+		}
+	}
+
+	allow = {
+		scope:actor.capital.market ?= {
+			"stockpile_in_market(goods:silk)" > 0
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = country
+		target_flag = recipient
+		name = "choose_country"
+		default_sort = will
+		column = {
+			data = country_diplomacy_info_trade
+		}
+		visible = {
+			NOT = { this = scope:actor }
+            capital ?= {
+                is_market_center = yes
+				market ?= {
+					has_merchant = scope:actor
+				}
+            }
+		}
+		enabled = {
+			NOT = { is_enemy_of = scope:actor }
+            NOT = { is_at_war_with = scope:actor }
+			prestige < 100
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = value
+		target_flag = capacity
+		name = "create_export_select_desired_value"
+		min = 1
+		max = {
+			value = "scope:actor.capital.market.stockpile_in_market(goods:silk)"
+		}
+		step = {
+			value = "define:NMarket|MARKET_TRADE_CHANGE_PER_CLICK"
+		}
+		default = {
+			value = "scope:actor.capital.market.stockpile_in_market(goods:silk)"
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				exists = scope:capacity
+			}
+
+			scope:actor = {
+				capital.market = {
+					add_goods_supply = {
+						goods = goods:silk
+						amount = {
+							value = scope:capacity
+							multiply = -1
+						}
+					}
+				}
+
+				add_gold = {
+					value = {
+						value = scope:capacity
+						multiply = "goods:silk.price_in_market(scope:recipient.capital.market)"
+					}
+					multiply = "estate_power(estate_type:crown_estate)"
+					subtract = goods:silk.transport_cost
+				}
+
+				if = {
+					limit = {
+						country_has_estate = estate_type:nobles_estate
+					}
+					add_gold_to_estate = {
+						estate_type = estate_type:nobles_estate
+						value = {
+							add = {
+								value = scope:capacity
+								multiply = "goods:silk.price_in_market(scope:recipient.capital.market)"
+							}
+							multiply = "estate_power(estate_type:nobles_estate)"
+						}
+					}
+				}
+
+				if = {
+					limit = {
+						country_has_estate = estate_type:clergy_estate
+					}
+					add_gold_to_estate = {
+						estate_type = estate_type:clergy_estate
+						value = {
+							add = {
+								value = scope:capacity
+								multiply = "goods:silk.price_in_market(scope:recipient.capital.market)"
+							}
+							multiply = "estate_power(estate_type:clergy_estate)"
+						}
+					}
+				}
+
+				if = {
+					limit = {
+						country_has_estate = estate_type:burghers_estate
+					}
+					add_gold_to_estate = {
+						estate_type = estate_type:burghers_estate
+						value = {
+							add = {
+								value = scope:capacity
+								multiply = "goods:silk.price_in_market(scope:recipient.capital.market)"
+							}
+							multiply = "estate_power(estate_type:burghers_estate)"
+						}
+					}
+				}
+
+				if = {
+					limit = {
+						country_has_estate = estate_type:peasants_estate
+					}
+					add_gold_to_estate = {
+						estate_type = estate_type:peasants_estate
+						value = {
+							add = {
+								value = scope:capacity
+								multiply = "goods:silk.price_in_market(scope:recipient.capital.market)"
+							}
+							multiply = "estate_power(estate_type:peasants_estate)"
+						}
+					}
+				}
+
+				if = {
+					limit = {
+						country_has_estate = estate_type:dhimmi_estate
+					}
+					add_gold_to_estate = {
+						estate_type = estate_type:dhimmi_estate
+						value = {
+							add = {
+								value = scope:capacity
+								multiply = "goods:silk.price_in_market(scope:recipient.capital.market)"
+							}
+							multiply = "estate_power(estate_type:dhimmi_estate)"
+						}
+					}
+				}
+
+				if = {
+					limit = {
+						country_has_estate = estate_type:tribes_estate
+					}
+					add_gold_to_estate = {
+						estate_type = estate_type:tribes_estate
+						value = {
+							add = {
+								value = scope:capacity
+								multiply = "goods:silk.price_in_market(scope:recipient.capital.market)"
+							}
+							multiply = "estate_power(estate_type:tribes_estate)"
+						}
+					}
+				}
+
+
+				add_prestige = {
+					value = scope:capacity
+					divide = 4
+					max = 20
+				}
+			}
+
+
+			scope:recipient = {
+				capital.market = {
+					add_goods_supply = {
+						goods = goods:silk
+						amount = {
+							value = scope:capacity
+						}
+					}
+				}
+
+				add_gold = {
+					value = scope:capacity
+					multiply = "goods:silk.price_in_market(scope:recipient.capital.market)"
+					multiply = -1
+				}
+			}
+		}
+
+		else = {
+			custom_tooltip = gra_trade_silk_tooltip
+		}
+	}
+
+	ai_will_do = {
+		add = -100
+		# sell when treasury is below 6 months of income
+		if = {
+			limit = {
+				scope:actor = {
+					gold < { value = monthly_income_total multiply = 6 }
+				}
+			}
+			add = { value = 200 desc = "[gold|e]" }
+		}
+		if = {
+			limit = { scope:actor = { is_enemy_of = scope:recipient } }
+			multiply = 0
+		}
+	}
+
+	diplo_chance = {
+		base = -30
+		diplomatic_reputation = 3
+		recipient_is_rival = -100
+		opinion = 0.2
+		trust_in_actor = 0.5
+	}
+
+	accept = {
+		if = {
+			limit = { scope:recipient = { gold < { value = monthly_income_total multiply = 6 } } }
+			add = {
+				desc = "LOW_TREASURY"
+				value = -60
+			}
+		}
+		if = {
+			limit = { scope:recipient = { gold > { value = monthly_income_total multiply = 24 } } }
+			add = {
+				desc = "WEALTHY_BUYER"
+				value = 30
+			}
+		}
+	}
+}
