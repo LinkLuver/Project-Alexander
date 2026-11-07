@@ -1,5 +1,4 @@
-﻿#P:A TODO Manual cleanup of file required
-marry_lowborn = { 
+﻿marry_lowborn = { 
 
 	sound = UI_action_character_marry_lowborn
 
@@ -14,7 +13,7 @@ marry_lowborn = {
 			OR = {
 				government_type = government_type:theocracy
 				modifier:care_about_producing_heirs = yes
-				#succession_law = heir_selection:signoria_selection #P:A Removed vanilla reference
+				succession_law = heir_selection:signoria_selection
 			}
 		}
 	}
@@ -25,12 +24,11 @@ marry_lowborn = {
 	allow = {
 		scope:actor = {
 			modifier:forbid_marrying_lowborn = no
-			#NAND = { #P:A Removed vanilla reference
+			NAND = {
 				#government_type = government_type:theocracy
 				#religion = { group = religion_group:christian }
-				#modifier:clergy_estate_cannot_marry = yes
-			#}
-			always = no #P:A Removed vanilla reference
+				modifier:clergy_estate_cannot_marry = yes
+			}
 		}
 	}
 	
@@ -50,9 +48,37 @@ marry_lowborn = {
 			is_eligible_for_royal_marriage = yes
 			modifier:block_marrying_lowborn = no
 			NOT = { has_trait = eunuch }
-			scope:actor.ruler_or_heir_if_regent ?= {
-				is_close_relative = root
+			custom_tooltip = {
+				text = marry_lowborn_close_relative_tt
+				scope:actor.ruler_or_heir_if_regent ?= {
+					is_close_relative = root
+				}
 			}
+		}
+	}
+
+	select_trigger = {
+		looking_for_a = estate
+		source = actor
+		target_flag = estate
+		name = "marry_lowborn_choose_estate"
+		column = {
+			data = name
+		}
+		visible = {
+			scope:actor = {
+				country_has_estate = root.estate_type
+			}
+			estate_type = {
+				NOR = {
+					this = estate_type:crown_estate
+					this = estate_type:nobles_estate
+					this = estate_type:clergy_estate
+					#this = estate_type:dhimmi_estate
+				}
+			}
+		}
+		enabled = {
 		}
 	}
 
@@ -103,13 +129,7 @@ marry_lowborn = {
 					religion = scope:recipient.religion
 					age = { 16 21 }
 					female = yes
-					random_estate_type_trigger = {
-						NOR = {
-							this = estate_type:nobles_estate
-							this = estate_type:clergy_estate
-							#this = estate_type:dhimmi_estate #P:A Removed vanilla reference
-						}
-					}
+					estate = scope:estate.estate_type
 					
 					marry_character = scope:recipient 
 				}
@@ -117,7 +137,7 @@ marry_lowborn = {
 			if = {
 				limit = {
 					NOR = {
-						#has_policy = muslim_marriage #P:A Removed vanilla reference
+						has_policy = muslim_marriage
 						has_policy = polygyny
 						has_policy = dishu_system
 						religion = religion:inti
@@ -157,6 +177,14 @@ marry_lowborn = {
 			else = {
 				add_legitimacy = legitimacy_weak_penalty
 				add_prestige = prestige_weak_penalty
+			}
+			add_estate_satisfaction = {
+				type = scope:estate.estate_type
+				value = estate_satisfaction_mild_bonus
+			}
+			add_estate_satisfaction = {
+				type = estate_type:nobles_estate
+				value = estate_satisfaction_mild_penalty
 			}
 		}
 	}
