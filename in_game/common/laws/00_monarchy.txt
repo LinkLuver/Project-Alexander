@@ -84,7 +84,7 @@ ancient_royal_court_law = {
 		country_modifier = {
 			monthly_towards_aristocracy = societal_value_monthly_move
 			nobles_estate_target_satisfaction = medium_permanent_target_satisfaction
-			court_spending_efficiency = -0.05
+			court_spending_efficiency = -0.1
 		}
 		estate_preferences = {
 			nobles_estate
@@ -117,13 +117,68 @@ ancient_royal_court_law = {
 		years = 2
 	}
 
-	traveling_court_policy = {
+	itinerant_court_policy = {
+		allow = {
+			societal_value:centralization_vs_decentralization >= 10
+		}
 		country_modifier = {
-			capital_movement_cost_modifier = -0.2
-			monthly_towards_decentralization = societal_value_monthly_move
+			capital_movement_cost_modifier = -0.33
+			land_cost_on_distance_from_capital_speed_propagation = 0.05
+			monthly_towards_decentralization = societal_value_large_monthly_move
+			can_call_rural_parliaments = yes
+			pure_tooltip_entry = itinerant_court_capital_projection_tt
+			pure_tooltip_entry = itinerant_court_policy_at_risk_tt
+		}
+		location_modifier = {
+			potential_trigger = {
+				is_capital = yes
+				NOT = { has_building = building_type:itinerant_court_seat }
+			}
+			local_proximity_source = -20
+		}
+		on_activate = {
+			capital ?= {
+				if = {
+					limit = { owner ?= { total_building_levels_including_construction:itinerant_court_seat < 1 } }
+					change_building_level_in_location = {
+						building = building_type:itinerant_court_seat
+						value = 1
+						owner = root
+					}
+				}
+			}
+			if = {
+				limit = {
+					total_building_levels_including_construction:local_governor > {
+						value = effective_num_local_governors
+						subtract = 1
+						subtract = total_building_levels_including_construction:kings_manor
+						if = {
+							limit = { NOT = { has_dlc = "d009_across_the_pillars" } }
+							subtract = total_building_levels_including_construction:lieutenancy
+						}
+					}
+				}
+				random_owned_location = {
+					limit = { has_building = building_type:local_governor }
+					change_building_level_in_location = {
+						building = building_type:local_governor
+						value = -1
+					}
+				}
+			}
+			custom_tooltip = { text = itinerant_court_reseat_tt }
+		}
+		on_deactivate = {
+			every_owned_location = {
+				limit = { has_building = building_type:itinerant_court_seat }
+				change_building_level_in_location = {
+					building = building_type:itinerant_court_seat
+					value = -1
+				}
+			}
 		}
 		estate_preferences = {
-			nobles_estate
 			peasants_estate
 		}
 		years = 2
@@ -145,8 +200,6 @@ ancient_royal_court_law = {
 	royal_household_policy = {
 		country_modifier = {
 			monthly_legitimacy = 0.05
-			court_spending_efficiency = -0.05
-			nobles_estate_target_satisfaction = small_permanent_target_satisfaction
 		}
 		estate_preferences = {
 			nobles_estate

@@ -1056,3 +1056,149 @@ iw_militarize_country = { #P:A TODO Add something like this for the diadochi war
 		}
 	}
 }
+
+seat_the_itinerant_court = {
+	type = parliament
+
+	ai_tick = daily
+	ai_tick_frequency = 100
+
+	potential = {
+		scope:actor = { has_policy = itinerant_court_policy }
+	}
+
+	allow = {
+		scope:actor = {
+			is_active_parliament = yes
+			has_policy = itinerant_court_policy
+			parliament_issue_support >= parliament_request_support
+		}
+	}
+
+	cooldown = {
+		type = seat_the_itinerant_court
+		years = 5
+	}
+
+	select_trigger = {
+		looking_for_a = location
+		source = actor
+		ai_interaction_source_list = {
+			scope:actor = {
+				every_owned_non_rural_location = {
+					add_to_list = source
+				}
+			}
+		}
+		target_flag = court_seat_location
+		name = "seat_the_itinerant_court_select_title"
+		none_available_msg_key = "no_locations_available"
+		column = { data = name }
+		column = { data = population }
+		column = { data = control }
+		column = { data = rank }
+		visible = {
+			owner ?= scope:actor
+			controller ?= scope:actor
+			local_control > 0
+			is_core_of = scope:actor
+			has_proximity_source_building = no
+			is_historical_capital = no
+			OR = {
+				is_city = yes
+				# Rural locations qualify only if they are a province capital.
+				is_province_capital = yes
+			}
+		}
+	}
+
+	effect = {
+		scope:actor = {
+			custom_tooltip = {
+				text = seat_the_itinerant_court_passed_tt
+				if = {
+					limit = { any_owned_location = { has_building = building_type:itinerant_court_seat } }
+					random_owned_location = {
+						limit = { has_building = building_type:itinerant_court_seat }
+						save_scope_as = old_court_seat
+					}
+					scope:court_seat_location ?= {
+						move_building = {
+							from = scope:old_court_seat
+							type = itinerant_court_seat
+							owner = scope:actor
+						}
+					}
+				}
+				else = {
+					scope:court_seat_location = {
+						change_building_level_in_location = {
+							building = building_type:itinerant_court_seat
+							value = 1
+							owner = scope:actor
+						}
+					}
+				}
+			}
+			custom_tooltip = {
+				text = seat_the_itinerant_court_in_session_tt
+				scope:court_seat_location ?= {
+					add_location_modifier = {
+						modifier = itinerant_court_in_session
+						years = 1
+					}
+				}
+			}
+			change_parliament_issue_support = {
+				value = parliament_request_support
+				multiply = -1
+			}
+			hidden_effect = {
+				remove_variable = seat_the_itinerant_court_ai_cd
+				set_variable = {
+					name = seat_the_itinerant_court_ai_cd
+					value = yes
+					days = 7300
+				}
+			}
+		}
+	}
+
+	ai_will_do = {
+		value = -250
+		if = {
+			limit = { scope:court_seat_location = { is_city = no } }
+			subtract = {
+				desc = "not a city"
+				value = 1000
+			}
+		}
+		add = {
+			desc = "distance to capital"
+			value = "scope:actor.capital.distance_to(scope:court_seat_location)"
+			divide = 2
+		}
+		add = {
+			desc = "target control"
+			value = 100
+			subtract = scope:court_seat_location.max_control
+			divide = 2
+		}
+		add = {
+			desc = "location ranks"
+			value = scope:court_seat_location.rank_index
+			multiply = 10
+		}
+		if = {
+			limit = {
+				scope:actor = {
+					has_variable = seat_the_itinerant_court_ai_cd
+				}
+			}
+			subtract = {
+				desc = "ai already moved the itinerant court before"
+				value = 1000
+			}
+		}
+	}
+}
