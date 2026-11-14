@@ -1,6 +1,284 @@
-﻿#P:A Replaced Vanilla File
+﻿scripted_trigger is_no_junior_monarchy = {
+	OR = {
+		NOT = { government_type = government_type:monarchy }
+		NOT = { exists = union }
+		union ?= {
+			OR = {
+				country_has_special_status = {
+					type = special_status:senior_partner
+					country = prev
+				}
+				any_country_with_special_status_of_type = {
+					type = senior_partner
+					this != root
+					succession_law != root.succession_law
+				}
+				NOT = {
+					any_country_with_special_status_of_type = {
+						type = senior_partner
+					}
+				}
+			}
+		}
+	}
+}
+
+scripted_trigger is_junior_monarchy = {
+	government_type = government_type:monarchy
+	exists = union
+	union ?= {
+		NOT = {
+			country_has_special_status = {
+				type = special_status:senior_partner
+				country = prev
+			}
+		}
+		any_country_with_special_status_of_type = {
+			type = senior_partner
+			this != root
+			succession_law = root.succession_law
+		}
+	}
+}
+
+scripted_effect elect_new_ruler_with_union = {
+	if = {
+		limit = { exists = union }
+		custom_description = {
+			text = set_new_ruler_with_union
+			object = $character$
+			save_temporary_scope_as = union_country_event_scope
+			every_subject = {
+				limit = { subject_type = { has_overlords_ruler = yes } }
+				set_new_foreign_ruler_no_update = $character$
+			}
+			union ?= {
+				every_international_organization_member = {
+					limit = {
+						this != scope:union_country_event_scope
+						succession_law = scope:union_country_event_scope.succession_law
+					}
+					#don't update the unions....yet
+					set_new_foreign_ruler_no_update = $character$
+					every_subject = {
+						limit = { subject_type = { has_overlords_ruler = yes } }
+						set_new_foreign_ruler_no_update = $character$
+					}
+				}
+			}
+			#now we can update the unions
+			set_new_ruler = $character$
+			union ?= {
+				update_leadership = this
+			}
+		}
+	}
+	else = {
+		set_new_ruler = $character$
+	}
+}
+
+namespace = election
+#Normal Elections
+election.1 = {
+	type = country_event
+
+	title = election.1.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { is_junior_monarchy = yes }
+				desc = election.1.desc
+			}
+			triggered_desc = {
+				desc = election.1.desc
+			}
+		}
+	}
+	outcome = neutral
 
 
+
+	trigger = {
+		NOT = { succession_law = heir_selection:lottery_election }
+		NOT = { succession_law = heir_selection:diarchic_election }
+		NOT = { succession_law = heir_selection:dynastic_elective_succession }
+		is_no_junior_monarchy = yes
+	}
+	illustration_tags = {
+		10 = happy
+		10 = interior
+	}	
+	
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		random_election_candidates = {
+			save_scope_as = candidate_a
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = {  exists = scope:candidate_a	this = scope:candidate_a }
+			}
+			save_scope_as = candidate_b
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = { exists = scope:candidate_a	this = scope:candidate_a }
+				NAND = { exists = scope:candidate_b	this = scope:candidate_b }
+			}
+			save_scope_as = candidate_c
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = { exists = scope:candidate_a	this = scope:candidate_a }
+				NAND = { exists = scope:candidate_b	this = scope:candidate_b }
+				NAND = { exists = scope:candidate_c	this = scope:candidate_c }
+			}
+			save_scope_as = candidate_d
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = { exists = scope:candidate_a	this = scope:candidate_a }
+				NAND = { exists = scope:candidate_b	this = scope:candidate_b }
+				NAND = { exists = scope:candidate_c	this = scope:candidate_c }
+				NAND = { exists = scope:candidate_d	this = scope:candidate_d }
+			}
+			save_scope_as = candidate_e
+		}
+		if = {
+			limit = {
+				NOR = {
+					exists = scope:candidate_a
+					exists = scope:candidate_b
+					exists = scope:candidate_c
+					exists = scope:candidate_d
+					exists = scope:candidate_e
+				}
+			}
+			random_owned_location = {
+				create_dynasty_from_location = random
+
+				last_dynasty_in_location ?= {
+					save_scope_as = target_dynasty
+				}
+				save_scope_as = location_scope
+			}
+			if = {
+				limit = { exists = scope:target_dynasty }
+				create_character = {
+					culture = root.culture
+					religion = root.religion
+					age = 30
+					birth_location = scope:location_scope
+					dynasty = scope:target_dynasty
+					save_scope_as = candidate_a
+				}
+			}
+			else = {
+				create_character = {
+					culture = root.culture
+					religion = root.religion
+					age = 30
+					birth_location = scope:location_scope
+					save_scope_as = candidate_a
+				}
+				scope:candidate_a = {
+					found_dynasty = random
+				}
+			}
+		}
+	}
+
+
+
+	option = {
+		name = election.1.a
+		trigger = {
+			is_no_junior_monarchy = yes
+			exists = scope:candidate_a
+		}
+		if = {
+			limit = {
+				scope:candidate_a = { is_ruler = yes }
+			}
+			add_government_power = government_power_extreme_penalty
+		}
+		elect_new_ruler_with_union = { character = scope:candidate_a }
+	}
+
+
+	option = {
+		name = election.1.b
+		trigger = {
+			is_no_junior_monarchy = yes
+			exists = scope:candidate_b
+		}
+		if = {
+			limit = {
+				scope:candidate_b = { is_ruler = yes }
+			}
+			add_government_power = government_power_extreme_penalty
+		}
+
+		elect_new_ruler_with_union = { character = scope:candidate_b }
+	}
+
+
+	option = {
+		name = election.1.c
+		trigger = {
+			is_no_junior_monarchy = yes
+			exists = scope:candidate_c
+		}
+		if = {
+			limit = {
+				scope:candidate_c = { is_ruler = yes }
+			}
+			add_government_power = government_power_extreme_penalty
+		}
+
+		elect_new_ruler_with_union = { character = scope:candidate_c }
+	}
+
+	option = {
+		name = election.1.d
+		trigger = {
+			is_no_junior_monarchy = yes
+			exists = scope:candidate_d
+		}
+		if = {
+			limit = {
+				scope:candidate_d = { is_ruler = yes }
+			}
+			add_government_power = government_power_extreme_penalty
+		}
+
+		elect_new_ruler_with_union = { character = scope:candidate_d }
+	}
+
+	option = {
+		name = election.1.e
+		trigger = {
+			is_no_junior_monarchy = yes
+			exists = scope:candidate_e
+		}
+		if = {
+			limit = {
+				scope:candidate_e = { is_ruler = yes }
+			}
+			add_government_power = government_power_extreme_penalty
+		}
+
+		elect_new_ruler_with_union = { character = scope:candidate_e }
+	}
+
+	option = {
+		name = election.1.f
+		trigger = {
+			is_junior_monarchy = yes
+		}
+	}
+}
 
 #Lottery Election
 election.2 = {
@@ -43,4 +321,358 @@ election.2 = {
 		}
 		elect_new_ruler_with_union = { character = scope:candidate_a }
 	}
+}
+
+#Election for the Capitano del Popolo
+election.3 = {
+	type = country_event
+	title = election.3.title
+	desc = election.3.desc
+	outcome = neutral
+	#show_portrait
+	
+	illustration_tags = {
+		10 = regular
+		10 = exterior
+	}
+	trigger = {
+		succession_law = heir_selection:diarchic_election
+		any_election_candidates = { count > 0 }
+		is_no_junior_monarchy = yes
+	}
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		random_election_candidates = {
+			save_scope_as = candidate_a
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = {  exists = scope:candidate_a	this = scope:candidate_a }
+			}
+			save_scope_as = candidate_b
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = { exists = scope:candidate_a	this = scope:candidate_a }
+				NAND = { exists = scope:candidate_b	this = scope:candidate_b }
+			}
+			save_scope_as = candidate_c
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = { exists = scope:candidate_a	this = scope:candidate_a }
+				NAND = { exists = scope:candidate_b	this = scope:candidate_b }
+				NAND = { exists = scope:candidate_c	this = scope:candidate_c }
+			}
+			save_scope_as = candidate_d
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = { exists = scope:candidate_a	this = scope:candidate_a }
+				NAND = { exists = scope:candidate_b	this = scope:candidate_b }
+				NAND = { exists = scope:candidate_c	this = scope:candidate_c }
+				NAND = { exists = scope:candidate_d	this = scope:candidate_d }
+			}
+			save_scope_as = candidate_e
+		}
+	}
+	after = {
+		trigger_event_silently = {
+			id = election.4
+		}
+	}
+
+	option = {
+		name = election.1.a
+		elect_new_ruler_with_union = { character = scope:candidate_a }
+	}
+
+
+	option = {
+		name = election.1.b
+		trigger = { exists = scope:candidate_b }
+		elect_new_ruler_with_union = { character = scope:candidate_b }
+	}
+
+
+	option = {
+		name = election.1.c
+		trigger = { exists = scope:candidate_c }
+		elect_new_ruler_with_union = { character = scope:candidate_c }
+	}
+
+	option = {
+		name = election.1.d
+		trigger = { exists = scope:candidate_d }
+		elect_new_ruler_with_union = { character = scope:candidate_d }
+	}
+
+	option = {
+		name = election.1.e
+		trigger = { exists = scope:candidate_e }
+		elect_new_ruler_with_union = { character = scope:candidate_e }
+	}
+}
+
+#Elect co-ruler
+election.4 = {
+	type = country_event
+	title = election.4.title
+	desc = election.4.desc
+	outcome = neutral
+
+
+
+	option = {
+		name = election.4.a
+		trigger = { exists = scope:candidate_a NOT = { ruler = scope:candidate_a } }
+		scope:candidate_a = { custom_tooltip = { text = SET_CORULER_TT set_variable = { name = diarchy_coruler value = yes } } }
+	}
+
+
+	option = {
+		name = election.4.b
+		trigger = { exists = scope:candidate_b NOT = { ruler = scope:candidate_b } }
+		scope:candidate_b = { custom_tooltip = { text = SET_CORULER_TT set_variable = { name = diarchy_coruler value = yes } } }
+	}
+
+
+	option = {
+		name = election.4.c
+		trigger = { exists = scope:candidate_c NOT = { ruler = scope:candidate_c } }
+		scope:candidate_c = { custom_tooltip = { text = SET_CORULER_TT set_variable = { name = diarchy_coruler value = yes } } }
+	}
+
+	option = {
+		name = election.4.d
+		trigger = { exists = scope:candidate_d NOT = { ruler = scope:candidate_d } }
+		scope:candidate_d = { custom_tooltip = { text = SET_CORULER_TT set_variable = { name = diarchy_coruler value = yes } } }
+	}
+
+	option = {
+		name = election.4.e
+		trigger = { exists = scope:candidate_e NOT = { ruler = scope:candidate_e } }
+		scope:candidate_e = { custom_tooltip = { text = SET_CORULER_TT set_variable = { name = diarchy_coruler value = yes } } }
+	}
+}
+
+#Election of a Monarch
+election.5 = {
+	type = country_event
+	title = election.5.title
+	desc = election.5.desc
+	outcome = neutral
+
+
+
+	trigger = {
+		succession_law = heir_selection:diarchic_election
+		any_election_candidates = { count > 0 }
+		is_junior_monarchy = yes
+	}
+	illustration_tags = {
+		10 = happy
+		10 = interior
+	}
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		random_election_candidates = { save_scope_as = candidate_a }	#There is always only ONE monarch selected
+	}
+
+	option = {
+		name = election.5.a
+		elect_new_ruler_with_union = { character = scope:candidate_a }
+		add_estate_satisfaction = { type = estate_type:nobles_estate value = estate_satisfaction_mild_bonus }
+	}
+}
+
+#Dynastic Elections
+election.6 = {
+	type = country_event
+
+	title = election.6.title
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					NOR = {
+						exists = scope:candidate_a
+						exists = scope:candidate_b
+						exists = scope:candidate_c
+						exists = scope:candidate_d
+						exists = scope:candidate_e
+					}
+				}
+				#No dynastic heir available
+				desc = election.6.desc.b
+			}
+			triggered_desc = {
+				desc = election.6.desc.a
+			}
+		}
+	}
+	outcome = neutral
+
+	trigger = {
+		succession_law = heir_selection:dynastic_elective_succession
+		is_no_junior_monarchy = yes
+	}
+	illustration_tags = {
+		10 = regular
+		10 = interior
+	}
+	immediate = {
+		event_illustration_estate_effect = { foreground = estate_type:nobles_estate background = estate_type:nobles_estate }
+		capital = {
+			save_scope_as = capital_scope
+		}
+		previous_ruler ?= {
+			save_scope_as = old_ruler
+		}
+
+		random_election_candidates = {
+			save_scope_as = candidate_a
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = {  exists = scope:candidate_a	this = scope:candidate_a }
+			}
+			save_scope_as = candidate_b
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = { exists = scope:candidate_a	this = scope:candidate_a }
+				NAND = { exists = scope:candidate_b	this = scope:candidate_b }
+			}
+			save_scope_as = candidate_c
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = { exists = scope:candidate_a	this = scope:candidate_a }
+				NAND = { exists = scope:candidate_b	this = scope:candidate_b }
+				NAND = { exists = scope:candidate_c	this = scope:candidate_c }
+			}
+			save_scope_as = candidate_d
+		}
+		random_election_candidates = {
+			limit = {
+				NAND = { exists = scope:candidate_a	this = scope:candidate_a }
+				NAND = { exists = scope:candidate_b	this = scope:candidate_b }
+				NAND = { exists = scope:candidate_c	this = scope:candidate_c }
+				NAND = { exists = scope:candidate_d	this = scope:candidate_d }
+			}
+			save_scope_as = candidate_e
+		}
+		if = {
+			limit = {
+				NOR = {
+					exists = scope:candidate_a
+					exists = scope:candidate_b
+					exists = scope:candidate_c
+					exists = scope:candidate_d
+					exists = scope:candidate_e
+				}
+			}
+			capital = {
+				create_dynasty_from_location = random
+				last_dynasty_in_location ?= {
+					save_scope_as = capital_dynasty
+				}
+			}
+			create_character = {
+				culture = root.culture
+				religion = root.religion
+				age = { 20 60 }
+				birth_location = capital
+				estate = estate_type:nobles_estate
+				dynasty = scope:capital_dynasty
+				save_scope_as = candidate_a
+			}
+
+			random_owned_location = {
+				create_dynasty_from_location = random
+
+				last_dynasty_in_location ?= {
+					save_scope_as = target_dynasty
+				}
+				save_scope_as = location_scope
+			}
+			create_character = {
+				culture = scope:location_scope.dominant_culture
+				religion = scope:location_scope.dominant_religion
+				age = { 20 60 }
+				birth_location = scope:location_scope
+				estate = estate_type:nobles_estate
+				dynasty = scope:target_dynasty
+				save_scope_as = candidate_b
+			}
+		}
+	}
+
+	option = {
+		name = election.6.a
+		trigger = { exists = scope:candidate_a }
+		if = {
+			limit = {
+				scope:candidate_a = { is_ruler = yes }
+			}
+			add_government_power = government_power_extreme_penalty
+		}
+		elect_new_ruler_with_union = { character = scope:candidate_a }
+	}
+
+
+	option = {
+		name = election.6.b
+		trigger = { exists = scope:candidate_b }
+		if = {
+			limit = {
+				scope:candidate_b = { is_ruler = yes }
+			}
+			add_government_power = government_power_extreme_penalty
+		}
+
+		elect_new_ruler_with_union = { character = scope:candidate_b }
+	}
+
+
+	option = {
+		name = election.6.c
+		trigger = { exists = scope:candidate_c }
+		if = {
+			limit = {
+				scope:candidate_c = { is_ruler = yes }
+			}
+			add_government_power = government_power_extreme_penalty
+		}
+
+		elect_new_ruler_with_union = { character = scope:candidate_c }
+	}
+
+	option = {
+		name = election.6.d
+		trigger = { exists = scope:candidate_d }
+		if = {
+			limit = {
+				scope:candidate_d = { is_ruler = yes }
+			}
+			add_government_power = government_power_extreme_penalty
+		}
+
+		elect_new_ruler_with_union = { character = scope:candidate_d }
+	}
+
+	option = {
+		name = election.6.e
+		trigger = { exists = scope:candidate_e }
+		if = {
+			limit = {
+				scope:candidate_e = { is_ruler = yes }
+			}
+			add_government_power = government_power_extreme_penalty
+		}
+
+		elect_new_ruler_with_union = { character = scope:candidate_e }
+	}
+
 }
