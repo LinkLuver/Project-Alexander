@@ -1,0 +1,718 @@
+types SituationPanel
+{
+	type situation_panel = lateralview {
+		name = "situation_panel"
+
+		blockoverride "panel_header" {
+			window_header_alt = {
+				blockoverride "header_text_object" {
+					hbox = {
+						spacing = 5
+						expand = {}
+
+						icon = {
+						texture = "[SituationView.GetActiveSituation.GetIcon]"
+						size = { 30 30 }
+					}
+						text_single = {
+							align = nobaseline
+							using = Font_Type_Headers
+							using = Font_Size_Big
+							maximumsize = { 390 -1 }
+							autoresize = yes
+							default_format = "#header_titles"
+							text = "[SituationView.GetActiveSituation.GetName]"
+						}
+
+						expand = {}
+					}
+				}
+			} 
+		}
+
+		blockoverride "panel_content" {
+			vbox = {
+				using = layoutpolicy_expanding
+				using = bg_main_inner_notabs_alt
+				using = window_main_tabs_margin_alt
+				visible = "[Not(SituationView.GetActiveSituation.HasEnded)]"
+				spacing = 5
+
+				# SUBHEADER
+				widget = {
+					# block "situation_header_extra" {}
+					layoutpolicy_horizontal = expanding
+					size = { -1 45 }
+
+					block "situation_top_subheader_content" {
+						# LEFT SIDE
+						hbox = {
+							margin = { 0 4 }
+							spacing = 10
+							block "situation_header_left_size" {
+								maximumsize = {140 28}
+							}
+							layoutstretchfactor_horizontal = 1
+							position = {10 0}
+							block "situation_header_left" {
+								visible = no
+							}
+						}
+					
+						# CENTER
+						hbox = {
+							margin = { 0 4 }
+							spacing = 10
+							maximumsize = {140 28}
+							parentanchor = hcenter|top
+							block "situation_header_center" {
+								# vbox = {
+								# 	layoutpolicy_horizontal = expanding
+								# 	text_single = {
+								# 		layoutpolicy_horizontal = expanding
+								# 		align = center
+								# 		text = "SITUATION_LATERAL_VIEW_START_DATE_HEADER"
+								# 		default_format = "#subtle_name"
+								# 	}
+						
+								# 	text_single = {
+								# 		layoutpolicy_horizontal = expanding
+								# 		align = center
+								# 		fontsize = 13
+								# 		text = "[SituationView.GetActiveSituation.GetStartDate]"
+								# 	}
+								# }
+							}
+						}
+					
+						# RIGHT SIDE
+						hbox = {
+							margin = { 0 4 }
+							spacing = 10
+							parentanchor = right|top
+							block "situation_header_right_size" {
+								maximumsize = {140 28}
+							}
+							position = {-10 0}
+					
+							block "situation_header_right" {
+								visible = no
+							}
+						}
+					}
+				}
+
+				widget = {
+					layoutpolicy_horizontal = expanding
+					size = { -1 220 }
+					
+					block "header_center_modifiers" {}
+					background = {
+						using = color_dark_blue_texture
+						spriteType = stretched
+					}
+					
+					using = bg_age_event_frame
+					
+					block "situation_panel_image" {
+						background = {
+							# gfx/interface/illustrations/situation/
+							texture = "[GetSituationIllustration(SituationView.GetActiveSituation.GetSituation)]"
+						}
+
+						using = scene_fade_vertical_up
+					}
+					
+					block "situation_start_date" {
+						icon = {
+							parentanchor = top|hcenter
+							texture = "gfx/interface/component_tiles/regular_banner.dds"
+							texture_density = 2
+							size = { 92 48 }
+							vbox = {
+								layoutpolicy_horizontal = expanding
+								maximumsize = {80 38}
+								parentanchor = top|hcenter
+								text_single = {
+									layoutpolicy_horizontal = expanding
+									align = center
+									text = "SITUATION_LATERAL_VIEW_START_DATE_HEADER"
+									default_format = "#subtle_name"
+								}
+					
+								text_single = {
+									layoutpolicy_horizontal = expanding
+									align = center
+									fontsize = 13
+									text = "[SituationView.GetActiveSituation.GetStartDate]"
+								}
+							}
+						}
+					}
+				}
+
+				# MAIN CONTENT
+				vbox = {
+					margin_top = -5
+					using = layoutpolicy_expanding
+					using = bg_secondary_inner_alt
+
+					# TABS
+					block "situation_tab_buttons" {
+						header_secondary_tabs = {
+							allow_outside = yes
+							blockoverride "content" {
+								button_secondary_tab_alt = {
+									using = layoutpolicy_expanding
+									block "situation_breakdown_tab_size" {}
+									blockoverride "tab_text" {
+										text = "SITUATION_BREAKDOWN"
+									}
+									down = "[SituationView.Vars.NotExistOrHasValue( 'situation_tab', 'situation_breakdown' )]"
+									action_tooltip = {
+										title = "OPEN_TAB"
+										on_action = "[SituationView.Vars.Set( 'situation_tab', 'situation_breakdown' )]"
+									}
+									tooltipwidget = {
+										ContextualTooltipType = {
+											blockoverride "title_icon_texture" {
+												texture = "[SituationView.GetActiveSituation.GetIcon]"
+											}
+											blockoverride "title_text" { text = "SITUATION_BREAKDOWN" }
+											blockoverride "concept_link" { text = "[situation|e]" }
+											blockoverride "tooltip_content" {
+												TooltipTextBlock = {
+													blockoverride "text" {
+														text = "SITUATION_BREAKDOWN_TT_TEXT"
+													}
+												}
+											}
+										}
+									}
+								}
+								block "situation_extra_tabs_content" {}
+							}
+						}
+					}
+
+					vbox = {
+						using = layoutpolicy_expanding
+						visible = "[SituationView.Vars.NotExistOrHasValue( 'situation_tab', 'situation_breakdown' )]"
+
+						block "situation_subheader_content" {
+							subheader = {
+								block "situation_subheader_extra" {}
+								blockoverride "content" {
+									vbox = {
+										hbox = {
+											using = layoutpolicy_expanding
+											widget = {
+												layoutpolicy_horizontal = expanding
+												size = { -1 45 }
+	
+												# LEFT SIDE
+												hbox = {
+													spacing = 10
+													# block "situation_subheader_left" {
+														visible = no
+													# }
+												}
+	
+												# CENTER
+												hbox = {
+													spacing = 10
+													# block "situation_subheader_center" {
+														visible = no
+													# }
+												} 
+	
+												# RIGHT SIDE
+												hbox = {
+													spacing = 10
+													block "situation_subheader_right" {
+														visible = no
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						block "situation_main_panel_top_margins" {}
+						scrollarea = {
+							using = layoutpolicy_expanding
+	
+							block "situation_panel_main_maximumsize" {}
+							scrollbarpolicy_horizontal = always_off
+	
+							block "situation_panel_autoresize_scroll_area" {
+								autoresizeviewport = yes
+
+								viewportwidget = {
+									widget = {
+										scissor = no
+									}
+								}
+							}
+					
+							scrollbar_vertical = {
+								using = Scrollbar_Vertical
+							}
+					
+							scrollwidget = {
+								vbox = {
+									layoutpolicy_horizontal = expanding
+									spacing = 10
+									block "situation_panel_main_content_margin" {
+										margin = { 10 10 }
+									}
+									#margin_right = 20
+
+									block "situation_panel_main_content_top" {
+										using = situation_outcomes
+									}
+	
+									block "situation_panel_main_content" {}
+
+									vbox = {
+										# block "situation_variable_progress_bar_visible" { 
+											visible = no 
+										# }
+										using = bg_scroll_card_header
+										blockoverride "card_header_pattern" {}
+										hbox = {
+											layoutpolicy_horizontal = expanding
+											minimumsize = { -1 24 }
+											margin = { 120 0 }
+											hbox = {
+												margin_top = 4
+												text_single = {
+													size = { 30 20 }
+													autoresize = no
+													align = center|nobaseline
+													# block "situation_bar_first_threshold_text" {
+														raw_text = "33%"
+													#}
+												}
+												icon = {
+													size = { 20 20 }
+													# block "situation_bar_first_threshold_texture" {
+														texture = "gfx/interface/icons/rebels/fist.dds"
+													#}
+												}
+											}
+											hbox = {
+												margin_top = 4
+												text_single = {
+													size = { 30 20 }
+													autoresize = no
+													align = center|nobaseline
+													# block "situation_bar_second_threshold_text" {
+														raw_text = "66%"
+													# }
+												}
+												icon = {
+													size = { 20 20 }
+													# block "situation_bar_second_threshold_texture" {
+														texture = "gfx/interface/icons/rebels/fist.dds"
+													# }
+												}
+											}
+										}
+										hbox = {
+											layoutpolicy_horizontal = expanding
+											minimumsize = { -1 35 }
+											margin = { 10 0 }
+											spacing = 20
+											icon = {
+												size = { 26 26 }
+												# block "situation_bar_second_texture" {
+													texture = "gfx/interface/icons/rebels/fist.dds"
+												# }
+											}
+											hbox = {
+												layoutpolicy_horizontal = expanding
+												block "disaster_progressbar" {}
+											}
+								
+											icon = {
+												size = { 26 26 }
+												# block "situation_bar_second_texture" {
+													texture = "gfx/interface/icons/rebels/fist.dds"
+												# }
+											}
+											
+										}
+									}
+							
+									# list of actions
+									block "situation_panel_main_actions" {
+										vbox = {
+											layoutpolicy_horizontal = expanding
+											using = situations_actions
+										}
+									}
+	
+									block "situation_panel_main_content_bottom" {}
+	
+									expand = {}
+								}
+							}
+						}
+	
+						block "situation_main_content_extra" {}
+						expand = {}
+					}
+
+					block "situation_extra_tab_panels" {}
+				}
+			}
+
+			vbox = {
+				using = layoutpolicy_expanding
+				using = bg_main_inner_notabs_alt
+				using = window_main_tabs_margin_alt
+				visible = "[SituationView.GetActiveSituation.HasEnded]"
+
+				text_single = {
+					text = "SITUATION_LATERAL_VIEW_SITUATION_ENDED"
+				}
+			}
+		}
+	}
+}
+
+template situation_outcomes {
+	situation_card_expandable = {
+		blockoverride "card_expandable_size" {
+			block "situation_panel_outcomes_card_size" {
+				minimumsize = { 500 -1 }
+			}
+		}
+		blockoverride "header_button_onclick" {
+			onclick = "[LateralView.Vars.Toggle('situation_outcomes_section')]"
+		}
+		blockoverride "header_text" {
+			block "situation_panel_outcomes_header_text" {
+				raw_text = "[SituationView.GetActiveSituation.GetName] [Localize('SITUATION_OUTCOMES')]"
+			}
+		}
+		blockoverride "header_icon" {
+			texture = "gfx/interface/icons/disasters/end_requirements_green.dds"
+		}
+		blockoverride "bottom_content_onclick" {
+			visible = "[LateralView.Vars.Exists('situation_outcomes_section')]"
+		}
+		blockoverride "icon_replace_visible_yes" {
+			visible = "[LateralView.Vars.Exists('situation_outcomes_section')]"
+		}
+		blockoverride "icon_replace_visible_not" {
+			visible = "[Not(LateralView.Vars.Exists('situation_outcomes_section'))]"
+		}
+		blockoverride "bottom_content" {
+			vbox = {
+				layoutpolicy_horizontal = expanding
+				block "situation_panel_outcome_list_spacing" {}
+				block "situation_panel_outcome_list_datamodel" {
+					datamodel = "[SituationView.GetActiveSituation.GetSituation.GetOutcomes]"
+				}
+				item = {
+					block "situation_panel_outcome_item_content" {
+						situation_card_expandable = {
+							blockoverride "header_button_onclick" {
+								onclick = "[LateralView.Vars.Toggle(ScriptedOutcome.GetName)]"
+							}
+							blockoverride "header_text" {
+								text = "[ScriptedOutcome.GetName]"
+							}
+							blockoverride "header_icon" {
+								texture = "gfx/interface/icons/disasters/end_requirements_green.dds"
+							}
+							blockoverride "card_expandable_size" {
+								block "situation_panel_outcome_item_size" {
+									minimumsize = { 480 -1 }
+									maximumsize = { 480 -1 }
+								}
+							}
+							blockoverride "bottom_content" {
+								text_multi = {
+									layoutpolicy_horizontal = expanding
+									visible = "[Not(StringIsEmpty(ScriptedOutcome.GetDesc))]"
+									autoresize = yes
+									raw_text = "[ScriptedOutcome.GetDesc]"
+								}
+								TooltipRequirementsList = {
+									textcontext = "[ScriptedOutcome.GetSituationConditions(SituationView.GetActiveSituation.GetSituation.Self)]"
+								}
+							}
+							blockoverride "visible_hint" {}
+							blockoverride "onaction_hint" {
+								block "situation_panel_outcome_hint" {}
+							}
+							blockoverride "bottom_content_onclick" {
+								visible = "[LateralView.Vars.Exists(ScriptedOutcome.GetName)]"
+							}
+							blockoverride "icon_replace_visible_yes" {
+								visible = "[LateralView.Vars.Exists(ScriptedOutcome.GetName)]"
+							}
+							blockoverride "icon_replace_visible_not" {
+								visible = "[Not(LateralView.Vars.Exists(ScriptedOutcome.GetName))]"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+template situations_actions {
+	vbox = {
+		layoutpolicy_horizontal = expanding
+		visible = "[Not(IsDataModelEmpty(SituationView.GetActionGroups))]"
+
+		dynamicgridbox = {
+			datamodel = "[SituationView.GetActionGroups]"
+			ignoreinvisible = yes
+			item = {
+				widget = {
+					situation_card_actions = {
+						set_parent_size_to_minimum = yes
+						blockoverride "card_header_icon" { visible = no }
+						blockoverride "card_header_text" {
+							text = "[ActionGroup.GetName]"
+						}
+						tooltipmeta = {
+							texture = "[SituationView.GetActiveSituation.GetIcon]"
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+template vote_countries {
+	vbox = {
+		layoutpolicy_horizontal = expanding
+
+		margin_bottom = 8
+		spacing = 20
+
+		hbox = {
+			using = layoutpolicy_expanding
+			spacing = 5
+
+			# block "base_bg_card" {
+				using = bg_paper_card_situations
+			# }
+			
+			vbox = {
+				using = layoutpolicy_expanding
+				
+				widget = {
+					layoutpolicy_horizontal = expanding
+					size = { -1 40 }
+					# block "situation_header_visible" {}
+
+					hbox = {
+						block "situation_header_style" {
+                            using = bg_card_header_situation
+                        }
+
+						widget = {
+							layoutpolicy_horizontal = expanding
+							size = { -1 40 }
+
+							text_single = {
+								position = {7 0}
+								parentanchor = left|vcenter
+								maximumsize = {190 38}
+								layoutpolicy_horizontal = expanding
+								block "cardinal_support_text" {}
+							}
+
+							widget = {
+								size = { 30 30 }
+								parentanchor = right
+								position = {-5 5}
+								block "cardinal_vote_visible" {
+									visible = no
+								}
+								
+								icon = {
+									visible = "[IsCountryInDataModel(SituationView.GetPlayer, VoteTargetGlue.GetVoters)]"
+									parentanchor = center
+									texture = "gfx/interface/component_tiles/square_highlight.dds"
+									size = { 45 45 }
+									texture_density = 2
+									alpha = 1
+
+									modify_texture = {
+										using = color_gold_texture
+										alpha = 3
+									}
+								}
+
+								navigational_button_alt = {
+									using = bg_circle_alt_brown
+									# visible = "[Not(IsCountryInDataModel(SituationView.GetPlayer, VoteTargetGlue.GetVoters))]"
+									size = { 30 30 }
+
+									blockoverride "icon_texture" {
+										texture =  "gfx/interface/icons/laws/resolutions/law_voting.dds"
+										texture_density = 2
+										size = { 70% 70% }
+										using = icon_gold_texture_alt
+									}
+
+									visible = "[PdxGuiWidget.IsUberButtonVisible]"
+									enabled = "[PdxGuiWidget.IsUberButtonEnabled]"
+
+									block "situation_vote_resolution_actions" {
+										tooltipwidget = { BasicFunctionalTooltip = {} }
+									}
+								}
+							}
+						}
+					}
+				}
+
+				hbox = {
+					margin = {10 10 }
+					using = layoutpolicy_expanding
+					scrollarea = {
+						layoutpolicy_horizontal = expanding
+
+						block "situation_voters_size" {
+							size = { -1 90 }
+						}
+
+						scrollbarpolicy_horizontal = always_off
+	
+						scrollbar_vertical = {
+							using = Scrollbar_Vertical
+						}
+	
+						scrollwidget = {
+							fixedgridbox = {
+								addrow = 28
+								addcolumn = 42
+								datamodel_reuse_widgets = yes
+								layoutpolicy_horizontal = expanding
+								flipdirection = yes
+								
+								block "cardinal_vote_maximum_flags" {
+									datamodel_wrap = 12
+									maxhorizontalslots = 12
+								}
+	
+								block "cardinals_datamodel" {}
+	
+								item = {
+									widget = {
+										size = { 38 26 }
+
+										country_flag_small = {
+											blockoverride "tooltip" {
+												block "vote_countries_flag_tooltip" {
+													tooltipwidget = {
+														using = CardinalInSchism_tooltip
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					block "cardinals_extra_list" {}
+				}
+			}
+		}
+	}
+}
+
+template vote_countries_list {
+	vbox = {
+		margin = {10 10 }
+		using = layoutpolicy_expanding
+		scrollarea = {
+			layoutpolicy_horizontal = expanding
+
+			block "situation_voters_size" {
+				size = { -1 90 }
+			}
+
+			scrollbarpolicy_horizontal = always_off
+
+			scrollbar_vertical = {
+				using = Scrollbar_Vertical
+			}
+
+			scrollwidget = {
+				fixedgridbox = {
+					addrow = 28
+					addcolumn = 42
+					datamodel_reuse_widgets = yes
+					layoutpolicy_horizontal = expanding
+					flipdirection = yes
+					
+					block "cardinal_vote_maximum_flags" {
+						datamodel_wrap = 12
+						maxhorizontalslots = 12
+					}
+
+					block "cardinals_datamodel" {}
+
+					item = {
+						widget = {
+							size = { 38 26 }
+
+							country_flag_small = {
+								blockoverride "tooltip" {
+									block "vote_countries_flag_tooltip" {
+										tooltipwidget = {
+											using = CardinalInSchism_tooltip
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# template situation_piechart_template {
+# 	piechart = {
+# 		# block "situation_piechart_size" { 
+# 			size = { 38 38 } 
+# 		# }
+# 		using = piechart_angles
+
+# 		pieslice = {
+# 			texture = "gfx/interface/pie_charts/pie_chart_alpha_80.dds"
+# 			# block "situation_piechart_value" {}
+# 			color = { 0.01 0.6 0.9 1 } 
+# 		}
+		
+# 		pieslice = {
+# 			texture = "gfx/interface/pie_charts/pie_chart_alpha_80.dds"
+# 			# block "situation_piechart_max_value" {}
+# 			color = { 0.0 0.1 0.1 1 }
+# 		}
+		
+# 		icon = {
+# 			size = { 65% 65% }
+# 			parentanchor = center
+# 			# block "situation_piechart_icon" {}
+# 		}
+
+# 		# block "situation_piechart_tooltip" {}
+# 	}
+# }
