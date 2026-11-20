@@ -1,0 +1,146 @@
+﻿namespace = pa_senate
+
+# Each Senate bloc can force a constitutional showdown, but only after a year
+# of sustained low approval while holding a substantial share of the chamber.
+# The leader and one non-capital location defect to the resulting rebel side.
+
+scripted_effect pa_senate_start_optimates_civil_war = {
+	random_list = {
+		70 = { create_rebel = { category = estate estate = nobles_estate name = pa_senate_optimates_rebels save_scope_as = pa_senate_rebels } }
+		20 = { create_rebel = { category = estate estate = burghers_estate name = pa_senate_optimates_rebels save_scope_as = pa_senate_rebels } }
+		10 = { create_rebel = { category = estate estate = peasants_estate name = pa_senate_optimates_rebels save_scope_as = pa_senate_rebels } }
+	}
+	var:pa_senate_optimates_leader ?= { if = { limit = { this != root.ruler } change_character_allegiance = scope:pa_senate_rebels } }
+	var:pa_senate_optimates_leader.dynasty ?= { every_character_in_dynasty = { limit = { owner = root is_alive = yes is_adult = yes this != root.ruler } change_character_allegiance = scope:pa_senate_rebels } }
+	random_owned_location = {
+		limit = { is_capital = no }
+		every_pop = { limit = { owner = root } change_pop_allegiance = scope:pa_senate_rebels }
+	}
+	scope:pa_senate_rebels = { start_civil_war = {} }
+}
+
+scripted_effect pa_senate_start_boni_civil_war = {
+	random_list = {
+		20 = { create_rebel = { category = estate estate = nobles_estate name = pa_senate_boni_rebels save_scope_as = pa_senate_rebels } }
+		70 = { create_rebel = { category = estate estate = burghers_estate name = pa_senate_boni_rebels save_scope_as = pa_senate_rebels } }
+		10 = { create_rebel = { category = estate estate = peasants_estate name = pa_senate_boni_rebels save_scope_as = pa_senate_rebels } }
+	}
+	var:pa_senate_boni_leader ?= { if = { limit = { this != root.ruler } change_character_allegiance = scope:pa_senate_rebels } }
+	var:pa_senate_boni_leader.dynasty ?= { every_character_in_dynasty = { limit = { owner = root is_alive = yes is_adult = yes this != root.ruler } change_character_allegiance = scope:pa_senate_rebels } }
+	random_owned_location = {
+		limit = { is_capital = no }
+		every_pop = { limit = { owner = root } change_pop_allegiance = scope:pa_senate_rebels }
+	}
+	scope:pa_senate_rebels = { start_civil_war = {} }
+}
+
+scripted_effect pa_senate_start_populares_civil_war = {
+	random_list = {
+		10 = { create_rebel = { category = estate estate = nobles_estate name = pa_senate_populares_rebels save_scope_as = pa_senate_rebels } }
+		20 = { create_rebel = { category = estate estate = burghers_estate name = pa_senate_populares_rebels save_scope_as = pa_senate_rebels } }
+		70 = { create_rebel = { category = estate estate = peasants_estate name = pa_senate_populares_rebels save_scope_as = pa_senate_rebels } }
+	}
+	var:pa_senate_populares_leader ?= { if = { limit = { this != root.ruler } change_character_allegiance = scope:pa_senate_rebels } }
+	var:pa_senate_populares_leader.dynasty ?= { every_character_in_dynasty = { limit = { owner = root is_alive = yes is_adult = yes this != root.ruler } change_character_allegiance = scope:pa_senate_rebels } }
+	random_owned_location = {
+		limit = { is_capital = no }
+		every_pop = { limit = { owner = root } change_pop_allegiance = scope:pa_senate_rebels }
+	}
+	scope:pa_senate_rebels = { start_civil_war = {} }
+}
+
+pa_senate.1 = {
+	type = country_event
+	category = disaster_event
+	title = pa_senate.1.title
+	desc = pa_senate.1.desc
+	outcome = negative
+	trigger = { tag = ROM has_variable = pa_senate_crisis_pending }
+	option = {
+		name = pa_senate.1.a
+		trigger = { gold >= 100 }
+		add_gold = -100
+		set_variable = { name = pa_senate_optimates_approval value = { value = var:pa_senate_optimates_approval add = 30 max = 100 } }
+		set_variable = { name = pa_senate_optimates_crisis value = 0 }
+		remove_variable = pa_senate_crisis_pending
+	}
+	option = {
+		name = pa_senate.1.b
+		high_risk_option = yes
+		remove_variable = pa_senate_crisis_pending
+		pa_senate_start_optimates_civil_war = yes
+	}
+}
+
+pa_senate.2 = {
+	type = country_event
+	category = disaster_event
+	title = pa_senate.2.title
+	desc = pa_senate.2.desc
+	outcome = negative
+	trigger = { tag = ROM has_variable = pa_senate_crisis_pending }
+	option = {
+		name = pa_senate.2.a
+		trigger = { gold >= 100 }
+		add_gold = -100
+		set_variable = { name = pa_senate_boni_approval value = { value = var:pa_senate_boni_approval add = 30 max = 100 } }
+		set_variable = { name = pa_senate_boni_crisis value = 0 }
+		remove_variable = pa_senate_crisis_pending
+	}
+	option = {
+		name = pa_senate.2.b
+		high_risk_option = yes
+		remove_variable = pa_senate_crisis_pending
+		pa_senate_start_boni_civil_war = yes
+	}
+}
+
+pa_senate.3 = {
+	type = country_event
+	category = disaster_event
+	title = pa_senate.3.title
+	desc = pa_senate.3.desc
+	outcome = negative
+	trigger = { tag = ROM has_variable = pa_senate_crisis_pending }
+	option = {
+		name = pa_senate.3.a
+		trigger = { gold >= 100 }
+		add_gold = -100
+		set_variable = { name = pa_senate_populares_approval value = { value = var:pa_senate_populares_approval add = 30 max = 100 } }
+		set_variable = { name = pa_senate_populares_crisis value = 0 }
+		remove_variable = pa_senate_crisis_pending
+	}
+	option = {
+		name = pa_senate.3.b
+		high_risk_option = yes
+		remove_variable = pa_senate_crisis_pending
+		pa_senate_start_populares_civil_war = yes
+	}
+}
+
+pa_senate.20 = {
+	type = country_event
+	title = pa_senate.20.title
+	desc = pa_senate.20.desc
+	outcome = neutral
+	trigger = { tag = ROM is_human = yes has_variable = pa_senate_last_election_optimates }
+	option = { name = pa_senate.20.a }
+}
+
+pa_senate.21 = {
+	type = country_event
+	title = pa_senate.21.title
+	desc = pa_senate.21.desc
+	outcome = neutral
+	trigger = { tag = ROM is_human = yes has_variable = pa_senate_last_election_boni }
+	option = { name = pa_senate.21.a }
+}
+
+pa_senate.22 = {
+	type = country_event
+	title = pa_senate.22.title
+	desc = pa_senate.22.desc
+	outcome = neutral
+	trigger = { tag = ROM is_human = yes has_variable = pa_senate_last_election_populares }
+	option = { name = pa_senate.22.a }
+}

@@ -1,0 +1,53 @@
+﻿# Native EU5 international organization, deliberately restricted to Rome.
+# It uses the HRE's parliament framework without turning foreign states into senators.
+pa_roman_senate = {
+	# Match the HRE/Shogunate in the organization browser and situation view.
+	situation_relevant = 100
+	unique = yes
+	has_target = no
+	# Reuse the Senate chamber art in the international-organization panel.
+	background_texture = "gfx/interface/event_window/Event_senate_debate.dds"
+	# It is discoverable like the HRE, but its membership remains Rome-only.
+	show_on_diplomatic_map = yes
+	show_as_overlord_on_map_trigger = { always = no }
+	can_invite_countries = no
+	create_visible_trigger = { always = no }
+	invite_visible_trigger = { always = no }
+	join_visible_trigger = { always = no }
+
+	has_leader_country = yes
+	leader_title_key = "PA_ROMAN_SENATE_PRESIDING_STATE"
+	leader_type = country
+	leader_change_trigger_type = none
+	leader_change_method = none
+	disband_if_no_leader = no
+
+	has_parliament = yes
+	parliament_type = pa_roman_senate_assembly
+	alert_view_tab = parliament
+	resolution_widget = parliament
+
+	can_initiate_policy_votes = { is_leader_of_international_organization = scope:recipient }
+	can_vote_in_parliament = { tag = ROM }
+
+	# This is an actual engine-level veto. Rome cannot declare a war while it
+	# belongs to the Senate unless the chamber (or a tyrannical consul) has issued
+	# a one-war mandate. Diplomatic agreements do not expose equivalent generic
+	# script hooks in EU5, so they are deliberately not claimed as hard-blocked.
+	can_declare_war = {
+		trigger_if = {
+			limit = { scope:attacker = { tag = ROM } }
+			custom_tooltip = {
+				text = pa_senate_war_mandate_required
+				scope:attacker = { has_variable = pa_senate_war_mandate }
+			}
+		}
+	}
+
+	# The Senate is an institution of the Roman Republic, not an alliance.
+	can_lead_trigger = { tag = ROM }
+	can_join_trigger = { tag = ROM }
+	can_leave_trigger = { always = no }
+	auto_leave_trigger = { always = no }
+	auto_disband_trigger = { always = no }
+}

@@ -1,0 +1,365 @@
+﻿# Country-scoped senate prototype. Values are initialized only once per country.
+pa_senate_initialize = {
+    effect = {
+        root = {
+            if = {
+                limit = { tag = ROM government_type = government_type:republic NOT = { has_variable = pa_senate_initialized } }
+                set_variable = pa_senate_initialized
+                set_variable = { name = pa_senate_optimates_approval value = 50 }
+                set_variable = { name = pa_senate_boni_approval value = 50 }
+                set_variable = { name = pa_senate_populares_approval value = 50 }
+                set_variable = { name = pa_senate_optimates_seats value = 40 }
+                set_variable = { name = pa_senate_boni_seats value = 35 }
+                set_variable = { name = pa_senate_populares_seats value = 25 }
+                set_variable = { name = pa_senate_size value = 100 }
+                set_variable = { name = pa_senate_pass_threshold value = 51 }
+                set_variable = { name = pa_senate_compromise_threshold value = 30 }
+                set_variable = { name = pa_senate_authority value = 50 }
+                set_variable = { name = pa_senate_last_vote value = 0 }
+                set_variable = { name = pa_senate_vote_opt value = 0 }
+                set_variable = { name = pa_senate_vote_boni value = 0 }
+                set_variable = { name = pa_senate_vote_pop value = 0 }
+                set_variable = pa_senate_last_motion_waiting
+                set_variable = { name = pa_senate_optimates_defectors value = 0 }
+                set_variable = { name = pa_senate_boni_defectors value = 0 }
+                set_variable = { name = pa_senate_populares_defectors value = 0 }
+                set_variable = { name = pa_senate_optimates_campaign value = 0 }
+                set_variable = { name = pa_senate_boni_campaign value = 0 }
+                set_variable = { name = pa_senate_populares_campaign value = 0 }
+                set_variable = { name = pa_senate_optimates_social_base value = 0 }
+                set_variable = { name = pa_senate_boni_social_base value = 0 }
+                set_variable = { name = pa_senate_populares_social_base value = 0 }
+                set_variable = { name = pa_senate_optimates_noble_support value = 0 }
+                set_variable = { name = pa_senate_optimates_burgher_support value = 0 }
+                set_variable = { name = pa_senate_optimates_peasant_support value = 0 }
+                set_variable = { name = pa_senate_boni_noble_support value = 0 }
+                set_variable = { name = pa_senate_boni_burgher_support value = 0 }
+                set_variable = { name = pa_senate_boni_peasant_support value = 0 }
+                set_variable = { name = pa_senate_populares_noble_support value = 0 }
+                set_variable = { name = pa_senate_populares_burgher_support value = 0 }
+                set_variable = { name = pa_senate_populares_peasant_support value = 0 }
+                set_variable = pa_senate_agenda_stability
+                # The founding Senate serves a full term. Elections thereafter
+                # are resolved by the yearly pulse when this five-year mandate ends.
+                set_variable = { name = pa_senate_election_cooldown value = yes days = 1825 }
+            }
+        }
+    }
+}
+pa_senate_favor_optimates = {
+    effect = { root = {
+        if = { limit = { has_variable = pa_senate_initialized gold >= 10 NOT = { has_variable = pa_senate_concession_cooldown } }
+            set_variable = { name = pa_senate_optimates_approval value = { value = var:pa_senate_optimates_approval add = 10 max = 100 } }
+            set_variable = { name = pa_senate_populares_approval value = { value = var:pa_senate_populares_approval subtract = 5 min = 0 } }
+            change_variable = { name = pa_senate_optimates_campaign add = 15 }
+			# Patronage changes the actual chamber balance, not merely a display value.
+			if = { limit = { var:pa_senate_populares_seats > 0 } change_variable = { name = pa_senate_populares_seats subtract = 1 } change_variable = { name = pa_senate_optimates_seats add = 1 } }
+			else_if = { limit = { var:pa_senate_boni_seats > 0 } change_variable = { name = pa_senate_boni_seats subtract = 1 } change_variable = { name = pa_senate_optimates_seats add = 1 } }
+            add_gold = -10
+            set_variable = { name = pa_senate_concession_cooldown value = yes days = 365 }
+        }
+    } }
+}
+pa_senate_favor_boni = {
+    effect = { root = {
+        if = { limit = { has_variable = pa_senate_initialized gold >= 10 NOT = { has_variable = pa_senate_concession_cooldown } }
+            set_variable = { name = pa_senate_boni_approval value = { value = var:pa_senate_boni_approval add = 10 max = 100 } }
+            set_variable = { name = pa_senate_optimates_approval value = { value = var:pa_senate_optimates_approval subtract = 5 min = 0 } }
+            change_variable = { name = pa_senate_boni_campaign add = 15 }
+			if = { limit = { var:pa_senate_optimates_seats > 0 } change_variable = { name = pa_senate_optimates_seats subtract = 1 } change_variable = { name = pa_senate_boni_seats add = 1 } }
+			else_if = { limit = { var:pa_senate_populares_seats > 0 } change_variable = { name = pa_senate_populares_seats subtract = 1 } change_variable = { name = pa_senate_boni_seats add = 1 } }
+            add_gold = -10
+            set_variable = { name = pa_senate_concession_cooldown value = yes days = 365 }
+        }
+    } }
+}
+pa_senate_favor_populares = {
+    effect = { root = {
+        if = { limit = { has_variable = pa_senate_initialized gold >= 10 NOT = { has_variable = pa_senate_concession_cooldown } }
+            set_variable = { name = pa_senate_populares_approval value = { value = var:pa_senate_populares_approval add = 10 max = 100 } }
+            set_variable = { name = pa_senate_boni_approval value = { value = var:pa_senate_boni_approval subtract = 5 min = 0 } }
+            change_variable = { name = pa_senate_populares_campaign add = 15 }
+			if = { limit = { var:pa_senate_boni_seats > 0 } change_variable = { name = pa_senate_boni_seats subtract = 1 } change_variable = { name = pa_senate_populares_seats add = 1 } }
+			else_if = { limit = { var:pa_senate_optimates_seats > 0 } change_variable = { name = pa_senate_optimates_seats subtract = 1 } change_variable = { name = pa_senate_populares_seats add = 1 } }
+            add_gold = -10
+            set_variable = { name = pa_senate_concession_cooldown value = yes days = 365 }
+        }
+    } }
+}
+# Enlarge the chamber by five seats. The most popular faction receives the
+# new patronage seats, so funding a bloc before expansion can change outcomes.
+pa_senate_expand_membership = {
+    effect = { root = {
+        if = {
+            limit = { has_variable = pa_senate_initialized gold >= 100 var:pa_senate_size < 160 NOT = { has_variable = pa_senate_expansion_cooldown } }
+            add_gold = -100
+            change_variable = { name = pa_senate_size add = 5 }
+            set_variable = { name = pa_senate_pass_threshold value = { value = var:pa_senate_size multiply = 51 divide = 100 } }
+            set_variable = { name = pa_senate_compromise_threshold value = { value = var:pa_senate_size multiply = 30 divide = 100 } }
+            if = {
+                limit = { var:pa_senate_optimates_approval >= var:pa_senate_boni_approval var:pa_senate_optimates_approval >= var:pa_senate_populares_approval }
+                change_variable = { name = pa_senate_optimates_seats add = 5 }
+            }
+            else_if = {
+                limit = { var:pa_senate_boni_approval >= var:pa_senate_optimates_approval var:pa_senate_boni_approval >= var:pa_senate_populares_approval }
+                change_variable = { name = pa_senate_boni_seats add = 5 }
+            }
+            else = { change_variable = { name = pa_senate_populares_seats add = 5 } }
+            set_variable = { name = pa_senate_expansion_cooldown value = yes days = 1825 }
+        }
+    } }
+}
+# A war mandate is an actual permission consumed by the next Roman declaration
+# of war. Its vote is faction-weighted in the same way as every other motion.
+pa_senate_authorize_war = {
+    effect = { root = {
+        if = { limit = { has_variable = pa_senate_initialized NOT = { has_variable = pa_senate_motion_cooldown } }
+            remove_variable = pa_senate_agenda_stability
+            remove_variable = pa_senate_agenda_holdings
+            remove_variable = pa_senate_agenda_works
+            remove_variable = pa_senate_agenda_law
+            set_variable = pa_senate_agenda_war
+            set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_pop value = { value = var:pa_senate_populares_seats multiply = var:pa_senate_populares_approval divide = 100 } }
+            change_variable = { name = pa_senate_vote_opt subtract = var:pa_senate_optimates_defectors }
+            change_variable = { name = pa_senate_vote_boni subtract = var:pa_senate_boni_defectors }
+            change_variable = { name = pa_senate_vote_pop subtract = var:pa_senate_populares_defectors }
+            # The Optimates and Populares lean toward expansion; the Boni ask
+            # for a stronger mandate before accepting it.
+            change_variable = { name = pa_senate_vote_opt add = 8 }
+            change_variable = { name = pa_senate_vote_boni subtract = 4 }
+            change_variable = { name = pa_senate_vote_pop add = 5 }
+			# A bloc that dislikes this issue supplies no votes at all. Approval,
+			# defections and the issue's ideology therefore all matter.
+			if = { limit = { var:pa_senate_optimates_approval < 35 } set_variable = { name = pa_senate_vote_opt value = 0 } }
+			if = { limit = { var:pa_senate_boni_approval < 70 } set_variable = { name = pa_senate_vote_boni value = 0 } }
+			if = { limit = { var:pa_senate_populares_approval < 40 } set_variable = { name = pa_senate_vote_pop value = 0 } }
+            set_variable = { name = pa_senate_last_vote value = { value = var:pa_senate_vote_opt add = var:pa_senate_vote_boni add = var:pa_senate_vote_pop } }
+            set_variable = { name = pa_senate_pass_threshold value = { value = var:pa_senate_size multiply = 51 divide = 100 } }
+            set_variable = { name = pa_senate_compromise_threshold value = { value = var:pa_senate_size multiply = 30 divide = 100 } }
+            remove_variable = pa_senate_last_motion_waiting
+            remove_variable = pa_senate_last_motion_passed
+            remove_variable = pa_senate_last_motion_compromise
+            remove_variable = pa_senate_last_motion_rejected
+            if = { limit = { var:pa_senate_last_vote >= var:pa_senate_pass_threshold }
+                set_variable = { name = pa_senate_war_mandate value = yes days = 365 }
+                set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority add = 8 max = 100 } }
+                set_variable = pa_senate_last_motion_passed
+            }
+            else_if = { limit = { var:pa_senate_last_vote >= var:pa_senate_compromise_threshold }
+                set_variable = { name = pa_senate_war_mandate value = yes days = 365 }
+                change_variable = { name = pa_senate_tyranny add = 5 max = 100 }
+                set_variable = pa_senate_last_motion_compromise
+            }
+            else = { set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority subtract = 5 min = 0 } } set_variable = pa_senate_last_motion_rejected }
+            set_variable = { name = pa_senate_motion_cooldown value = yes days = 1825 }
+        }
+    } }
+}
+# The consul may overrule the chamber, but pays for it in tyranny and factional
+# anger. It still creates a one-war mandate so the IO veto remains coherent.
+pa_senate_defy_senate_for_war = {
+    effect = { root = {
+        if = { limit = { has_variable = pa_senate_initialized NOT = { has_variable = pa_senate_war_mandate } }
+            set_variable = { name = pa_senate_war_mandate value = yes days = 365 }
+            change_variable = { name = pa_senate_tyranny add = 15 max = 100 }
+            change_variable = { name = pa_senate_authority subtract = 12 min = 0 }
+            change_variable = { name = pa_senate_boni_approval subtract = 8 min = 0 }
+            change_variable = { name = pa_senate_boni_crisis add = 2 max = 12 }
+        }
+    } }
+}
+# A diplomatic mandate is consumed by Rome's next alliance, whether Rome makes
+# the offer or accepts one. The Boni favour predictable diplomacy.
+pa_senate_authorize_alliance = {
+    effect = { root = {
+        if = { limit = { has_variable = pa_senate_initialized NOT = { has_variable = pa_senate_motion_cooldown } }
+            remove_variable = pa_senate_agenda_stability
+            remove_variable = pa_senate_agenda_holdings
+            remove_variable = pa_senate_agenda_works
+            remove_variable = pa_senate_agenda_law
+            remove_variable = pa_senate_agenda_war
+            set_variable = pa_senate_agenda_alliance
+            set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_pop value = { value = var:pa_senate_populares_seats multiply = var:pa_senate_populares_approval divide = 100 } }
+            change_variable = { name = pa_senate_vote_opt subtract = var:pa_senate_optimates_defectors }
+            change_variable = { name = pa_senate_vote_boni subtract = var:pa_senate_boni_defectors }
+            change_variable = { name = pa_senate_vote_pop subtract = var:pa_senate_populares_defectors }
+            change_variable = { name = pa_senate_vote_opt add = 2 }
+            change_variable = { name = pa_senate_vote_boni add = 8 }
+            change_variable = { name = pa_senate_vote_pop add = 3 }
+			if = { limit = { var:pa_senate_optimates_approval < 50 } set_variable = { name = pa_senate_vote_opt value = 0 } }
+			if = { limit = { var:pa_senate_boni_approval < 35 } set_variable = { name = pa_senate_vote_boni value = 0 } }
+			if = { limit = { var:pa_senate_populares_approval < 55 } set_variable = { name = pa_senate_vote_pop value = 0 } }
+            set_variable = { name = pa_senate_last_vote value = { value = var:pa_senate_vote_opt add = var:pa_senate_vote_boni add = var:pa_senate_vote_pop } }
+            set_variable = { name = pa_senate_pass_threshold value = { value = var:pa_senate_size multiply = 51 divide = 100 } }
+            set_variable = { name = pa_senate_compromise_threshold value = { value = var:pa_senate_size multiply = 30 divide = 100 } }
+            remove_variable = pa_senate_last_motion_waiting
+            remove_variable = pa_senate_last_motion_passed
+            remove_variable = pa_senate_last_motion_compromise
+            remove_variable = pa_senate_last_motion_rejected
+            if = { limit = { var:pa_senate_last_vote >= var:pa_senate_pass_threshold } set_variable = { name = pa_senate_alliance_mandate value = yes days = 365 } set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority add = 6 max = 100 } } set_variable = pa_senate_last_motion_passed }
+            else_if = { limit = { var:pa_senate_last_vote >= var:pa_senate_compromise_threshold } set_variable = { name = pa_senate_alliance_mandate value = yes days = 365 } change_variable = { name = pa_senate_tyranny add = 3 max = 100 } set_variable = pa_senate_last_motion_compromise }
+            else = { set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority subtract = 5 min = 0 } } set_variable = pa_senate_last_motion_rejected }
+            set_variable = { name = pa_senate_motion_cooldown value = yes days = 1825 }
+        }
+    } }
+}
+# A first proposal: calculate a seat-weighted vote from faction approval.
+pa_senate_vote_stability = {
+    effect = { root = {
+        if = { limit = { has_variable = pa_senate_initialized NOT = { has_variable = pa_senate_motion_cooldown } }
+            remove_variable = pa_senate_agenda_holdings
+            remove_variable = pa_senate_agenda_works
+            remove_variable = pa_senate_agenda_law
+			remove_variable = pa_senate_agenda_war
+            set_variable = pa_senate_agenda_stability
+            set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_pop value = { value = var:pa_senate_populares_seats multiply = var:pa_senate_populares_approval divide = 100 } }
+            change_variable = { name = pa_senate_vote_opt subtract = var:pa_senate_optimates_defectors }
+            change_variable = { name = pa_senate_vote_boni subtract = var:pa_senate_boni_defectors }
+            change_variable = { name = pa_senate_vote_pop subtract = var:pa_senate_populares_defectors }
+            # Stability is the Boni's natural issue, with modest cross-party backing.
+            change_variable = { name = pa_senate_vote_opt add = 2 }
+            change_variable = { name = pa_senate_vote_boni add = 8 }
+            change_variable = { name = pa_senate_vote_pop add = 2 }
+			if = { limit = { var:pa_senate_optimates_approval < 45 } set_variable = { name = pa_senate_vote_opt value = 0 } }
+			if = { limit = { var:pa_senate_boni_approval < 25 } set_variable = { name = pa_senate_vote_boni value = 0 } }
+			if = { limit = { var:pa_senate_populares_approval < 45 } set_variable = { name = pa_senate_vote_pop value = 0 } }
+            set_variable = { name = pa_senate_last_vote value = { value = var:pa_senate_vote_opt add = var:pa_senate_vote_boni add = var:pa_senate_vote_pop } }
+            set_variable = { name = pa_senate_pass_threshold value = { value = var:pa_senate_size multiply = 51 divide = 100 } }
+            set_variable = { name = pa_senate_compromise_threshold value = { value = var:pa_senate_size multiply = 30 divide = 100 } }
+            remove_variable = pa_senate_last_motion_waiting
+            remove_variable = pa_senate_last_motion_passed
+            remove_variable = pa_senate_last_motion_compromise
+            remove_variable = pa_senate_last_motion_rejected
+            if = { limit = { var:pa_senate_last_vote >= var:pa_senate_pass_threshold } add_stability = stability_mild_bonus set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority add = 8 max = 100 } } set_variable = pa_senate_last_motion_passed }
+            else_if = { limit = { var:pa_senate_last_vote >= var:pa_senate_compromise_threshold } add_stability = stability_weak_bonus add_prestige = prestige_weak_penalty set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority add = 3 max = 100 } } set_variable = pa_senate_last_motion_compromise }
+            else = { set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority subtract = 5 min = 0 } } set_variable = pa_senate_last_motion_rejected }
+            set_variable = { name = pa_senate_motion_cooldown value = yes days = 1825 }
+        }
+    } }
+}
+
+# Optimates agenda: a paid land-grant motion.  The country pays immediately;
+# a pass rewards the faction with approval and one additional Senate seat.
+pa_senate_vote_holdings = {
+    effect = { root = {
+        if = { limit = { has_variable = pa_senate_initialized gold >= 25 NOT = { has_variable = pa_senate_motion_cooldown } }
+            remove_variable = pa_senate_agenda_stability
+            remove_variable = pa_senate_agenda_works
+            remove_variable = pa_senate_agenda_law
+			remove_variable = pa_senate_agenda_war
+            set_variable = pa_senate_agenda_holdings
+            set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_pop value = { value = var:pa_senate_populares_seats multiply = var:pa_senate_populares_approval divide = 100 } }
+            change_variable = { name = pa_senate_vote_opt subtract = var:pa_senate_optimates_defectors }
+            change_variable = { name = pa_senate_vote_boni subtract = var:pa_senate_boni_defectors }
+            change_variable = { name = pa_senate_vote_pop subtract = var:pa_senate_populares_defectors }
+            # Holdings are a patrician demand; Popular opposition is organized.
+            change_variable = { name = pa_senate_vote_opt add = 9 }
+            change_variable = { name = pa_senate_vote_boni add = 2 }
+            change_variable = { name = pa_senate_vote_pop subtract = 5 }
+			if = { limit = { var:pa_senate_optimates_approval < 30 } set_variable = { name = pa_senate_vote_opt value = 0 } }
+			if = { limit = { var:pa_senate_boni_approval < 45 } set_variable = { name = pa_senate_vote_boni value = 0 } }
+			if = { limit = { var:pa_senate_populares_approval < 70 } set_variable = { name = pa_senate_vote_pop value = 0 } }
+            set_variable = { name = pa_senate_last_vote value = { value = var:pa_senate_vote_opt add = var:pa_senate_vote_boni add = var:pa_senate_vote_pop } }
+            set_variable = { name = pa_senate_pass_threshold value = { value = var:pa_senate_size multiply = 51 divide = 100 } }
+            set_variable = { name = pa_senate_compromise_threshold value = { value = var:pa_senate_size multiply = 30 divide = 100 } }
+            remove_variable = pa_senate_last_motion_waiting
+            remove_variable = pa_senate_last_motion_passed
+            remove_variable = pa_senate_last_motion_compromise
+            remove_variable = pa_senate_last_motion_rejected
+            if = { limit = { var:pa_senate_last_vote >= var:pa_senate_pass_threshold }
+                add_gold = -25
+                set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority add = 8 max = 100 } }
+                set_variable = { name = pa_senate_optimates_approval value = { value = var:pa_senate_optimates_approval add = 8 max = 100 } }
+                set_variable = pa_senate_last_motion_passed
+                if = { limit = { var:pa_senate_populares_seats > 0 } change_variable = { name = pa_senate_populares_seats subtract = 1 } change_variable = { name = pa_senate_optimates_seats add = 1 } }
+            }
+            else_if = { limit = { var:pa_senate_last_vote >= var:pa_senate_compromise_threshold } add_gold = -25 add_prestige = prestige_weak_penalty set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority add = 3 max = 100 } } set_variable = pa_senate_last_motion_compromise }
+            else = { set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority subtract = 5 min = 0 } } set_variable = pa_senate_last_motion_rejected }
+            set_variable = { name = pa_senate_motion_cooldown value = yes days = 1825 }
+        }
+    } }
+}
+
+# Boni agenda: fund public works.  A clear majority yields prestige; a narrow
+# majority proceeds at a prestige penalty, following Imperator's 30/51 model.
+pa_senate_vote_public_works = {
+    effect = { root = {
+        if = { limit = { has_variable = pa_senate_initialized gold >= 50 NOT = { has_variable = pa_senate_motion_cooldown } }
+            remove_variable = pa_senate_agenda_stability
+            remove_variable = pa_senate_agenda_holdings
+            remove_variable = pa_senate_agenda_law
+			remove_variable = pa_senate_agenda_war
+            set_variable = pa_senate_agenda_works
+            set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_pop value = { value = var:pa_senate_populares_seats multiply = var:pa_senate_populares_approval divide = 100 } }
+            change_variable = { name = pa_senate_vote_opt subtract = var:pa_senate_optimates_defectors }
+            change_variable = { name = pa_senate_vote_boni subtract = var:pa_senate_boni_defectors }
+            change_variable = { name = pa_senate_vote_pop subtract = var:pa_senate_populares_defectors }
+            # Public works unite commercial and popular senators, not landowners.
+            change_variable = { name = pa_senate_vote_opt subtract = 4 }
+            change_variable = { name = pa_senate_vote_boni add = 9 }
+            change_variable = { name = pa_senate_vote_pop add = 3 }
+			if = { limit = { var:pa_senate_optimates_approval < 65 } set_variable = { name = pa_senate_vote_opt value = 0 } }
+			if = { limit = { var:pa_senate_boni_approval < 35 } set_variable = { name = pa_senate_vote_boni value = 0 } }
+			if = { limit = { var:pa_senate_populares_approval < 45 } set_variable = { name = pa_senate_vote_pop value = 0 } }
+            set_variable = { name = pa_senate_last_vote value = { value = var:pa_senate_vote_opt add = var:pa_senate_vote_boni add = var:pa_senate_vote_pop } }
+            set_variable = { name = pa_senate_pass_threshold value = { value = var:pa_senate_size multiply = 51 divide = 100 } }
+            set_variable = { name = pa_senate_compromise_threshold value = { value = var:pa_senate_size multiply = 30 divide = 100 } }
+            remove_variable = pa_senate_last_motion_waiting
+            remove_variable = pa_senate_last_motion_passed
+            remove_variable = pa_senate_last_motion_compromise
+            remove_variable = pa_senate_last_motion_rejected
+            if = { limit = { var:pa_senate_last_vote >= var:pa_senate_pass_threshold } add_gold = -50 add_prestige = prestige_mild_bonus set_variable = { name = pa_senate_boni_approval value = { value = var:pa_senate_boni_approval add = 8 max = 100 } } set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority add = 8 max = 100 } } set_variable = pa_senate_last_motion_passed }
+            else_if = { limit = { var:pa_senate_last_vote >= var:pa_senate_compromise_threshold } add_gold = -50 add_prestige = prestige_weak_penalty set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority add = 3 max = 100 } } set_variable = pa_senate_last_motion_compromise }
+            else = { set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority subtract = 5 min = 0 } } set_variable = pa_senate_last_motion_rejected }
+            set_variable = { name = pa_senate_motion_cooldown value = yes days = 1825 }
+        }
+    } }
+}
+
+# Populares agenda: pass a civic law.  It awards stability and Popular support
+# only on a clear majority; a narrow majority carries a prestige cost.
+pa_senate_vote_civic_law = {
+    effect = { root = {
+        if = { limit = { has_variable = pa_senate_initialized NOT = { has_variable = pa_senate_motion_cooldown } }
+            remove_variable = pa_senate_agenda_stability
+            remove_variable = pa_senate_agenda_holdings
+            remove_variable = pa_senate_agenda_works
+			remove_variable = pa_senate_agenda_war
+            set_variable = pa_senate_agenda_law
+            set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 100 } }
+            set_variable = { name = pa_senate_vote_pop value = { value = var:pa_senate_populares_seats multiply = var:pa_senate_populares_approval divide = 100 } }
+            change_variable = { name = pa_senate_vote_opt subtract = var:pa_senate_optimates_defectors }
+            change_variable = { name = pa_senate_vote_boni subtract = var:pa_senate_boni_defectors }
+            change_variable = { name = pa_senate_vote_pop subtract = var:pa_senate_populares_defectors }
+            # Civic law is carried by the Populares; Optimates resist it.
+            change_variable = { name = pa_senate_vote_opt subtract = 5 }
+            change_variable = { name = pa_senate_vote_boni add = 2 }
+            change_variable = { name = pa_senate_vote_pop add = 9 }
+			if = { limit = { var:pa_senate_optimates_approval < 70 } set_variable = { name = pa_senate_vote_opt value = 0 } }
+			if = { limit = { var:pa_senate_boni_approval < 45 } set_variable = { name = pa_senate_vote_boni value = 0 } }
+			if = { limit = { var:pa_senate_populares_approval < 30 } set_variable = { name = pa_senate_vote_pop value = 0 } }
+            set_variable = { name = pa_senate_last_vote value = { value = var:pa_senate_vote_opt add = var:pa_senate_vote_boni add = var:pa_senate_vote_pop } }
+            set_variable = { name = pa_senate_pass_threshold value = { value = var:pa_senate_size multiply = 51 divide = 100 } }
+            set_variable = { name = pa_senate_compromise_threshold value = { value = var:pa_senate_size multiply = 30 divide = 100 } }
+            remove_variable = pa_senate_last_motion_waiting
+            remove_variable = pa_senate_last_motion_passed
+            remove_variable = pa_senate_last_motion_compromise
+            remove_variable = pa_senate_last_motion_rejected
+            if = { limit = { var:pa_senate_last_vote >= var:pa_senate_pass_threshold } add_stability = stability_weak_bonus set_variable = { name = pa_senate_populares_approval value = { value = var:pa_senate_populares_approval add = 8 max = 100 } } set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority add = 8 max = 100 } } set_variable = pa_senate_last_motion_passed }
+            else_if = { limit = { var:pa_senate_last_vote >= var:pa_senate_compromise_threshold } add_stability = stability_weak_bonus add_prestige = prestige_weak_penalty set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority add = 3 max = 100 } } set_variable = pa_senate_last_motion_compromise }
+            else = { set_variable = { name = pa_senate_authority value = { value = var:pa_senate_authority subtract = 5 min = 0 } } set_variable = pa_senate_last_motion_rejected }
+            set_variable = { name = pa_senate_motion_cooldown value = yes days = 1825 }
+        }
+    } }
+}

@@ -2,6 +2,10 @@
 #P:A Replaced Vanilla File
 #P:A TODO This whole file needs a review for the stuff left in it.
 on_game_start = {
+	on_actions = {
+		# Found the Roman Senate before the first game-day tick.
+		pa_senate_game_start
+	}
 	effect = {
 		setup_area_preferences = yes
 
@@ -29,6 +33,61 @@ on_game_start = {
 					}
 				}
 			}	
+		}
+	}
+}
+
+# The campaign-start counterpart to the monthly maintenance pulse.  Keeping
+# this here makes the Senate visible immediately on a new 304 BCE campaign,
+# rather than on the first monthly pulse.
+pa_senate_game_start = {
+	trigger = { country_exists = c:ROM }
+	effect = {
+		c:ROM = {
+			if = {
+				limit = { government_type = government_type:republic }
+				if = {
+					limit = { NOT = { exists = international_organization:pa_roman_senate } }
+					save_scope_as = pa_senate_starting_rome
+					create_international_organization = { type = international_organization_type:pa_roman_senate }
+					international_organization:pa_roman_senate = {
+						add_country_to_international_organization = scope:pa_senate_starting_rome
+						set_leader_country = scope:pa_senate_starting_rome
+					}
+				}
+				change_heir_selection = heir_selection:pa_roman_consular_election
+				if = {
+					limit = { NOT = { has_variable = pa_senate_initialized } }
+					set_variable = pa_senate_initialized
+					set_variable = { name = pa_senate_optimates_approval value = 50 }
+					set_variable = { name = pa_senate_boni_approval value = 50 }
+					set_variable = { name = pa_senate_populares_approval value = 50 }
+					set_variable = { name = pa_senate_optimates_seats value = 40 }
+					set_variable = { name = pa_senate_boni_seats value = 35 }
+					set_variable = { name = pa_senate_populares_seats value = 25 }
+					set_variable = { name = pa_senate_size value = 100 }
+					set_variable = { name = pa_senate_pass_threshold value = 51 }
+					set_variable = { name = pa_senate_compromise_threshold value = 30 }
+					set_variable = { name = pa_senate_authority value = 50 }
+					set_variable = { name = pa_senate_tyranny value = 0 }
+					set_variable = { name = pa_senate_vote_opt value = 0 }
+					set_variable = { name = pa_senate_vote_boni value = 0 }
+					set_variable = { name = pa_senate_vote_pop value = 0 }
+					set_variable = { name = pa_senate_last_vote value = 0 }
+					set_variable = { name = pa_senate_election_cooldown value = yes days = 1825 }
+				}
+				# Founding candidates.  The 40/35/25 Senate split makes the Boni
+				# candidate the initial runner-up and therefore co-consul.
+				if = { limit = { NOT = { has_variable = pa_senate_optimates_leader } } random_character = { limit = { owner = c:ROM is_alive = yes is_adult = yes has_dynasty = yes this != c:ROM.ruler } set_variable = pa_senate_party_leader c:ROM = { set_variable = { name = pa_senate_optimates_leader value = prev } } } }
+				if = { limit = { NOT = { has_variable = pa_senate_boni_leader } } random_character = { limit = { owner = c:ROM is_alive = yes is_adult = yes has_dynasty = yes this != c:ROM.ruler NOT = { dynasty = c:ROM.var:pa_senate_optimates_leader.dynasty } } set_variable = pa_senate_party_leader c:ROM = { set_variable = { name = pa_senate_boni_leader value = prev } } } }
+				if = { limit = { NOT = { has_variable = pa_senate_populares_leader } } random_character = { limit = { owner = c:ROM is_alive = yes is_adult = yes has_dynasty = yes this != c:ROM.ruler NOT = { dynasty = c:ROM.var:pa_senate_optimates_leader.dynasty } NOT = { dynasty = c:ROM.var:pa_senate_boni_leader.dynasty } } set_variable = pa_senate_party_leader c:ROM = { set_variable = { name = pa_senate_populares_leader value = prev } } } }
+				set_variable = { name = pa_senate_primary_consul value = ruler }
+				remove_variable = pa_senate_co_consul
+				if = { limit = { character:publius_sulpicius_saverrio ?= { is_alive = yes owner = c:ROM this != c:ROM.ruler } } set_variable = { name = pa_senate_co_consul value = character:publius_sulpicius_saverrio } }
+				else_if = { limit = { var:pa_senate_boni_leader ?= { is_alive = yes this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader } }
+				else_if = { limit = { var:pa_senate_populares_leader ?= { is_alive = yes this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader } }
+				else_if = { limit = { var:pa_senate_optimates_leader ?= { is_alive = yes this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader } }
+			}
 		}
 	}
 }
@@ -663,6 +722,10 @@ on_pre_war_declared = {
 
 #root = country, scope:actor = country who declares the war, scope:recipient = country who gets declared on, scope:war = war
 on_war_declared = {
+	on_actions = {
+		# Consume Rome's Senate war mandate and apply faction reactions.
+		pa_senate_war_declared
+	}
 	effect = {
 		if = {
 			limit = {
