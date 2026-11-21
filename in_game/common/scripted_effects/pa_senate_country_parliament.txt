@@ -1,0 +1,59 @@
+# Country scope, after the native country Parliament issue is selected.
+pa_senate_country_initial_backing = {
+	set_variable = { name = pa_senate_vote_opt value = { value = pa_senate_optimates_approving_seats subtract = var:pa_senate_optimates_defectors } }
+	set_variable = { name = pa_senate_vote_boni value = { value = pa_senate_boni_approving_seats subtract = var:pa_senate_boni_defectors } }
+	set_variable = { name = pa_senate_vote_pop value = { value = pa_senate_populares_approving_seats subtract = var:pa_senate_populares_defectors } }
+	# The sponsoring estate influences each faction; families may still defect.
+	if = {
+		limit = { scope:parliament_issue.estate_type = estate_type:nobles_estate }
+		change_variable = { name = pa_senate_vote_opt add = 9 }
+		change_variable = { name = pa_senate_vote_pop subtract = 5 }
+	}
+	else_if = {
+		limit = { scope:parliament_issue.estate_type = estate_type:burghers_estate }
+		change_variable = { name = pa_senate_vote_boni add = 8 }
+		change_variable = { name = pa_senate_vote_opt subtract = 4 }
+	}
+	else_if = {
+		limit = { scope:parliament_issue.estate_type = estate_type:peasants_estate }
+		change_variable = { name = pa_senate_vote_pop add = 9 }
+		change_variable = { name = pa_senate_vote_opt subtract = 5 }
+	}
+	else = { change_variable = { name = pa_senate_vote_boni add = 5 } }
+	if = {
+		limit = { scope:parliament_issue = parliament_issue:pa_senate_country_war }
+		change_variable = { name = pa_senate_vote_opt add = 8 }
+		change_variable = { name = pa_senate_vote_boni subtract = 4 }
+		change_variable = { name = pa_senate_vote_pop add = 5 }
+		if = { limit = { var:pa_senate_optimates_approval < 35 } set_variable = { name = pa_senate_vote_opt value = 0 } }
+		if = { limit = { var:pa_senate_boni_approval < 70 } set_variable = { name = pa_senate_vote_boni value = 0 } }
+		if = { limit = { var:pa_senate_populares_approval < 40 } set_variable = { name = pa_senate_vote_pop value = 0 } }
+	}
+	else_if = {
+		limit = { scope:parliament_issue = parliament_issue:pa_senate_country_alliance }
+		change_variable = { name = pa_senate_vote_boni add = 8 }
+		if = { limit = { var:pa_senate_optimates_approval < 50 } set_variable = { name = pa_senate_vote_opt value = 0 } }
+		if = { limit = { var:pa_senate_boni_approval < 35 } set_variable = { name = pa_senate_vote_boni value = 0 } }
+		if = { limit = { var:pa_senate_populares_approval < 55 } set_variable = { name = pa_senate_vote_pop value = 0 } }
+	}
+	# Expansion dilutes sitting senators. Each faction is hard to persuade,
+	# but exceptionally high approval can still produce a majority.
+	if = {
+		limit = { scope:parliament_issue = parliament_issue:pa_senate_country_expansion }
+		set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 175 subtract = var:pa_senate_optimates_defectors } }
+		set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 175 subtract = var:pa_senate_boni_defectors } }
+		set_variable = { name = pa_senate_vote_pop value = { value = var:pa_senate_populares_seats multiply = var:pa_senate_populares_approval divide = 175 subtract = var:pa_senate_populares_defectors } }
+		if = { limit = { var:pa_senate_optimates_approval < 80 } set_variable = { name = pa_senate_vote_opt value = 0 } }
+		if = { limit = { var:pa_senate_boni_approval < 85 } set_variable = { name = pa_senate_vote_boni value = 0 } }
+		if = { limit = { var:pa_senate_populares_approval < 75 } set_variable = { name = pa_senate_vote_pop value = 0 } }
+	}
+	change_variable = { name = pa_senate_vote_opt add = 0 min = 0 max = var:pa_senate_optimates_seats }
+	change_variable = { name = pa_senate_vote_boni add = 0 min = 0 max = var:pa_senate_boni_seats }
+	change_variable = { name = pa_senate_vote_pop add = 0 min = 0 max = var:pa_senate_populares_seats }
+	set_variable = { name = pa_senate_last_vote value = { value = var:pa_senate_vote_opt add = var:pa_senate_vote_boni add = var:pa_senate_vote_pop } }
+	set_parliament_issue_support = { value = var:pa_senate_last_vote divide = { value = pa_senate_occupied_seats min = 1 } }
+	remove_variable = pa_senate_last_motion_passed
+	remove_variable = pa_senate_last_motion_rejected
+	remove_variable = pa_senate_vote_defied
+	set_variable = pa_senate_last_motion_waiting
+}

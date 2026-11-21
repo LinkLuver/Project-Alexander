@@ -1,0 +1,25 @@
+# The sitting consul may ask the country Parliament to enlarge the Senate.
+pa_senate_country_expansion = {
+	estate = crown_estate
+	potential = { tag = ROM government_type = government_type:republic has_variable = pa_senate_initialized }
+	allow = { has_ruler = yes gold >= 100 var:pa_senate_size <= 790 NOT = { has_variable = pa_senate_expansion_cooldown } }
+	chance = { add = 1 }
+	on_debate_passed = {
+		if = {
+			limit = { gold >= 100 var:pa_senate_size <= 790 }
+			add_gold = -100
+			change_variable = { name = pa_senate_size add = 10 }
+			set_variable = { name = pa_senate_pass_threshold value = { value = var:pa_senate_size multiply = 51 divide = 100 } }
+			set_variable = { name = pa_senate_compromise_threshold value = { value = var:pa_senate_size multiply = 30 divide = 100 } }
+			if = {
+				limit = { var:pa_senate_optimates_approval >= var:pa_senate_boni_approval var:pa_senate_optimates_approval >= var:pa_senate_populares_approval }
+				change_variable = { name = pa_senate_optimates_seats add = 10 }
+			}
+			else_if = {
+				limit = { var:pa_senate_boni_approval >= var:pa_senate_optimates_approval var:pa_senate_boni_approval >= var:pa_senate_populares_approval }
+				change_variable = { name = pa_senate_boni_seats add = 10 }
+			}
+			else = { change_variable = { name = pa_senate_populares_seats add = 10 } }
+		}
+	}
+}

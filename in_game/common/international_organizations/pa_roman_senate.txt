@@ -10,7 +10,6 @@ pa_roman_senate = {
 	# It is discoverable like the HRE, but its membership remains Rome-only.
 	show_on_diplomatic_map = yes
 	show_as_overlord_on_map_trigger = { always = no }
-	can_invite_countries = no
 	create_visible_trigger = { always = no }
 	invite_visible_trigger = { always = no }
 	join_visible_trigger = { always = no }
@@ -23,6 +22,7 @@ pa_roman_senate = {
 	disband_if_no_leader = no
 
 	has_parliament = yes
+	special_statuses_implemented = { pa_senate_roman_citizens }
 	parliament_type = pa_roman_senate_assembly
 	alert_view_tab = parliament
 	resolution_widget = parliament
@@ -30,16 +30,18 @@ pa_roman_senate = {
 	can_initiate_policy_votes = { is_leader_of_international_organization = scope:recipient }
 	can_vote_in_parliament = { tag = ROM }
 
-	# This is an actual engine-level veto. Rome cannot declare a war while it
-	# belongs to the Senate unless the chamber (or a tyrannical consul) has issued
-	# a one-war mandate. Diplomatic agreements do not expose equivalent generic
-	# script hooks in EU5, so they are deliberately not claimed as hard-blocked.
+	# A mandate or existing tyranny allows the consul to declare war.
 	can_declare_war = {
 		trigger_if = {
 			limit = { scope:attacker = { tag = ROM } }
 			custom_tooltip = {
 				text = pa_senate_war_mandate_required
-				scope:attacker = { has_variable = pa_senate_war_mandate }
+				scope:attacker = {
+					OR = {
+						has_variable = pa_senate_war_mandate
+						AND = { has_variable = pa_senate_tyranny var:pa_senate_tyranny > 0 }
+					}
+				}
 			}
 		}
 	}

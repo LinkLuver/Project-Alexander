@@ -1,0 +1,94 @@
+﻿pa_senate_alliance_debate = {
+	type = international_organization
+	special_status = pa_senate_roman_citizens
+	potential = { international_organization_type = international_organization_type:pa_roman_senate }
+	allow = { always = yes }
+	chance = 0
+	on_debate_passed = { leader_country ?= { pa_senate_motion_passed_effect = yes set_variable = { name = pa_senate_alliance_mandate value = yes days = 365 } } }
+	on_debate_failed = { leader_country ?= { pa_senate_motion_failed_effect = yes } }
+}
+
+pa_senate_stability_debate = {
+	type = international_organization
+	special_status = pa_senate_roman_citizens
+	potential = { international_organization_type = international_organization_type:pa_roman_senate }
+	allow = { always = yes }
+	chance = 0
+	on_debate_passed = { leader_country ?= { pa_senate_motion_passed_effect = yes add_stability = stability_mild_bonus } }
+	on_debate_failed = { leader_country ?= { pa_senate_motion_failed_effect = yes } }
+}
+
+pa_senate_holdings_debate = {
+	type = international_organization
+	special_status = pa_senate_roman_citizens
+	potential = { international_organization_type = international_organization_type:pa_roman_senate }
+	allow = { always = yes }
+	chance = 0
+	on_debate_passed = {
+		leader_country ?= {
+			if = {
+				limit = { gold >= 25 }
+				add_gold = -25
+				pa_senate_motion_passed_effect = yes
+				change_variable = { name = pa_senate_optimates_approval add = 8 max = 100 }
+				if = { limit = { var:pa_senate_populares_seats > 0 } change_variable = { name = pa_senate_populares_seats subtract = 1 } change_variable = { name = pa_senate_optimates_seats add = 1 } }
+			}
+			else = { pa_senate_motion_failed_effect = yes }
+		}
+	}
+	on_debate_failed = { leader_country ?= { pa_senate_motion_failed_effect = yes } }
+}
+
+pa_senate_works_debate = {
+	type = international_organization
+	special_status = pa_senate_roman_citizens
+	potential = { international_organization_type = international_organization_type:pa_roman_senate }
+	allow = { always = yes }
+	chance = 0
+	on_debate_passed = {
+		leader_country ?= {
+			if = {
+				limit = { gold >= 50 }
+				add_gold = -50
+				add_prestige = prestige_mild_bonus
+				change_variable = { name = pa_senate_boni_approval add = 8 max = 100 }
+				pa_senate_motion_passed_effect = yes
+			}
+			else = { pa_senate_motion_failed_effect = yes }
+		}
+	}
+	on_debate_failed = { leader_country ?= { pa_senate_motion_failed_effect = yes } }
+}
+
+# This civic motion is a stability effect; choosing a real law remains separate.
+pa_senate_law_debate = {
+	type = international_organization
+	special_status = pa_senate_roman_citizens
+	potential = { international_organization_type = international_organization_type:pa_roman_senate }
+	allow = { always = yes }
+	chance = 0
+	on_debate_passed = { leader_country ?= { pa_senate_motion_passed_effect = yes add_stability = stability_weak_bonus change_variable = { name = pa_senate_populares_approval add = 8 max = 100 } } }
+	on_debate_failed = { leader_country ?= { pa_senate_motion_failed_effect = yes } }
+}
+
+pa_senate_actual_law_debate = {
+	type = international_organization
+	special_status = pa_senate_roman_citizens
+	potential = { international_organization_type = international_organization_type:pa_roman_senate }
+	allow = { always = yes }
+	chance = 0
+	on_debate_passed = {
+		leader_country ?= {
+			save_scope_as = pa_senate_law_enacting_rome
+			if = {
+				limit = { var:pa_senate_proposed_policy ?= { policy_possible_for_country = scope:pa_senate_law_enacting_rome } }
+				add_policy = var:pa_senate_proposed_policy
+				pa_senate_motion_passed_effect = yes
+			}
+			else = { pa_senate_motion_failed_effect = yes }
+			remove_variable = pa_senate_proposed_policy
+			remove_variable = pa_senate_proposed_law
+		}
+	}
+	on_debate_failed = { leader_country ?= { pa_senate_motion_failed_effect = yes remove_variable = pa_senate_proposed_policy remove_variable = pa_senate_proposed_law } }
+}

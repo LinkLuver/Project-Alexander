@@ -1,0 +1,1390 @@
+types OrganizationPanel
+{
+	type organization_parliament_subheader_A = subheader_A {
+		# Right Data
+		datacontext = "[InternationalOrganizationsView.GetInternationalOrganization]"
+		blockoverride "right_icon_visible" {
+			visible = yes
+		}
+
+		blockoverride "right_icon_gfx" {
+			texture = "gfx/interface/icons/flat_icons/parliament_support.dds"
+			glow = {
+				name = "drop_shadow"
+				glow_radius = 3
+				color = {0.0 0.0 0.0 1.0}
+				alpha = 0.3
+			}
+			tooltipwidget = {
+				using = organization_parliament_base_support_tooltip
+			}
+		}
+
+		blockoverride "right_2liner_text_1_visible" {
+			visible = yes
+		}
+
+		blockoverride "right_2liner_text_1" {
+			text = "BASE_SPECIAL_STATUS_SUPPORT"
+			tooltipwidget = {
+				using = organization_parliament_base_support_tooltip
+			}
+		}		
+
+		blockoverride "right_2liner_text_single" {
+			# non resolution
+			text_single = { 
+				align = right
+				parentanchor = right
+				autoresize = yes
+				fontsize = 13
+				visible = "[InternationalOrganization.GetParliament.HasOngoingParliamentDebate]"
+				text = "[InternationalOrganization.GetSpecialStatusPowerFraction(InternationalOrganization.GetParliament.GetCurrentDebate.GetSpecialStatus.Self)|+=%2]"
+				tooltipwidget = {
+					using = organization_parliament_base_support_tooltip
+				}
+			}
+			text_single = { 
+				align = right
+				parentanchor = right
+				autoresize = yes
+				fontsize = 13
+				visible = "[Not(InternationalOrganization.GetParliament.HasOngoingParliamentDebate)]"
+				text = "[InternationalOrganization.GetLeaderSpecialStatusPowerFraction|+=%2]"
+				tooltipwidget = {
+					using = organization_parliament_base_support_tooltip
+				}
+			}
+		}
+	}
+
+	type organization_panel_parliament_area = vbox {
+		using = bg_secondary_inner_image_alt
+		spacing = 6
+
+		block "pa_senate_debate_header" {}
+
+		vbox = {
+			visible = "[Not(EqualTo_string(InternationalOrganizationsView.GetInternationalOrganization.GetType.GetNameKey, 'pa_roman_senate'))]"
+
+			layoutpolicy_horizontal = expanding
+			margin = { 10 0 }
+			subheader = {
+				visible = "[Not(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.IsParliamentActive)]"
+				hbox = {
+					using = bg_paper_card
+					using = bg_card_header_01
+					blockoverride "header_color" {
+						using = bg_card_header_01_diplomacy
+					}
+					using = bg_cabinet_card_frame
+					margin = { 4 0 }
+					card_header_button_01 = {
+						size = {42 42}
+						spriteborder = { 40 40 }
+						button_tooltip_override = { title = "change_organization_parliament_type_header" }
+						datacontext = "[InternationalOrganizationsView.GetInternationalOrganization]"
+						visible = "[Not(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.IsParliamentActive)]"
+						enabled = "[PdxGuiWidget.IsUberButtonEnabled]"
+
+						scripted_action_tooltip = {
+							click_type = left
+							click_mode = single
+							action_name = "change_organization_parliament_type"
+							actor = "[InternationalOrganizationsView.GetPlayer]"
+							parameter = {
+								parameter_name = "recipient"
+								parameter_value = "[InternationalOrganizationsView.GetInternationalOrganization]"
+							}
+						}
+
+						tooltipwidget = {
+							using = io_change_parliament_type
+						}
+
+						icon = {
+							parentanchor = center
+							size = { 30 30 }
+							#texture = "[GetParliamentTypeIcon(ParliamentType.Self)]"
+							texture = "[InternationalOrganizationsView.GetInternationalOrganization.GetIcon]"
+							datacontext = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentType]"
+						}
+					}
+
+					hbox = {
+						layoutpolicy_horizontal = expanding
+						spacing = 5
+						card_header_button_01 = {
+							layoutpolicy_horizontal = expanding
+							size = { -1 42 }
+							visible = "[And(EqualTo_string(InternationalOrganizationsView.GetInternationalOrganization.GetType.GetNameKey, 'pa_roman_senate'), Not(Player.GetGovernment.GetParliament.IsParliamentActive))]"
+							enabled = "[PdxGuiWidget.IsUberButtonEnabled]"
+							using = bg_card_header_01_diplomacy
+							scripted_action_tooltip = { click_type = left click_mode = single action_name = "call_parliament" actor = "[InternationalOrganizationsView.GetPlayer]" }
+							text_single = { parentanchor = center text = "pa_senate_call_native" align = center default_format = "#yellow_titles" fontsize = 14 }
+						}
+						
+						card_header_button_01 = {
+							layoutpolicy_horizontal = expanding
+							size = {-1 42}
+							spriteborder = { 40 40 }
+							datacontext = "[InternationalOrganizationsView.GetInternationalOrganization]"
+							visible = "[And(Not(EqualTo_string(InternationalOrganizationsView.GetInternationalOrganization.GetType.GetNameKey, 'pa_roman_senate')), Not(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.IsParliamentActive))]"
+							enabled = "[PdxGuiWidget.IsUberButtonEnabled]"
+							using = bg_card_header_01_diplomacy
+							blockoverride "uiaction_gov" {
+								visible = "[Not(PdxGuiWidget.IsUberButtonEnabled)]"
+							}
+
+							block "call_organization_parliament_button"
+							{
+								scripted_action_tooltip = {
+									click_type = left
+									click_mode = single
+									action_name = "call_organization_parliament"
+									actor = "[InternationalOrganizationsView.GetPlayer]"
+									parameter = {
+										parameter_name = "recipient"
+										parameter_value = "[InternationalOrganizationsView.GetInternationalOrganization]"
+									}
+								}
+							}
+
+							button_tooltip_override = { title = "CALL_IO_PARLIAMENT" }
+
+							block "call_parliament_io_tooltip" {
+								tooltipwidget = { 
+									using = action_tooltip_pop_out
+
+									blockoverride "title_icon_texture" {
+										texture = "gfx/interface/icons/flat_icons/parliament.dds"
+									}
+								}
+							}
+								
+
+							hbox = {
+								layoutpolicy_horizontal = expanding
+								margin = {10 0}
+
+								icon = {
+									size = { 22 22 }
+									block "call_parliament_io_icon" {
+										texture = "gfx/interface/icons/flat_icons/parliament.dds"
+									}
+									datacontext = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentType]"
+									tooltipwidget = {
+										using = ParliamentType_tooltip
+									}
+								}
+								vbox = {
+									hbox = {
+										margin = { 5 0 }
+										spacing = 5
+										expand = {}
+										text_single = {
+											text = "CALL_IO_PARLIAMENT"
+											datacontext = "[InternationalOrganizationsView.GetInternationalOrganization]"
+											default_format = "#yellow_titles"
+											fontsize = 16
+											maximumsize = { 200 22 }
+										}
+
+										text_single = {
+											visible = "[UseDynamicParliamentName]"
+											raw_text = "([Localize('game_concept_parliament')])"
+											fontsize = 16
+											maximumsize = { 60 22 }
+										}
+										expand = {}
+									}
+									text_single = {
+										fontsize = 11
+										text = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetLastParliamentCalledDate|F]"
+									}
+								}
+								expand = {}
+							}
+						}
+
+						hbox = {
+							using = bg_card_header_01
+							visible = "[Not(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.IsParliamentActive)]"
+
+							margin = {5 -1}
+							size = {100 43}
+							spacing = 5
+							expand= {}
+							vbox = {
+								text_single = {
+									text = "BASE_SPECIAL_STATUS_SUPPORT"
+									tooltipwidget = {
+										using = organization_parliament_base_support_tooltip
+									}
+									fontsize = 14
+								}
+
+								hbox = {
+									layoutpolicy_horizontal = expanding
+									expand= {}
+									text_single = { 
+										fontsize = 12
+										visible = "[InternationalOrganization.GetParliament.HasOngoingParliamentDebate]"
+										text = "[InternationalOrganization.GetSpecialStatusPowerFraction(InternationalOrganization.GetParliament.GetCurrentDebate.GetSpecialStatus.Self)|+=%2]"
+										tooltipwidget = {
+											using = organization_parliament_base_support_tooltip
+										}
+									}
+									text_single = { 
+										fontsize = 12
+										visible = "[Not(InternationalOrganization.GetParliament.HasOngoingParliamentDebate)]"
+										text = "[InternationalOrganization.GetLeaderSpecialStatusPowerFraction|+=%2]"
+										tooltipwidget = {
+											using = organization_parliament_base_support_tooltip
+										}
+									}
+								}
+							}
+						}
+					}
+					piechart = {
+						alwaystransparent = yes
+						size = { 50 50 }
+
+						using = piechart_angles
+
+						background = {
+							texture = "gfx/interface/pie_charts/pie_chart_alpha_80.dds"
+							texture_density = 2
+							alpha = 0.5
+							modify_texture = {
+								using = color_dark_brown_texture
+								blend_mode = multiply
+							}
+						}
+						icon = {
+							size = {70% 70%}
+							parentanchor = center
+							texture = "gfx/interface/icons/flat_icons/parliament_support.dds"
+							glow = {
+								name = "drop_shadow"
+								glow_radius = 3
+								color = {0.0 0.0 0.0 1.0}
+								alpha = 0.3
+							}
+							tooltipwidget = {
+								using = organization_parliament_base_support_tooltip
+							}
+						}
+					}
+				}
+			}
+
+			subheader = {
+				visible = "[And(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasOngoingParliamentDebate, InternationalOrganizationsView.GetInternationalOrganization.GetParliament.IsParliamentActive)]"
+				hbox = {
+					using = bg_paper_card
+					using = bg_card_header_01_diplomacy
+					using = bg_cabinet_card_frame
+
+					margin = { 4 0 }
+
+					piechart = {
+						visible = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasOngoingParliamentDebate]"
+						size = { 50 50 }
+						using = piechart_angles
+						tooltipwidget = {
+							using = IOParliamentInSession_tooltip
+						}
+
+						background = {
+							texture = "gfx/interface/pie_charts/pie_chart_alpha_80.dds"
+							texture_density = 2
+							alpha = 0.5
+							modify_texture = {
+								using = color_dark_brown_texture
+								blend_mode = multiply
+							}
+						}
+						
+						icon = {
+							texture = "gfx/interface/pie_charts/pie_chart_alpha_80.dds"
+							size = { 97% 97% }
+							parentanchor = center
+							color = { 0.45 0.59  0.67 1 }
+							alpha = 0.3
+						}
+
+						pieslice_no_highlight = {
+							texture = "gfx/interface/pie_charts/pie_chart_blue_progress.dds"
+							value = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentDurationProgress]"
+							color = { 1 1 1 1 }
+						}
+
+						pieslice_no_highlight = {
+							texture = "gfx/interface/pie_charts/pie_chart_blue_progress.dds"
+							value = "[Subtract_float('(float)1.0', FixedPointToFloat(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentDurationProgress))]"
+							color = { 1 1 1 0 }
+						}
+
+						block "parliament_io_icon" {
+							icon = {
+								name = "plus"
+								texture = "gfx/interface/icons/flat_icons/parliament.dds"
+								size = { 58% 58% }
+								using = overlay_color_light_green
+								parentanchor = center
+								visible = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.WillParliamentIssuePass]"
+								datacontext = "[InternationalOrganizationsView.GetPlayer]"
+								tooltipwidget = {
+									SimpleContextualTooltipType = {
+										blockoverride "title_icon_texture" {
+											texture = "gfx/interface/icons/flat_icons/parliament.dds"
+											using = overlay_color_light_green
+										}
+
+										lowpriotextcontext =  "INTERNATIONAL_ORGANIZATION_PARLIAMENT_ISSUE_WILL_NOT_FAIL"
+									}
+								}
+							}
+							icon = {
+								name = "minus"
+								texture = "gfx/interface/icons/flat_icons/parliament.dds"
+								size = { 58% 58% }
+								using = overlay_color_red
+								parentanchor = center
+								visible = "[Not(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.WillParliamentIssuePass)]"
+								datacontext = "[InternationalOrganizationsView.GetPlayer]"
+								tooltipwidget = {
+									SimpleContextualTooltipType = {
+										blockoverride "title_icon_texture" {
+											texture = "gfx/interface/icons/flat_icons/parliament.dds"
+											using = overlay_color_red
+										}
+										lowpriotextcontext =  "INTERNATIONAL_ORGANIZATION_PARLIAMENT_ISSUE_WILL_FAIL"
+									}
+								}
+							}
+						}
+						using = bg_circle_piechart
+					}
+
+					hbox = {
+						layoutpolicy_horizontal = expanding
+						spacing = 5
+						hbox = {
+							layoutpolicy_horizontal = expanding
+							size = {-1 43}
+							
+							margin = {10 0 }
+							vbox = {
+								text_single = {
+									text = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetCurrentDebateName]"
+									default_format = "#yellow_titles"
+									fontsize = 16
+									maximumsize = {245 -1}
+								}
+								
+								hbox = {
+									layoutpolicy_horizontal = expanding
+									text_single = {
+										maximumsize = {245 -1}
+										fontsize = 11
+										text = "INTERNATIONAL_ORGANIZATION_PARLIAMENT_DURATION_TXT"
+										tooltipwidget = {
+											using = IOParliamentInSession_tooltip
+										}
+									}
+									expand = {}
+								}
+							}
+							expand = {}
+							
+						
+							blockoverride "icon_texture" {}
+						}
+
+						hbox = {
+							using = bg_text_mask_container_dark_blue
+							# using = bg_card_header_01
+
+							margin = {8 4}
+							size = {100 43}
+							spacing = 5
+							expand= {}
+							vbox = {
+								text_single = {
+									text = "BASE_SPECIAL_STATUS_SUPPORT"
+									tooltipwidget = {
+										using = organization_parliament_base_support_tooltip
+									}
+									fontsize = 14
+								}
+
+								hbox = {
+									layoutpolicy_horizontal = expanding
+									expand= {}
+									text_single = {
+										text = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentIssueSupport|+%]"
+										tooltipwidget = {
+											using = io_parliament_support_tooltip
+										}
+										fontsize = 12
+									}
+								}
+							}
+						}
+					}
+					piechart = {
+						visible = "[And(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasOngoingParliamentDebate, 
+						GreaterThan_CFixedPoint(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentIssueSupport, '(CFixedPoint)0.5'))]"
+						size = { 50 50 }
+						using = piechart_angles
+						
+						background = {
+							texture = "gfx/interface/pie_charts/pie_chart_alpha_80.dds"
+							texture_density = 2
+							alpha = 0.5
+							modify_texture = {
+								using = color_dark_brown_texture
+								blend_mode = multiply
+							}
+						}
+						
+						pieslice = {
+							texture = "gfx/interface/pie_charts/pie_chart_alpha_80.dds"
+							value = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentIssueSupport]"
+							color = { 0.3 0.8 0.3 1 }
+							alpha = 1
+							tooltipwidget = {
+								using = Parliament_IO_TT_Support
+							}
+						}
+						pieslice = {
+							texture = "gfx/interface/pie_charts/pie_chart_blue_progress.dds"
+							value = "[Subtract_float('(float)1.0', FixedPointToFloat(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentIssueSupport))]"
+							color = { 1 1 1 0 }
+						}
+						
+						icon = {
+							visible = "[Not(EqualTo_string(InternationalOrganizationsView.GetInternationalOrganization.GetType.GetNameKey, 'hre'))]"
+							texture = "gfx/interface/icons/flat_icons/parliament_support.dds"
+							size = { 45% 45% }
+							parentanchor = center
+						}
+
+						icon = {
+							visible = "[EqualTo_string(InternationalOrganizationsView.GetInternationalOrganization.GetType.GetNameKey, 'hre')]"
+							texture = "gfx/interface/icons/flat_icons/hre_parliament.dds"
+							size = { 45% 45% }
+							parentanchor = center							
+						}
+						tooltipwidget = {
+							using = io_parliament_support_tooltip
+						}
+						using = bg_circle_piechart
+					}
+
+					piechart = {
+						visible = "[And(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasOngoingParliamentDebate, 
+						LessThan_CFixedPoint(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentIssueSupport, '(CFixedPoint)0.5'))]"
+						size = { 50 50 }
+						using = piechart_angles
+						
+						background = {
+							texture = "gfx/interface/pie_charts/pie_chart_alpha_80.dds"
+							texture_density = 2
+							alpha = 0.5
+							modify_texture = {
+								using = color_dark_brown_texture
+								blend_mode = multiply
+							}
+						}
+						pieslice = {
+							texture = "gfx/interface/pie_charts/pie_chart_alpha_80_red.dds"
+							value = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentIssueSupport]"
+							color = { 1 1 1 1 }
+							alpha = 0.8
+							tooltipwidget = {
+								using = Parliament_IO_TT_Support
+							}
+						}
+						pieslice = {
+							texture = "gfx/interface/pie_charts/pie_chart_blue_progress.dds"
+							value = "[Subtract_float('(float)1.0', FixedPointToFloat(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentIssueSupport))]"
+							color = { 1 1 1 0 }
+						}
+						
+						icon = {
+							texture = "gfx/interface/icons/flat_icons/parliament_support.dds"
+							size = { 45% 45% }
+							parentanchor = center
+						}
+						tooltipwidget = {
+							using = io_parliament_support_tooltip
+						}
+						using = bg_circle_piechart
+					}
+				}
+			}
+		}
+
+		# block "organization_parliament_content" {
+			# block "organization_parliament_subheader_when_called" {
+				organization_parliament_subheader_A = {
+					visible = "[And(Not(And(EqualTo_string(InternationalOrganizationsView.GetInternationalOrganization.GetType.GetNameKey, 'pa_roman_senate'), And(Player.GetGovernment.GetParliament.IsParliamentActive, Player.GetGovernment.GetParliament.HasOngoingParliamentDebate))), And(Not(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasOngoingParliamentDebate), InternationalOrganizationsView.GetInternationalOrganization.GetParliament.IsParliamentActive))]"
+					layoutpolicy_vertical = fixed
+					blockoverride "left_widget_visible" {
+						visible = yes
+					}
+					blockoverride "left_widget" {
+						size = {30 30}
+						piechart = {
+							size = {30 30}
+							using = piechart_angles
+
+							icon = {
+								texture = "gfx/interface/pie_charts/pie_chart_alpha_80.dds"
+								size = { 97% 97% }
+								parentanchor = center
+								color = { 0.45 0.59  0.67 1 }
+								alpha = 0.3
+							}
+
+							pieslice_no_highlight = {
+								texture = "gfx/interface/pie_charts/pie_chart_blue_progress.dds"
+								value = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentDurationProgress]"
+								color = { 1 1 1 1 }
+							}
+
+							pieslice_no_highlight = {
+								texture = "gfx/interface/pie_charts/pie_chart_blue_progress.dds"
+								value = "[Subtract_float('(float)1.0', FixedPointToFloat(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentDurationProgress))]"
+								color = { 1 1 1 0 }
+							}
+							icon = {
+								texture = "gfx/interface/icons/flat_icons/parliament.dds"
+								parentanchor = center
+								size = { 58% 58% }
+								glow = {
+									name = "drop_shadow"
+									glow_radius = 3
+									color = {0.0 0.0 0.0 1.0}
+									alpha = 0.3
+								}
+							}
+						}
+					}
+					blockoverride "left_2liner_text_1" {
+						text = "INTERNATIONAL_ORGANIZATION_PARLIAMENT_IN_SESSION"
+					}
+					blockoverride "left_2liner_text_1_visible" {
+						visible = yes
+					}
+
+					blockoverride "left_2liner_text_2" {
+						text = "INTERNATIONAL_ORGANIZATION_PARLIAMENT_DURATION_TXT"
+						autoresize = yes
+					}
+					blockoverride "left_2liner_text_2_visible" {}
+				}
+			# }
+			# PARLIAMENT ITEMS
+			block "parliament_items_extra_top"{}
+			# Project Alexander: optional Senate content below the native controls.
+			block "pa_senate_parliament_content" {}
+			scrollarea = {
+				visible = "[And(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasOngoingParliamentDebate,InternationalOrganizationsView.GetInternationalOrganization.GetParliament.IsParliamentActive)]"
+				using = layoutpolicy_expanding
+				scrollbarpolicy_horizontal = always_off
+				scrollbar_vertical = {
+					using = Scrollbar_Vertical
+				}
+				scrollwidget = {
+					vbox = {
+						margin = { 10 0 }
+						spacing = 6
+						block "organization_parliament_vote_cards_hbox" {
+							hbox = {
+								visible = "[Not(And(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasOngoingParliamentDebate,InternationalOrganizationsView.GetInternationalOrganization.GetParliament.IsParliamentActive))]"
+								card_common = {
+									blockoverride "header_decor_templates" {
+										using = bg_paper_card
+										using = bg_card_header_01_diplomacy
+										using = bg_cabinet_card_frame
+									}
+									blockoverride "common_header_icon_texture" {
+										texture = "[GetSpecialStatusIconFromKey('emperor')]"
+										texture_density = 2
+										background = {
+											texture = "[GetSpecialStatusIconFromKey('emperor')]"
+											texture_density = 2
+											margin = {1 1}
+											modify_texture = {
+												using = color_black_texture
+												blend_mode = multiply
+											}
+										}
+									}
+									blockoverride "common_header_extra_left" {
+										expand = {}
+									}
+									blockoverride "common_header_text_full" {
+										text_single = {
+											align = center
+											text = "IO_PARLIAMENT_TITLE"
+										}
+									}
+									blockoverride "common_bottom_content" {
+										vbox = {
+											spacing = 5
+											text_multi = {
+												layoutpolicy_horizontal = expanding
+												layoutpolicy_vertical = expanding
+												margin = {10 10}
+												max_width = 500
+												autoresize = yes
+												block "organization_parliament_bottom_text" {			
+													text = "IO_PARLIAMENT_TOOLTIP"
+												}
+												align = center|nobaseline
+												default_format = "#subtle_name"
+												using = bg_text_mask_container_brown
+											}
+										}
+									}
+								}
+							}
+						
+							hbox = {
+								block "organization_voting_members_card_visible"
+								{
+									visible = "[And(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasOngoingParliamentDebate,InternationalOrganizationsView.GetInternationalOrganization.GetParliament.IsParliamentActive)]"
+								}
+								vbox = {
+									spacing = 7
+									io_side_cards = {
+										blockoverride "card_datacontext" {
+										}
+										# Opposers
+										blockoverride "left_header_text" {
+											text = "IO_PARLIAMENT_OPPOSERS"
+										}
+										blockoverride "left_bottom_content" {
+											scrollarea = {
+												layoutpolicy_horizontal = expanding
+												size = { 225 150 }
+												scrollbarpolicy_horizontal = always_off
+												scrollbar_vertical = {
+													using = Scrollbar_Vertical
+												}
+												
+												scrollwidget = {
+													dynamicgridbox = {
+														layoutpolicy_horizontal = expanding
+														flipdirection = yes
+														position = {10 10}
+														datamodel_wrap = 5
+														maxhorizontalslots = 12
+														datamodel = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetOppositionCountries]"
+														item = {
+															country_flag_small = {}
+														}
+													}
+												}
+											}
+										}
+										# Voters
+										blockoverride "right_header_text" {
+											text = "IO_PARLIAMENT_VOTERS"
+										}
+										blockoverride "right_bottom_content" {
+											scrollarea = {
+												layoutpolicy_horizontal = expanding
+												size = { 225 150 }
+												scrollbarpolicy_horizontal = always_off
+												scrollbar_vertical = {
+													using = Scrollbar_Vertical
+												}
+												
+												scrollwidget = {
+													dynamicgridbox = {
+														layoutpolicy_horizontal = expanding
+														flipdirection = yes
+														position = {10 10}
+														datamodel_wrap = 5
+														maxhorizontalslots = 12
+														datamodel = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetVotedCountries]"
+														item = {
+															country_flag_small = {}
+														}
+													}
+												}
+											}
+										}
+									}
+									card_common = {
+										blockoverride "common_header_text_full" {
+											text_single = {
+												align = center
+												text = "IO_PARLIAMENT_NON_VOTERS"
+											}
+										}
+										blockoverride "common_bottom_content" {
+											scrollarea = {
+												layoutpolicy_horizontal = expanding
+												size = { 450 100 }
+												scrollbarpolicy_horizontal = always_off
+												scrollbar_vertical = {
+													using = Scrollbar_Vertical
+												}
+												
+												scrollwidget = {
+													dynamicgridbox = {
+														layoutpolicy_horizontal = expanding
+														flipdirection = yes
+														position = {10 10}
+														datamodel_wrap = 12
+														maxhorizontalslots = 12
+														datamodel = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetNonVotedCountries]"
+														item = {
+															country_flag_small = {}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+
+							# parliament vote						
+							card_common = {
+								visible = "[And3(InternationalOrganizationsView.GetInternationalOrganization.IsCountryMember(InternationalOrganizationsView.GetPlayer.Self), InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasOngoingParliamentDebate, Not(EqualTo_string(InternationalOrganizationsView.GetInternationalOrganization.GetType.GetNameKey,'union')))]"
+								blockoverride "common_header_extra_left" {
+									expand = {}
+								}
+								blockoverride "common_header_text" {
+									text = "IO_PARLIAMENT_VOTING"
+								}
+								blockoverride "common_header_icon_texture" {
+									texture = "gfx/interface/icons/flat_icons/parliament.dds"
+								}
+								blockoverride "common_bottom_content" {
+									hbox = {
+										spacing = 5
+										ignoreinvisible = yes
+										layoutpolicy_horizontal = expanding
+										#vote
+										button_regular_diamond = {
+											layoutpolicy_horizontal = expanding
+											size = {-1 40}
+
+											visible = "[PdxGuiWidget.IsUberButtonVisible]"
+											enabled = "[PdxGuiWidget.IsUberButtonEnabled]"
+
+											scripted_action_tooltip = {
+												click_type = left
+												click_mode = single
+												action_name = "vote_in_organization_parliament"
+												actor = "[InternationalOrganizationsView.GetPlayer]"
+												parameter = {
+													parameter_name = "recipient"
+													parameter_value = "[InternationalOrganizationsView.GetInternationalOrganization]"
+												}
+											}
+
+											tooltipwidget = {
+												using = io_parliament_vote_button_tooltip
+											}
+											hbox = {
+												margin = { 10 0 }
+												spacing = 5
+												tooltipwidget = {
+													using = io_parliament_vote_button_tooltip
+												}
+												icon = {
+													size = { 32 32 }
+													texture = "gfx/interface/icons/institutions/legalism.dds"
+												}
+												text_single = {
+													text = "VOTE_IO_PARLIAMENT"
+													default_format = "#yellow_titles"
+													fontsize = 17
+												}
+												expand = {}
+											}
+										}
+										text_single = {
+											text = "IO_OUR_PARLIAMENT_VOTE"
+											using = Font_Size_Medium
+											align = nobaseline
+											tooltipwidget = {
+												ContextualTooltipType = {
+													blockoverride "title_icon" {
+														icon = {
+															using = tooltip_title_icon_size
+															texture = "[InternationalOrganizationsView.GetInternationalOrganization.GetIcon]"
+														}
+													}
+													blockoverride "title_text" {
+														text = "IO_PARLIAMENT_VOTING"
+													}
+													blockoverride "concept_link" {
+														text = [vote|E]
+													}
+													blockoverride "tooltip_content" {
+														TooltipTextBlock = {
+															visible = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasParticipatedInParliament(InternationalOrganizationsView.GetPlayer.Self)]"
+															blockoverride "text" {
+																text = "IO_OUR_PARLIAMENT_VOTE_DESC"
+															}
+														}
+														TooltipTextBlock = {
+															visible = "[Not(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasParticipatedInParliament(InternationalOrganizationsView.GetPlayer.Self))]"
+															blockoverride "text" {
+																text = "IO_OUR_PARLIAMENT_NO_VOTE_DESC"
+															}
+														}
+													}
+												}
+											}
+											margin = {6 3}
+											using = bg_number_container_bckg
+											blockoverride "number_container_color" {
+												alpha = 0.5
+												modify_texture = {
+													using = color_super_dark_brown_texture
+													blend_mode = multiply
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+
+						# parliament actions
+						card_common = {
+							visible = "[InternationalOrganizationsView.HasParliamentActions]"
+							blockoverride "common_header_extra_left" {
+								expand = {}
+							}
+							blockoverride "common_header_text" {
+								text = "[parliament_requests|e]"
+							}
+							blockoverride "common_header_icon_texture" {
+								texture = "gfx/interface/icons/flat_icons/parliament_request.dds"
+							}
+							blockoverride "common_bottom_content" {
+								vbox = {
+									ignoreinvisible = yes
+									layoutpolicy_horizontal = expanding
+									datamodel = "[InternationalOrganizationsView.GetParliamentActions]"
+									item = {
+										widget = {
+											layoutpolicy_horizontal = expanding
+											size = { -1 50 }
+											button = {
+												size = {100% 85%}
+
+												gfxtype = framedbuttongfx
+												effectname = "NoHighlight"
+												upframe = 1
+												overframe = 2
+												downframe = 3
+												disableframe = 4
+												texture = "gfx/interface/buttons/card_list_action_button.dds"
+												frame_grid = {4 1}
+												spriteType = Corneredstretched
+												texture_density = 2
+												spriteborder = { 40 40 }
+
+												modify_texture = {
+													using = overlay_cloth_texture
+													blend_mode = overlay
+													alpha = 0.1
+												}
+												modify_texture = {
+													using = overlay_paper_03
+													blend_mode = overlay
+													alpha = 0.2
+												}
+												modify_texture = {
+													using = color_purple_02_texture
+													blend_mode = multiply
+													alpha = 0.5
+												}
+
+												visible = "[PdxGuiWidget.IsUberButtonVisible]"
+												enabled = "[PdxGuiWidget.IsUberButtonEnabled]"
+
+												scripted_action_tooltip = {
+													click_type = left
+													click_mode = single
+													action_name = "[GenericAction.GetKey]"
+													actor = "[InternationalOrganizationsView.GetPlayer]"
+												}
+
+												tooltipwidget = { using = action_tooltip_pop_out }
+
+												hbox = {
+													margin = { 15 0 }
+													spacing = 10
+													text_single = {
+														using = layoutpolicy_expanding
+														text = "[GenericAction.GetNameWithNoTooltip]"
+													}
+													text_single = {
+														autoresize = no
+														align = center
+														size = {65 25}
+														using = bg_number_container_bckg
+														blockoverride "number_container_color" {
+															alpha = 0.8
+															modify_texture = {
+																using = color_super_dark_brown_texture
+																blend_mode = multiply
+															}
+															modify_texture = {
+																using = color_purple_02_texture
+																blend_mode = multiply
+																alpha = 0.3
+															}
+														}
+														text = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentIssueRequestSupportNeeded|+=0%]"
+													}
+													icon = {
+														size = {20 20}
+														texture = "gfx/interface/icons/flat_icons/parliament_support.dds"
+														glow = {
+															name = "drop_shadow"
+															glow_radius = 3
+															color = {0.0 0.0 0.0 1.0}
+															alpha = 0.3
+														}
+														tooltipwidget = {
+															using = organization_parliament_base_support_tooltip
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						
+						# parliament agendas
+						card_common = {
+							visible = "[And(Not(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.IsLawDebate),
+							ObjectsEqual(InternationalOrganizationsView.GetInternationalOrganization.GetLeaderCountry, InternationalOrganizationsView.GetPlayer))]"
+							blockoverride "common_header_extra_left" {
+								expand = {}
+							}
+							blockoverride "common_header_text" {
+								text = "[parliament_agendas|e]"
+							}
+							blockoverride "common_header_icon_texture" {
+								texture = "gfx/interface/icons/flat_icons/estates_agenda.dds"
+							}
+							blockoverride "card_common_bottom_margin" {}
+							blockoverride "common_bottom_content" {
+							# list of agendas
+								scrollarea = {
+									layoutpolicy_horizontal = expanding
+									maximumsize = { 500 150 }
+									minimumsize = {-1 50}
+									scrollbarpolicy_horizontal = always_off
+									autoresizescrollarea = yes
+									scrollbar_vertical = {
+										using = Scrollbar_Vertical
+									}
+									scrollwidget = {
+										vbox = {
+											margin = {0 10}
+											spacing = 10
+											datamodel = "[InternationalOrganizationsView.GetAgendas]"
+											item = {
+												widget = {
+													layoutpolicy_horizontal = expanding
+													size = { -1 40 }
+													card_list_button = {
+														size = {100% 100%}
+														datacontext = "[ParliamentAgendaGlue.GetUIAction]"
+														using = button_action_provider
+														blockoverride "button_extras" {
+															modify_texture = {
+																using = color_purple_02_texture
+																blend_mode = multiply
+																alpha = 0.5
+															}
+														}
+														enabled = "[ParliamentAgendaGlue.IsAllowedForCountry(InternationalOrganizationsView.GetPlayer.Self)]"
+														datacontext = "[ParliamentAgendaGlue.GetParliamentAgenda]"
+														tooltipwidget = {
+															datacontext = "[ParliamentAgendaGlue.GetParliamentAgenda]"
+															datacontext = "[ParliamentAgendaGlue.GetUIAction]"
+															ContextualTooltipType = {
+																blockoverride "title_text" {
+																	text = "[ActiveParliamentAgenda.GetName]"
+																}
+																blockoverride "concept_link" {
+																	text = [parliament_agenda|E]
+																}
+																blockoverride "title_icon_texture" {
+																	texture = "[GetSpecialStatusIcon(ActiveParliamentAgenda.GetSpecialStatus)]"
+																	datacontext = "[ActiveParliamentAgenda.GetAgenda]"
+																	datacontext = "[ActiveParliamentAgenda.GetSpecialStatus]"
+																	datacontext = "[Player]"
+																	tooltipwidget = {
+																		using = SpecialStatus_tooltip
+																	}
+																}
+																blockoverride "tooltip_content" {
+																	TooltipFlavorTextBlock = {
+																		blockoverride "text" {
+																			text = "[ActiveParliamentAgenda.GetAgenda.GetDescription]"
+																		}
+																	}	
+																	TooltipTextBlock = {
+																		blockoverride "text" {
+																			text = "[ActiveParliamentAgenda.GetEffectWithIOConext(InternationalOrganizationsView.GetInternationalOrganization)]"
+																		}
+																	}
+																	TooltipRequirementsList = {
+																		blockoverride "block_title" {
+																			text = "game_concept_conditions"
+																		}
+																		visible = "[Not(StringIsEmpty(UIActionProvider.GetConditions))]"
+																		textcontext = "[UIActionProvider.GetConditions]"
+																	}
+																}
+															}
+														}
+														card_header_button_01 = {
+															size = {100% 100%}
+															datacontext = "[InternationalOrganizationsView.GetInternationalOrganization]"
+
+															background = {
+																texture = "gfx/interface/buttons/card_list_action_button.dds"
+																frame_grid = {4 1}
+																frame = 3
+																spriteType = Corneredstretched
+																texture_density = 2
+																spriteborder = {40 40}
+																modify_texture = {
+																	using = color_super_dark_brown_texture
+																	blend_mode = multiply
+																	alpha = 0.4
+																}
+															}
+
+															using = button_action_provider
+
+															hbox = {
+																layoutpolicy_horizontal = expanding
+																spacing = 10
+																margin = {15 5}
+
+																icon = {
+																	size = {30 30}
+																	datacontext = "[ActiveParliamentAgenda.GetSpecialStatus]"
+																	tooltipwidget = { 
+																		using = SpecialStatus_tooltip
+																	}
+																	# block "resource_icon" {
+																		texture = "[GetSpecialStatusIcon(ActiveParliamentAgenda.GetSpecialStatus)]"
+																	# }
+																}
+
+																text_multi = {
+																	layoutpolicy_horizontal = expanding
+																	text = "[ActiveParliamentAgenda.GetName]"
+																	autoresize = yes
+																	fontsize = 14
+																	align = left|vcenter
+																}
+
+																hbox = {
+																	spacing = 10
+
+																	text_single = {
+																		size = {65 25}
+																		align = center
+																		using = bg_number_container_bckg
+																		autoresize = no
+																		text = "[ActiveParliamentAgenda.GetSupport(InternationalOrganizationsView.GetInternationalOrganization)|+=2%]"
+																		tooltipwidget = { 
+																			using = Parliament_IO_TT_AgendaSupport
+																		}
+
+																		blockoverride "number_container_color" {
+																			alpha = 0.8
+																			modify_texture = {
+																				using = color_super_dark_brown_texture
+																				blend_mode = multiply
+																			}
+																			modify_texture = {
+																				using = color_purple_02_texture
+																				blend_mode = multiply
+																				alpha = 0.3
+																			}
+																		}
+
+																	}
+																	icon = {
+																		size = {20 20}
+																		texture = "gfx/interface/icons/flat_icons/parliament_support.dds"
+																		glow = {
+																			name = "drop_shadow"
+																			glow_radius = 3
+																			color = {0.0 0.0 0.0 1.0}
+																			alpha = 0.3
+																		}
+																	}
+																}
+																expand = {}
+															}
+															expand = {}
+														}
+													}
+												}
+											}
+										}
+									}
+									text_multi = {
+										position = { 0 20 }
+										parentanchor = hcenter
+										size = { 460 80 }
+										align = bottom|hcenter
+										visible = "[IsDataModelEmpty(InternationalOrganizationsView.GetAgendas)]"
+										text = "NO_POSSIBLE_AGENDAS"
+									}
+								}
+							}
+						}
+
+						block "organization_parliament_scroll_area" {}
+						expand = {}
+					}
+				}
+			}
+		# }
+		expand = {}
+	}
+}
+
+template organization_parliament_base_support_tooltip {
+	ContextualTooltipType = {
+		blockoverride "title_text" {
+			text = "INTERNATIONAL_ORGANIZATION_PARLIAMENT_BASE_SUPPORT_TT_TITLE"
+		}
+		blockoverride "title_icon" {
+			icon = {
+				using = tooltip_title_icon_size
+				texture = "gfx/interface/icons/flat_icons/parliament_support.dds"
+				glow = {
+					name = "drop_shadow"
+					glow_radius = 3
+					color = {0.0 0.0 0.0 1.0}
+					alpha = 0.3
+				}
+			}
+		}
+		blockoverride "concept_link" {
+			text = [parliament_support|e]
+		}
+		blockoverride "tooltip_content" {
+			datacontext = "[InternationalOrganization]"
+			TooltipTextBlock = {
+				blockoverride "text" {
+					text = "INTERNATIONAL_ORGANIZATION_BASE_SUPPORT_FROM_SPECIAL_STATUS"
+				}
+			}
+			TooltipTextBlock = {
+				visible = "[Not(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasOngoingParliamentDebate)]"
+				blockoverride "text" {
+					raw_text = "INTERNATIONAL_ORGANIZATION_LEADER_SPECIAL_STATUS_POWER_TOOLTIP"
+				}
+			}
+			TooltipTextBlock = {
+				visible = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.HasOngoingParliamentDebate]"
+				blockoverride "text" {
+					raw_text = "INTERNATIONAL_ORGANIZATION_ISSUE_SPECIAL_STATUS_POWER_TOOLTIP"
+				}
+			}
+		}
+	}
+}
+
+template io_change_parliament_type {
+	ContextualTooltipType = {
+		blockoverride "title_icon" {
+			icon = {
+				using = tooltip_title_icon_size
+				texture = "[InternationalOrganizationsView.GetInternationalOrganization.GetIcon]"
+			}
+		}
+
+		blockoverride "title_text" {
+			text = "change_organization_parliament_type_header"
+		}
+							
+		blockoverride "concept_link" {
+			text = [parliament_type|E]
+		}
+
+		blockoverride "tooltip_content" 
+		{
+			TooltipTextBlock = {
+				name = "DescriptionTest"
+				visible = "[Not(StringIsEmpty(UIAction.GetDescription))]"
+				blockoverride "text" { text = "[UIAction.GetDescription]" }
+			}
+			TooltipStringPairList = {
+				textcontext = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentType.GetEffects]"
+			}
+			TooltipFlavorTextBlock = {
+				blockoverride "text" {
+					text = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.GetParliamentType.GetDescription]"
+				}
+			}
+			TooltipRowList = {
+				visible = "[Not(StringIsEmpty(UIAction.GetEffects))]"
+				blockoverride "block_title" {
+					text = "LIST_TITLE_EFFECTS"
+				}
+				textcontext = "[UIAction.GetEffects]"
+			}
+			TooltipRowList = {
+				visible = "[Not(StringIsEmpty(UIAction.GetConditions))]"
+				blockoverride "block_title" {
+					text = "LIST_TITLE_REQUIREMENTS"
+				}
+				textcontext = "[UIAction.GetConditions]"
+			}
+		}
+	}
+}
+
+# template io_call_parliament {
+# 	ContextualTooltipType = {
+# 		blockoverride "title_icon" {
+# 			icon = {
+# 				using = tooltip_title_icon_size
+# 				texture = "[InternationalOrganizationsView.GetInternationalOrganization.GetIcon]"
+# 			}
+# 		}
+
+# 		blockoverride "title_text" {
+# 			text = "call_organization_parliament"
+# 		}
+							
+# 		blockoverride "concept_link" {
+# 			text = [parliament|E]
+# 		}
+
+# 		blockoverride "tooltip_content" 
+# 		{
+# 			TooltipTextBlock = {
+# 				name = "DescriptionTest"
+# 				visible = "[Not(StringIsEmpty(UIAction.GetDescription))]"
+# 				blockoverride "text" { text = "[UIAction.GetDescription]" }
+# 			}
+# 			TooltipRowList = {
+# 				visible = "[Not(StringIsEmpty(UIAction.GetEffects))]"
+# 				blockoverride "block_title" {
+# 					text = "LIST_TITLE_EFFECTS"
+# 				}
+# 				textcontext = "[UIAction.GetEffects]"
+# 			}
+# 			TooltipRowList = {
+# 				visible = "[Not(StringIsEmpty(UIAction.GetConditions))]"
+# 				blockoverride "block_title" {
+# 					text = "LIST_TITLE_REQUIREMENTS"
+# 				}
+# 				textcontext = "[UIAction.GetConditions]"
+# 			}
+# 		}
+# 	}
+# }
+
+
+template IOParliamentInSession_tooltip {
+	SimpleContextualTooltipType = {
+		blockoverride "concept_link" {
+			text = "[parliament|e]"
+		}
+
+		blockoverride "title_icon" {
+			icon = {
+				using = tooltip_title_icon_size
+				texture = "gfx/interface/icons/flat_icons/parliament.dds"
+			}
+		}
+
+		lowpriotextcontext = "IO_PARLIAMENT_DURATION_TXT"
+	}
+}
+
+
+
+template io_parliament_support_tooltip {
+	ContextualTooltipType = {
+		blockoverride "title_text" {
+			text = "PARLIAMENT_SUPPORT"
+		}
+
+		blockoverride "title_icon" {
+			icon = {
+				visible = "[Not(EqualTo_string(InternationalOrganizationsView.GetInternationalOrganization.GetType.GetNameKey, 'hre'))]"
+				using = tooltip_title_icon_size
+				texture = "gfx/interface/icons/flat_icons/parliament_support.dds"
+				glow = {
+					name = "drop_shadow"
+					glow_radius = 3
+					color = {0.0 0.0 0.0 1.0}
+					alpha = 0.3
+				}
+			}
+
+			icon = {
+				visible = "[EqualTo_string(InternationalOrganizationsView.GetInternationalOrganization.GetType.GetNameKey, 'hre')]"
+				using = tooltip_title_icon_size
+				texture = "gfx/interface/icons/flat_icons/hre_parliament.dds"
+				glow = {
+					name = "drop_shadow"
+					glow_radius = 3
+					color = {0.0 0.0 0.0 1.0}
+					alpha = 0.3
+				}
+			}
+		}
+
+		blockoverride "concept_link" {
+			text = [parliament_support|e]
+		}
+
+		blockoverride "tooltip_content" {
+			datacontext = "[InternationalOrganization]"
+			TooltipTextBlock = {
+				blockoverride "text" {
+					text = "IO_PARLIAMENT_SUPPORT_BIG_TT"
+				}
+			}
+			TooltipTextBlock = {
+				visible = "[InternationalOrganizationsView.GetInternationalOrganization.GetParliament.WillParliamentIssuePass]"
+				blockoverride "text" {
+					text =  "INTERNATIONAL_ORGANIZATION_PARLIAMENT_ISSUE_WILL_NOT_FAIL"
+				}
+			}
+			TooltipTextBlock = {
+				visible = "[Not(InternationalOrganizationsView.GetInternationalOrganization.GetParliament.WillParliamentIssuePass)]"
+				blockoverride "text" {
+					text =  "INTERNATIONAL_ORGANIZATION_PARLIAMENT_ISSUE_WILL_FAIL"
+				}
+			}
+		}
+	}
+}

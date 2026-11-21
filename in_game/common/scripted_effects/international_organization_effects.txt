@@ -538,6 +538,35 @@ propose_parliament_issue = {
 		}
 	}
 	set_participated_in_parliament = { international_organization = $international_organization$ vote = yes }
+	# Rome's Senate is one IO member, but its native parliamentary support is
+	# the fraction of senators backing the issue, not Rome's one member vote.
+	if = {
+		limit = {
+			tag = ROM
+			has_variable = pa_senate_initialized
+			var:pa_senate_size > 0
+			exists = scope:parliament_issue
+			$international_organization$ = { international_organization_type = international_organization_type:pa_roman_senate }
+		}
+		set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 125 subtract = var:pa_senate_optimates_defectors max = var:pa_senate_optimates_seats min = 0 } }
+		set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 125 subtract = var:pa_senate_boni_defectors max = var:pa_senate_boni_seats min = 0 } }
+		set_variable = { name = pa_senate_vote_pop value = { value = var:pa_senate_populares_seats multiply = var:pa_senate_populares_approval divide = 125 subtract = var:pa_senate_populares_defectors max = var:pa_senate_populares_seats min = 0 } }
+		set_variable = { name = pa_senate_last_vote value = { value = var:pa_senate_vote_opt add = var:pa_senate_vote_boni add = var:pa_senate_vote_pop } }
+		remove_variable = pa_senate_vote_defied
+		remove_variable = pa_senate_war_vote_defied
+		set_variable = { name = pa_senate_half_seats value = { value = var:pa_senate_size divide = 2 } }
+		set_variable = { name = pa_senate_motion_cooldown value = yes months = 6 }
+		save_scope_as = pa_senate_proposing_rome
+		unset_participated_in_parliament = $international_organization$
+		if = {
+			limit = { var:pa_senate_last_vote > var:pa_senate_half_seats }
+			set_participated_in_parliament = { international_organization = $international_organization$ vote = yes }
+		}
+		else = { set_participated_in_parliament = { international_organization = $international_organization$ vote = no } }
+		$international_organization$ = {
+			set_parliament_issue_support = { value = scope:pa_senate_proposing_rome.var:pa_senate_last_vote divide = scope:pa_senate_proposing_rome.var:pa_senate_size }
+		}
+	}
 	call_io_parliament = { international_organization = $international_organization$ }
 }
 

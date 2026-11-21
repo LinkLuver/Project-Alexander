@@ -1,4 +1,4 @@
-﻿# Attach only sub-actions; preserve all base-game pulse and war handlers.
+# Attach only sub-actions; preserve all base-game pulse and war handlers.
 # The hooks are registered in Project Alexander's existing pulse/action files.
 # Defining those parent actions here would shadow their replacement definitions.
 
@@ -27,6 +27,10 @@ pa_senate_monthly_pulse = {
 				set_leader_country = root
 			}
 		}
+		if = {
+			limit = { NOT = { has_special_status_in_international_organization = { type = special_status:pa_senate_roman_citizens international_organization = international_organization:pa_roman_senate } } }
+			international_organization:pa_roman_senate = { international_organization_add_special_status = { type = special_status:pa_senate_roman_citizens country = root } }
+		}
 		# No foreign country can hold a Senate seat. Join and invite actions are
 		# already hidden, but this guards against scripted joins and old saves.
 		international_organization:pa_roman_senate = {
@@ -34,6 +38,18 @@ pa_senate_monthly_pulse = {
 				limit = { NOT = { tag = ROM } }
 				prev = { remove_country_from_international_organization = root }
 			}
+		}
+		# Factions can independently bring a motion, subject to the same cooldown
+		# and only while no Parliament session is already in progress.
+		if = {
+			limit = {
+				has_variable = pa_senate_initialized
+				var:pa_senate_size > 0
+				is_active_parliament = no
+				NOT = { has_variable = pa_senate_motion_cooldown }
+				international_organization:pa_roman_senate = { is_active_parliament = no }
+			}
+			random_list = { 1 = { pa_senate_autonomous_proposal = yes } 99 = {} }
 		}
 		# The primary consul is elected annually by the normal election event.
 		if = {
@@ -47,12 +63,12 @@ pa_senate_monthly_pulse = {
             set_variable = { name = pa_senate_optimates_approval value = 50 }
             set_variable = { name = pa_senate_boni_approval value = 50 }
             set_variable = { name = pa_senate_populares_approval value = 50 }
-            set_variable = { name = pa_senate_optimates_seats value = 40 }
-            set_variable = { name = pa_senate_boni_seats value = 35 }
-            set_variable = { name = pa_senate_populares_seats value = 25 }
-            set_variable = { name = pa_senate_size value = 100 }
-            set_variable = { name = pa_senate_pass_threshold value = 51 }
-            set_variable = { name = pa_senate_compromise_threshold value = 30 }
+            set_variable = { name = pa_senate_optimates_seats value = 120 }
+            set_variable = { name = pa_senate_boni_seats value = 105 }
+            set_variable = { name = pa_senate_populares_seats value = 75 }
+            set_variable = { name = pa_senate_size value = 300 }
+            set_variable = { name = pa_senate_pass_threshold value = 153 }
+            set_variable = { name = pa_senate_compromise_threshold value = 90 }
             set_variable = { name = pa_senate_last_vote value = 0 }
             set_variable = { name = pa_senate_vote_opt value = 0 }
             set_variable = { name = pa_senate_vote_boni value = 0 }
@@ -87,55 +103,64 @@ pa_senate_monthly_pulse = {
 		if = { limit = { has_variable = pa_senate_initialized NOT = { has_variable = pa_senate_tyranny } } set_variable = { name = pa_senate_tyranny value = 0 } }
 		# Record the elected consul. When a new term begins, appoint a co-consul
 		# from the strongest eligible Senate family that did not win the office.
+		# Repair older saves with a female consul when an eligible male is available.
+		if = {
+			limit = { ruler ?= { is_female = yes } }
+			random_character = {
+				limit = { owner = root is_alive = yes is_adult = yes is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } }
+				root = { set_new_ruler = prev }
+			}
+		}
 		if = {
 			limit = { NOT = { var:pa_senate_primary_consul ?= { this = root.ruler } } }
+			if = { limit = { has_variable = pa_senate_primary_consul } var:pa_senate_co_consul ?= { set_variable = { name = pa_senate_consul_reentry_ban value = yes years = 10 } } }
 			set_variable = { name = pa_senate_primary_consul value = ruler }
 			remove_variable = pa_senate_co_consul
 			# The runner-up faction supplies the co-consul.  A ruler whose dynasty
 			# is outside the three current party families uses the leading faction
 			# as a documented fallback rather than pretending a second result exists.
 			if = {
-				limit = { var:pa_senate_optimates_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_boni_seats >= var:pa_senate_populares_seats var:pa_senate_boni_leader ?= { is_alive = yes this != root.ruler } }
+				limit = { var:pa_senate_optimates_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_boni_seats >= var:pa_senate_populares_seats var:pa_senate_boni_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } }
 				set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader }
 			}
 			else_if = {
-				limit = { var:pa_senate_optimates_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_populares_leader ?= { is_alive = yes this != root.ruler } }
+				limit = { var:pa_senate_optimates_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_populares_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } }
 				set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader }
 			}
 			else_if = {
-				limit = { var:pa_senate_boni_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_optimates_seats >= var:pa_senate_populares_seats var:pa_senate_optimates_leader ?= { is_alive = yes this != root.ruler } }
+				limit = { var:pa_senate_boni_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_optimates_seats >= var:pa_senate_populares_seats var:pa_senate_optimates_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } }
 				set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader }
 			}
 			else_if = {
-				limit = { var:pa_senate_boni_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_populares_leader ?= { is_alive = yes this != root.ruler } }
+				limit = { var:pa_senate_boni_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_populares_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } }
 				set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader }
 			}
 			else_if = {
-				limit = { var:pa_senate_populares_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_optimates_seats >= var:pa_senate_boni_seats var:pa_senate_optimates_leader ?= { is_alive = yes this != root.ruler } }
+				limit = { var:pa_senate_populares_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_optimates_seats >= var:pa_senate_boni_seats var:pa_senate_optimates_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } }
 				set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader }
 			}
 			else_if = {
-				limit = { var:pa_senate_populares_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_boni_leader ?= { is_alive = yes this != root.ruler } }
+				limit = { var:pa_senate_populares_leader ?= { dynasty = root.ruler.dynasty } var:pa_senate_boni_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } }
 				set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader }
 			}
 			else_if = {
-				limit = { var:pa_senate_optimates_seats >= var:pa_senate_boni_seats var:pa_senate_optimates_seats >= var:pa_senate_populares_seats var:pa_senate_optimates_leader ?= { is_alive = yes this != root.ruler } }
+				limit = { var:pa_senate_optimates_seats >= var:pa_senate_boni_seats var:pa_senate_optimates_seats >= var:pa_senate_populares_seats var:pa_senate_optimates_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } }
 				set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader }
 			}
 			else_if = {
-				limit = { var:pa_senate_boni_seats >= var:pa_senate_populares_seats var:pa_senate_boni_leader ?= { is_alive = yes this != root.ruler } }
+				limit = { var:pa_senate_boni_seats >= var:pa_senate_populares_seats var:pa_senate_boni_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } }
 				set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader }
 			}
 			else_if = {
-				limit = { var:pa_senate_populares_leader ?= { is_alive = yes this != root.ruler } }
+				limit = { var:pa_senate_populares_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } }
 				set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader }
 			}
 			else = {
-				random_character = { limit = { owner = root is_alive = yes is_adult = yes this != root.ruler } root = { set_variable = { name = pa_senate_co_consul value = prev } } }
+				random_character = { limit = { owner = root is_alive = yes is_adult = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } root = { set_variable = { name = pa_senate_co_consul value = prev } } }
 			}
 		}
         # Migration for Senate saves created before the membership-capacity system.
-        if = { limit = { NOT = { has_variable = pa_senate_size } } set_variable = { name = pa_senate_size value = 100 } }
+        if = { limit = { NOT = { has_variable = pa_senate_size } } set_variable = { name = pa_senate_size value = 300 } }
         if = { limit = { NOT = { has_variable = pa_senate_pass_threshold } } set_variable = { name = pa_senate_pass_threshold value = { value = var:pa_senate_size multiply = 51 divide = 100 } } }
         if = { limit = { NOT = { has_variable = pa_senate_compromise_threshold } } set_variable = { name = pa_senate_compromise_threshold value = { value = var:pa_senate_size multiply = 30 divide = 100 } } }
         if = { limit = { NOT = { has_variable = pa_senate_authority } } set_variable = { name = pa_senate_authority value = 50 } }
@@ -230,12 +255,12 @@ pa_senate_monthly_pulse = {
 		# primary consul but no second office. Fill it as soon as party leaders
 		# exist, always excluding the mechanical ruler.
 		if = {
-			limit = { NOT = { var:pa_senate_co_consul ?= { is_alive = yes owner = c:ROM this != c:ROM.ruler } } }
-			if = { limit = { ruler = character:publius_sempronius_sophus character:publius_sulpicius_saverrio ?= { is_alive = yes owner = c:ROM } } set_variable = { name = pa_senate_co_consul value = character:publius_sulpicius_saverrio } }
-			else_if = { limit = { var:pa_senate_boni_leader ?= { is_alive = yes this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader } }
-			else_if = { limit = { var:pa_senate_populares_leader ?= { is_alive = yes this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader } }
-			else_if = { limit = { var:pa_senate_optimates_leader ?= { is_alive = yes this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader } }
-			else = { random_character = { limit = { is_alive = yes is_adult = yes owner = c:ROM this != c:ROM.ruler } save_scope_as = pa_eligible_colleague c:ROM = { set_variable = { name = pa_senate_co_consul value = scope:pa_eligible_colleague } } } }
+			limit = { NOT = { var:pa_senate_co_consul ?= { is_alive = yes is_female = no owner = c:ROM this != c:ROM.ruler } } }
+			if = { limit = { ruler = character:publius_sempronius_sophus character:publius_sulpicius_saverrio ?= { is_alive = yes is_female = no owner = c:ROM NOT = { has_variable = pa_senate_consul_reentry_ban } } } set_variable = { name = pa_senate_co_consul value = character:publius_sulpicius_saverrio } }
+			else_if = { limit = { var:pa_senate_boni_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader } }
+			else_if = { limit = { var:pa_senate_populares_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader } }
+			else_if = { limit = { var:pa_senate_optimates_leader ?= { is_alive = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader } }
+			else = { random_character = { limit = { is_alive = yes is_adult = yes owner = c:ROM this != c:ROM.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } save_scope_as = pa_eligible_colleague c:ROM = { set_variable = { name = pa_senate_co_consul value = scope:pa_eligible_colleague } } } }
 		}
         # A faction is a family bloc: living adult members of its leader's
         # dynasty are tagged as members and counted every month.
@@ -319,15 +344,15 @@ pa_senate_monthly_pulse = {
         # A major faction that remains at or below 20 approval builds a
         # visible constitutional crisis. Reconciliation steadily lowers it.
         if = { limit = { var:pa_senate_optimates_approval <= 20 var:pa_senate_optimates_seats >= 35 } set_variable = { name = pa_senate_optimates_crisis value = { value = var:pa_senate_optimates_crisis add = 1 max = 12 } } }
-        else_if = { limit = { var:pa_senate_optimates_approval >= 40 } set_variable = { name = pa_senate_optimates_crisis value = { value = var:pa_senate_optimates_crisis subtract = 1 min = 0 } } }
+        else_if = { limit = { var:pa_senate_optimates_approval >= 40 var:pa_senate_tyranny < 50 } set_variable = { name = pa_senate_optimates_crisis value = { value = var:pa_senate_optimates_crisis subtract = 1 min = 0 } } }
         if = { limit = { var:pa_senate_boni_approval <= 20 var:pa_senate_boni_seats >= 35 } set_variable = { name = pa_senate_boni_crisis value = { value = var:pa_senate_boni_crisis add = 1 max = 12 } } }
-        else_if = { limit = { var:pa_senate_boni_approval >= 40 } set_variable = { name = pa_senate_boni_crisis value = { value = var:pa_senate_boni_crisis subtract = 1 min = 0 } } }
+        else_if = { limit = { var:pa_senate_boni_approval >= 40 var:pa_senate_tyranny < 50 } set_variable = { name = pa_senate_boni_crisis value = { value = var:pa_senate_boni_crisis subtract = 1 min = 0 } } }
         if = { limit = { var:pa_senate_populares_approval <= 20 var:pa_senate_populares_seats >= 35 } set_variable = { name = pa_senate_populares_crisis value = { value = var:pa_senate_populares_crisis add = 1 max = 12 } } }
-        else_if = { limit = { var:pa_senate_populares_approval >= 40 } set_variable = { name = pa_senate_populares_crisis value = { value = var:pa_senate_populares_crisis subtract = 1 min = 0 } } }
+        else_if = { limit = { var:pa_senate_populares_approval >= 40 var:pa_senate_tyranny < 50 } set_variable = { name = pa_senate_populares_crisis value = { value = var:pa_senate_populares_crisis subtract = 1 min = 0 } } }
         # A respected Senate contains factionalism; a discredited one loses
         # consent across every bloc, making constitutional crises more likely.
         if = {
-            limit = { var:pa_senate_authority >= 70 }
+            limit = { var:pa_senate_authority >= 70 var:pa_senate_tyranny < 50 }
             set_variable = { name = pa_senate_optimates_crisis value = { value = var:pa_senate_optimates_crisis subtract = 1 min = 0 } }
             set_variable = { name = pa_senate_boni_crisis value = { value = var:pa_senate_boni_crisis subtract = 1 min = 0 } }
             set_variable = { name = pa_senate_populares_crisis value = { value = var:pa_senate_populares_crisis subtract = 1 min = 0 } }
@@ -369,27 +394,42 @@ pa_senate_yearly_pulse = {
 		# country ruler to the engine.
 		if = {
 			limit = { var:pa_senate_optimates_leader ?= { is_alive = yes } var:pa_senate_boni_leader ?= { is_alive = yes } var:pa_senate_populares_leader ?= { is_alive = yes } }
+			var:pa_senate_co_consul ?= { set_variable = { name = pa_senate_consul_reentry_ban value = yes years = 10 } }
 			set_variable = { name = pa_senate_consular_opt_score value = { value = var:pa_senate_optimates_seats add = var:pa_senate_optimates_approval subtract = var:pa_senate_optimates_defectors } }
 			set_variable = { name = pa_senate_consular_boni_score value = { value = var:pa_senate_boni_seats add = var:pa_senate_boni_approval subtract = var:pa_senate_boni_defectors } }
 			set_variable = { name = pa_senate_consular_pop_score value = { value = var:pa_senate_populares_seats add = var:pa_senate_populares_approval subtract = var:pa_senate_populares_defectors } }
 			remove_variable = pa_senate_co_consul
 			if = {
 				limit = { var:pa_senate_consular_opt_score >= var:pa_senate_consular_boni_score var:pa_senate_consular_opt_score >= var:pa_senate_consular_pop_score }
-				if = { limit = { var:pa_senate_consular_boni_score >= var:pa_senate_consular_pop_score var:pa_senate_boni_leader ?= { this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader } }
-				else_if = { limit = { var:pa_senate_populares_leader ?= { this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader } }
+				if = { limit = { var:pa_senate_consular_boni_score >= var:pa_senate_consular_pop_score var:pa_senate_boni_leader ?= { this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader } }
+				else_if = { limit = { var:pa_senate_populares_leader ?= { this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader } }
 			}
 			else_if = {
 				limit = { var:pa_senate_consular_boni_score >= var:pa_senate_consular_pop_score }
-				if = { limit = { var:pa_senate_optimates_leader ?= { this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader } }
-				else_if = { limit = { var:pa_senate_populares_leader ?= { this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader } }
+				if = { limit = { var:pa_senate_optimates_leader ?= { this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader } }
+				else_if = { limit = { var:pa_senate_populares_leader ?= { this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader } }
 			}
-			else_if = { limit = { var:pa_senate_boni_leader ?= { this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader } }
-			else_if = { limit = { var:pa_senate_optimates_leader ?= { this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader } }
+			else_if = { limit = { var:pa_senate_boni_leader ?= { this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader } }
+			else_if = { limit = { var:pa_senate_optimates_leader ?= { this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader } }
+			if = {
+				limit = { NOT = { has_variable = pa_senate_co_consul } }
+				random_character = {
+					limit = { owner = root is_alive = yes is_adult = yes this != root.ruler is_female = no NOT = { has_variable = pa_senate_consul_reentry_ban } }
+					root = { set_variable = { name = pa_senate_co_consul value = prev } }
+				}
+			}
 		}
 		# Tyranny is the constitutional cost of bypassing the Senate. It recedes
 		# slowly in normal years, while a high score feeds every faction's crisis.
-		if = { limit = { var:pa_senate_tyranny > 0 } change_variable = { name = pa_senate_tyranny subtract = 2 min = 0 } }
 		if = { limit = { var:pa_senate_tyranny >= 50 } change_variable = { name = pa_senate_optimates_crisis add = 1 max = 12 } change_variable = { name = pa_senate_boni_crisis add = 1 max = 12 } change_variable = { name = pa_senate_populares_crisis add = 1 max = 12 } }
+		if = {
+			limit = { var:pa_senate_tyranny >= 50 NOT = { has_variable = pa_senate_plot_cooldown } exists = root.ruler }
+			random_list = {
+				10 = { pa_senate_attempt_tyrant_plot = yes }
+				90 = { }
+			}
+		}
+		if = { limit = { var:pa_senate_tyranny > 0 } change_variable = { name = pa_senate_tyranny subtract = 2 min = 0 } }
         # Individual senators do not remain mechanically loyal forever.
         random_list = {
             18 = { random_character = { limit = { owner = root has_variable = pa_senate_optimates_member has_variable = pa_senate_optimates_loyalty } remove_variable = pa_senate_optimates_loyalty set_variable = pa_senate_optimates_dissenter } }

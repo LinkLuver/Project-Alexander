@@ -16,9 +16,17 @@ call_organization_parliament = {
 	potential = {
 	}
 	allow = {
+		trigger_if = {
+			limit = { scope:recipient ?= { international_organization_type = international_organization_type:pa_roman_senate } }
+			scope:recipient = { leader_country ?= scope:actor is_active_parliament = no }
+			scope:actor = { is_active_parliament = no has_variable = pa_senate_initialized var:pa_senate_size > 0 NOT = { has_variable = pa_senate_motion_cooldown } }
+		}
 	}
 	
 	select_trigger = {
+		# The organization panel supplies its recipient. Ask only when the action
+		# was opened without one, so Rome proceeds directly to choosing a debate.
+		show_if = { NOT = { scope:recipient ?= { international_organization_type = international_organization_type:pa_roman_senate } } }
 		looking_for_a = international_organization
 		source = actor
 		target_flag = recipient
@@ -32,9 +40,16 @@ call_organization_parliament = {
 			modifier:has_international_parliament = yes
 		}
 		enabled = {
-			can_have_parliament_called_by = { country = scope:actor }
+			trigger_if = {
+				limit = { international_organization_type = international_organization_type:pa_roman_senate }
+				leader_country ?= scope:actor
+			}
+			trigger_else = { can_have_parliament_called_by = { country = scope:actor } }
 			is_active_parliament = no
-			months_since_last_parliament_called > 59
+			OR = {
+				AND = { international_organization_type = international_organization_type:pa_roman_senate scope:actor = { NOT = { has_variable = pa_senate_motion_cooldown } } }
+				AND = { NOT = { international_organization_type = international_organization_type:pa_roman_senate } months_since_last_parliament_called > 59 }
+			}
 		}
 	}
 
@@ -91,8 +106,16 @@ call_organization_parliament = {
 		source = recipient
 		interaction_source_list = {
 			scope:recipient = {
-				every_possible_parliament_issue = {
-					add_to_list = source
+				if = {
+					limit = { international_organization_type = international_organization_type:pa_roman_senate }
+					parliament_issue:pa_senate_war_debate = { add_to_list = source }
+					parliament_issue:pa_senate_alliance_debate = { add_to_list = source }
+					parliament_issue:pa_senate_stability_debate = { add_to_list = source }
+					parliament_issue:pa_senate_holdings_debate = { add_to_list = source }
+					parliament_issue:pa_senate_works_debate = { add_to_list = source }
+				}
+				else = {
+					every_possible_parliament_issue = { add_to_list = source }
 				}
 			}
 		}
@@ -104,20 +127,31 @@ call_organization_parliament = {
 			data = io_parliament_issue_widget
 		}
 		visible = {
-			is_visible_for_international_organization = scope:recipient
+			trigger_if = {
+				limit = { scope:recipient = { international_organization_type = international_organization_type:pa_roman_senate } }
+				always = yes
+			}
+			trigger_else = { is_visible_for_international_organization = scope:recipient }
 			#NOT = { this = parliament_issue:hre_law_debate } #P:A Removed vanilla reference
 		}
 		enabled = {
 			is_allowed_for_international_organization = scope:recipient
-			is_selectable_issue_for = {
-				international_organization = scope:recipient
-				actor = scope:actor
+			trigger_if = {
+				limit = { scope:recipient = { international_organization_type = international_organization_type:pa_roman_senate } }
+				always = yes
 			}
+			trigger_else = { is_selectable_issue_for = { international_organization = scope:recipient actor = scope:actor } }
 		}
 	}
 
 	effect = {
 		if = {
+			limit = { exists = scope:recipient exists = scope:parliament_issue scope:recipient = { international_organization_type = international_organization_type:pa_roman_senate } }
+			scope:actor = {
+				pa_senate_start_selected_agenda = { issue = scope:parliament_issue }
+			}
+		}
+		else_if = {
 			limit = { exists = scope:recipient }
 			scope:actor = {
 				propose_parliament_issue = { international_organization = scope:recipient }

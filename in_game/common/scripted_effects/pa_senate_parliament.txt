@@ -1,0 +1,41 @@
+﻿# Country scope; the selected motion has already calculated its faction votes.
+pa_senate_open_motion_debate = {
+	change_variable = { name = pa_senate_vote_opt add = 0 min = 0 max = var:pa_senate_optimates_seats }
+	change_variable = { name = pa_senate_vote_boni add = 0 min = 0 max = var:pa_senate_boni_seats }
+	change_variable = { name = pa_senate_vote_pop add = 0 min = 0 max = var:pa_senate_populares_seats }
+	set_variable = { name = pa_senate_last_vote value = { value = var:pa_senate_vote_opt add = var:pa_senate_vote_boni add = var:pa_senate_vote_pop } }
+	set_variable = { name = pa_senate_half_seats value = { value = var:pa_senate_size divide = 2 } }
+	remove_variable = pa_senate_last_motion_passed
+	remove_variable = pa_senate_last_motion_compromise
+	remove_variable = pa_senate_last_motion_rejected
+	remove_variable = pa_senate_vote_defied
+	remove_variable = pa_senate_war_vote_defied
+	set_variable = pa_senate_last_motion_waiting
+	save_scope_as = pa_senate_proposing_rome
+	international_organization:pa_roman_senate = {
+		set_parliament_location = scope:pa_senate_proposing_rome.capital
+		set_parliament_active = yes
+		set_parliament_issue = $issue$
+		scope:pa_senate_proposing_rome = {
+			if = { limit = { var:pa_senate_last_vote > var:pa_senate_half_seats } set_participated_in_parliament = { international_organization = international_organization:pa_roman_senate vote = yes } }
+			else = { set_participated_in_parliament = { international_organization = international_organization:pa_roman_senate vote = no } }
+		}
+		set_parliament_issue_support = { value = scope:pa_senate_proposing_rome.var:pa_senate_last_vote divide = scope:pa_senate_proposing_rome.var:pa_senate_size }
+	}
+}
+
+pa_senate_motion_passed_effect = {
+	remove_variable = pa_senate_last_motion_waiting
+	set_variable = pa_senate_last_motion_passed
+	if = { limit = { NOT = { has_variable = pa_senate_vote_defied } } change_variable = { name = pa_senate_authority add = 8 max = 100 } }
+	remove_variable = pa_senate_vote_defied
+	remove_variable = pa_senate_war_vote_defied
+}
+
+pa_senate_motion_failed_effect = {
+	remove_variable = pa_senate_last_motion_waiting
+	set_variable = pa_senate_last_motion_rejected
+	remove_variable = pa_senate_vote_defied
+	remove_variable = pa_senate_war_vote_defied
+	change_variable = { name = pa_senate_authority subtract = 5 min = 0 }
+}

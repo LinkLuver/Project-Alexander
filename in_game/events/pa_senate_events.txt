@@ -144,3 +144,61 @@ pa_senate.22 = {
 	trigger = { tag = ROM is_human = yes has_variable = pa_senate_last_election_populares }
 	option = { name = pa_senate.22.a }
 }
+
+pa_senate.30 = {
+	type = country_event
+	title = pa_senate.30.title
+	desc = pa_senate.30.desc
+	outcome = negative
+	immediate = {
+		if = {
+			limit = { var:pa_senate_plot_target ?= { is_alive = yes } var:pa_senate_plotter ?= { is_alive = yes } }
+			kill_character = { target = var:pa_senate_plot_target reason = assassination killer = var:pa_senate_plotter }
+		}
+	}
+	option = { name = pa_senate.30.a }
+}
+
+pa_senate.31 = {
+	type = country_event
+	title = pa_senate.31.title
+	desc = pa_senate.31.desc
+	outcome = neutral
+	option = { name = pa_senate.31.a }
+}
+
+pa_senate.51 = { type = country_event title = pa_senate.51.title desc = pa_senate.51.desc outcome = neutral option = { name = pa_senate.autonomous.a } }
+pa_senate.52 = { type = country_event title = pa_senate.52.title desc = pa_senate.52.desc outcome = neutral option = { name = pa_senate.autonomous.a } }
+pa_senate.53 = { type = country_event title = pa_senate.53.title desc = pa_senate.53.desc outcome = neutral option = { name = pa_senate.autonomous.a } }
+
+# Hard cap for a Roman Senate session. The normal duration modifier ends most
+# sessions sooner. If still open, resolve with the actual native backing.
+pa_senate.41 = {
+	type = country_event
+	hidden = yes
+	immediate = {
+		if = {
+			limit = { tag = ROM has_variable = pa_senate_country_session_guard is_active_parliament = yes has_ongoing_parliament_debate = yes }
+			if = { limit = { parliament_issue_support > 0.5 } end_parliament = yes }
+			else = { end_parliament = no }
+		}
+	}
+}
+
+pa_senate.40 = {
+	type = country_event
+	title = pa_senate.40.title
+	hidden = yes
+	immediate = {
+		if = {
+			limit = { tag = ROM exists = international_organization:pa_roman_senate }
+			international_organization:pa_roman_senate = {
+				if = {
+					limit = { has_variable = pa_senate_session_guard is_active_parliament = yes has_ongoing_parliament_debate = yes }
+					if = { limit = { parliament_issue_support > 0.5 } end_parliament = yes }
+					else = { end_parliament = no }
+				}
+			}
+		}
+	}
+}

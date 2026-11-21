@@ -1,0 +1,50 @@
+﻿# A real law and policy are selected before the Senate is convened.
+pa_senate_propose_law = {
+	type = owncountry
+	show_in_gui_list = no
+	potential = { scope:actor = { tag = ROM government_type = government_type:republic } }
+	allow = {
+		scope:actor = {
+			has_variable = pa_senate_initialized
+			var:pa_senate_size > 0
+			NOT = { has_variable = pa_senate_motion_cooldown }
+			exists = international_organization:pa_roman_senate
+			international_organization:pa_roman_senate = { is_active_parliament = no }
+		}
+	}
+	select_trigger = {
+		looking_for_a = law
+		interaction_source_list = { scope:actor = { every_current_law = { limit = { NOT = { is_locked_for = scope:actor } } add_to_list = source } } }
+		target_flag = target_law
+		name = "ask_for_law_changes_select_law_title"
+		none_available_msg_key = "no_valid_laws"
+		column = { data = law_attribute_column }
+	}
+	select_trigger = {
+		looking_for_a = policy
+		interaction_source_list = { scope:target_law = { every_policy_in_law = { limit = { policy_possible_for_country = scope:actor } add_to_list = source } } }
+		target_flag = target_policy
+		name = "ask_for_law_changes_select_policies_title"
+		none_available_msg_key = "no_valid_policies"
+		top_widget = law_card_header_at_parlaiment_policy_select
+		column = { data = policy_name_desc }
+	}
+	effect = {
+		scope:actor = {
+			if = {
+				limit = { exists = scope:target_policy exists = scope:target_law }
+				set_variable = { name = pa_senate_proposed_policy value = scope:target_policy }
+				set_variable = { name = pa_senate_proposed_law value = scope:target_law }
+				set_variable = pa_senate_agenda_law
+				set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 125 subtract = var:pa_senate_optimates_defectors subtract = 5 } }
+				set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 125 subtract = var:pa_senate_boni_defectors add = 2 } }
+				set_variable = { name = pa_senate_vote_pop value = { value = var:pa_senate_populares_seats multiply = var:pa_senate_populares_approval divide = 125 subtract = var:pa_senate_populares_defectors add = 9 } }
+				if = { limit = { var:pa_senate_optimates_approval < 70 } set_variable = { name = pa_senate_vote_opt value = 0 } }
+				if = { limit = { var:pa_senate_boni_approval < 45 } set_variable = { name = pa_senate_vote_boni value = 0 } }
+				if = { limit = { var:pa_senate_populares_approval < 30 } set_variable = { name = pa_senate_vote_pop value = 0 } }
+				pa_senate_open_motion_debate = { issue = parliament_issue:pa_senate_actual_law_debate }
+				set_variable = { name = pa_senate_motion_cooldown value = yes months = 6 }
+			}
+		}
+	}
+}

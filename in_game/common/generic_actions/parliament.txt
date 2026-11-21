@@ -8,7 +8,12 @@
 	allow = {
 		scope:actor = {
 			is_active_parliament = no
-			months_since_last_parliament_called > "define:NCountry|PARLIAMENT_COOLDOWN_MONTHS"
+			trigger_if = {
+				limit = { tag = ROM has_variable = pa_senate_initialized exists = international_organization:pa_roman_senate }
+				NOT = { has_variable = pa_senate_motion_cooldown }
+				international_organization:pa_roman_senate = { is_active_parliament = no }
+			}
+			trigger_else = { months_since_last_parliament_called > "define:NCountry|PARLIAMENT_COOLDOWN_MONTHS" }
 			NOT = {
 				modifier:parliament_abolished = yes
 				modifier:has_a_parliamentary_system = no
@@ -19,6 +24,7 @@
 	select_trigger = {
 		show_if = {
 			scope:actor = {
+				NOT = { AND = { tag = ROM has_variable = pa_senate_initialized exists = international_organization:pa_roman_senate } }
 				country_type = location
 				modifier:permanent_parliament_location = no
 			}
@@ -78,8 +84,9 @@
 		interaction_source_list = {
 			scope:actor = {
 				every_possible_parliament_issue = {
-					add_to_list = source
+					if = { limit = { NOT = { this = parliament_issue:pa_senate_country_expansion } } add_to_list = source }
 				}
+				if = { limit = { tag = ROM government_type = government_type:republic has_variable = pa_senate_initialized } parliament_issue:pa_senate_country_expansion = { add_to_list = source } }
 			}
 		}
 		ai_interaction_source_list = {
@@ -103,8 +110,34 @@
 			data = parliament_issue_widget
 		}
 		visible = {
-			is_available_for = scope:actor
+			trigger_if = { limit = { this = parliament_issue:pa_senate_country_expansion scope:actor = { tag = ROM government_type = government_type:republic has_variable = pa_senate_initialized } } always = yes }
+			trigger_else = { is_available_for = scope:actor }
 		}
+		enabled = {
+			trigger_if = { limit = { this = parliament_issue:pa_senate_country_expansion } is_available_for = scope:actor }
+			trigger_else = { always = yes }
+		}
+	}
+
+	# Selecting this country issue opens the native law and policy pickers.
+	select_trigger = {
+		show_if = { exists = scope:parliament_issue scope:parliament_issue = parliament_issue:pa_senate_country_law_debate }
+		looking_for_a = law
+		interaction_source_list = { scope:actor = { every_current_law = { limit = { NOT = { is_locked_for = scope:actor } } add_to_list = source } } }
+		target_flag = target_law
+		name = "ask_for_law_changes_select_law_title"
+		none_available_msg_key = "no_valid_laws"
+		column = { data = law_attribute_column }
+	}
+	select_trigger = {
+		show_if = { exists = scope:parliament_issue scope:parliament_issue = parliament_issue:pa_senate_country_law_debate }
+		looking_for_a = policy
+		interaction_source_list = { scope:target_law = { every_policy_in_law = { limit = { policy_possible_for_country = scope:actor } add_to_list = source } } }
+		target_flag = target_policy
+		name = "ask_for_law_changes_select_policies_title"
+		none_available_msg_key = "no_valid_policies"
+		top_widget = law_card_header_at_parlaiment_policy_select
+		column = { data = policy_name_desc }
 	}
 
 	effect = {
@@ -148,6 +181,11 @@
 
 			if = {
 				limit = { exists = scope:parliament_issue }
+				if = {
+					limit = { scope:parliament_issue = parliament_issue:pa_senate_country_law_debate exists = scope:target_law exists = scope:target_policy }
+					set_variable = { name = pa_senate_country_proposed_law value = scope:target_law }
+					set_variable = { name = pa_senate_country_proposed_policy value = scope:target_policy }
+				}
 				set_parliament_issue = scope:parliament_issue
 				set_parliament_issue_support = {
 					add = {
@@ -165,6 +203,14 @@
 							value = "estate_power(scope:parliament_issue.estate_type)"
 						}
 					}
+				}
+				if = {
+					limit = { tag = ROM has_variable = pa_senate_initialized var:pa_senate_size > 0 exists = international_organization:pa_roman_senate }
+					pa_senate_country_initial_backing = yes
+					if = { limit = { scope:parliament_issue = parliament_issue:pa_senate_country_expansion } set_variable = { name = pa_senate_expansion_cooldown value = yes years = 30 } }
+					set_variable = { name = pa_senate_motion_cooldown value = yes months = 6 }
+					set_variable = { name = pa_senate_country_session_guard value = yes days = 101 }
+					trigger_event_silently = { id = pa_senate.41 days = 100 }
 				}
 			}
 		}

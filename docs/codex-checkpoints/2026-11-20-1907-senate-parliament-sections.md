@@ -1,0 +1,5 @@
+# Roman Senate parliament sections
+
+On republic-screen, edit in_game/gui/panels/organization/pa_roman_senate.gui. The IO Overview contains the idle call and active debate headers. The pa_senate_parliament_content override hosts the two collapsible cards below the chamber and current agenda. The five requests use country generic actions. Active estate rows use the country parliament lookup and require a nonempty displayed name.
+
+To reproduce, copy the GUI to the matching relative path inside the local Alexander-Senate mod. Compare SHA256 hashes. Open the Roman Senate IO and select Senate. Check Requests before convening, then start a debate and check the estate agendas and collapse controls. The previous screenshot confirmed two named agenda rows. The new tab placement was checked structurally and by installed file hash. Rendering and accepting an agenda at its new location still need gameplay verification.
