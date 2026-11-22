@@ -1,0 +1,45 @@
+﻿pa_establish_roman_dictatorship = {
+	if = { limit = { tag = ROM government_type = government_type:republic }
+		change_heir_selection = heir_selection:pa_roman_dictator_succession
+		if = {
+			limit = { succession_law ?= heir_selection:pa_roman_dictator_succession }
+			if = {
+				limit = { NOT = { has_variable = pa_roman_dictatorship_active } }
+				set_variable = { name = pa_dictator_stepdown_wait value = yes days = 180 }
+				remove_variable = pa_dictator_stepdown_cooldown
+				remove_variable = pa_dictator_stepdown_dispatch_retry
+			}
+			set_variable = pa_roman_dictatorship_active
+			remove_variable = pa_senate_co_consul
+			remove_variable = pa_forecast_first
+			remove_variable = pa_forecast_second
+			remove_variable = pa_consular_election_pending
+			remove_variable = pa_consular_election_failed
+			remove_variable = pa_restoration_election_in_progress
+			remove_variable = pa_dictator_stepdown_reward_pending
+			error_log = "PA_DICTATORSHIP_DIAG dictatorship succession confirmed"
+		}
+		else = { remove_variable = pa_roman_dictatorship_active error_log = "PA_DICTATORSHIP_DIAG ERROR dictatorship succession not applied; monthly repair will retry" }
+	}
+}
+pa_restore_consular_constitution = {
+	if = { limit = { tag = ROM government_type = government_type:republic has_variable = pa_senate_initialized has_variable = pa_roman_dictatorship_active }
+		change_heir_selection = heir_selection:pa_roman_consular_election
+		remove_variable = pa_roman_dictatorship_active
+		remove_variable = pa_dictator_stepdown_wait
+		remove_variable = pa_dictator_stepdown_pending
+		remove_variable = pa_senate_primary_consul
+		remove_variable = pa_consular_election_pending
+		remove_variable = pa_consular_election_recent
+		set_variable = pa_restoration_election_in_progress
+		if = {
+			limit = { succession_law ?= heir_selection:pa_roman_consular_election }
+			trigger_event_silently = pa_roman_election.1
+			error_log = "PA_DICTATORSHIP_DIAG consular succession confirmed; election requested"
+		}
+		else = {
+			set_variable = pa_consular_election_failed
+			error_log = "PA_DICTATORSHIP_DIAG ERROR consular succession not applied; monthly repair will retry"
+		}
+	}
+}

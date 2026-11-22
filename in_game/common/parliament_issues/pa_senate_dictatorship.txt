@@ -1,0 +1,32 @@
+﻿# A constitutional transition proposed by the consul through the country Parliament.
+pa_senate_dictatorship = {
+	estate = crown_estate
+	potential = { tag = ROM government_type = government_type:republic has_variable = pa_senate_initialized NOT = { has_policy = pa_roman_dictatorship_policy } OR = { pa_dictatorship_emergency_eligible = yes has_variable = pa_dictatorship_debate_underway } }
+	allow = { has_ruler = yes }
+	chance = { add = 1 }
+	on_debate_start = { set_variable = { name = pa_dictatorship_debate_underway value = yes days = 101 } }
+	on_debate_passed = {
+		remove_variable = pa_dictatorship_debate_underway
+		if = {
+			limit = { tag = ROM government_type = government_type:republic }
+			add_policy = policy:pa_roman_dictatorship_policy
+			if = { limit = { has_policy = pa_roman_dictatorship_policy } error_log = "PA_DICTATORSHIP_DIAG dictatorship policy applied" }
+			else = { error_log = "PA_DICTATORSHIP_DIAG ERROR dictatorship policy not applied" }
+		}
+	}
+	on_debate_failed = { remove_variable = pa_dictatorship_debate_underway }
+}
+
+pa_senate_restore_consuls = {
+	estate = crown_estate
+	potential = { tag = ROM government_type = government_type:republic has_variable = pa_senate_initialized has_policy = pa_roman_dictatorship_policy }
+	allow = { has_ruler = yes }
+	chance = { add = 1 }
+	on_debate_passed = {
+		if = { limit = { tag = ROM government_type = government_type:republic has_policy = pa_roman_dictatorship_policy }
+			add_policy = policy:pa_roman_consular_constitution
+			if = { limit = { has_policy = pa_roman_consular_constitution } error_log = "PA_DICTATORSHIP_DIAG consular policy applied" }
+			else = { error_log = "PA_DICTATORSHIP_DIAG ERROR consular policy not applied" }
+		}
+	}
+}

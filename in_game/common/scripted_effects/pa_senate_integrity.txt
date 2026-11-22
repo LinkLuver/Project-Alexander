@@ -1,0 +1,39 @@
+﻿# Recover saves affected by the former test-button overflow. Original values
+# are retained on the country for inspection or a manual recovery.
+pa_senate_repair_overflow = {
+	if = {
+		limit = { has_variable = pa_senate_size has_variable = pa_senate_optimates_seats has_variable = pa_senate_boni_seats has_variable = pa_senate_populares_seats }
+		if = {
+			limit = { pa_senate_occupied_seats > 0 OR = { var:pa_senate_size > 800 pa_senate_occupied_seats > 800 } }
+			if = {
+				limit = { NOT = { has_variable = pa_senate_overflow_backup_exists } }
+				set_variable = { name = pa_senate_overflow_backup_size value = var:pa_senate_size }
+				set_variable = { name = pa_senate_overflow_backup_opt value = var:pa_senate_optimates_seats }
+				set_variable = { name = pa_senate_overflow_backup_boni value = var:pa_senate_boni_seats }
+				set_variable = { name = pa_senate_overflow_backup_pop value = var:pa_senate_populares_seats }
+				set_variable = pa_senate_overflow_backup_exists
+			}
+			set_variable = { name = pa_senate_overflow_old_total value = pa_senate_occupied_seats }
+			if = {
+				limit = { var:pa_senate_overflow_old_total > 800 }
+				set_variable = { name = pa_senate_optimates_seats value = { value = var:pa_senate_optimates_seats multiply = 800 divide = var:pa_senate_overflow_old_total floor = yes } }
+				set_variable = { name = pa_senate_boni_seats value = { value = var:pa_senate_boni_seats multiply = 800 divide = var:pa_senate_overflow_old_total floor = yes } }
+				set_variable = { name = pa_senate_populares_seats value = { value = 800 subtract = var:pa_senate_optimates_seats subtract = var:pa_senate_boni_seats } }
+				set_variable = { name = pa_senate_size value = 800 }
+			}
+			else = { set_variable = { name = pa_senate_size value = var:pa_senate_overflow_old_total } }
+			set_variable = { name = pa_senate_pass_threshold value = { value = var:pa_senate_size multiply = 51 divide = 100 } }
+			set_variable = { name = pa_senate_compromise_threshold value = { value = var:pa_senate_size multiply = 30 divide = 100 } }
+			if = { limit = { has_variable = pa_senate_last_vote } change_variable = { name = pa_senate_last_vote add = 0 min = 0 max = var:pa_senate_size } }
+			remove_variable = pa_senate_overflow_old_total
+			error_log = "PA_SENATE_DIAG repaired over-cap Senate; original totals retained in backup variables"
+		}
+	}
+}
+
+# An alliance favors the diplomatic faction but disappoints other blocs.
+pa_senate_consul_alliance_approval = {
+	change_variable = { name = pa_senate_optimates_approval subtract = 1 min = 0 }
+	change_variable = { name = pa_senate_boni_approval add = 4 max = 100 }
+	change_variable = { name = pa_senate_populares_approval subtract = 3 min = 0 }
+}

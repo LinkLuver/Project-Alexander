@@ -1,0 +1,101 @@
+﻿# The three blocs distribute their seats among eligible candidates. All weights
+# stay positive, so a faction can split its support rather than voting as one.
+pa_roman_prepare_ballot_candidate = {
+	set_variable = { name = pa_ballot_$slot$_opt value = 0 }
+	set_variable = { name = pa_ballot_$slot$_boni value = 0 }
+	set_variable = { name = pa_ballot_$slot$_pop value = 0 }
+	set_variable = { name = pa_ballot_$slot$_votes value = 0 }
+	if = {
+		limit = { $candidate$ ?= { is_alive = yes is_adult = yes is_female = no age_in_years >= 30 owner = c:ROM NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.ruler this = c:ROM.ruler } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } } }
+		set_variable = { name = pa_ballot_$slot$_opt value = { value = $candidate$.adm add = $candidate$.mil add = 1 } }
+		set_variable = { name = pa_ballot_$slot$_boni value = { value = $candidate$.adm add = $candidate$.dip add = 1 } }
+		set_variable = { name = pa_ballot_$slot$_pop value = { value = $candidate$.dip add = $candidate$.mil add = 1 } }
+		if = { limit = { has_variable = pa_senate_optimates_leader $candidate$ = var:pa_senate_optimates_leader } change_variable = { name = pa_ballot_$slot$_opt add = 12 } }
+		if = { limit = { has_variable = pa_senate_boni_leader $candidate$ = var:pa_senate_boni_leader } change_variable = { name = pa_ballot_$slot$_boni add = 12 } }
+		if = { limit = { has_variable = pa_senate_populares_leader $candidate$ = var:pa_senate_populares_leader } change_variable = { name = pa_ballot_$slot$_pop add = 12 } }
+		change_variable = { name = pa_ballot_total_opt add = var:pa_ballot_$slot$_opt }
+		change_variable = { name = pa_ballot_total_boni add = var:pa_ballot_$slot$_boni }
+		change_variable = { name = pa_ballot_total_pop add = var:pa_ballot_$slot$_pop }
+	}
+}
+
+pa_roman_tally_ballot_candidate = {
+	if = {
+		limit = { var:pa_ballot_$slot$_opt > 0 var:pa_ballot_total_opt > 0 var:pa_ballot_total_boni > 0 var:pa_ballot_total_pop > 0 }
+		set_variable = { name = pa_ballot_$slot$_votes value = { value = var:pa_senate_optimates_seats multiply = var:pa_ballot_$slot$_opt divide = var:pa_ballot_total_opt floor = yes } }
+		change_variable = { name = pa_ballot_$slot$_votes add = { value = var:pa_senate_boni_seats multiply = var:pa_ballot_$slot$_boni divide = var:pa_ballot_total_boni floor = yes } }
+		change_variable = { name = pa_ballot_$slot$_votes add = { value = var:pa_senate_populares_seats multiply = var:pa_ballot_$slot$_pop divide = var:pa_ballot_total_pop floor = yes } }
+		change_variable = { name = pa_ballot_allocated add = var:pa_ballot_$slot$_votes }
+	}
+}
+
+# Monthly forecast uses the same recorded ballot as the automatic election.
+pa_roman_rank_forecast_candidate = {
+	if = {
+		limit = { $candidate$ ?= { is_alive = yes is_adult = yes is_female = no age_in_years >= 30 owner = c:ROM NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.ruler this = c:ROM.ruler } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } } }
+		set_variable = { name = pa_forecast_candidate_score value = var:pa_ballot_$slot$_votes }
+		if = {
+			limit = { var:pa_forecast_candidate_score > var:pa_forecast_first_score }
+			if = { limit = { has_variable = pa_forecast_first } set_variable = { name = pa_forecast_second value = var:pa_forecast_first } set_variable = { name = pa_forecast_second_score value = var:pa_forecast_first_score } }
+			set_variable = { name = pa_forecast_first value = $candidate$ }
+			set_variable = { name = pa_forecast_first_score value = var:pa_forecast_candidate_score }
+		}
+		else_if = {
+			limit = { var:pa_forecast_candidate_score > var:pa_forecast_second_score }
+			set_variable = { name = pa_forecast_second value = $candidate$ }
+			set_variable = { name = pa_forecast_second_score value = var:pa_forecast_candidate_score }
+		}
+	}
+}
+
+pa_roman_refresh_consular_forecast = {
+	# Preserve the slate until either predicted officeholder is no longer eligible.
+	if = {
+		limit = { NOT = { var:pa_forecast_first ?= { is_alive = yes is_female = no age_in_years >= 30 owner = c:ROM NAND = { exists = c:ROM.ruler this = c:ROM.ruler } NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } } var:pa_forecast_second ?= { is_alive = yes is_female = no age_in_years >= 30 owner = c:ROM NAND = { exists = c:ROM.ruler this = c:ROM.ruler } NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } } } }
+		remove_variable = pa_forecast_slate_a
+		remove_variable = pa_forecast_slate_b
+		remove_variable = pa_forecast_slate_c
+		remove_variable = pa_forecast_slate_d
+		remove_variable = pa_forecast_slate_e
+	random_election_candidates = { limit = { is_alive = yes is_adult = yes is_female = no age_in_years >= 30 NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.var:pa_senate_primary_consul this = c:ROM.var:pa_senate_primary_consul } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } } save_scope_as = pa_forecast_a }
+	random_election_candidates = { limit = { is_alive = yes is_adult = yes is_female = no age_in_years >= 30 NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.var:pa_senate_primary_consul this = c:ROM.var:pa_senate_primary_consul } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } NAND = { exists = scope:pa_forecast_a this = scope:pa_forecast_a } } save_scope_as = pa_forecast_b }
+	random_election_candidates = { limit = { is_alive = yes is_adult = yes is_female = no age_in_years >= 30 NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.var:pa_senate_primary_consul this = c:ROM.var:pa_senate_primary_consul } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } NAND = { exists = scope:pa_forecast_a this = scope:pa_forecast_a } NAND = { exists = scope:pa_forecast_b this = scope:pa_forecast_b } } save_scope_as = pa_forecast_c }
+	random_election_candidates = { limit = { is_alive = yes is_adult = yes is_female = no age_in_years >= 30 NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.var:pa_senate_primary_consul this = c:ROM.var:pa_senate_primary_consul } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } NAND = { exists = scope:pa_forecast_a this = scope:pa_forecast_a } NAND = { exists = scope:pa_forecast_b this = scope:pa_forecast_b } NAND = { exists = scope:pa_forecast_c this = scope:pa_forecast_c } } save_scope_as = pa_forecast_d }
+	random_election_candidates = { limit = { is_alive = yes is_adult = yes is_female = no age_in_years >= 30 NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.var:pa_senate_primary_consul this = c:ROM.var:pa_senate_primary_consul } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } NAND = { exists = scope:pa_forecast_a this = scope:pa_forecast_a } NAND = { exists = scope:pa_forecast_b this = scope:pa_forecast_b } NAND = { exists = scope:pa_forecast_c this = scope:pa_forecast_c } NAND = { exists = scope:pa_forecast_d this = scope:pa_forecast_d } } save_scope_as = pa_forecast_e }
+		if = { limit = { exists = scope:pa_forecast_a } set_variable = { name = pa_forecast_slate_a value = scope:pa_forecast_a } }
+		if = { limit = { exists = scope:pa_forecast_b } set_variable = { name = pa_forecast_slate_b value = scope:pa_forecast_b } }
+		if = { limit = { exists = scope:pa_forecast_c } set_variable = { name = pa_forecast_slate_c value = scope:pa_forecast_c } }
+		if = { limit = { exists = scope:pa_forecast_d } set_variable = { name = pa_forecast_slate_d value = scope:pa_forecast_d } }
+		if = { limit = { exists = scope:pa_forecast_e } set_variable = { name = pa_forecast_slate_e value = scope:pa_forecast_e } }
+	}
+	remove_variable = pa_forecast_first
+	remove_variable = pa_forecast_second
+	set_variable = { name = pa_forecast_first_score value = -1 }
+	set_variable = { name = pa_forecast_second_score value = -1 }
+	set_variable = { name = pa_ballot_total_opt value = 0 }
+	set_variable = { name = pa_ballot_total_boni value = 0 }
+	set_variable = { name = pa_ballot_total_pop value = 0 }
+	set_variable = { name = pa_ballot_allocated value = 0 }
+	pa_roman_prepare_ballot_candidate = { candidate = var:pa_forecast_slate_a slot = a }
+	pa_roman_prepare_ballot_candidate = { candidate = var:pa_forecast_slate_b slot = b }
+	pa_roman_prepare_ballot_candidate = { candidate = var:pa_forecast_slate_c slot = c }
+	pa_roman_prepare_ballot_candidate = { candidate = var:pa_forecast_slate_d slot = d }
+	pa_roman_prepare_ballot_candidate = { candidate = var:pa_forecast_slate_e slot = e }
+	pa_roman_tally_ballot_candidate = { slot = a }
+	pa_roman_tally_ballot_candidate = { slot = b }
+	pa_roman_tally_ballot_candidate = { slot = c }
+	pa_roman_tally_ballot_candidate = { slot = d }
+	pa_roman_tally_ballot_candidate = { slot = e }
+	# Give rounding remainders to the first eligible slate member, preserving the total.
+	set_variable = { name = pa_ballot_remainder value = { value = pa_senate_occupied_seats subtract = var:pa_ballot_allocated min = 0 } }
+	if = { limit = { var:pa_ballot_a_opt > 0 } change_variable = { name = pa_ballot_a_votes add = var:pa_ballot_remainder } }
+	else_if = { limit = { var:pa_ballot_b_opt > 0 } change_variable = { name = pa_ballot_b_votes add = var:pa_ballot_remainder } }
+	else_if = { limit = { var:pa_ballot_c_opt > 0 } change_variable = { name = pa_ballot_c_votes add = var:pa_ballot_remainder } }
+	else_if = { limit = { var:pa_ballot_d_opt > 0 } change_variable = { name = pa_ballot_d_votes add = var:pa_ballot_remainder } }
+	else_if = { limit = { var:pa_ballot_e_opt > 0 } change_variable = { name = pa_ballot_e_votes add = var:pa_ballot_remainder } }
+	pa_roman_rank_forecast_candidate = { candidate = var:pa_forecast_slate_a slot = a }
+	pa_roman_rank_forecast_candidate = { candidate = var:pa_forecast_slate_b slot = b }
+	pa_roman_rank_forecast_candidate = { candidate = var:pa_forecast_slate_c slot = c }
+	pa_roman_rank_forecast_candidate = { candidate = var:pa_forecast_slate_d slot = d }
+	pa_roman_rank_forecast_candidate = { candidate = var:pa_forecast_slate_e slot = e }
+}

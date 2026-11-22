@@ -1,0 +1,125 @@
+﻿namespace = pa_roman_election
+
+pa_roman_election.1 = {
+	type = country_event
+	hidden = yes
+	title = pa_roman_election.1.title
+	desc = {
+		first_valid = {
+			triggered_desc = { trigger = { has_variable = pa_consular_election_failed } desc = pa_roman_election.1.failed }
+			triggered_desc = { desc = pa_roman_election.1.desc }
+		}
+	}
+	outcome = neutral
+	trigger = { tag = ROM succession_law = heir_selection:pa_roman_consular_election NOT = { has_variable = pa_consular_election_pending } NOT = { has_variable = pa_consular_election_recent } }
+	immediate = {
+		error_log = "PA_CONSUL_DIAG election event immediate reached"
+		set_variable = { name = pa_consular_election_recent value = yes days = 15 }
+		set_variable = { name = pa_consular_election_pending value = yes days = 5 }
+		remove_variable = pa_consular_election_failed
+		# The election uses the most recently published forecast, rather than
+		# a separately sampled candidate order. Refresh only if it became invalid.
+		if = {
+			limit = { NOT = { var:pa_forecast_first ?= { is_alive = yes is_adult = yes is_female = no age_in_years >= 30 owner = c:ROM NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.ruler this = c:ROM.ruler } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } } var:pa_forecast_second ?= { is_alive = yes is_adult = yes is_female = no age_in_years >= 30 owner = c:ROM NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.ruler this = c:ROM.ruler } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } } } }
+			pa_roman_refresh_consular_forecast = yes
+		}
+		remove_variable = pa_consular_first
+		remove_variable = pa_consular_second
+		if = {
+			limit = { var:pa_forecast_first ?= { is_alive = yes is_adult = yes is_female = no age_in_years >= 30 owner = c:ROM NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.ruler this = c:ROM.ruler } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } NOT = { this = c:ROM.var:pa_forecast_second } } var:pa_forecast_second ?= { is_alive = yes is_adult = yes is_female = no age_in_years >= 30 owner = c:ROM NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.ruler this = c:ROM.ruler } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } } }
+			set_variable = { name = pa_consular_first value = var:pa_forecast_first }
+			set_variable = { name = pa_consular_second value = var:pa_forecast_second }
+			set_variable = { name = pa_consular_first_score value = var:pa_forecast_first_score }
+			set_variable = { name = pa_consular_second_score value = var:pa_forecast_second_score }
+			error_log = "PA_CONSUL_DIAG election uses published forecast"
+		}
+		if = {
+			limit = { has_variable = pa_consular_first has_variable = pa_consular_second }
+			error_log = "PA_CONSUL_DIAG top two ranked; scheduling synchronized appointments"
+			trigger_event_silently = { id = pa_roman_election.2 days = 1 }
+		}
+		else = { remove_variable = pa_consular_election_pending set_variable = pa_consular_election_failed error_log = "PA_CONSUL_DIAG election FAILED: fewer than two ranked candidates" }
+	}
+}
+
+# Apply both results after the engine's election transition has finished.
+pa_roman_election.2 = {
+	type = country_event
+	hidden = yes
+	title = empty_text
+	immediate = {
+		if = {
+			limit = { tag = ROM NOT = { has_policy = pa_roman_dictatorship_policy } succession_law ?= heir_selection:pa_roman_consular_election var:pa_consular_first ?= { is_alive = yes is_female = no age_in_years >= 30 owner = c:ROM NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } NOT = { this = c:ROM.var:pa_consular_second } } var:pa_consular_second ?= { is_alive = yes is_female = no age_in_years >= 30 owner = c:ROM NOT = { has_variable = pa_senate_consul_reentry_ban } NAND = { exists = c:ROM.ruler this = c:ROM.ruler } NAND = { exists = c:ROM.var:pa_senate_co_consul this = c:ROM.var:pa_senate_co_consul } } }
+			save_scope_as = pa_consular_diag_country
+			var:pa_senate_co_consul ?= { save_scope_as = pa_outgoing_co_consul }
+			if = { limit = { NOT = { ruler ?= { this = c:ROM.var:pa_consular_first } } } set_new_ruler = var:pa_consular_first }
+			if = {
+				limit = { ruler ?= { this = c:ROM.var:pa_consular_first } }
+				set_variable = { name = pa_senate_primary_consul value = var:pa_consular_first }
+				set_variable = { name = pa_senate_co_consul value = var:pa_consular_second }
+				if = {
+				limit = { var:pa_senate_co_consul ?= { this = c:ROM.var:pa_consular_second } }
+				remove_variable = pa_consular_election_failed
+				remove_variable = pa_consular_election_pending
+				remove_variable = pa_restoration_election_in_progress
+				scope:pa_outgoing_co_consul ?= { set_variable = { name = pa_senate_consul_reentry_ban value = yes years = 10 } }
+				error_log = "PA_CONSUL_DIAG ruler MATCHES first place"
+				if = { limit = { var:pa_senate_co_consul ?= { this = c:ROM.var:pa_consular_second } } error_log = "PA_CONSUL_DIAG co-consul MATCHES second place" }
+				else = { error_log = "PA_CONSUL_DIAG co-consul MISMATCH after assignment" }
+				if = { limit = { is_human = yes } error_log = pa_consul_diag_result }
+				trigger_event_silently = { id = pa_roman_election.3 days = 2 }
+				}
+				else = { remove_variable = pa_consular_election_pending set_variable = pa_consular_election_failed error_log = "PA_CONSUL_DIAG appointment FAILED: co-consul assignment mismatch; retrying" }
+			}
+			else = { remove_variable = pa_consular_election_pending set_variable = pa_consular_election_failed error_log = "PA_CONSUL_DIAG ruler MISMATCH after assignment" }
+		}
+		else = { remove_variable = pa_consular_election_pending if = { limit = { NOT = { has_policy = pa_roman_dictatorship_policy } } set_variable = pa_consular_election_failed error_log = "PA_CONSUL_DIAG appointment FAILED: winner or runner-up unavailable" } }
+	}
+}
+
+# Check that no other succession or maintenance path overwrote the result.
+pa_roman_election.3 = {
+	type = country_event
+	hidden = yes
+	title = empty_text
+	immediate = {
+		if = { limit = { ruler ?= { this = c:ROM.var:pa_consular_first } } error_log = "PA_CONSUL_DIAG delayed ruler MATCHES first place" }
+		else = { error_log = "PA_CONSUL_DIAG delayed ruler MISMATCH" }
+		if = { limit = { var:pa_senate_co_consul ?= { this = c:ROM.var:pa_consular_second } } error_log = "PA_CONSUL_DIAG delayed co-consul MATCHES second place" }
+		else = { error_log = "PA_CONSUL_DIAG delayed co-consul MISMATCH" }
+		if = {
+			limit = { has_variable = pa_dictator_stepdown_reward_pending NOT = { has_policy = pa_roman_dictatorship_policy } succession_law ?= heir_selection:pa_roman_consular_election ruler ?= { this = c:ROM.var:pa_consular_first } var:pa_senate_co_consul ?= { this = c:ROM.var:pa_consular_second } }
+			change_variable = { name = pa_senate_tyranny subtract = 20 min = 0 }
+			add_stability = 10
+			change_variable = { name = pa_senate_optimates_approval add = 10 max = 100 }
+			change_variable = { name = pa_senate_boni_approval add = 10 max = 100 }
+			change_variable = { name = pa_senate_populares_approval add = 10 max = 100 }
+			change_variable = { name = pa_senate_optimates_crisis subtract = 6 min = 0 }
+			change_variable = { name = pa_senate_boni_crisis subtract = 6 min = 0 }
+			change_variable = { name = pa_senate_populares_crisis subtract = 6 min = 0 }
+			remove_variable = pa_dictator_stepdown_reward_pending
+			error_log = "PA_DICTATORSHIP_DIAG delayed confirmation succeeded; restoration rewards applied"
+		}
+		else_if = {
+			limit = { has_variable = pa_dictator_stepdown_reward_pending NOT = { has_policy = pa_roman_dictatorship_policy } }
+			set_variable = pa_consular_election_failed
+			set_variable = pa_restoration_election_in_progress
+			error_log = "PA_DICTATORSHIP_DIAG delayed confirmation failed; restoration election will retry"
+		}
+	}
+}
+
+# Death can occur before term expiry. If native succession has not already
+# dispatched the election, run the same election after that transition.
+pa_roman_election.4 = {
+	type = country_event
+	hidden = yes
+	title = empty_text
+	immediate = {
+		if = {
+			limit = { tag = ROM government_type = government_type:republic succession_law ?= heir_selection:pa_roman_consular_election NOT = { has_variable = pa_consular_election_pending } NOT = { has_variable = pa_consular_election_recent } }
+			error_log = "PA_CONSUL_DIAG ruler-death fallback dispatch"
+			trigger_event_silently = pa_roman_election.1
+		}
+	}
+}

@@ -1,0 +1,34 @@
+﻿namespace = pa_dictatorship
+
+pa_dictatorship.1 = {
+	type = country_event
+	title = pa_dictatorship.1.title
+	desc = pa_dictatorship.1.desc
+	outcome = negative
+	trigger = { tag = ROM government_type = government_type:republic has_policy = pa_roman_dictatorship_policy has_variable = pa_roman_dictatorship_active }
+	immediate = { set_variable = pa_dictator_stepdown_pending }
+	option = {
+		name = pa_dictatorship.1.step_down
+		set_variable = pa_dictator_stepdown_reward_pending
+		add_policy = policy:pa_roman_consular_constitution
+		if = {
+			limit = { has_policy = pa_roman_consular_constitution }
+			error_log = "PA_DICTATORSHIP_DIAG dictator accepted Senate demand; reward awaits elected consuls"
+		}
+		else = { remove_variable = pa_dictator_stepdown_reward_pending remove_variable = pa_dictator_stepdown_pending set_variable = { name = pa_dictator_stepdown_cooldown value = yes years = 2 } error_log = "PA_DICTATORSHIP_DIAG ERROR step-down policy not applied" }
+	}
+	option = {
+		name = pa_dictatorship.1.refuse
+		high_risk_option = yes
+		remove_variable = pa_dictator_stepdown_pending
+		set_variable = { name = pa_dictator_stepdown_cooldown value = yes years = 2 }
+		change_variable = { name = pa_senate_tyranny add = 15 max = 100 }
+		add_stability = -10
+		change_variable = { name = pa_senate_optimates_approval subtract = 15 min = 0 }
+		change_variable = { name = pa_senate_boni_approval subtract = 15 min = 0 }
+		change_variable = { name = pa_senate_populares_approval subtract = 15 min = 0 }
+		change_variable = { name = pa_senate_optimates_crisis add = 3 max = 12 }
+		change_variable = { name = pa_senate_boni_crisis add = 3 max = 12 }
+		change_variable = { name = pa_senate_populares_crisis add = 3 max = 12 }
+	}
+}

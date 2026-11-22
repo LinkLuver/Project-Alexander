@@ -31,8 +31,23 @@ pa_senate_autonomous_proposal = {
 		1 = {
 			change_variable = { name = pa_senate_vote_pop add = 9 }
 			change_variable = { name = pa_senate_vote_opt subtract = 5 }
-			set_variable = pa_senate_agenda_law
-			pa_senate_open_motion_debate = { issue = parliament_issue:pa_senate_law_debate }
+			random_possible_policy = {
+				limit = {
+					OR = { this = policy:pa_senate_aristocratic_grants_policy this = policy:pa_senate_military_levies_policy this = policy:pa_senate_civic_works_policy this = policy:pa_senate_tax_reform_policy this = policy:pa_senate_citizen_recruitment_policy this = policy:pa_senate_workshop_investment_policy this = policy:pa_senate_grain_reserves_policy this = policy:pa_senate_farm_expansion_policy this = policy:pa_senate_grain_distribution_policy this = policy:pa_senate_rural_foodworks_policy this = policy:pa_senate_levy_expansion_policy this = policy:pa_senate_provincial_registers_policy this = policy:pa_senate_public_construction_policy }
+					law = { NOT = { is_locked_for = root } }
+				}
+				save_scope_as = pa_autonomous_policy
+			}
+			if = {
+				limit = { exists = scope:pa_autonomous_policy }
+				set_variable = { name = pa_senate_proposed_policy value = scope:pa_autonomous_policy }
+				set_variable = pa_senate_agenda_law
+				pa_senate_open_motion_debate = { issue = parliament_issue:pa_senate_actual_law_debate }
+			}
+			else = {
+				set_variable = pa_senate_agenda_stability
+				pa_senate_open_motion_debate = { issue = parliament_issue:pa_senate_stability_debate }
+			}
 			trigger_event_non_silently = pa_senate.53
 		}
 	}

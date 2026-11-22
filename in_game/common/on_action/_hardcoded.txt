@@ -1,4 +1,4 @@
-#P:A TODO Manual cleanup of file required
+﻿#P:A TODO Manual cleanup of file required
 #P:A Replaced Vanilla File
 #P:A TODO This whole file needs a review for the stuff left in it.
 on_game_start = {
@@ -69,7 +69,7 @@ pa_senate_game_start = {
 					set_variable = { name = pa_senate_size value = 300 }
 					set_variable = { name = pa_senate_pass_threshold value = 153 }
 					set_variable = { name = pa_senate_compromise_threshold value = 90 }
-					set_variable = { name = pa_senate_authority value = 50 }
+					set_variable = { name = pa_senate_authority value = 75 }
 					set_variable = { name = pa_senate_tyranny value = 0 }
 					set_variable = { name = pa_senate_vote_opt value = 0 }
 					set_variable = { name = pa_senate_vote_boni value = 0 }
@@ -84,10 +84,10 @@ pa_senate_game_start = {
 				if = { limit = { NOT = { has_variable = pa_senate_populares_leader } } random_character = { limit = { owner = c:ROM is_alive = yes is_adult = yes has_dynasty = yes this != c:ROM.ruler NOT = { dynasty = c:ROM.var:pa_senate_optimates_leader.dynasty } NOT = { dynasty = c:ROM.var:pa_senate_boni_leader.dynasty } } set_variable = pa_senate_party_leader c:ROM = { set_variable = { name = pa_senate_populares_leader value = prev } } } }
 				set_variable = { name = pa_senate_primary_consul value = ruler }
 				remove_variable = pa_senate_co_consul
-				if = { limit = { character:publius_sulpicius_saverrio ?= { is_alive = yes owner = c:ROM this != c:ROM.ruler } } set_variable = { name = pa_senate_co_consul value = character:publius_sulpicius_saverrio } }
-				else_if = { limit = { var:pa_senate_boni_leader ?= { is_alive = yes this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader } }
-				else_if = { limit = { var:pa_senate_populares_leader ?= { is_alive = yes this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader } }
-				else_if = { limit = { var:pa_senate_optimates_leader ?= { is_alive = yes this != root.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader } }
+				if = { limit = { character:publius_sulpicius_saverrio ?= { is_alive = yes is_female = no age_in_years >= 30 owner = c:ROM this != c:ROM.ruler } } set_variable = { name = pa_senate_co_consul value = character:publius_sulpicius_saverrio } }
+				else_if = { limit = { var:pa_senate_boni_leader ?= { is_alive = yes is_female = no age_in_years >= 30 this != c:ROM.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_boni_leader } }
+				else_if = { limit = { var:pa_senate_populares_leader ?= { is_alive = yes is_female = no age_in_years >= 30 this != c:ROM.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_populares_leader } }
+				else_if = { limit = { var:pa_senate_optimates_leader ?= { is_alive = yes is_female = no age_in_years >= 30 this != c:ROM.ruler } } set_variable = { name = pa_senate_co_consul value = var:pa_senate_optimates_leader } }
 			}
 		}
 	}
@@ -1016,6 +1016,10 @@ on_colonial_charter_failed = {
 
 # root = country
 on_election = {
+	on_actions = { pa_roman_consular_election_dispatch }
+	effect = {
+		if = { limit = { tag = ROM } error_log = "PA_CONSUL_DIAG on_election reached for Rome" }
+	}
 	events = {
 		#election.1	#Normal Election #P:A TODO Associated event was removed
 		election.2	#Lottery Election #P:A TODO Associated event was removed
@@ -1205,6 +1209,7 @@ on_new_ruler = {
 		#flavor_por.2005 # Pedro on the throne #P:A TODO Associated event was removed
 	}
 	effect = {
+		if = { limit = { tag = ROM } error_log = "PA_CONSUL_DIAG on_new_ruler reached for Rome" }
 		if = {
 			limit = { tag = ROM government_type = government_type:republic exists = scope:old_ruler }
 			scope:old_ruler = { set_variable = { name = pa_senate_consul_reentry_ban value = yes years = 10 } }
@@ -1349,6 +1354,8 @@ on_ruler_death = {
 	}
 
 	effect = {
+		if = { limit = { tag = ROM } error_log = "PA_CONSUL_DIAG on_ruler_death reached for Rome" }
+		if = { limit = { tag = ROM government_type = government_type:republic succession_law ?= heir_selection:pa_roman_consular_election } trigger_event_silently = { id = pa_roman_election.4 days = 2 } }
 		if = {
 			limit = {
 				has_heir = no
@@ -2059,6 +2066,13 @@ on_character_moved_country = {
 
 #root = country, scope:location = parliament seat location
 on_parliament_started = {
+	effect = {
+		if = {
+			limit = { tag = ROM government_type = government_type:republic has_variable = pa_senate_initialized }
+			set_variable = { name = pa_senate_backing_initialization_pending value = yes days = 3 }
+			trigger_event_silently = { id = pa_senate.42 days = 1 }
+		}
+	}
 }
 
 #root = country, scope:target = parliament issue, scope:location = parliament seat location

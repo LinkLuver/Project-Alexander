@@ -1,4 +1,12 @@
-# Country scope, after the native country Parliament issue is selected.
+﻿# Country scope, after the native country Parliament issue is selected.
+pa_senate_begin_country_session = {
+	pa_senate_country_initial_backing = yes
+	if = { limit = { scope:parliament_issue = parliament_issue:pa_senate_country_expansion } set_variable = { name = pa_senate_expansion_cooldown value = yes years = 30 } }
+	set_variable = { name = pa_senate_motion_cooldown value = yes months = 6 }
+	set_variable = { name = pa_senate_country_session_guard value = yes days = 101 }
+	trigger_event_silently = { id = pa_senate.41 days = 100 }
+}
+
 pa_senate_country_initial_backing = {
 	set_variable = { name = pa_senate_vote_opt value = { value = pa_senate_optimates_approving_seats subtract = var:pa_senate_optimates_defectors } }
 	set_variable = { name = pa_senate_vote_boni value = { value = pa_senate_boni_approving_seats subtract = var:pa_senate_boni_defectors } }
@@ -47,10 +55,19 @@ pa_senate_country_initial_backing = {
 		if = { limit = { var:pa_senate_boni_approval < 85 } set_variable = { name = pa_senate_vote_boni value = 0 } }
 		if = { limit = { var:pa_senate_populares_approval < 75 } set_variable = { name = pa_senate_vote_pop value = 0 } }
 	}
+	# Ordinary issues begin at the approval displayed in the Senate. Special
+	# motions retain the faction-specific opposition calculated above.
+	if = {
+		limit = { NOT = { scope:parliament_issue = parliament_issue:pa_senate_country_war } NOT = { scope:parliament_issue = parliament_issue:pa_senate_country_alliance } NOT = { scope:parliament_issue = parliament_issue:pa_senate_country_expansion } }
+		set_variable = { name = pa_senate_vote_opt value = pa_senate_optimates_approving_seats }
+		set_variable = { name = pa_senate_vote_boni value = pa_senate_boni_approving_seats }
+		set_variable = { name = pa_senate_vote_pop value = pa_senate_populares_approving_seats }
+	}
 	change_variable = { name = pa_senate_vote_opt add = 0 min = 0 max = var:pa_senate_optimates_seats }
 	change_variable = { name = pa_senate_vote_boni add = 0 min = 0 max = var:pa_senate_boni_seats }
 	change_variable = { name = pa_senate_vote_pop add = 0 min = 0 max = var:pa_senate_populares_seats }
 	set_variable = { name = pa_senate_last_vote value = { value = var:pa_senate_vote_opt add = var:pa_senate_vote_boni add = var:pa_senate_vote_pop } }
+	# Native support and the Senate's last vote use the same supporting seats.
 	set_parliament_issue_support = { value = var:pa_senate_last_vote divide = { value = pa_senate_occupied_seats min = 1 } }
 	remove_variable = pa_senate_last_motion_passed
 	remove_variable = pa_senate_last_motion_rejected

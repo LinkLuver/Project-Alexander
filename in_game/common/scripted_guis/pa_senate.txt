@@ -1,4 +1,27 @@
-# Country-scoped senate prototype. Values are initialized only once per country.
+﻿# Country-scoped senate prototype. Values are initialized only once per country.
+pa_senate_test_add_500 = {
+    effect = {
+        root = {
+            if = {
+                limit = { has_variable = pa_senate_initialized var:pa_senate_size < 800 }
+                set_variable = { name = pa_senate_test_added value = { value = 800 subtract = var:pa_senate_size max = 500 min = 0 } }
+                set_variable = { name = pa_senate_test_opt value = { value = var:pa_senate_test_added multiply = 0.4 round = yes } }
+                set_variable = { name = pa_senate_test_boni value = { value = var:pa_senate_test_added multiply = 0.35 round = yes } }
+                set_variable = { name = pa_senate_test_pop value = { value = var:pa_senate_test_added subtract = var:pa_senate_test_opt subtract = var:pa_senate_test_boni } }
+                change_variable = { name = pa_senate_optimates_seats add = var:pa_senate_test_opt }
+                change_variable = { name = pa_senate_boni_seats add = var:pa_senate_test_boni }
+                change_variable = { name = pa_senate_populares_seats add = var:pa_senate_test_pop }
+                change_variable = { name = pa_senate_size add = var:pa_senate_test_added }
+                set_variable = { name = pa_senate_pass_threshold value = { value = var:pa_senate_size multiply = 51 divide = 100 } }
+                set_variable = { name = pa_senate_compromise_threshold value = { value = var:pa_senate_size multiply = 30 divide = 100 } }
+                remove_variable = pa_senate_test_added
+                remove_variable = pa_senate_test_opt
+                remove_variable = pa_senate_test_boni
+                remove_variable = pa_senate_test_pop
+            }
+        }
+    }
+}
 pa_senate_initialize = {
     effect = {
         root = {
@@ -14,7 +37,7 @@ pa_senate_initialize = {
                 set_variable = { name = pa_senate_size value = 300 }
                 set_variable = { name = pa_senate_pass_threshold value = 153 }
                 set_variable = { name = pa_senate_compromise_threshold value = 90 }
-                set_variable = { name = pa_senate_authority value = 50 }
+                set_variable = { name = pa_senate_authority value = 75 }
                 set_variable = { name = pa_senate_last_vote value = 0 }
                 set_variable = { name = pa_senate_vote_opt value = 0 }
                 set_variable = { name = pa_senate_vote_boni value = 0 }
@@ -82,11 +105,7 @@ pa_senate_expand_membership = {
             set_parliament_location = capital
             set_parliament_active = yes
             set_parliament_issue = parliament_issue:pa_senate_country_expansion
-            pa_senate_country_initial_backing = yes
-            set_variable = { name = pa_senate_expansion_cooldown value = yes years = 30 }
-            set_variable = { name = pa_senate_motion_cooldown value = yes months = 6 }
-            set_variable = { name = pa_senate_country_session_guard value = yes days = 101 }
-            trigger_event_silently = { id = pa_senate.41 days = 100 }
+            pa_senate_begin_country_session = yes
         }
     } }
 }
@@ -164,7 +183,9 @@ pa_senate_defy_senate_for_war = {
 		}
             change_variable = { name = pa_senate_tyranny add = 15 max = 100 }
             change_variable = { name = pa_senate_authority subtract = 12 min = 0 }
+			change_variable = { name = pa_senate_optimates_approval subtract = 5 min = 0 }
             change_variable = { name = pa_senate_boni_approval subtract = 8 min = 0 }
+			change_variable = { name = pa_senate_populares_approval subtract = 3 min = 0 }
             change_variable = { name = pa_senate_boni_crisis add = 2 max = 12 }
 			if = {
 				limit = { is_active_parliament = yes has_ongoing_parliament_debate = yes }
@@ -224,6 +245,7 @@ pa_senate_vote_stability = {
             remove_variable = pa_senate_agenda_works
             remove_variable = pa_senate_agenda_law
 			remove_variable = pa_senate_agenda_war
+			remove_variable = pa_senate_agenda_alliance
             set_variable = pa_senate_agenda_stability
             set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 125 } }
             set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 125 } }
@@ -256,6 +278,7 @@ pa_senate_vote_holdings = {
             remove_variable = pa_senate_agenda_works
             remove_variable = pa_senate_agenda_law
 			remove_variable = pa_senate_agenda_war
+			remove_variable = pa_senate_agenda_alliance
             set_variable = pa_senate_agenda_holdings
             set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 125 } }
             set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 125 } }
@@ -288,6 +311,7 @@ pa_senate_vote_public_works = {
             remove_variable = pa_senate_agenda_holdings
             remove_variable = pa_senate_agenda_law
 			remove_variable = pa_senate_agenda_war
+			remove_variable = pa_senate_agenda_alliance
             set_variable = pa_senate_agenda_works
             set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 125 } }
             set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 125 } }
@@ -320,6 +344,7 @@ pa_senate_vote_civic_law = {
             remove_variable = pa_senate_agenda_holdings
             remove_variable = pa_senate_agenda_works
 			remove_variable = pa_senate_agenda_war
+			remove_variable = pa_senate_agenda_alliance
             set_variable = pa_senate_agenda_law
             set_variable = { name = pa_senate_vote_opt value = { value = var:pa_senate_optimates_seats multiply = var:pa_senate_optimates_approval divide = 125 } }
             set_variable = { name = pa_senate_vote_boni value = { value = var:pa_senate_boni_seats multiply = var:pa_senate_boni_approval divide = 125 } }
