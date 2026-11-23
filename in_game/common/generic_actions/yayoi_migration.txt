@@ -16,7 +16,7 @@ build_japanese_settlement = {
 	automation_tick = never
 	automation_tick_frequency = 12
 
-	price =  price:yayoi_building_price
+	price =  price:yayoi_actions_price
 	
 
 	select_trigger = {
@@ -64,9 +64,22 @@ build_japanese_settlement = {
 		scope:target_location = {
 			construct_building = {
 				building_type = building_type:japanese_settlement_building
-				cost_multiplier = 0
+				cost_multiplier = 0.5
 				cost_multiplier_reason = "yayoi_settlement_sponsorship"
 			}
+		}
+	}
+	ai_will_do = {
+		value = 0 #this is really good we want to do this 
+		if = {
+			limit = {
+				scope:actor = {
+					any_owned_location = {
+						raw_material = goods:rice
+					}
+				}
+			}
+			add = 1
 		}
 	}
 }
@@ -79,9 +92,9 @@ invite_korean_migrants = {
 		scope:actor = {
 			original_capital ?= { region = region:japan_region }
 
-			# culture = {
-			# 	has_culture_group = culture_group:japanese_group
-			# }
+			culture = {
+				has_culture_group = culture_group:japanese_group
+			}
 		}
 	}
 
@@ -123,6 +136,7 @@ invite_korean_migrants = {
 		none_available_msg_key = "no_provinces_available"
 		column = { data = name }
 		visible = {
+
 			any_location_in_province_definition = {
 				owner = scope:actor
 				region = region:japan_region
@@ -156,6 +170,9 @@ invite_korean_migrants = {
 				months = 60
 			}
 		}
+	}
+	ai_will_do = {
+		value = 10 #
 	}
 }
 
@@ -247,6 +264,9 @@ press_yayoi_claim = {
 			}
 		}
 	}
+	ai_will_do = {
+		value = 10 #
+	}
 }
 
 introduce_rice = { #TODO maybe change to be a production boost to rice for a time? or we need to remove the rice from the setup 
@@ -266,7 +286,7 @@ introduce_rice = { #TODO maybe change to be a production boost to rice for a tim
 
 	automation_tick = never
 	automation_tick_frequency = 12
-	price = price:yayoi_actions_price
+	price = price:yayoi_rice_price
 
 
 	select_trigger = {
@@ -293,12 +313,7 @@ introduce_rice = { #TODO maybe change to be a production boost to rice for a tim
 		visible = {
 			owner = scope:actor
 			region = region:japan_region
-			NOT = {
-				raw_material = goods:rice
-			}
-			raw_material = {
-				is_food = yes
-			}
+			raw_material = goods:wild_game
 			is_goods_valid_for_location = goods:rice
 		}
 	}
@@ -313,6 +328,20 @@ introduce_rice = { #TODO maybe change to be a production boost to rice for a tim
 			}
 			change_prosperity = prosperity_weak_penalty
 			change_raw_material = goods:rice
+		}
+	}
+	ai_will_do = {
+		value = 0 # make the wild game RICE
+		if = {
+			limit = {
+				scope:actor = {
+					any_owned_location = {
+						raw_material = goods:wild_game
+						count >= 2
+					}
+				}
+			}
+			add = 1000
 		}
 	}
 }
