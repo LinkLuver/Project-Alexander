@@ -1,0 +1,162 @@
+﻿
+namespace = city_sacking
+
+scripted_effect limited_city_sack_payment = {
+    add_gold = {
+        value = scope:target_location.num_buildings
+        multiply = 0.25
+        ceiling = yes
+        multiply = 20
+    }
+}
+
+scripted_effect extensive_city_sack_payment = {
+    add_gold = {
+        value = scope:target_location.num_buildings
+        multiply = 0.50
+        ceiling = yes
+        multiply = 20
+    }
+}
+
+scripted_effect sack_destroy_building_levels = {
+    change_building_level_in_location = {
+        building = prev.building_type
+        value = {
+            add = prev.building_level
+            multiply = -0.5
+            floor = yes
+        }
+    }
+}
+
+scripted_effect limited_city_sack_damage = {
+    every_pop = {
+        add_pop_size = {
+            value = pop_size
+            multiply = -0.02
+        }
+    }
+    add_location_modifier = {
+        modifier = pa_sacked_city
+        years = 10
+        mode = add_and_extend
+    }
+    ordered_buildings_in_location = {
+        order_by = building_level
+        check_range_bounds = no
+        max = {
+            value = 1
+            add = {
+                value = num_buildings
+                multiply = 0.25
+                ceiling = yes
+            }
+        }
+        location = {
+            sack_destroy_building_levels = yes
+        }
+    }
+}
+
+scripted_effect extensive_city_sack_damage = {
+    every_pop = {
+        add_pop_size = {
+            value = pop_size
+            multiply = -0.05
+        }
+    }
+    add_location_modifier = {
+        modifier = pa_sacked_city
+        years = 20
+        mode = add_and_extend
+    }
+    ordered_buildings_in_location = {
+        order_by = building_level
+        check_range_bounds = no
+        max = {
+            value = 1
+            add = {
+                value = num_buildings
+                multiply = 0.5
+                ceiling = yes
+            }
+        }
+        location = {
+            sack_destroy_building_levels = yes
+        }
+    }
+}
+
+city_sacking.1 = { # Generic city sack
+    type = country_event
+    title = city_sacking.1.title
+    desc = city_sacking.1.desc
+    outcome = negative
+    
+    trigger = {
+        scope:target = {
+            has_owner = yes
+            rank_index > 0
+            population >= 5
+            not = {
+                has_location_modifier = pa_sacked_city
+            }
+            any_unit_in_location = {
+                # Check that this unit belongs to the attacking country
+                owner = root
+            }
+        }
+
+    }
+
+    image = "gfx/interface/illustrations/event/backgrounds/special/earthquake.dds"
+
+    immediate = {
+        scope:target = {
+            save_scope_as = target_location
+
+        }
+        owner ?= {
+            event_illustration_estate_effect = {
+                foreground = estate_type:nobles_estate
+                background = estate_type:nobles_estate
+            }
+        }
+    }
+
+    option = {
+        name = city_sacking.1.a
+        # Spare the city
+    }
+
+    option = {
+        name = city_sacking.1.b
+
+        
+        limited_city_sack_payment = yes
+
+        custom_tooltip = city_sacking.1.b.tt
+        hidden_effect = {
+            scope:target_location = {
+
+                limited_city_sack_damage = yes
+            }
+        }
+    }
+
+    option = {
+        name = city_sacking.1.c
+
+        extensive_city_sack_payment = yes
+        add_location_modifier = pa_sacked_city
+
+        custom_tooltip = city_sacking.1.c.tt
+        hidden_effect = {
+            scope:target_location = {
+
+                extensive_city_sack_damage = yes
+            }
+        }
+    }
+}
