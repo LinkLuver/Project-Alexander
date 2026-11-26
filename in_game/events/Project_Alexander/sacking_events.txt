@@ -18,7 +18,13 @@ scripted_effect extensive_city_sack_payment = {
         multiply = 20
     }
 }
-
+scripted_effect destroyed_city_sack_payment = {
+    add_gold = {
+        value = scope:target_location.num_buildings
+        ceiling = yes
+        multiply = 20
+    }
+}
 scripted_effect sack_destroy_building_levels = {
     change_building_level_in_location = {
         building = prev.building_type
@@ -87,7 +93,35 @@ scripted_effect extensive_city_sack_damage = {
         }
     }
 }
+scripted_effect destroy_city_sack_damage = {
+    every_pop = {
+        add_pop_size = {
+            value = pop_size
+            multiply = -0.25
+        }
+    }
+    add_location_modifier = {
+        modifier = pa_sacked_city
+        years = 50
+        mode = add_and_extend
+    }
+    ordered_buildings_in_location = {
+        order_by = building_level
+        check_range_bounds = no
+        max = {
+            value = 1
+            add = {
+                value = num_buildings
+                ceiling = yes
+            }
+        }
+        location = {
+            sack_destroy_building_levels = yes
+        }
+    }
+    change_location_rank_effect = { location_rank = location_rank:rural_settlement}
 
+}
 city_sacking.1 = { # Generic city sack
     type = country_event
     title = city_sacking.1.title
@@ -156,6 +190,31 @@ city_sacking.1 = { # Generic city sack
             scope:target_location = {
 
                 extensive_city_sack_damage = yes
+            }
+            random_list = {
+                90 = {  }
+			    10 = { scope:character={add_trait = trait:cruel} }
+            }
+        }
+    }
+    option = {
+        name = city_sacking.1.d
+
+        trigger = {
+            OR = {
+                ruler = {
+                    has_trait = cruel
+                }
+                any_general = {
+                    has_trait = cruel
+                }
+            }
+        }
+        destroyed_city_sack_payment = yes
+        custom_tooltip = city_sacking.1.d.tt
+        hidden_effect = {
+            scope:target_location = {
+                destroy_city_sack_damage = yes
             }
         }
     }
